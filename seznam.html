@@ -37,15 +37,13 @@
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQzpP83wIYZPcnb1NI9pPSPixzcEQuRVrTOyPD7SRbgYZSrQs7QdcLNwPJ5lQleGbVVK29nr2-bMo6Y/pub?gid=0&single=true&output=csv";
 
 let allData = [];
-let headers = [];
 
 async function loadData() {
   try {
     const res = await fetch(sheetUrl);
     const text = await res.text();
     allData = text.split("\n").map(r => r.split(",")).filter(r => r.join("").trim() !== "");
-    headers = allData[0];
-    renderTable(allData.slice(1));
+    renderTable(allData.slice(1)); // vynecháme hlavičku
   } catch (err) {
     document.getElementById("results").innerHTML = "Chyba při načítání dat: " + err;
   }
@@ -54,7 +52,7 @@ async function loadData() {
 function renderTable(rows){
   if (!rows.length){ document.getElementById("results").innerHTML = "Žádná data"; return; }
   let html = "<table><thead><tr>";
-  headers.forEach(h => { html += "<th>"+h+"</th>"; });
+  allData[0].forEach(h => { html += "<th>"+h+"</th>"; });
   html += "</tr></thead><tbody>";
   rows.forEach((r,idx) => {
     html += `<tr onclick="selectRow(${idx+1})">`;
@@ -69,7 +67,7 @@ function selectRow(rowIndex){
   const row = allData[rowIndex];
   if (!row) return;
   // Pošleme data zpět do hlavního okna (index.html)
-  window.opener.postMessage({ type:"openProtocol", row, headers }, "*");
+  window.opener.postMessage({ type:"openProtocol", row }, "*");
   window.close();
 }
 
