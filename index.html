@@ -51,7 +51,6 @@
 <body>
   <h1>White Glove Service – Servisní protokol</h1>
   <div class="grid">
-    <!-- LEVÁ STRANA -->
     <div>
       <div class="card">
         <h3>Nová reklamace</h3>
@@ -94,7 +93,7 @@
         <label>Model<input id="model" required></label>
         <label>Popis reklamace<textarea id="complaint" required></textarea></label>
         <label>Cena práce (EUR)<input id="price_work" type="number" value="0" required></label>
-        <label>Cena materiál (EUR)<input id="price_mat" type="number" value="0" required></label>
+        <label>Cena materiálu (EUR)<input id="price_mat" type="number" value="0" required></label>
         <label>Cena druhého technika (EUR)<input id="price_tech" type="number" value="0" required></label>
         <label>Cena doprava (EUR)<input id="price_trans" type="number" value="0" required></label>
         <label>Cena vyzvednutí dílu (EUR)<input id="price_pickup" type="number" value="0" required></label>
@@ -102,7 +101,7 @@
         <div class="controls">
           <button class="primary" id="saveBtn">Uložit</button>
           <button class="ghost" id="clearBtn">Vymazat</button>
-          <button class="primary" id="pdfBtn">Generovat PDF (CZ+EN)</button>
+          <button class="primary" id="pdfBtn">Generovat PDF (CZ + EN)</button>
         </div>
       </div>
       <div class="card" style="margin-top:12px">
@@ -117,8 +116,6 @@
         </div>
       </div>
     </div>
-
-    <!-- PRAVÁ STRANA -->
     <div>
       <div class="card protocol" id="protocol">
         <h2>CLAIM PROTOCOL</h2>
@@ -137,11 +134,12 @@
     </div>
   </div>
 
-  <!-- knihovny pro PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
+const API_URL = "https://script.google.com/macros/s/AKfycby2.../exec";  // tvoje Apps Script URL
+
 const claims = [];
 const $ = id=>document.getElementById(id);
 
@@ -160,14 +158,30 @@ function updateProtocol(data){
   ).toFixed(2);
 }
 
-$("saveBtn").onclick = ()=>{
+// Odeslat data na Google Sheet
+async function saveToSheet(obj){
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(obj)
+  });
+  return res.json();
+}
+
+// Načíst všechna data
+async function loadFromSheet(){
+  const res = await fetch(API_URL);
+  return res.json();
+}
+
+$("saveBtn").onclick = async ()=>{
   const obj = {
     customer:$("customer").value,
     address:$("address").value,
     phone:$("phone").value,
     email:$("email").value,
-    status:$("status").value,
     order:$("order").value,
+    status:$("status").value,
     issuer:$("issuer").value,
     tech:$("tech").value,
     model:$("model").value,
@@ -176,61 +190,81 @@ $("saveBtn").onclick = ()=>{
     price_mat:$("price_mat").value,
     price_tech:$("price_tech").value,
     price_trans:$("price_trans").value,
-    price_pickup:$("price_pickup").value,
-    visit_date:$("visit_date").value
+    price_pickup:$("price_pickup").value
   };
-  claims.push(obj);
-  updateProtocol(obj);
-  renderTable();
+  const out = await saveToSheet(obj);
+  console.log("Uloženo:", out);
+  // po uložení můžeš třeba načíst data znovu:
+  const all = await loadFromSheet();
+  console.log("Vše:", all);
+  // volitelně: renderTable() podle all
 };
 
 $("clearBtn").onclick = ()=>{
   ["customer","address","phone","email","status","order","issuer","tech","model","complaint",
-   "price_work","price_mat","price_tech","price_trans","price_pickup","visit_date"]
-  .forEach(id=>$(id).value="");
+   "price_work","price_mat","price_tech","price_trans","price_pickup"].forEach(id=>{
+    const el = $(id);
+    if(el) el.value = (id.startsWith("price")) ? "0" : "";
+  });
 };
 
-// tabulka
+// Tabulka
 function renderTable(){
-  const tbody=$("claimsTable").querySelector("tbody");
-  tbody.innerHTML="";
+  const tbody = $("claimsTable").querySelector("tbody");
+  tbody.innerHTML = "";
   claims.forEach(c=>{
-    const total=(+c.price_work+ +c.price_mat+ +c.price_tech+ +c.price_trans+ +c.price_pickup).toFixed(2);
-    const tr=document.createElement("tr");
-    tr.innerHTML=`<td>${c.customer}</td><td>${c.address}</td><td><a href="tel:${c.phone}">${c.phone}</a></td><td>${c.model}</td><td>${c.status}</td><td>${c.tech}</td><td>${total}</td>`;
+    const total = (+c.price_work + +c.price_mat + +c.price_tech + +c.price_trans + +c.price_pickup).toFixed(2);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${c.customer}</td>
+      <td>${c.address}</td>
+      <td><a href="tel:${c.phone}">${c.phone}</a></td>
+      <td>${c.model}</td>
+      <td>${c.status}</td>
+      <td>${c.tech}</td>
+      <td>${total}</td>
+    `;
     tbody.appendChild(tr);
   });
 }
 
-// podpis
-const canvas=$("sigCanvas"),ctx=canvas.getContext("2d");
-let drawing=false;
-canvas.addEventListener("mousedown",()=>drawing=true);
-canvas.addEventListener("mouseup",()=>drawing=false);
-canvas.addEventListener("mousemove",e=>{
+// Podpis
+const canvas = $("sigCanvas"), ctx = canvas.getContext("2d");
+let drawing = false;
+canvas.addEventListener("mousedown", ()=> drawing = true);
+canvas.addEventListener("mouseup", ()=> drawing = false);
+canvas.addEventListener("mousemove", e=>{
   if(!drawing) return;
-  ctx.fillStyle="black";
+  ctx.fillStyle = "black";
   ctx.beginPath();
-  ctx.arc(e.offsetX,e.offsetY,2,0,Math.PI*2);
+  ctx.arc(e.offsetX, e.offsetY, 2, 0, Math.PI*2);
   ctx.fill();
 });
 
-// PDF export
+// Generování PDF (CZ a EN)
 async function generatePDF(lang="cs"){
   const { jsPDF } = window.jspdf;
-  const canvasEl = await html2canvas($("protocol"),{scale:2});
-  const imgData = canvasEl.toDataURL("image/png");
+  const canvasEl = await html2canvas($("protocol"), { scale:2 });
+  const img = canvasEl.toDataURL("image/png");
   const pdf = new jsPDF("p","pt","a4");
   const w = pdf.internal.pageSize.getWidth();
   const h = canvasEl.height * w / canvasEl.width;
-  pdf.addImage(imgData,"PNG",0,0,w,h);
-  const name = $("order").value || "protokol";
-  pdf.save(name+"_"+lang.toUpperCase()+".pdf");
+  pdf.addImage(img, "PNG", 0, 0, w, h);
+  const filename = $("order").value || "protokol";
+  pdf.save(filename + "_" + lang.toUpperCase() + ".pdf");
 }
 
 $("pdfBtn").onclick = async ()=>{
   await generatePDF("cs");
   await generatePDF("en");
+};
+
+// Načti při načtení stránky
+window.onload = async ()=>{
+  const all = await loadFromSheet();
+  // můžeš při načtení rovnou zobrazit v tabulce
+  all.forEach(item => claims.push(item));
+  renderTable();
 };
 </script>
 </body>
