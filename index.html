@@ -39,6 +39,14 @@
       <div class="card">
         <h3>Nová reklamace</h3>
         <div>
+          <!-- nové vyhledávací pole -->
+          <label>Vyhledat v Google Sheets
+            <div style="display:flex;gap:6px;align-items:center;">
+              <input id="searchKey" type="text" placeholder="zadej číslo objednávky nebo jméno" style="flex:1">
+              <button id="searchBtn" class="secondary">Hledat</button>
+            </div>
+          </label>
+
           <label>Zákazník<input id="customer" type="text"></label>
           <label>Adresa<input id="address" type="text"></label>
           <label>Kontakt (tel/email)<input id="contact" type="text"></label>
@@ -118,7 +126,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    // ===== KONFIGURACE =====
     const SHEET_ID = "1IlBI3Wqh_7J3JbJcxfD9W1Af3jFGbBkKeGXKs92oySU"
     const SHEET_GID = "0"
     const GVIZ_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`
@@ -128,7 +135,6 @@
     let claims = JSON.parse(localStorage.getItem(storageKey) || '[]')
     let selectedIndex = null
 
-    // DOM prvky
     const elems = {
       customer: document.getElementById('customer'),
       address: document.getElementById('address'),
@@ -154,10 +160,11 @@
       p_complaint: document.getElementById('p_complaint'),
       sigCanvas: document.getElementById('sigCanvas'),
       clearSig: document.getElementById('clearSig'),
-      generatePdf: document.getElementById('generatePdf')
+      generatePdf: document.getElementById('generatePdf'),
+      searchKey: document.getElementById('searchKey'),
+      searchBtn: document.getElementById('searchBtn')
     }
 
-    // pomocné
     function escapeHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')}
     function save(){localStorage.setItem(storageKey, JSON.stringify(claims))}
     function renderTable(){
@@ -170,6 +177,26 @@
         elems.claimsTable.appendChild(tr)
       })
     }
+
+    // vyhledávání a auto-vyplnění
+    elems.searchBtn.addEventListener('click', async ()=>{
+      if(!elems.searchKey.value.trim()){ alert("Zadej hledaný výraz"); return; }
+      if(claims.length===0){ await loadFromSheets(); }
+      const key = elems.searchKey.value.trim().toLowerCase();
+      const found = claims.find(c=>
+        (c.order||"").toLowerCase()===key ||
+        (c.customer||"").toLowerCase().includes(key)
+      );
+      if(!found){ alert("Nenalezeno v tabulce."); return; }
+      elems.customer.value = found.customer||"";
+      elems.address.value = found.address||"";
+      elems.contact.value = found.contact||"";
+      elems.status.value = found.status||"Nová";
+      elems.order.value = found.order||"";
+      elems.issuer.value = found.issuer||"";
+      elems.model.value = found.model||"";
+      elems.complaint.value = found.complaint||"";
+    });
 
     // přidat/uložit
     elems.addBtn.addEventListener('click',()=>{
@@ -188,10 +215,8 @@
       save();renderTable()
     })
 
-    // vymazat formulář
     elems.clearBtn.addEventListener('click',()=>{selectedIndex=null;elems.customer.value=elems.address.value=elems.contact.value=elems.order.value=elems.model.value=elems.complaint.value='';elems.status.value='Nová';elems.issuer.value='';renderTable()})
 
-    // otevřít protokol
     elems.openProtocol.addEventListener('click',()=>{
       if(selectedIndex===null){alert('Vyberte záznam.');return}
       const c=claims[selectedIndex]
@@ -204,7 +229,6 @@
       elems.p_visit.textContent=c.visit_date||'-'
     })
 
-    // mazání
     elems.deleteBtn.addEventListener('click',()=>{if(selectedIndex===null)return;claims.splice(selectedIndex,1);selectedIndex=null;save();renderTable()})
 
     // Signature pad
@@ -220,7 +244,6 @@
     }
     const sigPad=new SignaturePadSimple(elems.sigCanvas);elems.clearSig.addEventListener('click',()=>sigPad.clear())
 
-    // PDF export
     elems.generatePdf.addEventListener('click',async()=>{
       const proto=document.getElementById('protocolPreview')
       const canvas=await html2canvas(proto,{scale:2,backgroundColor:'#fff'})
@@ -261,4 +284,3 @@
   </script>
 </body>
 </html>
-
