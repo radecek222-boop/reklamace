@@ -21,26 +21,23 @@
     }
     .btn:hover { background:#d5d5d5; }
 
+    /* Karta protokolu */
+    .card {
+      background:#fff; padding:20px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,.08);
+      max-width:800px; margin:auto;
+    }
     .form-group { margin-bottom:12px; }
-    label { display:block; font-weight:bold; margin-bottom:4px; }
+    label { font-weight:600; display:block; margin:10px 0 5px; }
     input, textarea {
-      width:100%; padding:8px; border-radius:6px; border:1px solid #ccc; font-size:0.95em;
+      width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:14px;
     }
+    textarea { resize:vertical; }
 
-    /* Modal pro podpis */
-    #signatureModal {
-      display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-      background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:1000;
+    /* Podpis */
+    .signature-container {
+      border:2px solid #555; border-radius:8px; width:100%; height:180px; touch-action:none; margin-top:5px;
     }
-    #signatureModal .modal-content {
-      background:#fff; padding:20px; border-radius:10px; max-width:500px; width:90%; text-align:center;
-    }
-    #signatureModal h3 { margin-top:0; }
-    #signatureCanvas { border:1px solid #ccc; width:100%; height:200px; }
-    #signaturePreview {
-      border:1px solid #ccc; background:#fff; width:100%; height:150px;
-      display:flex; align-items:center; justify-content:center; color:#777;
-    }
+    canvas { width:100%; height:100%; }
   </style>
 </head>
 <body>
@@ -56,7 +53,7 @@
 <!-- Protokol oprav -->
 <div id="protocol" class="screen">
   <h2>Protokol oprav</h2>
-  <form id="repairForm">
+  <div class="card">
     <div class="form-group">
       <label>Zákazník</label>
       <input type="text" id="formCustomer" name="customer">
@@ -83,58 +80,138 @@
     </div>
     <div class="form-group">
       <label>Popis závady / opravy</label>
-      <textarea id="formDescription" name="description"></textarea>
+      <textarea id="formDescription" name="description" rows="4"></textarea>
     </div>
+
     <div class="form-group">
       <label>Podpis zákazníka</label>
-      <div id="signaturePreview">(zatím nepodepsáno)</div>
-      <button type="button" class="btn" onclick="openSignatureModal()">Podepsat</button>
+      <div class="signature-container">
+        <canvas id="signature"></canvas>
+      </div>
+      <button class="btn" onclick="clearSignature()">Smazat podpis</button>
     </div>
-  </form>
-  <button class="btn" onclick="exportPDF()">Exportovat do PDF</button>
-  <button class="btn" onclick="showScreen('home')">Zpět</button>
-</div>
 
-<!-- Modal pro podpis -->
-<div id="signatureModal">
-  <div class="modal-content">
-    <h3>Podpis zákazníka</h3>
-    <canvas id="signatureCanvas"></canvas>
-    <div style="margin-top:10px;">
-      <button class="btn" onclick="saveSignature()">Uložit</button>
-      <button class="btn" onclick="clearSignatureCanvas()">Vymazat</button>
-      <button class="btn" onclick="closeSignatureModal()">Zrušit</button>
-    </div>
+    <button class="btn" onclick="exportPDF()">Exportovat do PDF</button>
+    <button class="btn" onclick="showScreen('home')">Zpět</button>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
-
 function openList(){
   window.open("seznam.html", "_blank", "width=1000,height=700");
 }
 
-async function exportPDF(){
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF();
-  const element = document.getElementById("repairForm");
-  const canvasEl = await html2canvas(element);
-  const imgData = canvasEl.toDataURL("image/png");
-  pdf.addImage(imgData, 'PNG', 10, 10, 190, 0);
-  pdf.save("protokol.pdf");
+// --- podpis přímo v protokolu ---
+const canvas = document.getElementById("signature");
+const ctx = canvas.getContext("2d");
+let drawing = false;
+
+function resizeCanvas() {
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+}
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
+function getPos(e) {
+  if (e.touches) {
+    return {
+      x: e.touches[0].clientX - canvas.getBoundingClientRect().left,
+      y: e.touches[0].clientY - canvas.getBoundingClientRect().top
+    };
+  }
+  return {
+    x: e.clientX - canvas.getBoundingClientRect().left,
+    y: e.clientY - canvas.getBoundingClientRect().top
+  };
+}
+function startDraw(e) {
+  e.preventDefault();
+  drawing = true;
+  const pos = getPos(e);
+  ctx.beginPath();
+  ctx.moveTo(pos.x, pos.y);
+}
+function endDraw(e) {
+  e.preventDefault();
+  drawing = false;
+}
+function draw(e) {
+  if (!drawing) return;
+  e.preventDefault();
+  const pos = getPos(e);
+  ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+  ctx.strokeStyle = "#000";
+  ctx.lineTo(pos.x, pos.y);
+  ctx.stroke();
+}
+canvas.addEventListener("mousedown", startDraw);
+canvas.addEventListener("mouseup", endDraw);
+canvas.addEventListener("mousemove", draw);
+canvas.addEventListener("touchstart", startDraw, { passive: false });
+canvas.addEventListener("touchend", endDraw, { passive: false });
+canvas.addEventListener("touchmove", draw, { passive: false });
+
+function clearSignature() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-// posloucháme zprávy z seznam.html
+async function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const customer = document.getElementById("formCustomer").value;
+  const address = document.getElementById("formAddress").value;
+  const phone = document.getElementById("formPhone").value;
+  const order = document.getElementById("formOrder").value;
+  const complaintDate = document.getElementById("formComplaintDate").value;
+  const deliveryDate = document.getElementById("formDeliveryDate").value;
+  const description = document.getElementById("formDescription").value;
+
+  // HLAVIČKA
+  doc.setFontSize(18);
+  doc.setFont("helvetica","bold");
+  doc.text("White Glove Service", 105, 15, { align:"center" });
+  doc.setLineWidth(0.5);
+  doc.line(10, 20, 200, 20);
+
+  // OBSAH
+  doc.setFontSize(14);
+  doc.setFont("helvetica","normal");
+  doc.text(`Zákazník: ${customer}`, 10, 35);
+  doc.text(`Adresa: ${address}`, 10, 45);
+  doc.text(`Telefon: ${phone}`, 10, 55);
+  doc.text(`Objednávka: ${order}`, 10, 65);
+  doc.text(`Datum reklamace: ${complaintDate}`, 10, 75);
+  doc.text(`Datum dodání: ${deliveryDate}`, 10, 85);
+
+  doc.text(`Popis opravy:`, 10, 100);
+  doc.setFontSize(12);
+  doc.text(description, 10, 110, { maxWidth:180 });
+
+  // PODPIS
+  const signatureImage = canvas.toDataURL("image/png");
+  doc.setFontSize(14);
+  doc.text("Podpis zákazníka:", 10, 140);
+  doc.addImage(signatureImage, "PNG", 10, 145, 100, 40);
+
+  // PATIČKA
+  doc.setFontSize(10);
+  doc.text("Děkujeme za využití služeb White Glove Service", 105, 290, { align:"center" });
+
+  doc.save("protokol.pdf");
+}
+
+// --- příjem dat ze seznam.html ---
 window.addEventListener("message", function(event){
   if (event.data && event.data.type === "openProtocol"){
     const row = event.data.row;
-
     document.getElementById("formCustomer").value     = row[0] || "";
     document.getElementById("formAddress").value      = row[1] || "";
     document.getElementById("formPhone").value        = row[2] || "";
@@ -142,62 +219,9 @@ window.addEventListener("message", function(event){
     document.getElementById("formDescription").value  = row[10]|| "";
     document.getElementById("formComplaintDate").value= row[11]|| "";
     document.getElementById("formDeliveryDate").value = row[12]|| "";
-
     showScreen("protocol");
   }
 });
-
-// --- Podpis modal ---
-let sigModal = document.getElementById("signatureModal");
-let sigCanvas = document.getElementById("signatureCanvas");
-let sigCtx = sigCanvas.getContext("2d");
-let drawingSig = false;
-
-function openSignatureModal(){
-  sigModal.style.display = "flex";
-  resizeSigCanvas();
-}
-function closeSignatureModal(){
-  sigModal.style.display = "none";
-}
-function resizeSigCanvas(){
-  sigCanvas.width = sigCanvas.clientWidth;
-  sigCanvas.height = sigCanvas.clientHeight;
-}
-function clearSignatureCanvas(){
-  sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height);
-}
-
-sigCanvas.addEventListener("mousedown", e => {drawingSig=true; sigCtx.beginPath(); sigCtx.moveTo(e.offsetX,e.offsetY);});
-sigCanvas.addEventListener("mousemove", e => {if(drawingSig){sigCtx.lineTo(e.offsetX,e.offsetY); sigCtx.stroke();}});
-sigCanvas.addEventListener("mouseup", ()=> drawingSig=false);
-sigCanvas.addEventListener("mouseleave", ()=> drawingSig=false);
-
-sigCanvas.addEventListener("touchstart", e => {
-  e.preventDefault();
-  let rect = sigCanvas.getBoundingClientRect();
-  let x = e.touches[0].clientX - rect.left;
-  let y = e.touches[0].clientY - rect.top;
-  drawingSig = true;
-  sigCtx.beginPath();
-  sigCtx.moveTo(x,y);
-});
-sigCanvas.addEventListener("touchmove", e => {
-  e.preventDefault();
-  if (!drawingSig) return;
-  let rect = sigCanvas.getBoundingClientRect();
-  let x = e.touches[0].clientX - rect.left;
-  let y = e.touches[0].clientY - rect.top;
-  sigCtx.lineTo(x,y);
-  sigCtx.stroke();
-});
-sigCanvas.addEventListener("touchend", ()=> drawingSig=false);
-
-function saveSignature(){
-  let dataURL = sigCanvas.toDataURL("image/png");
-  document.getElementById("signaturePreview").innerHTML = `<img src="${dataURL}" style="max-width:100%; max-height:150px;">`;
-  closeSignatureModal();
-}
 </script>
 
 </body>
