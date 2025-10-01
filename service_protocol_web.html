@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Servisní protokol - White Glove Service</title>
+  <style>
+    :root{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;sans-serif;color:#111}
+    body{margin:0;padding:20px;background:#f6f7fb}
+    h1{font-size:20px;margin:0 0 12px}
+    .grid{display:grid;grid-template-columns:1fr 420px;gap:18px}
+    .card{background:#fff;padding:12px;border-radius:10px;box-shadow:0 6px 20px rgba(30,40,60,0.06)}
+    label{display:block;font-size:12px;margin-top:8px;color:#333}
+    input[type=text], input[type=date], textarea, select{width:100%;padding:8px;border:1px solid #e3e6ee;border-radius:6px;margin-top:6px;font-size:14px}
+    textarea{min-height:72px;resize:vertical}
+    button{background:#0b69ff;color:#fff;border:0;padding:10px 12px;border-radius:8px;cursor:pointer;font-weight:600}
+    button.secondary{background:#f1f4fb;color:#0b69ff;border:1px solid #dbe6ff}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th,td{padding:8px;border-bottom:1px solid #eee;text-align:left}
+    tr.selected{background:#eef6ff}
+    .controls{display:flex;gap:8px;align-items:center;margin-top:10px}
+    .right{display:flex;flex-direction:column;gap:8px}
+    .protocol{width:750px;padding:18px;background:#fff;border-radius:8px}
+    .protocol h2{margin:0 0 6px}
+    .row{display:flex;gap:12px}
+    .col{flex:1}
+    .sig-canvas{border:1px dashed #ccc;border-radius:6px;background:#fff}
+    .small{font-size:12px;color:#666}
+    .actions{display:flex;gap:8px;margin-top:10px}
+    @media(max-width:980px){.grid{grid-template-columns:1fr;}.protocol{width:100%}}
+  </style>
+</head>
+<body>
+  <h1>Servisní protokol — WGS (web)</h1>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h3>Nová reklamace</h3>
+        <div>
+          <label>Zákazník<input id="customer" type="text" placeholder="Ing. Jan Novák"></label>
+          <label>Adresa<input id="address" type="text"></label>
+          <label>Kontakt (tel/email)<input id="contact" type="text"></label>
+          <label>Stav
+            <select id="status">
+              <option>Nová</option>
+              <option>Čeká na díly</option>
+              <option>Hotovo</option>
+              <option>Pátek 13hod</option>
+              <option>Pozáruční servis</option>
+            </select>
+          </label>
+          <label>Číslo objednávky<input id="order" type="text"></label>
+          <label>Zadavatel<input id="issuer" type="text"></label>
+          <label>Model<input id="model" type="text"></label>
+          <label>Popis reklamace<textarea id="complaint"></textarea></label>
+          <div class="row">
+            <div class="col"><label>Cena práce<input id="price_work" type="text" value="0"></label></div>
+            <div class="col"><label>Cena materiál<input id="price_mat" type="text" value="0"></label></div>
+          </div>
+          <div class="row">
+            <div class="col"><label>Cena druhého technika<input id="price_tech" type="text" value="0"></label></div>
+            <div class="col"><label>Cena doprava<input id="price_trans" type="text" value="0"></label></div>
+          </div>
+          <div class="controls">
+            <button id="addBtn">Přidat / Uložit</button>
+            <button id="clearBtn" class="secondary">Vymazat formulář</button>
+            <div style="margin-left:auto" class="small">Ukládáno do <strong>localStorage</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h3>Seznam reklamací</h3>
+        <div style="max-height:360px;overflow:auto;margin-top:8px">
+          <table id="claimsTable">
+            <thead><tr><th>Obj.</th><th>Zákazník</th><th>Model</th><th>Stav</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="actions">
+          <button id="openProtocol" class="secondary">Otevřít protokol</button>
+          <button id="deleteBtn" class="secondary">Smazat záznam</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="card protocol" id="protocolPreview">
+        <h2>CLAIM PROTOCOL</h2>
+        <div class="row"><div class="col"><strong>Číslo objednávky:</strong> <span id="p_order">-</span></div><div class="col"><strong>Číslo reklamace:</strong> <span id="p_claim">-</span></div></div>
+        <div class="row"><div class="col"><strong>Technik:</strong> <span id="p_tech">Milan Kolín</span></div><div class="col"><strong>Datum návštěvy:</strong> <span id="p_visit">-</span></div></div>
+        <hr>
+        <div><strong>Zákazník:</strong> <span id="p_customer">-</span></div>
+        <div><strong>Adresa:</strong> <span id="p_address">-</span></div>
+        <div><strong>Model:</strong> <span id="p_model">-</span></div>
+        <div style="margin-top:8px"><strong>Popis reklamace:</strong>
+          <div id="p_complaint" style="white-space:pre-wrap;background:#fbfbfb;padding:8px;border-radius:6px;margin-top:6px"></div>
+        </div>
+
+        <div style="margin-top:12px" class="row">
+          <div class="col"><strong>Cena práce:</strong> <span id="p_price_work">0</span> EUR</div>
+          <div class="col"><strong>Cena materiál:</strong> <span id="p_price_mat">0</span> EUR</div>
+        </div>
+        <div class="row" style="margin-top:6px">
+          <div class="col"><strong>Cena druhého technika:</strong> <span id="p_price_tech">0</span> EUR</div>
+          <div class="col"><strong>Cena doprava:</strong> <span id="p_price_trans">0</span> EUR</div>
+        </div>
+        <div style="margin-top:8px"><strong>Cena celkem EUR:</strong> <span id="p_total">0</span></div>
+
+        <div style="margin-top:12px">
+          <div class="small">Podpis zákazníka:</div>
+          <canvas id="sigCanvas" class="sig-canvas" width="700" height="120"></canvas>
+          <div style="margin-top:8px;display:flex;gap:8px"><button id="clearSig" class="secondary">Vymazat podpis</button><button id="generatePdf">Generovat PDF</button></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h3>Nápověda</h3>
+        <ul>
+          <li>Vyplňte formulář a klikněte <strong>Přidat / Uložit</strong>.</li>
+          <li>Vyberte řádek v tabulce (klik) a stiskněte <strong>Otevřít protokol</strong>.</li>
+          <li>Zákazník podepíše prstem nebo Apple Pencil a stiskne <strong>Generovat PDF</strong>.</li>
+          <li>PDF se stáhne s názvem <code>OBJ_CLAIM_MODEL.pdf</code>.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    // jednoduchá SPA bez frameworku
+    const storageKey = 'wgs_claims_v1'
+    let claims = JSON.parse(localStorage.getItem(storageKey) || '[]')
+    let selectedIndex = null
+
+    // DOM
+    const elems = {
+      customer: document.getElementById('customer'),
+      address: document.getElementById('address'),
+      contact: document.getElementById('contact'),
+      status: document.getElementById('status'),
+      order: document.getElementById('order'),
+      issuer: document.getElementById('issuer'),
+      model: document.getElementById('model'),
+      complaint: document.getElementById('complaint'),
+      price_work: document.getElementById('price_work'),
+      price_mat: document.getElementById('price_mat'),
+      price_tech: document.getElementById('price_tech'),
+      price_trans: document.getElementById('price_trans'),
+      addBtn: document.getElementById('addBtn'),
+      clearBtn: document.getElementById('clearBtn'),
+      claimsTable: document.querySelector('#claimsTable tbody'),
+      openProtocol: document.getElementById('openProtocol'),
+      deleteBtn: document.getElementById('deleteBtn'),
+      // protocol
+      p_order: document.getElementById('p_order'),
+      p_claim: document.getElementById('p_claim'),
+      p_tech: document.getElementById('p_tech'),
+      p_visit: document.getElementById('p_visit'),
+      p_customer: document.getElementById('p_customer'),
+      p_address: document.getElementById('p_address'),
+      p_model: document.getElementById('p_model'),
+      p_complaint: document.getElementById('p_complaint'),
+      p_price_work: document.getElementById('p_price_work'),
+      p_price_mat: document.getElementById('p_price_mat'),
+      p_price_tech: document.getElementById('p_price_tech'),
+      p_price_trans: document.getElementById('p_price_trans'),
+      p_total: document.getElementById('p_total'),
+      sigCanvas: document.getElementById('sigCanvas'),
+      clearSig: document.getElementById('clearSig'),
+      generatePdf: document.getElementById('generatePdf')
+    }
+
+    // inicializace
+    function renderTable(){
+      elems.claimsTable.innerHTML = ''
+      claims.forEach((c,i)=>{
+        const tr = document.createElement('tr')
+        if(i===selectedIndex) tr.classList.add('selected')
+        tr.innerHTML = `<td>${escapeHtml(c.order || '')}</td><td>${escapeHtml(c.customer || '')}</td><td>${escapeHtml(c.model||'')}</td><td>${escapeHtml(c.status||'')}</td>`
+        tr.addEventListener('click', ()=>{ selectedIndex=i; renderTable(); })
+        elems.claimsTable.appendChild(tr)
+      })
+    }
+
+    function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;') }
+
+    function save(){ localStorage.setItem(storageKey, JSON.stringify(claims)) }
+
+    elems.addBtn.addEventListener('click', ()=>{
+      const newItem = {
+        customer: elems.customer.value.trim(),
+        address: elems.address.value.trim(),
+        contact: elems.contact.value.trim(),
+        status: elems.status.value,
+        order: elems.order.value.trim(),
+        issuer: elems.issuer.value.trim(),
+        model: elems.model.value.trim(),
+        complaint: elems.complaint.value.trim(),
+        price_work: parseFloat(elems.price_work.value || 0) || 0,
+        price_mat: parseFloat(elems.price_mat.value || 0) || 0,
+        price_tech: parseFloat(elems.price_tech.value || 0) || 0,
+        price_trans: parseFloat(elems.price_trans.value || 0) || 0,
+        visit_date: new Date().toLocaleDateString('cs-CZ')
+      }
+      if(selectedIndex===null){ claims.unshift(newItem); selectedIndex = 0 } else { claims[selectedIndex]=newItem }
+      save(); renderTable(); clearForm()
+    })
+
+    elems.clearBtn.addEventListener('click', clearForm)
+    function clearForm(){ elems.customer.value=''; elems.address.value=''; elems.contact.value=''; elems.status.value='Nová'; elems.order.value=''; elems.issuer.value=''; elems.model.value=''; elems.complaint.value=''; elems.price_work.value='0'; elems.price_mat.value='0'; elems.price_tech.value='0'; elems.price_trans.value='0'; selectedIndex=null; renderTable() }
+
+    elems.openProtocol.addEventListener('click', ()=>{
+      if(selectedIndex===null){ alert('Vyberte záznam v tabulce.'); return }
+      const c = claims[selectedIndex]
+      elems.p_order.textContent = c.order || '-'
+      elems.p_claim.textContent = c.issuer || '-'
+      elems.p_tech.textContent = 'Milan Kolín'
+      elems.p_visit.textContent = c.visit_date || '-'
+      elems.p_customer.textContent = c.customer || '-'
+      elems.p_address.textContent = c.address || '-'
+      elems.p_model.textContent = c.model || '-'
+      elems.p_complaint.textContent = c.complaint || '-'
+      elems.p_price_work.textContent = (c.price_work||0).toFixed(2)
+      elems.p_price_mat.textContent = (c.price_mat||0).toFixed(2)
+      elems.p_price_tech.textContent = (c.price_tech||0).toFixed(2)
+      elems.p_price_trans.textContent = (c.price_trans||0).toFixed(2)
+      const total = (c.price_work||0)+(c.price_mat||0)+(c.price_tech||0)+(c.price_trans||0)
+      elems.p_total.textContent = total.toFixed(2)
+      // nastavíme podpis canvas prázdný
+      sigPad.clear()
+      window.scrollTo({top:0,behavior:'smooth'})
+    })
+
+    elems.deleteBtn.addEventListener('click', ()=>{
+      if(selectedIndex===null){ alert('Vyberte záznam pro smazání.'); return }
+      if(confirm('Smazat vybraný záznam?')){ claims.splice(selectedIndex,1); selectedIndex=null; save(); renderTable(); }
+    })
+
+    // SIGNATURE PAD
+    class SignaturePadSimple{
+      constructor(canvas){ this.canvas=canvas; this.ctx=canvas.getContext('2d'); this.ctx.lineCap='round'; this.ctx.lineJoin='round'; this.ctx.lineWidth=2.2; this.drawing=false; this._initEvents(); this.clear() }
+      _initEvents(){ const c=this.canvas; c.addEventListener('pointerdown', e=>{ this.drawing=true; this.last=[e.offsetX,e.offsetY] }); c.addEventListener('pointermove', e=>{ if(!this.drawing) return; const [lx,ly]=this.last; this.ctx.beginPath(); this.ctx.moveTo(lx,ly); this.ctx.lineTo(e.offsetX,e.offsetY); this.ctx.stroke(); this.last=[e.offsetX,e.offsetY]; }); window.addEventListener('pointerup', ()=>this.drawing=false); }
+      clear(){ this.ctx.fillStyle='#fff'; this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height); }
+      toDataURL(){ return this.canvas.toDataURL('image/png') }
+    }
+    const sigPad = new SignaturePadSimple(elems.sigCanvas)
+    elems.clearSig.addEventListener('click', ()=>sigPad.clear())
+
+    // GENERATE PDF using html2canvas + jsPDF
+    elems.generatePdf.addEventListener('click', async ()=>{
+      if(selectedIndex===null){ if(!confirm('Nevidím vybraný záznam. Chcete vytvořit PDF z právě zobrazeného protokolu?')) return }
+      // render the protocol element to canvas
+      const proto = document.getElementById('protocolPreview')
+      // temporarily show a white background to get clean capture
+      proto.style.boxShadow='none'
+      try{
+        const canvas = await html2canvas(proto, {scale:2, useCORS:true, backgroundColor:'#ffffff'})
+        const imgData = canvas.toDataURL('image/png')
+        const { jsPDF } = window.jspdf
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: [canvas.width, canvas.height] })
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height)
+        // přidej jméno souboru
+        const claim = claims[selectedIndex] || {order: elems.p_order.textContent, issuer: elems.p_claim.textContent, model: elems.p_model.textContent}
+        const safe = (s)=> (s||'').toString().replace(/[^a-zA-Z0-9_\-]/g,'_')
+        const filename = `${safe(claim.order)}_${safe(claim.issuer)}_${safe(claim.model)}.pdf` || 'protokol.pdf'
+        pdf.save(filename)
+      }catch(err){ alert('Chyba při generování PDF: '+err.message) }
+      finally{ proto.style.boxShadow='' }
+    })
+
+    // initial render
+    renderTable()
+  </script>
+</body>
+</html>
