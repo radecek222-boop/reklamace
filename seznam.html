@@ -43,21 +43,24 @@ async function loadData() {
     const res = await fetch(sheetUrl);
     const text = await res.text();
     allData = text.split("\n").map(r => r.split(",")).filter(r => r.join("").trim() !== "");
-    renderTable(allData.slice(1)); // vynecháme hlavičku
+    renderTable(allData.slice(1)); // vynech hlavičku
   } catch (err) {
     document.getElementById("results").innerHTML = "Chyba při načítání dat: " + err;
   }
 }
 
 function renderTable(rows){
-  if (!rows.length){ document.getElementById("results").innerHTML = "Žádná data"; return; }
+  if (!rows.length){
+    document.getElementById("results").innerHTML = "Žádná data";
+    return;
+  }
   let html = "<table><thead><tr>";
-  allData[0].forEach(h => { html += "<th>"+h+"</th>"; });
+  allData[0].forEach(h => { html += "<th>" + h + "</th>"; });
   html += "</tr></thead><tbody>";
-  rows.forEach((r,idx) => {
-    html += `<tr onclick="selectRow(${idx+1})">`;
-    r.forEach(c => { html += "<td>"+c+"</td>"; });
-    html += "</tr>`;
+  rows.forEach((r, idx) => {
+    html += `<tr onclick="selectRow(${idx + 1})">`;
+    r.forEach(c => { html += "<td>" + c + "</td>"; });
+    html += "</tr>";
   });
   html += "</tbody></table>";
   document.getElementById("results").innerHTML = html;
@@ -66,7 +69,6 @@ function renderTable(rows){
 function selectRow(rowIndex){
   const row = allData[rowIndex];
   if (!row) return;
-  // Pošleme data zpět do hlavního okna (index.html)
   window.opener.postMessage({ type:"openProtocol", row }, "*");
   window.close();
 }
