@@ -12,7 +12,7 @@
       background:var(--bg);
       color:var(--ink);
       font:14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      overflow-x:hidden; /* zabrání horizontálnímu posuvu */
+      overflow-x:hidden;
     }
     h1{font-size:18px;margin:16px 16px 0}
     .grid{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;padding:16px}
@@ -34,14 +34,12 @@
     th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;max-width:120px;overflow-wrap:break-word}
     th{font-size:12px;color:var(--muted);font-weight:600;position:sticky;top:0;background:#fafafa}
     tr.selected{background:#eef6ff}
-    .protocol{padding:16px;border:1px solid var(--line);border-radius:10px}
+    .protocol{padding:16px;border:1px solid var(--line);border-radius:10px;background:#fff}
     .protocol h2{margin:0 0 6px}
-    .sig{border:1px dashed #cbd5e1;border-radius:8px;background:#fff;max-width:100%;height:auto}
+    #sigCanvas{border:1px dashed #cbd5e1;border-radius:8px;background:#fff;max-width:100%;height:auto}
     .scroll{max-height:360px;overflow:auto;border:1px solid var(--line);border-radius:10px}
     .nowrap{white-space:nowrap}
     .hidden{display:none !important}
-
-    /* Responsivita */
     @media (max-width: 980px){
       .grid{grid-template-columns:1fr}
       .scroll{max-width:100%;overflow-x:auto}
@@ -52,11 +50,188 @@
 </head>
 <body>
   <h1>White Glove Service – Servisní protokol</h1>
+  <div class="grid">
+    <!-- LEVÁ STRANA -->
+    <div>
+      <div class="card">
+        <h3>Nová reklamace</h3>
+        <label>Zákazník<input id="customer" required></label>
+        <label>Adresa<input id="address" required></label>
+        <label>Telefon<input id="phone" required></label>
+        <label>E-mail<input id="email" type="email" required></label>
+        <label>Číslo objednávky<input id="order" required></label>
+        <label>Stav reklamace
+          <select id="status" required>
+            <option value="">— vyberte —</option>
+            <option>Nová</option>
+            <option>Čekáme na díly</option>
+            <option>Nemůžeme se dovolat zákazníkovi</option>
+            <option>Čekáme na informace od zadavatele</option>
+            <option>Zákazník nezvedá</option>
+          </select>
+        </label>
+        <label>Zadavatel
+          <select id="issuer" required>
+            <option value="">— vyberte —</option>
+            <option>Natuzzi Česká republika</option>
+            <option>Natuzzi Slovensko</option>
+            <option>Natuzzi Italia JAMA</option>
+            <option>Natuzzi Italia RIVER</option>
+            <option>Natuzzi Italia SOHO</option>
+            <option>SOFTALY</option>
+            <option>Natuzzi Italia FASE</option>
+            <option>Pozáruční servis</option>
+          </select>
+        </label>
+        <label>Technik
+          <select id="tech" required>
+            <option value="">— vyberte —</option>
+            <option>Milan Kolín</option>
+            <option>Radek Zikmund</option>
+            <option>Oba</option>
+          </select>
+        </label>
+        <label>Model<input id="model" required></label>
+        <label>Popis reklamace<textarea id="complaint" required></textarea></label>
+        <label>Cena práce (EUR)<input id="price_work" type="number" value="0" required></label>
+        <label>Cena materiál (EUR)<input id="price_mat" type="number" value="0" required></label>
+        <label>Cena druhého technika (EUR)<input id="price_tech" type="number" value="0" required></label>
+        <label>Cena doprava (EUR)<input id="price_trans" type="number" value="0" required></label>
+        <label>Cena vyzvednutí dílu (EUR)<input id="price_pickup" type="number" value="0" required></label>
+        <label>Datum návštěvy<input id="visit_date" type="date"></label>
+        <div class="controls">
+          <button class="primary" id="saveBtn">Uložit</button>
+          <button class="ghost" id="clearBtn">Vymazat</button>
+          <button class="primary" id="pdfBtn">Generovat PDF (CZ+EN)</button>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h3>Seznam reklamací</h3>
+        <div class="scroll">
+          <table id="claimsTable">
+            <thead>
+              <tr><th>Zákazník</th><th>Adresa</th><th>Telefon</th><th>Model</th><th>Stav</th><th>Technik</th><th>Cena celkem</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
-  <!-- SEM zůstává původní HTML obsah (formulář, seznam, protokol) -->
-  <!-- Můžeš sem vložit celou svou aplikaci s formulářem tak, jak jsme ji stavěli -->
-  <!-- Důležité je, že podpis (#sigCanvas) a tabulky se už přizpůsobí mobilu -->
+    <!-- PRAVÁ STRANA -->
+    <div>
+      <div class="card protocol" id="protocol">
+        <h2>CLAIM PROTOCOL</h2>
+        <p><strong>Zákazník:</strong> <span id="p_customer">—</span></p>
+        <p><strong>Adresa:</strong> <span id="p_address">—</span></p>
+        <p><strong>Telefon:</strong> <span id="p_phone">—</span></p>
+        <p><strong>E-mail:</strong> <span id="p_email">—</span></p>
+        <p><strong>Číslo objednávky:</strong> <span id="p_order">—</span></p>
+        <p><strong>Zadavatel:</strong> <span id="p_issuer">—</span></p>
+        <p><strong>Technik:</strong> <span id="p_tech">—</span></p>
+        <p><strong>Model:</strong> <span id="p_model">—</span></p>
+        <p><strong>Popis:</strong> <span id="p_complaint">—</span></p>
+        <p><strong>Cena celkem:</strong> <span id="p_total">0</span> EUR</p>
+        <canvas id="sigCanvas" width="600" height="150"></canvas>
+      </div>
+    </div>
+  </div>
 
-  <p style="padding:16px">✅ Tahle verze už se přizpůsobuje telefonu – žádné posouvání do strany.</p>
+  <!-- knihovny pro PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+const claims = [];
+const $ = id=>document.getElementById(id);
+
+function updateProtocol(data){
+  $("p_customer").textContent = data.customer;
+  $("p_address").textContent = data.address;
+  $("p_phone").textContent = data.phone;
+  $("p_email").textContent = data.email;
+  $("p_order").textContent = data.order;
+  $("p_issuer").textContent = data.issuer;
+  $("p_tech").textContent = data.tech;
+  $("p_model").textContent = data.model;
+  $("p_complaint").textContent = data.complaint;
+  $("p_total").textContent = (
+    Number(data.price_work)+Number(data.price_mat)+Number(data.price_tech)+Number(data.price_trans)+Number(data.price_pickup)
+  ).toFixed(2);
+}
+
+$("saveBtn").onclick = ()=>{
+  const obj = {
+    customer:$("customer").value,
+    address:$("address").value,
+    phone:$("phone").value,
+    email:$("email").value,
+    status:$("status").value,
+    order:$("order").value,
+    issuer:$("issuer").value,
+    tech:$("tech").value,
+    model:$("model").value,
+    complaint:$("complaint").value,
+    price_work:$("price_work").value,
+    price_mat:$("price_mat").value,
+    price_tech:$("price_tech").value,
+    price_trans:$("price_trans").value,
+    price_pickup:$("price_pickup").value,
+    visit_date:$("visit_date").value
+  };
+  claims.push(obj);
+  updateProtocol(obj);
+  renderTable();
+};
+
+$("clearBtn").onclick = ()=>{
+  ["customer","address","phone","email","status","order","issuer","tech","model","complaint",
+   "price_work","price_mat","price_tech","price_trans","price_pickup","visit_date"]
+  .forEach(id=>$(id).value="");
+};
+
+// tabulka
+function renderTable(){
+  const tbody=$("claimsTable").querySelector("tbody");
+  tbody.innerHTML="";
+  claims.forEach(c=>{
+    const total=(+c.price_work+ +c.price_mat+ +c.price_tech+ +c.price_trans+ +c.price_pickup).toFixed(2);
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${c.customer}</td><td>${c.address}</td><td><a href="tel:${c.phone}">${c.phone}</a></td><td>${c.model}</td><td>${c.status}</td><td>${c.tech}</td><td>${total}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// podpis
+const canvas=$("sigCanvas"),ctx=canvas.getContext("2d");
+let drawing=false;
+canvas.addEventListener("mousedown",()=>drawing=true);
+canvas.addEventListener("mouseup",()=>drawing=false);
+canvas.addEventListener("mousemove",e=>{
+  if(!drawing) return;
+  ctx.fillStyle="black";
+  ctx.beginPath();
+  ctx.arc(e.offsetX,e.offsetY,2,0,Math.PI*2);
+  ctx.fill();
+});
+
+// PDF export
+async function generatePDF(lang="cs"){
+  const { jsPDF } = window.jspdf;
+  const canvasEl = await html2canvas($("protocol"),{scale:2});
+  const imgData = canvasEl.toDataURL("image/png");
+  const pdf = new jsPDF("p","pt","a4");
+  const w = pdf.internal.pageSize.getWidth();
+  const h = canvasEl.height * w / canvasEl.width;
+  pdf.addImage(imgData,"PNG",0,0,w,h);
+  const name = $("order").value || "protokol";
+  pdf.save(name+"_"+lang.toUpperCase()+".pdf");
+}
+
+$("pdfBtn").onclick = async ()=>{
+  await generatePDF("cs");
+  await generatePDF("en");
+};
+</script>
 </body>
 </html>
