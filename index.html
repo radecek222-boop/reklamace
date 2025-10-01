@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Claim Protocol - White Glove Service</title>
+  <!-- knihovny z CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -84,19 +85,19 @@
   <div class="section">
     <h3>Stav reklamace / Claim status</h3>
     <div class="checkbox-group">
-      <input type="checkbox" id="vyreseno">
+      <input type="checkbox" id="vyreseno"> 
       <label for="vyreseno">Reklamace vyřešena</label>
     </div>
     <div class="checkbox-group">
-      <input type="checkbox" id="cekani">
+      <input type="checkbox" id="cekani"> 
       <label for="cekani">Čeká se na vyjádření prodejce</label>
     </div>
     <div class="checkbox-group">
-      <input type="checkbox" id="poskozeni">
+      <input type="checkbox" id="poskozeni"> 
       <label for="poskozeni">Poškození technikem</label>
     </div>
     <div class="checkbox-group">
-      <input type="checkbox" id="uhrada">
+      <input type="checkbox" id="uhrada"> 
       <label for="uhrada">Úhradu provede zákazník</label>
     </div>
   </div>
@@ -145,19 +146,15 @@
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
-    function clearSig() {
-      signaturePad.clear();
-    }
+    function clearSig() { signaturePad.clear(); }
 
-    // 👇 vlož sem svou Apps Script URL
-    const API_URL = "https://script.google.com/macros/s/AKfycby5ff53i4bIkHm8jn2Yb3muR9hV3MkgAfnJP688GP4HmNhjI-7y5i6DcVICgK8gJqW72w/exec";
+    // 👇 sem vlož vlastní Google Apps Script URL
+    const API_URL = "TVOJE_APPS_SCRIPT_URL";
 
     async function fetchData() {
       const order = document.getElementById("cislo_objednavky").value;
-      if (!order) {
-        alert("Zadej číslo objednávky!");
-        return;
-      }
+      if (!order) { alert("Zadej číslo objednávky!"); return; }
+
       try {
         const response = await fetch(API_URL + "?order=" + encodeURIComponent(order));
         const data = await response.json();
@@ -169,18 +166,12 @@
           document.getElementById("znacka").value = row["Label"] || "";
           document.getElementById("model").value = row["Model"] || "";
           document.getElementById("potah").value = row["Upholstery"] || "";
-          if (row["Delivery date"]) {
-            document.getElementById("datum_doruceni").value = new Date(row["Delivery date"]).toISOString().split("T")[0];
-          }
-          if (row["Complaint date"]) {
-            document.getElementById("datum_reklamace").value = new Date(row["Complaint date"]).toISOString().split("T")[0];
-          }
+          if (row["Delivery date"]) document.getElementById("datum_doruceni").value = new Date(row["Delivery date"]).toISOString().split("T")[0];
+          if (row["Complaint date"]) document.getElementById("datum_reklamace").value = new Date(row["Complaint date"]).toISOString().split("T")[0];
         } else {
           alert("Objednávka nenalezena v Google Sheets");
         }
-      } catch (err) {
-        alert("Chyba při načítání: " + err);
-      }
+      } catch (err) { alert("Chyba při načítání: " + err); }
     }
 
     function generatePDF() {
