@@ -7,7 +7,7 @@
   <style>
     :root { --bg:#f6f7fb; --card:#fff; --ink:#0e1116; --muted:#6b7280; --line:#e5e7eb; --brand:#0b69ff; }
     *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;overflow-x:hidden;}
+    body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;}
     h1{font-size:18px;margin:16px 16px 0}
     .grid{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;padding:16px}
     .card{background:var(--card);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.06);padding:14px}
@@ -18,29 +18,29 @@
     button{appearance:none;border:0;border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer}
     .primary{background:var(--brand);color:#fff}
     .ghost{background:#eef2ff;color:#1d4ed8;border:1px solid #dbeafe}
-    table{width:100%;border-collapse:collapse;table-layout:auto;word-wrap:break-word}
+    table{width:100%;border-collapse:collapse}
     th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;max-width:120px;overflow-wrap:break-word}
     th{font-size:12px;color:var(--muted);font-weight:600;position:sticky;top:0;background:#fafafa}
     .protocol{padding:16px;border:1px solid var(--line);border-radius:10px;background:#fff}
     #sigCanvas{border:1px dashed #cbd5e1;border-radius:8px;background:#fff;max-width:100%;height:auto}
     .scroll{max-height:360px;overflow:auto;border:1px solid var(--line);border-radius:10px}
-    @media (max-width: 980px){.grid{grid-template-columns:1fr}.row{flex-direction:column}th, td {max-width:none}}
+    @media (max-width: 980px){.grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
   <h1>White Glove Service – Servisní protokol</h1>
   <div class="grid">
-    <!-- LEVÁ STRANA -->
+    <!-- FORMULÁŘ -->
     <div>
       <div class="card">
         <h3>Nová reklamace</h3>
-        <label>Zákazník<input id="customer" required></label>
-        <label>Adresa<input id="address" required></label>
-        <label>Telefon<input id="phone" required></label>
-        <label>E-mail<input id="email" type="email" required></label>
-        <label>Číslo objednávky<input id="order" required></label>
+        <label>Zákazník<input id="customer"></label>
+        <label>Adresa<input id="address"></label>
+        <label>Telefon<input id="phone"></label>
+        <label>E-mail<input id="email" type="email"></label>
+        <label>Číslo objednávky<input id="order"></label>
         <label>Stav reklamace
-          <select id="status" required>
+          <select id="status">
             <option value="">— vyberte —</option>
             <option>Nová</option>
             <option>Čekáme na díly</option>
@@ -50,7 +50,7 @@
           </select>
         </label>
         <label>Zadavatel
-          <select id="issuer" required>
+          <select id="issuer">
             <option value="">— vyberte —</option>
             <option>Natuzzi Česká republika</option>
             <option>Natuzzi Slovensko</option>
@@ -63,20 +63,20 @@
           </select>
         </label>
         <label>Technik
-          <select id="tech" required>
+          <select id="tech">
             <option value="">— vyberte —</option>
             <option>Milan Kolín</option>
             <option>Radek Zikmund</option>
             <option>Oba</option>
           </select>
         </label>
-        <label>Model<input id="model" required></label>
-        <label>Popis reklamace<textarea id="complaint" required></textarea></label>
-        <label>Cena práce (EUR)<input id="price_work" type="number" value="0" required></label>
-        <label>Cena materiálu (EUR)<input id="price_mat" type="number" value="0" required></label>
-        <label>Cena druhého technika (EUR)<input id="price_tech" type="number" value="0" required></label>
-        <label>Cena doprava (EUR)<input id="price_trans" type="number" value="0" required></label>
-        <label>Cena vyzvednutí dílu (EUR)<input id="price_pickup" type="number" value="0" required></label>
+        <label>Model<input id="model"></label>
+        <label>Popis reklamace<textarea id="complaint"></textarea></label>
+        <label>Cena práce (EUR)<input id="price_work" type="number" value="0"></label>
+        <label>Cena materiálu (EUR)<input id="price_mat" type="number" value="0"></label>
+        <label>Cena druhého technika (EUR)<input id="price_tech" type="number" value="0"></label>
+        <label>Cena doprava (EUR)<input id="price_trans" type="number" value="0"></label>
+        <label>Cena vyzvednutí dílu (EUR)<input id="price_pickup" type="number" value="0"></label>
         <label>Datum návštěvy<input id="visit_date" type="date"></label>
         <div class="controls">
           <button class="primary" id="saveBtn">Uložit</button>
@@ -95,7 +95,7 @@
         </div>
       </div>
     </div>
-    <!-- PRAVÁ STRANA -->
+    <!-- PROTOKOL -->
     <div>
       <div class="card protocol" id="protocol">
         <h2>CLAIM PROTOCOL</h2>
@@ -115,8 +115,8 @@
   </div>
 
 <script>
-const API_URL = "TVŮJ_EXEC_LINK"; 
-const API_DATA_URL = API_URL + "?data=1"; 
+const API_URL = window.location.href.split('?')[0];
+const API_DATA_URL = API_URL + "?data=1";
 const claims = [];
 const $ = id=>document.getElementById(id);
 
@@ -138,18 +138,13 @@ function updateProtocol(data){
 
 async function saveToSheet(obj){
   try {
-    let res = await fetch(API_URL,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify(obj)
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(obj)
     });
-    let text = await res.text();
-    console.log("Odpověď ze serveru:", text);
-    return text;
-  } catch(err){
-    console.error("Chyba při ukládání:", err);
-    return "error: " + err;
-  }
+    return await res.text();
+  } catch(err){ return "error: " + err; }
 }
 
 async function loadFromSheet(){
@@ -159,9 +154,7 @@ async function loadFromSheet(){
     claims.length = 0;
     data.forEach(r => claims.push(r));
     renderTable();
-  } catch(err){
-    console.error("Chyba při načítání:", err);
-  }
+  } catch(err){ console.error("Chyba při načítání:", err); }
 }
 
 function renderTable(){
@@ -181,29 +174,20 @@ function renderTable(){
   });
 }
 
-window.onload = () => {
+window.onload = ()=>{
   $("saveBtn").onclick = async ()=>{
     const obj = {
-      customer:$("customer").value,
-      address:$("address").value,
-      phone:$("phone").value,
-      email:$("email").value,
-      order:$("order").value,
-      status:$("status").value,
-      issuer:$("issuer").value,
-      tech:$("tech").value,
-      model:$("model").value,
-      complaint:$("complaint").value,
-      price_work:$("price_work").value,
-      price_mat:$("price_mat").value,
-      price_tech:$("price_tech").value,
-      price_trans:$("price_trans").value,
-      price_pickup:$("price_pickup").value,
-      visit_date:$("visit_date").value
+      customer:$("customer").value, address:$("address").value,
+      phone:$("phone").value, email:$("email").value,
+      order:$("order").value, status:$("status").value,
+      issuer:$("issuer").value, tech:$("tech").value,
+      model:$("model").value, complaint:$("complaint").value,
+      price_work:$("price_work").value, price_mat:$("price_mat").value,
+      price_tech:$("price_tech").value, price_trans:$("price_trans").value,
+      price_pickup:$("price_pickup").value, visit_date:$("visit_date").value
     };
 
     let result = await saveToSheet(obj);
-
     if(result.includes("success")){
       alert("✅ Uloženo do Google Sheets");
       updateProtocol(obj);
@@ -214,15 +198,14 @@ window.onload = () => {
 
     ["customer","address","phone","email","status","order","issuer","tech","model","complaint",
      "price_work","price_mat","price_tech","price_trans","price_pickup","visit_date"].forEach(id=>{
-      const el = $(id); 
-      if(el) el.value = (id.startsWith("price")) ? "0" : "";
+      const el=$(id); if(el) el.value=(id.startsWith("price"))?"0":"";
     });
   };
 
   $("clearBtn").onclick = ()=>{
     ["customer","address","phone","email","status","order","issuer","tech","model","complaint",
      "price_work","price_mat","price_tech","price_trans","price_pickup","visit_date"].forEach(id=>{
-      const el = $(id); if(el) el.value = (id.startsWith("price")) ? "0" : "";
+      const el=$(id); if(el) el.value=(id.startsWith("price"))?"0":"";
     });
   };
 
@@ -232,7 +215,6 @@ window.onload = () => {
   canvas.addEventListener("mouseup",()=>drawing=false);
   canvas.addEventListener("mousemove",e=>{if(!drawing)return;ctx.fillStyle="black";ctx.beginPath();ctx.arc(e.offsetX,e.offsetY,2,0,Math.PI*2);ctx.fill();});
 
-  // 📥 načíst data při startu
   loadFromSheet();
 };
 </script>
