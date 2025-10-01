@@ -21,6 +21,8 @@
     th { background:#f0f0f0; }
     tr:nth-child(even) { background:#fafafa; }
     tr:hover { background:#e9f0ff; cursor:pointer; }
+    a { color:#0645ad; text-decoration:none; }
+    a:hover { text-decoration:underline; }
     .btn {
       background:#e0e0e0; color:#111; padding:10px 20px; margin:20px auto; display:block;
       border:none; border-radius:8px; cursor:pointer; font-size:1em;
@@ -57,11 +59,27 @@ function renderTable(rows){
   let html = "<table><thead><tr>";
   Object.keys(rows[0]).forEach(h => { html += "<th>"+h+"</th>"; });
   html += "</tr></thead><tbody>";
+  
   rows.forEach((row,idx) => {
     html += `<tr onclick="selectRow(${idx})">`;
-    Object.values(row).forEach(c => { html += "<td>"+(c||"")+"</td>"; });
+    Object.entries(row).forEach(([key, val]) => {
+      let cellContent = val || "";
+      
+      // Telefon = klikací odkaz tel:
+      if (key.toLowerCase().includes("kontakt") || key.toLowerCase().includes("telefon")) {
+        cellContent = `<a href="tel:${val}" onclick="event.stopPropagation()">${val}</a>`;
+      }
+      // Adresa = klikací odkaz do Waze
+      if (key.toLowerCase().includes("address") || key.toLowerCase().includes("adresa")) {
+        const encoded = encodeURIComponent(val);
+        cellContent = `<a href="https://waze.com/ul?q=${encoded}" target="_blank" onclick="event.stopPropagation()">${val}</a>`;
+      }
+      
+      html += "<td>"+cellContent+"</td>";
+    });
     html += "</tr>";
   });
+  
   html += "</tbody></table>";
   document.getElementById("results").innerHTML = html;
 }
