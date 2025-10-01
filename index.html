@@ -1,201 +1,593 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8">
-  <title>Claim Protocol - White Glove Service</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>White Glove Service</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 900px; margin: 20px auto; background: #f9f9f9; padding: 20px; border-radius: 10px; }
-    h2 { text-align: center; margin-bottom: 20px; }
-    .logo { text-align: center; margin-bottom: 20px; }
-    .logo img { max-width: 220px; }
-    label { display: block; margin-top: 10px; font-weight: bold; }
-    input, textarea { width: 100%; padding: 6px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px; }
-    textarea { height: 70px; }
-    #signature { border: 1px solid #ccc; width: 100%; height: 150px; background: white; }
-    .btn { margin-top: 15px; padding: 12px; cursor: pointer; border: none; border-radius: 6px; background: #333; color: white; font-weight: bold; }
-    .btn:hover { background: #555; }
-    .section { background: #fff; padding: 15px; margin-bottom: 15px; border-radius: 6px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
-    .checkbox-group { margin: 5px 0; }
+    :root{
+      --bg:#0b0b0c; --card:#121316; --muted:#6b7280; --text:#e5e7eb; --accent:#22c55e; --accent-2:#3b82f6; --danger:#ef4444; --warn:#f59e0b; --pill:#1f2937; --border:#1f2937;
+    }
+    html,body{height:100%;}
+    body{
+      margin:0; font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+      background:var(--bg); color:var(--text);
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+    header{
+      position:sticky; top:0; z-index:50; backdrop-filter:saturate(160%) blur(8px);
+      background:linear-gradient(180deg, rgba(11,11,12,.9), rgba(11,11,12,.6) 60%, transparent);
+      border-bottom:1px solid var(--border);
+    }
+    .wrap{max-width:1100px; margin:0 auto; padding:16px;}
+    .title{
+      font-size: clamp(28px, 6vw, 48px);
+      line-height:1.05; font-weight:800; letter-spacing:.2px;
+    }
+    .subtitle{color:var(--muted); margin-top:4px; font-size:14px}
+    .toolbar{
+      display:grid; gap:8px; grid-template-columns: 1fr; margin-top:12px;
+    }
+    @media (min-width: 700px){
+      .toolbar{grid-template-columns: 1fr auto auto auto;}
+    }
+    .input, select{
+      background:var(--card); color:var(--text); border:1px solid var(--border);
+      padding:12px 12px; border-radius:12px; font-size:14px; outline:none;
+    }
+    .btn{
+      background:var(--accent-2); color:white; border:none; padding:12px 14px; border-radius:12px; font-weight:600; cursor:pointer;
+    }
+    .btn.ghost{ background:transparent; border:1px solid var(--border); color:var(--text); }
+    .btn.warn{ background:var(--warn); color:black; }
+    .stats{
+      display:grid; gap:10px; grid-template-columns: repeat(2, 1fr); margin:16px 0 8px;
+    }
+    @media (min-width: 680px){ .stats{ grid-template-columns: repeat(4, 1fr);} }
+    .stat{
+      background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px;
+    }
+    .stat .k{font-size:22px; font-weight:800}
+    .stat .l{font-size:12px; color:var(--muted); margin-top:4px}
+    .list{
+      display:flex; flex-direction:column; gap:10px; padding:16px 0 80px;
+    }
+    .card{
+      background:var(--card); border:1px solid var(--border); border-radius:18px; padding:14px;
+    }
+    .row1{
+      display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+    }
+    .cust{ font-weight:700; font-size:16px; }
+    .badges{ display:flex; gap:6px; flex-wrap:wrap;}
+    .pill{
+      background:var(--pill); color:var(--text); border:1px solid var(--border);
+      padding:6px 10px; font-size:12px; border-radius:999px; white-space:nowrap;
+    }
+    .grid{
+      display:grid; gap:8px; grid-template-columns: 1fr;
+      margin-top:12px;
+    }
+    @media (min-width: 760px){
+      .grid{ grid-template-columns: 1.3fr 1fr 1fr; }
+    }
+    .field{ display:flex; flex-direction:column; gap:6px; }
+    .label{ font-size:12px; color:var(--muted); }
+    .row-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .link{ text-decoration:none; }
+    .linkbtn{
+      display:inline-flex; align-items:center; gap:8px;
+      background:#0f172a; border:1px solid var(--border); color:#cbd5e1;
+      padding:10px 12px; border-radius:12px; font-size:14px; font-weight:600;
+    }
+    .linkbtn:hover{ filter:brightness(1.08); }
+    .status-select, .zadavatel-select, .term-input{ width:100%; }
+    .footer-space{ height:24px;}
+    .muted{ color:var(--muted); }
+    .nowrap{ white-space:nowrap; }
   </style>
 </head>
 <body>
-  <div class="logo">
-    <img src="https://dummyimage.com/200x50/000/fff&text=White+Glove+Service" alt="Logo firmy">
-  </div>
-  
-  <h2>CLAIM PROTOCOL</h2>
+  <header>
+    <div class="wrap">
+      <div class="title">White Glove Service</div>
+      <div class="subtitle">Reklamace & servis – rychlý přehled, filtrace a akce pro techniky</div>
 
-  <div class="section">
-    <label>Číslo objednávky / Order number</label>
-    <input id="cislo_objednavky">
-    <button type="button" class="btn" onclick="fetchData()">Načíst z Google Sheets</button>
+      <div class="stats" id="stats">
+        <div class="stat"><div class="k" id="s_total">0</div><div class="l">Celkem položek</div></div>
+        <div class="stat"><div class="k" id="s_new">0</div><div class="l">Nová</div></div>
+        <div class="stat"><div class="k" id="s_scheduled">0</div><div class="l">Domluven termín</div></div>
+        <div class="stat"><div class="k" id="s_silent">0</div><div class="l">Zákazník nekomunikuje</div></div>
+      </div>
 
-    <label>Číslo reklamace / Claim number</label>
-    <input id="cislo_reklamace">
-  </div>
+      <div class="toolbar">
+        <input id="q" class="input" placeholder="Hledat: zákazník, adresa, objednávka, model, popis…" />
+        <select id="fltStatus" class="input">
+          <option value="">Stav: vše</option>
+          <option value="nová">Nová</option>
+          <option value="domluven termín">Domluven termín</option>
+          <option value="zákazník nekomunikuje">Zákazník nekomunikuje</option>
+        </select>
+        <select id="fltZadavatel" class="input">
+          <option value="">Zadavatel: všichni</option>
+          <option>Natuzzi Strejček</option>
+          <option>Natuzzi Vimrová</option>
+          <option>Natuzzi Italia SK</option>
+          <option>Phase Klucarova</option>
+          <option>Natuzzi Jama</option>
+          <option>Natuzzi River</option>
+          <option>Natuzzi Soho</option>
+          <option>Softaly</option>
+          <option>Pozarucni servis</option>
+        </select>
+        <div style="display:flex; gap:8px;">
+          <button class="btn ghost" id="btnReset">Reset filtrů</button>
+          <button class="btn" id="btnExport">Export změn CSV</button>
+        </div>
+      </div>
+    </div>
+  </header>
 
-  <div class="section">
-    <label>Zákazník / Customer</label>
-    <input id="zakaznik">
-
-    <label>Adresa zákazníka / Address customer</label>
-    <input id="adresa">
-
-    <label>Kontakt / Contact</label>
-    <input id="kontakt">
-
-    <label>Stav – termín návštěvy / Status – visit date</label>
-    <input id="stav">
-  </div>
-
-  <div class="section">
-    <label>Značka / Label</label>
-    <input id="znacka">
-
-    <label>Model</label>
-    <input id="model">
-
-    <label>Popis reklamace / Complaint description</label>
-    <textarea id="zakaznik_reklamace"></textarea>
-  </div>
-
-  <div class="section">
-    <label>Datum doručení / Delivery date</label>
-    <input id="datum_doruceni" type="date">
-
-    <label>Datum podání reklamace / Complaint date</label>
-    <input id="datum_reklamace" type="date">
-
-    <label>MILAN</label>
-    <input id="milan">
-
-    <label>RADEK</label>
-    <input id="radek">
-  </div>
-
-  <div class="section">
-    <label>Cena / Price</label>
-    <input id="celkem">
-  </div>
-
-  <div class="section">
-    <label>Podpis zákazníka / Customer signature:</label>
-    <canvas id="signature"></canvas>
-    <button class="btn" onclick="clearSig()">Smazat podpis</button>
-  </div>
-
-  <button class="btn" onclick="generatePDF()">Uložit PDF</button>
+  <main class="wrap">
+    <div class="list" id="list"></div>
+    <div class="footer-space"></div>
+  </main>
 
   <script>
-    const { jsPDF } = window.jspdf;
-    const canvas = document.getElementById('signature');
-    const signaturePad = new SignaturePad(canvas);
+    // === KONFIGURACE ===
+    // 1) Vlož CSV URL publikovaného listu "SEZNAM REKLAMACÍ"
+    //    Převod: .../pubhtml?...  ->  .../pub?gid=0&single=true&output=csv
+    const SHEET_CSV_URL = "REPLACE_WITH_YOUR_PUBLISHED_CSV_URL";
 
-    function resizeCanvas() {
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
-      canvas.width = canvas.offsetWidth * ratio;
-      canvas.height = canvas.offsetHeight * ratio;
-      canvas.getContext("2d").scale(ratio, ratio);
-      signaturePad.clear();
+    // 2) Mapování názvů sloupců z tvého listu
+    const COLS = {
+      customer: "Customer",
+      address: "Address",
+      kontakt: "KONTAKT",
+      statusTerm: "STAV - termín návštěvy",
+      orderNo: "Order number",
+      label: "Label", // přepíšeme na "Zadavatel"
+      cena: "CENA",
+      milan: "MILAN",
+      radek: "RADEK",
+      model: "Model",
+      popis: "POPIS REKLAMACE - OPRAVY",
+      complaintDate: "Complaint date",
+      deliveryDate: "Delivery date",
+    };
+
+    // === POMOCNÉ FUNKCE ===
+    const ZadavatelOptions = [
+      "Natuzzi Strejček",
+      "Natuzzi Vimrová",
+      "Natuzzi Italia SK",
+      "Phase Klucarova",
+      "Natuzzi Jama",
+      "Natuzzi River",
+      "Natuzzi Soho",
+      "Softaly",
+      "Pozarucni servis",
+    ];
+
+    const StatusOptions = ["nová", "domluven termín", "zákazník nekomunikuje"];
+
+    function csvToRows(text){
+      // Jednoduchý CSV parser (pro Google CSV obvykle stačí)
+      const lines = text.replace(/\r/g,"").split("\n").filter(Boolean);
+      const header = parseCsvLine(lines[0]);
+      const rows = lines.slice(1).map(l => parseCsvLine(l));
+      return { header, rows };
     }
-    window.addEventListener("resize", resizeCanvas);
-    resizeCanvas();
-
-    function clearSig() { signaturePad.clear(); }
-
-    // 👇 sem vlož svou Apps Script URL
-    const API_URL = "https://script.google.com/macros/s/AKfycbwCL5s2dLRygGE3OzOJm50IaSSLGOeCr0fwi70UKBI-73D-WvA0brcrNFXSCaObDVM-SA/exec";
-
-    async function fetchData() {
-      const order = document.getElementById("cislo_objednavky").value;
-      if (!order) { alert("Zadej číslo objednávky!"); return; }
-
-      const url = API_URL + "?order=" + encodeURIComponent(order) + "&sheet=SEZNAM%20REKLAMACÍ";
-
-      try {
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (data.length > 0) {
-          const row = data[0];
-
-          document.getElementById("zakaznik").value = row["Customer"] || "";
-          document.getElementById("adresa").value   = row["Address"] || "";
-          document.getElementById("kontakt").value  = row["KONTAKT"] || "";
-          document.getElementById("stav").value     = row["STAV - termín návštěvy"] || "";
-          document.getElementById("znacka").value   = row["Label"] || "";
-          document.getElementById("model").value    = row["Model"] || "";
-          document.getElementById("zakaznik_reklamace").value = row["POPIS REKLAMACE - OPRAVY"] || "";
-
-          if (row["Delivery date"]) {
-            document.getElementById("datum_doruceni").value = new Date(row["Delivery date"]).toISOString().split("T")[0];
-          }
-          if (row["Complaint date"]) {
-            document.getElementById("datum_reklamace").value = new Date(row["Complaint date"]).toISOString().split("T")[0];
-          }
-
-          document.getElementById("milan").value = row["MILAN"] || "";
-          document.getElementById("radek").value = row["RADEK"] || "";
-          document.getElementById("celkem").value = row["CENA"] || "";
-
-        } else {
-          alert("Objednávka nenalezena v listu SEZNAM REKLAMACÍ");
+    function parseCsvLine(line){
+      const out=[]; let cur=""; let inQ=false;
+      for(let i=0;i<line.length;i++){
+        const ch=line[i];
+        if(ch === '"'){
+          if(inQ && line[i+1] === '"'){ cur+='"'; i++; }
+          else { inQ=!inQ; }
+        }else if(ch === ',' && !inQ){
+          out.push(cur); cur="";
+        }else{
+          cur+=ch;
         }
-      } catch (err) {
-        alert("Chyba při načítání: " + err);
+      }
+      out.push(cur);
+      return out;
+    }
+
+    function headerIndexMap(header){
+      const map={};
+      header.forEach((h,i)=>{ map[h.trim()] = i; });
+      return map;
+    }
+
+    function safe(val){ return (val ?? "").toString().trim(); }
+
+    function telHref(raw){
+      const digits = safe(raw).replace(/[^\d+]/g,"");
+      return digits ? `tel:${digits}` : null;
+    }
+
+    function wazeHref(address){
+      const q = encodeURIComponent(safe(address));
+      return q ? `https://waze.com/ul?q=${q}&navigate=yes` : null;
+    }
+
+    function storageKey(orderNo, address, customer){
+      // klíč pro localStorage (preferuj objednávku, jinak kombinace)
+      const base = safe(orderNo) || (safe(customer)+"|"+safe(address));
+      return "wgs_claim_"+base.toLowerCase();
+    }
+
+    function loadLocal(key){
+      try{ return JSON.parse(localStorage.getItem(key) || "{}"); }
+      catch(e){ return {}; }
+    }
+    function saveLocal(key, obj){
+      localStorage.setItem(key, JSON.stringify(obj));
+    }
+
+    function download(filename, content){
+      const blob = new Blob([content], {type:"text/csv;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
+    }
+
+    // === STAV A RENDER ===
+    let DATA = [];      // původní data z CSV (pole objektů)
+    let VIEW = [];      // filtrovaný pohled
+    let headerMap = {}; // map sloupců
+
+    const els = {
+      list: document.getElementById("list"),
+      s_total: document.getElementById("s_total"),
+      s_new: document.getElementById("s_new"),
+      s_scheduled: document.getElementById("s_scheduled"),
+      s_silent: document.getElementById("s_silent"),
+      q: document.getElementById("q"),
+      fltStatus: document.getElementById("fltStatus"),
+      fltZ: document.getElementById("fltZadavatel"),
+      btnReset: document.getElementById("btnReset"),
+      btnExport: document.getElementById("btnExport"),
+    };
+
+    function buildRecord(row){
+      function get(colName){
+        const idx = headerMap[colName];
+        return idx!=null ? row[idx] : "";
+      }
+      return {
+        customer: safe(get(COLS.customer)),
+        address: safe(get(COLS.address)),
+        kontakt: safe(get(COLS.kontakt)),
+        statusTerm: safe(get(COLS.statusTerm)), // jen pro referenci z původních dat
+        orderNo: safe(get(COLS.orderNo)),
+        label: safe(get(COLS.label)),           // původní label (přepíšeme Zadavatelem)
+        cena: safe(get(COLS.cena)),
+        milan: safe(get(COLS.milan)),
+        radek: safe(get(COLS.radek)),
+        model: safe(get(COLS.model)),
+        popis: safe(get(COLS.popis)),
+        complaintDate: safe(get(COLS.complaintDate)),
+        deliveryDate: safe(get(COLS.deliveryDate)),
+      };
+    }
+
+    function enrichWithLocal(rec){
+      const key = storageKey(rec.orderNo, rec.address, rec.customer);
+      const loc = loadLocal(key);
+      return {
+        ...rec,
+        // lokální editable pole:
+        zadavatel: safe(loc.zadavatel) || (ZadavatelOptions.includes(rec.label) ? rec.label : ""),
+        status: safe(loc.status) || "",
+        termin: safe(loc.termin) || "",
       }
     }
 
-    function generatePDF() {
-      const doc = new jsPDF({ unit: "mm", format: "a4" });
+    function matchesFilters(rec){
+      const q = els.q.value.trim().toLowerCase();
+      const fS = els.fltStatus.value;
+      const fZ = els.fltZ.value;
 
-      doc.setFontSize(16);
-      doc.text("WHITE GLOVE SERVICE s.r.o.", 105, 15, { align: "center" });
-      doc.setFontSize(10);
-      doc.text("Do Dubče 364, Běchovice 190 11 | +420 725 965 826 | reklamace-wgs@email.cz | IČO: 09769684", 105, 20, { align: "center" });
-      doc.setFontSize(14);
-      doc.text("CLAIM PROTOCOL", 105, 30, { align: "center" });
+      if(fS && rec.status !== fS) return false;
+      if(fZ && rec.zadavatel !== fZ) return false;
 
-      // tabulky
-      doc.autoTable({ startY: 40, head: [['Order number','Label','Model','Price']], body: [[
-        document.getElementById("cislo_objednavky").value,
-        document.getElementById("znacka").value,
-        document.getElementById("model").value,
-        document.getElementById("celkem").value
-      ]]});
-
-      doc.autoTable({ startY: doc.lastAutoTable.finalY+5, head: [['Customer','Address','Contact','Status']], body: [[
-        document.getElementById("zakaznik").value,
-        document.getElementById("adresa").value,
-        document.getElementById("kontakt").value,
-        document.getElementById("stav").value
-      ]]});
-
-      doc.autoTable({ startY: doc.lastAutoTable.finalY+5, head: [['Complaint description']], body: [[
-        document.getElementById("zakaznik_reklamace").value
-      ]]});
-
-      doc.autoTable({ startY: doc.lastAutoTable.finalY+5, head: [['Delivery date','Complaint date','MILAN','RADEK']], body: [[
-        document.getElementById("datum_doruceni").value,
-        document.getElementById("datum_reklamace").value,
-        document.getElementById("milan").value,
-        document.getElementById("radek").value
-      ]]});
-
-      let y = doc.lastAutoTable.finalY + 15;
-      if (!signaturePad.isEmpty()) {
-        const imgData = signaturePad.toDataURL();
-        doc.addImage(imgData, "PNG", 20, y, 80, 30);
-        doc.text("Customer signature", 20, y+40);
-      } else {
-        doc.text("Customer signature: [not provided]", 20, y);
+      if(q){
+        const hay = [
+          rec.customer, rec.address, rec.orderNo, rec.model, rec.popis, rec.kontakt, rec.zadavatel, rec.status
+        ].join(" ").toLowerCase();
+        if(!hay.includes(q)) return false;
       }
-
-      doc.save("claim_protocol.pdf");
+      return true;
     }
+
+    function updateStats(){
+      const total = VIEW.length;
+      const cNew = VIEW.filter(r=>r.status==="nová").length;
+      const cSched = VIEW.filter(r=>r.status==="domluven termín").length;
+      const cSilent = VIEW.filter(r=>r.status==="zákazník nekomunikuje").length;
+      els.s_total.textContent = total;
+      els.s_new.textContent = cNew;
+      els.s_scheduled.textContent = cSched;
+      els.s_silent.textContent = cSilent;
+    }
+
+    function render(){
+      VIEW = DATA.filter(matchesFilters);
+      updateStats();
+      els.list.innerHTML = "";
+      if(VIEW.length===0){
+        const empty = document.createElement("div");
+        empty.className="muted";
+        empty.style.padding="16px";
+        empty.textContent = "Žádné položky pro zvolený filtr.";
+        els.list.appendChild(empty);
+        return;
+      }
+      VIEW.forEach(rec=>{
+        const key = storageKey(rec.orderNo, rec.address, rec.customer);
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        // Hlavní řádek
+        const row1 = document.createElement("div");
+        row1.className = "row1";
+
+        const left = document.createElement("div");
+        const cust = document.createElement("div");
+        cust.className = "cust";
+        cust.textContent = rec.customer || "(bez názvu)";
+        const adr = document.createElement("div");
+        adr.className = "muted";
+        adr.style.marginTop="2px";
+        adr.textContent = rec.address;
+        left.appendChild(cust);
+        left.appendChild(adr);
+
+        const right = document.createElement("div");
+        right.className = "badges";
+        if(rec.orderNo){
+          const pill = document.createElement("div");
+          pill.className = "pill";
+          pill.textContent = "Obj.: " + rec.orderNo;
+          right.appendChild(pill);
+        }
+        if(rec.model){
+          const pill = document.createElement("div");
+          pill.className = "pill";
+          pill.textContent = rec.model;
+          right.appendChild(pill);
+        }
+        if(rec.cena){
+          const pill = document.createElement("div");
+          pill.className = "pill";
+          pill.textContent = "Cena: " + rec.cena;
+          right.appendChild(pill);
+        }
+        row1.appendChild(left);
+        row1.appendChild(right);
+
+        // Grid polí (Zadavatel / Stav / Termín)
+        const grid = document.createElement("div");
+        grid.className = "grid";
+
+        // Zadavatel
+        const fZ = document.createElement("div");
+        fZ.className="field";
+        const lZ = document.createElement("div");
+        lZ.className="label"; lZ.textContent="Zadavatel";
+        const sZ = document.createElement("select");
+        sZ.className="zadavatel-select";
+        const optEmptyZ = document.createElement("option");
+        optEmptyZ.value=""; optEmptyZ.textContent="— vybrat —";
+        sZ.appendChild(optEmptyZ);
+        ZadavatelOptions.forEach(z=>{
+          const opt=document.createElement("option");
+          opt.value=z; opt.textContent=z; if(rec.zadavatel===z) opt.selected=true;
+          sZ.appendChild(opt);
+        });
+        sZ.addEventListener("change", ()=>{
+          const obj = loadLocal(key);
+          obj.zadavatel = sZ.value;
+          saveLocal(key, obj);
+        });
+        fZ.appendChild(lZ); fZ.appendChild(sZ);
+
+        // Status
+        const fS = document.createElement("div");
+        fS.className="field";
+        const lS = document.createElement("div");
+        lS.className="label"; lS.textContent="Status";
+        const sS = document.createElement("select");
+        sS.className="status-select";
+        const optEmptyS = document.createElement("option");
+        optEmptyS.value=""; optEmptyS.textContent="— vybrat —";
+        sS.appendChild(optEmptyS);
+        StatusOptions.forEach(st=>{
+          const opt=document.createElement("option");
+          opt.value=st; opt.textContent=st; if(rec.status===st) opt.selected=true;
+          sS.appendChild(opt);
+        });
+        fS.appendChild(lS); fS.appendChild(sS);
+
+        // Termín (zobrazuje se jen pro "domluven termín")
+        const fT = document.createElement("div");
+        fT.className="field";
+        const lT = document.createElement("div");
+        lT.className="label"; lT.textContent="Termín návštěvy";
+        const iT = document.createElement("input");
+        iT.className="term-input";
+        iT.type="datetime-local";
+        if(rec.termin) iT.value = rec.termin;
+        const showTerm = ()=>{ fT.style.display = (sS.value==="domluven termín") ? "flex":"none"; }
+        sS.addEventListener("change", ()=>{
+          const obj = loadLocal(key);
+          obj.status = sS.value;
+          // pokud někdo přepne pryč, necháme termín, ale lze vymazat ručně
+          saveLocal(key, obj);
+          showTerm();
+          // obnov statistiky bez full rerenderu:
+          updateStatsLive();
+        });
+        iT.addEventListener("change", ()=>{
+          const obj = loadLocal(key);
+          obj.termin = iT.value;
+          saveLocal(key, obj);
+        });
+        fT.appendChild(lT); fT.appendChild(iT);
+        showTerm();
+
+        grid.appendChild(fZ);
+        grid.appendChild(fS);
+        grid.appendChild(fT);
+
+        // Akce (Waze / Volat) + popis
+        const actions = document.createElement("div");
+        actions.className="row-actions";
+
+        const wurl = wazeHref(rec.address);
+        if(wurl){
+          const a = document.createElement("a");
+          a.href=wurl; a.target="_blank"; a.rel="noopener";
+          a.className="link linkbtn"; a.textContent="Navigovat ve Waze";
+          actions.appendChild(a);
+        }
+        const turl = telHref(rec.kontakt);
+        if(turl){
+          const a = document.createElement("a");
+          a.href=turl;
+          a.className="link linkbtn"; a.textContent="Zavolat";
+          actions.appendChild(a);
+        }
+
+        const desc = document.createElement("div");
+        desc.className="muted";
+        desc.style.marginTop="8px";
+        desc.textContent = rec.popis || "";
+
+        // info řádek dole (Complaint/Delivery, MILAN/RADEK)
+        const foot = document.createElement("div");
+        foot.className="muted";
+        foot.style.marginTop="6px";
+        const parts = [];
+        if(rec.complaintDate) parts.push("Reklamace: "+rec.complaintDate);
+        if(rec.deliveryDate) parts.push("Dodání: "+rec.deliveryDate);
+        if(rec.milan) parts.push("Milan: "+rec.milan);
+        if(rec.radek) parts.push("Radek: "+rec.radek);
+        foot.textContent = parts.join("  •  ");
+
+        card.appendChild(row1);
+        card.appendChild(grid);
+        card.appendChild(actions);
+        if(desc.textContent) card.appendChild(desc);
+        if(foot.textContent) card.appendChild(foot);
+
+        els.list.appendChild(card);
+      });
+    }
+
+    function updateStatsLive(){
+      // přepočítej statistiky nad aktuálním VIEW podle localStorage změn
+      const temp = VIEW.map(r=>{
+        const key = storageKey(r.orderNo, r.address, r.customer);
+        const loc = loadLocal(key);
+        return { ...r, status: safe(loc.status) || r.status };
+      });
+      const total = temp.length;
+      const cNew = temp.filter(r=>r.status==="nová").length;
+      const cSched = temp.filter(r=>r.status==="domluven termín").length;
+      const cSilent = temp.filter(r=>r.status==="zákazník nekomunikuje").length;
+      els.s_total.textContent = total;
+      els.s_new.textContent = cNew;
+      els.s_scheduled.textContent = cSched;
+      els.s_silent.textContent = cSilent;
+    }
+
+    // === FILTRY & AKCE ===
+    ["input","change"].forEach(ev=>{
+      els.q.addEventListener(ev, ()=>render());
+      els.fltStatus.addEventListener(ev, ()=>render());
+      els.fltZ.addEventListener(ev, ()=>render());
+    });
+    els.btnReset.addEventListener("click", ()=>{
+      els.q.value=""; els.fltStatus.value=""; els.fltZ.value="";
+      render();
+    });
+
+    els.btnExport.addEventListener("click", ()=>{
+      // Exportuj lokální změny (orderNo, customer, address, zadavatel, status, termin)
+      const keys = Object.keys(localStorage).filter(k=>k.startsWith("wgs_claim_"));
+      const header = ["Order number","Customer","Address","Zadavatel","Status","Termin"].join(",");
+      const rows = [header];
+      keys.forEach(k=>{
+        const obj = loadLocal(k);
+        // pokus najít původní záznam pro doplnění order/customer/address
+        const baseId = k.replace(/^wgs_claim_/,"");
+        // najdi přes DATA
+        let rec = DATA.find(r=>storageKey(r.orderNo, r.address, r.customer).endsWith(baseId));
+        if(!rec){
+          // fallback: rozdělit baseId
+          rec = { orderNo:"", customer:"", address:"" };
+        }
+        const vals = [
+          (rec.orderNo||"").replace(/"/g,'""'),
+          (rec.customer||"").replace(/"/g,'""'),
+          (rec.address||"").replace(/"/g,'""'),
+          (obj.zadavatel||"").replace(/"/g,'""'),
+          (obj.status||"").replace(/"/g,'""'),
+          (obj.termin||"").replace(/"/g,'""'),
+        ].map(v=>`"${v}"`);
+        rows.push(vals.join(","));
+      });
+      download(`wgs-zmeny-${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.csv`, rows.join("\n"));
+    });
+
+    // === START ===
+    (async function init(){
+      if(!SHEET_CSV_URL || SHEET_CSV_URL.startsWith("REPLACE_")){
+        // Pomocná hláška, kdyby někdo zapomněl URL
+        const warn = document.createElement("div");
+        warn.className="card";
+        warn.innerHTML = `
+          <div class="cust" style="margin-bottom:6px;">Chybí CSV adresa</div>
+          <div class="muted">V souboru nahraď <code>SHEET_CSV_URL</code> svou publikovanou CSV adresou Google Sheetu.</div>
+        `;
+        document.getElementById("list").appendChild(warn);
+        return;
+      }
+      try{
+        const res = await fetch(SHEET_CSV_URL, { cache:"no-store" });
+        const txt = await res.text();
+        const { header, rows } = csvToRows(txt);
+        headerMap = headerIndexMap(header);
+
+        DATA = rows.map(buildRecord).map(enrichWithLocal);
+
+        // řazení: novější reklamace nahoru (pokud je datum), jinak podle customer
+        DATA.sort((a,b)=>{
+          const da = Date.parse(a.complaintDate||"")||0;
+          const db = Date.parse(b.complaintDate||"")||0;
+          if(db - da !== 0) return db - da;
+          return (a.customer||"").localeCompare(b.customer||"");
+        });
+
+        render();
+      }catch(e){
+        const err = document.createElement("div");
+        err.className="card";
+        err.innerHTML = `
+          <div class="cust" style="color:#fca5a5;margin-bottom:6px;">Chyba načtení CSV</div>
+          <div class="muted">Zkontroluj, že je list publikovaný pro "Kdokoliv s odkazem" a že používáš <code>output=csv</code>.</div>
+          <div class="muted" style="margin-top:6px;">Detail: ${String(e)}</div>
+        `;
+        document.getElementById("list").appendChild(err);
+      }
+    })();
   </script>
 </body>
 </html>
