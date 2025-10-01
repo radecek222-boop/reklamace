@@ -42,34 +42,6 @@
     }
     .btn:hover { background:#d5d5d5; }
 
-    /* Seznam */
-    input[type="text"] {
-      padding:8px; border-radius:6px; border:1px solid #ccc; width:100%; max-width:400px;
-    }
-    .table-wrapper {
-      overflow-x: auto;
-      margin-top: 20px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    table th, table td {
-      padding: 10px 12px;
-      text-align: left;
-      font-size: 0.9em;
-    }
-    table th {
-      background: #f0f0f0;
-      font-weight: bold;
-    }
-    table tr:nth-child(even) { background: #fafafa; }
-    table tr:hover { background: #e9f0ff; cursor: pointer; }
-
     /* Protokol */
     .form-group { margin-bottom:12px; }
     label { display:block; font-weight:bold; margin-bottom:4px; }
@@ -89,14 +61,6 @@
   <button class="btn" onclick="showScreen('protocol')">Protokol oprav</button>
 </div>
 
-<!-- Seznam reklamací -->
-<div id="list" class="screen">
-  <h2>Seznam reklamací</h2>
-  <input type="text" id="search" placeholder="Hledat podle jména, adresy, telefonu nebo objednávky">
-  <div id="results" class="table-wrapper">Načítám data...</div>
-  <button class="btn" onclick="showScreen('home')">Zpět</button>
-</div>
-
 <!-- Protokol oprav -->
 <div id="protocol" class="screen">
   <h2>Protokol oprav</h2>
@@ -108,6 +72,14 @@
     <div class="form-group">
       <label>Adresa</label>
       <input type="text" id="formAddress" name="address">
+    </div>
+    <div class="form-group">
+      <label>Telefon</label>
+      <input type="text" id="formPhone" name="phone">
+    </div>
+    <div class="form-group">
+      <label>Číslo objednávky</label>
+      <input type="text" id="formOrder" name="order">
     </div>
     <div class="form-group">
       <label>Popis závady / opravy</label>
@@ -130,10 +102,11 @@ function showScreen(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
-  function openList(){
+
+// otevře seznam v novém okně
+function openList(){
   window.open("seznam.html", "_blank", "width=1000,height=700");
 }
-
 
 // podpis (canvas)
 let canvas = document.getElementById("signature");
@@ -156,63 +129,25 @@ async function exportPDF(){
   pdf.save("protokol.pdf");
 }
 
-// --- SEZNAM REKLAMACÍ ---
-const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQzpP83wIYZPcnb1NI9pPSPixzcEQuRVrTOyPD7SRbgYZSrQs7QdcLNwPJ5lQleGbVVK29nr2-bMo6Y/pub?gid=0&single=true&output=csv";
+// nasloucháme zprávám z seznam.html
+window.addEventListener("message", function(event){
+  if (event.data && event.data.type === "openProtocol"){
+    const row = event.data.row;
+    const headers = event.data.headers;
 
-let allData = [];
-async function loadData() {
-  try {
-    const res = await fetch(sheetUrl);
-    const text = await res.text();
-    allData = text.split("\n").map(r => r.split(","));
-    renderTable(allData.slice(1)); // bez hlavičky
-  } catch (err) {
-    document.getElementById("results").innerHTML = "Chyba při načítání dat: " + err;
+    const idxCustomer = headers.findIndex(h => h.toLowerCase().includes("customer") || h.toLowerCase().includes("zákazník"));
+    const idxAddress  = headers.findIndex(h => h.toLowerCase().includes("address")  || h.toLowerCase().includes("adresa"));
+    const idxPhone    = headers.findIndex(h => h.toLowerCase().includes("kontakt"));
+    const idxOrder    = headers.findIndex(h => h.toLowerCase().includes("order"));
+
+    if (idxCustomer >= 0) document.getElementById("formCustomer").value = row[idxCustomer];
+    if (idxAddress  >= 0) document.getElementById("formAddress").value  = row[idxAddress];
+    if (idxPhone    >= 0) document.getElementById("formPhone").value    = row[idxPhone];
+    if (idxOrder    >= 0) document.getElementById("formOrder").value    = row[idxOrder];
+
+    showScreen("protocol");
   }
-}
-
-function renderTable(rows){
-  if (!rows.length){ 
-    document.getElementById("results").innerHTML = "Žádná data"; 
-    return; 
-  }
-  let html = "<table><thead><tr>";
-  allData[0].forEach(h => { html += "<th>"+h+"</th>"; });
-  html += "</tr></thead><tbody>";
-  rows.forEach((r,idx) => {
-    // idx+1 = posun kvůli hlavičce
-    html += `<tr onclick="openDetail(${idx+1})">`;
-    r.forEach(c => { html += "<td>"+c+"</td>"; });
-    html += "</tr>";
-  });
-  html += "</tbody></table>";
-  document.getElementById("results").innerHTML = html;
-}
-
-// kliknutí na řádek -> otevře protokol a vyplní formulář
-function openDetail(rowIndex){
-  const row = allData[rowIndex];
-  if (!row) return;
-  // najdeme indexy podle hlavičky
-  const headers = allData[0];
-  const idxCustomer = headers.findIndex(h => h.toLowerCase().includes("customer") || h.toLowerCase().includes("zákazník"));
-  const idxAddress  = headers.findIndex(h => h.toLowerCase().includes("address") || h.toLowerCase().includes("adresa"));
-
-  if (idxCustomer >= 0) document.getElementById("formCustomer").value = row[idxCustomer];
-  if (idxAddress >= 0) document.getElementById("formAddress").value = row[idxAddress];
-
-  showScreen("protocol");
-}
-
-// vyhledávání
-document.getElementById("search").addEventListener("input", e => {
-  const q = e.target.value.toLowerCase();
-  const rows = allData.slice(1).filter(r => r.join(" ").toLowerCase().includes(q));
-  renderTable(rows);
 });
-
-// načti data při startu
-loadData();
 </script>
 
 </body>
