@@ -80,54 +80,6 @@
         <label>Datum návštěvy<input id="visit_date" type="date"></label>
         <div class="controls">
           <button class="primary" id="saveBtn">Uložit</button>
-          $("saveBtn").onclick = async ()=>{
-  const obj = {
-    customer:$("customer").value,
-    address:$("address").value,
-    phone:$("phone").value,
-    email:$("email").value,
-    order:$("order").value,
-    status:$("status").value,
-    issuer:$("issuer").value,
-    tech:$("tech").value,
-    model:$("model").value,
-    complaint:$("complaint").value,
-    price_work:$("price_work").value,
-    price_mat:$("price_mat").value,
-    price_tech:$("price_tech").value,
-    price_trans:$("price_trans").value,
-    price_pickup:$("price_pickup").value,
-    visit_date:$("visit_date").value
-  };
-
-  try {
-    // 1️⃣ uložení do Sheet
-    let res = await fetch(API_URL,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify(obj)
-    });
-    let text = await res.text();
-    console.log("Odpověď ze serveru:", text);
-
-    // 2️⃣ hned zobrazit v protokolu
-    updateProtocol(obj);
-
-    // 3️⃣ přidat do tabulky lokálně
-    claims.push(obj);
-    renderTable();
-
-    // 4️⃣ vymazání formuláře
-    ["customer","address","phone","email","status","order","issuer","tech","model","complaint",
-     "price_work","price_mat","price_tech","price_trans","price_pickup","visit_date"].forEach(id=>{
-      const el = $(id); if(el) el.value = (id.startsWith("price")) ? "0" : "";
-    });
-
-  } catch(err){
-    console.error("Chyba při uložení:", err);
-  }
-};
-
           <button class="ghost" id="clearBtn">Vymazat</button>
         </div>
       </div>
@@ -163,7 +115,7 @@
   </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbw-htklmdoSSl9aMwC8T7FhDIZBdycUpumPuYsIfzm1Ty45YhAkDrg42-RxHHpnmebo/exec"; // nahraď svou URL z Apps Scriptu
+const API_URL = "https://script.google.com/macros/s/AKfycbw-htklmdoSSl9aMwC8T7FhDIZBdycUpumPuYsIfzm1Ty45YhAkDrg42-RxHHpnmebo/exec"; 
 const claims = [];
 const $ = id=>document.getElementById(id);
 
@@ -184,18 +136,34 @@ function updateProtocol(data){
   ).toFixed(2);
 }
 
-// uložení do Sheet
+// uložení do Sheet s logováním
 async function saveToSheet(obj){
-  await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(obj)});
+  try {
+    let res = await fetch(API_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(obj)
+    });
+    let text = await res.text();
+    console.log("Odpověď ze serveru:", text);
+    return text;
+  } catch(err){
+    console.error("Chyba při ukládání:", err);
+    alert("❌ Chyba při ukládání do Google Sheets");
+  }
 }
 
 // načtení ze Sheet
 async function loadFromSheet(){
-  const res = await fetch(API_URL);
-  const data = await res.json();
-  claims.length = 0;
-  data.forEach(r => claims.push(r));
-  renderTable();
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    claims.length = 0;
+    data.forEach(r => claims.push(r));
+    renderTable();
+  } catch(err){
+    console.error("Chyba při načítání:", err);
+  }
 }
 
 $("saveBtn").onclick = async ()=>{
@@ -218,17 +186,17 @@ $("saveBtn").onclick = async ()=>{
     visit_date:$("visit_date").value
   };
 
-  // 1️⃣ uložení do Sheet
-  await saveToSheet(obj);
+  let result = await saveToSheet(obj);
+  if(result && result.includes("success")){
+    alert("✅ Úspěšně uloženo do Google Sheets");
+  } else {
+    alert("⚠️ Uložení se nepodařilo");
+  }
 
-  // 2️⃣ hned zobrazit v protokolu
   updateProtocol(obj);
-
-  // 3️⃣ přidat do tabulky lokálně
   claims.push(obj);
   renderTable();
 
-  // 4️⃣ vymazání formuláře
   ["customer","address","phone","email","status","order","issuer","tech","model","complaint",
    "price_work","price_mat","price_tech","price_trans","price_pickup","visit_date"].forEach(id=>{
     const el = $(id); if(el) el.value = (id.startsWith("price")) ? "0" : "";
