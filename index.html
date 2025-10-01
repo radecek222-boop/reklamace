@@ -149,7 +149,7 @@ async function saveToSheet(obj){
     return text;
   } catch(err){
     console.error("Chyba při ukládání:", err);
-    alert("❌ Chyba při ukládání do Google Sheets");
+    return "error: " + err;
   }
 }
 
@@ -187,11 +187,7 @@ $("saveBtn").onclick = async ()=>{
   };
 
   let result = await saveToSheet(obj);
-  if(result && result.includes("success")){
-    alert("✅ Úspěšně uloženo do Google Sheets");
-  } else {
-    alert("⚠️ Uložení se nepodařilo");
-  }
+  alert("Server odpověděl: " + result);
 
   updateProtocol(obj);
   claims.push(obj);
