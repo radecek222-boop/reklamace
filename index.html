@@ -178,6 +178,9 @@ async function savePDF() {
   const phone = document.getElementById("phone").value;
   const description = document.getElementById("description").value;
 
+  // Dnešní datum
+  const today = new Date().toLocaleDateString("cs-CZ");
+
   // HLAVIČKA
   doc.setFontSize(18);
   doc.setFont("helvetica","bold");
@@ -188,24 +191,23 @@ async function savePDF() {
   // DATA
   doc.setFontSize(14);
   doc.setFont("helvetica","normal");
-  doc.text(`Zákazník: ${customer}`, 10, 35);
-  doc.text(`Adresa: ${address}`, 10, 45);
-  doc.text(`Telefon: ${phone}`, 10, 55);
+  doc.text(`Datum vystavení: ${today}`, 10, 35);
+  doc.text(`Zákazník: ${customer}`, 10, 45);
+  doc.text(`Adresa: ${address}`, 10, 55);
+  doc.text(`Telefon: ${phone}`, 10, 65);
 
-  doc.text(`Popis opravy:`, 10, 70);
+  doc.text(`Popis opravy:`, 10, 80);
   doc.setFontSize(12);
-  doc.text(description, 10, 80, { maxWidth:180 });
+  doc.text(description, 10, 90, { maxWidth:180 });
 
   // PODPIS
   const signatureImage = canvas.toDataURL("image/png");
   doc.setFontSize(14);
-  doc.text("Podpis zákazníka:", 10, 120);
-  doc.addImage(signatureImage, "PNG", 10, 125, 100, 50);
+  doc.text("Podpis zákazníka:", 10, 130);
+  doc.addImage(signatureImage, "PNG", 10, 135, 100, 50);
 
   // PATIČKA
-  const today = new Date().toLocaleDateString("cs-CZ");
   doc.setFontSize(10);
-  doc.text(`Datum vystavení: ${today}`, 10, 290);
   doc.text("Děkujeme za využití služeb White Glove Service", 200, 290, { align:"right" });
 
   doc.save("protokol.pdf");
