@@ -7,50 +7,30 @@
   <style>
     :root { --bg:#f6f7fb; --card:#fff; --ink:#0e1116; --muted:#6b7280; --line:#e5e7eb; --brand:#0b69ff; }
     *{box-sizing:border-box}
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--ink);
-      font:14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      overflow-x:hidden;
-    }
+    body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;overflow-x:hidden;}
     h1{font-size:18px;margin:16px 16px 0}
     .grid{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;padding:16px}
     .card{background:var(--card);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.06);padding:14px}
     label{display:block;font-size:12px;color:#374151;margin-top:6px}
-    input,select,textarea{
-      width:100%;margin-top:6px;border:1px solid var(--line);
-      border-radius:8px;padding:9px 10px;font-size:14px;background:#fff
-    }
+    input,select,textarea{width:100%;margin-top:6px;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:14px;background:#fff}
     textarea{min-height:80px;resize:vertical}
-    .row{display:flex;gap:10px}
-    .col{flex:1}
     .controls{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
     button{appearance:none;border:0;border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer}
     .primary{background:var(--brand);color:#fff}
     .ghost{background:#eef2ff;color:#1d4ed8;border:1px solid #dbeafe}
-    .danger{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca}
     table{width:100%;border-collapse:collapse;table-layout:auto;word-wrap:break-word}
     th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;max-width:120px;overflow-wrap:break-word}
     th{font-size:12px;color:var(--muted);font-weight:600;position:sticky;top:0;background:#fafafa}
-    tr.selected{background:#eef6ff}
     .protocol{padding:16px;border:1px solid var(--line);border-radius:10px;background:#fff}
-    .protocol h2{margin:0 0 6px}
     #sigCanvas{border:1px dashed #cbd5e1;border-radius:8px;background:#fff;max-width:100%;height:auto}
     .scroll{max-height:360px;overflow:auto;border:1px solid var(--line);border-radius:10px}
-    .nowrap{white-space:nowrap}
-    .hidden{display:none !important}
-    @media (max-width: 980px){
-      .grid{grid-template-columns:1fr}
-      .scroll{max-width:100%;overflow-x:auto}
-      .row{flex-direction:column}
-      th, td {max-width:none}
-    }
+    @media (max-width: 980px){.grid{grid-template-columns:1fr}.row{flex-direction:column}th, td {max-width:none}}
   </style>
 </head>
 <body>
   <h1>White Glove Service – Servisní protokol</h1>
   <div class="grid">
+    <!-- LEVÁ STRANA -->
     <div>
       <div class="card">
         <h3>Nová reklamace</h3>
@@ -101,7 +81,6 @@
         <div class="controls">
           <button class="primary" id="saveBtn">Uložit</button>
           <button class="ghost" id="clearBtn">Vymazat</button>
-          <button class="primary" id="pdfBtn">Generovat PDF (CZ + EN)</button>
         </div>
       </div>
       <div class="card" style="margin-top:12px">
@@ -116,11 +95,12 @@
         </div>
       </div>
     </div>
+    <!-- PRAVÁ STRANA -->
     <div>
       <div class="card protocol" id="protocol">
         <h2>CLAIM PROTOCOL</h2>
         <p><strong>Zákazník:</strong> <span id="p_customer">—</span></p>
-        <p><strong>Adresa:</strong> <span id="p_address">—</span></p>
+        <p><strong>Adresa:</strong> <a id="p_address" href="#" target="_blank">—</a></p>
         <p><strong>Telefon:</strong> <span id="p_phone">—</span></p>
         <p><strong>E-mail:</strong> <span id="p_email">—</span></p>
         <p><strong>Číslo objednávky:</strong> <span id="p_order">—</span></p>
@@ -134,18 +114,15 @@
     </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycby2.../exec";  // tvoje Apps Script URL
-
+const API_URL = "https://script.google.com/macros/s/AKfycby2.../exec"; // tvoje Apps Script URL
 const claims = [];
 const $ = id=>document.getElementById(id);
 
 function updateProtocol(data){
   $("p_customer").textContent = data.customer;
   $("p_address").textContent = data.address;
+  $("p_address").href = "https://waze.com/ul?q=" + encodeURIComponent(data.address);
   $("p_phone").textContent = data.phone;
   $("p_email").textContent = data.email;
   $("p_order").textContent = data.order;
@@ -158,114 +135,56 @@ function updateProtocol(data){
   ).toFixed(2);
 }
 
-// Odeslat data na Google Sheet
 async function saveToSheet(obj){
-  const res = await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(obj)
-  });
-  return res.json();
-}
-
-// Načíst všechna data
-async function loadFromSheet(){
-  const res = await fetch(API_URL);
-  return res.json();
+  await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(obj)});
 }
 
 $("saveBtn").onclick = async ()=>{
   const obj = {
-    customer:$("customer").value,
-    address:$("address").value,
-    phone:$("phone").value,
-    email:$("email").value,
-    order:$("order").value,
-    status:$("status").value,
-    issuer:$("issuer").value,
-    tech:$("tech").value,
-    model:$("model").value,
-    complaint:$("complaint").value,
-    price_work:$("price_work").value,
-    price_mat:$("price_mat").value,
-    price_tech:$("price_tech").value,
-    price_trans:$("price_trans").value,
-    price_pickup:$("price_pickup").value
+    customer:$("customer").value,address:$("address").value,phone:$("phone").value,email:$("email").value,
+    order:$("order").value,status:$("status").value,issuer:$("issuer").value,tech:$("tech").value,
+    model:$("model").value,complaint:$("complaint").value,
+    price_work:$("price_work").value,price_mat:$("price_mat").value,
+    price_tech:$("price_tech").value,price_trans:$("price_trans").value,price_pickup:$("price_pickup").value,
+    visit_date:$("visit_date").value
   };
-  const out = await saveToSheet(obj);
-  console.log("Uloženo:", out);
-  // po uložení můžeš třeba načíst data znovu:
-  const all = await loadFromSheet();
-  console.log("Vše:", all);
-  // volitelně: renderTable() podle all
+  await saveToSheet(obj);
+  claims.push(obj);
+  updateProtocol(obj);
+  renderTable();
+  // vymazání polí po uložení
+  ["customer","address","phone","email","status","order","issuer","tech","model","complaint",
+   "price_work","price_mat","price_tech","price_trans","price_pickup","visit_date"].forEach(id=>{
+    const el = $(id); if(el) el.value = (id.startsWith("price")) ? "0" : "";
+  });
 };
 
 $("clearBtn").onclick = ()=>{
   ["customer","address","phone","email","status","order","issuer","tech","model","complaint",
-   "price_work","price_mat","price_tech","price_trans","price_pickup"].forEach(id=>{
-    const el = $(id);
-    if(el) el.value = (id.startsWith("price")) ? "0" : "";
+   "price_work","price_mat","price_tech","price_trans","price_pickup","visit_date"].forEach(id=>{
+    const el = $(id); if(el) el.value = (id.startsWith("price")) ? "0" : "";
   });
 };
 
-// Tabulka
 function renderTable(){
-  const tbody = $("claimsTable").querySelector("tbody");
-  tbody.innerHTML = "";
+  const tbody=$("claimsTable").querySelector("tbody");
+  tbody.innerHTML="";
   claims.forEach(c=>{
-    const total = (+c.price_work + +c.price_mat + +c.price_tech + +c.price_trans + +c.price_pickup).toFixed(2);
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${c.customer}</td>
-      <td>${c.address}</td>
-      <td><a href="tel:${c.phone}">${c.phone}</a></td>
-      <td>${c.model}</td>
-      <td>${c.status}</td>
-      <td>${c.tech}</td>
-      <td>${total}</td>
-    `;
+    const total=(+c.price_work+ +c.price_mat+ +c.price_tech+ +c.price_trans+ +c.price_pickup).toFixed(2);
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${c.customer}</td>
+                  <td><a href="https://waze.com/ul?q=${encodeURIComponent(c.address)}" target="_blank">${c.address}</a></td>
+                  <td><a href="tel:${c.phone}">${c.phone}</a></td>
+                  <td>${c.model}</td><td>${c.status}</td><td>${c.tech}</td><td>${total}</td>`;
     tbody.appendChild(tr);
   });
 }
 
-// Podpis
-const canvas = $("sigCanvas"), ctx = canvas.getContext("2d");
-let drawing = false;
-canvas.addEventListener("mousedown", ()=> drawing = true);
-canvas.addEventListener("mouseup", ()=> drawing = false);
-canvas.addEventListener("mousemove", e=>{
-  if(!drawing) return;
-  ctx.fillStyle = "black";
-  ctx.beginPath();
-  ctx.arc(e.offsetX, e.offsetY, 2, 0, Math.PI*2);
-  ctx.fill();
-});
-
-// Generování PDF (CZ a EN)
-async function generatePDF(lang="cs"){
-  const { jsPDF } = window.jspdf;
-  const canvasEl = await html2canvas($("protocol"), { scale:2 });
-  const img = canvasEl.toDataURL("image/png");
-  const pdf = new jsPDF("p","pt","a4");
-  const w = pdf.internal.pageSize.getWidth();
-  const h = canvasEl.height * w / canvasEl.width;
-  pdf.addImage(img, "PNG", 0, 0, w, h);
-  const filename = $("order").value || "protokol";
-  pdf.save(filename + "_" + lang.toUpperCase() + ".pdf");
-}
-
-$("pdfBtn").onclick = async ()=>{
-  await generatePDF("cs");
-  await generatePDF("en");
-};
-
-// Načti při načtení stránky
-window.onload = async ()=>{
-  const all = await loadFromSheet();
-  // můžeš při načtení rovnou zobrazit v tabulce
-  all.forEach(item => claims.push(item));
-  renderTable();
-};
+// podpis
+const canvas=$("sigCanvas"),ctx=canvas.getContext("2d");let drawing=false;
+canvas.addEventListener("mousedown",()=>drawing=true);
+canvas.addEventListener("mouseup",()=>drawing=false);
+canvas.addEventListener("mousemove",e=>{if(!drawing)return;ctx.fillStyle="black";ctx.beginPath();ctx.arc(e.offsetX,e.offsetY,2,0,Math.PI*2);ctx.fill();});
 </script>
 </body>
 </html>
