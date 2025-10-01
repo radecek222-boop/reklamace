@@ -85,7 +85,7 @@
 <div id="home" class="screen home active">
   <h1>WHITE GLOVE SERVIS</h1>
   <p>specializovaný autorizovaný servis Natuzzi</p>
-  <button class="btn" onclick="showScreen('list')">Seznam reklamací</button>
+  <button class="btn" onclick="openList()">Seznam reklamací</button>
   <button class="btn" onclick="showScreen('protocol')">Protokol oprav</button>
 </div>
 
@@ -130,6 +130,10 @@ function showScreen(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
+  function openList(){
+  window.open("seznam.html", "_blank", "width=1000,height=700");
+}
+
 
 // podpis (canvas)
 let canvas = document.getElementById("signature");
