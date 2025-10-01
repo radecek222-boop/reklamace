@@ -2,202 +2,519 @@
 <html lang="cs">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>White Glove Service</title>
   <style>
     :root{
-      --bg:#0b0b0c; --card:#121316; --muted:#6b7280; --text:#e5e7eb;
-      --accent:#22c55e; --accent-2:#3b82f6; --border:#1f2937;
+      --bg:#0b0b0c; --card:#121316; --muted:#6b7280; --text:#e5e7eb; --accent:#22c55e; --accent-2:#3b82f6; --warn:#f59e0b; --border:#1f2937; --pill:#1f2937;
     }
+    html,body{height:100%;}
     body{
-      margin:0; font-family:sans-serif;
+      margin:0; font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
       background:var(--bg); color:var(--text);
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
     }
-    header{position:sticky;top:0;background:#0b0b0c;z-index:10;}
-    .wrap{max-width:1100px;margin:0 auto;padding:16px;}
-    .title{font-size:2em;font-weight:700;}
-    .subtitle{color:var(--muted);font-size:0.9em;}
-    .stats{display:grid;gap:8px;grid-template-columns:repeat(4,1fr);margin:12px 0;}
-    .stat{background:var(--card);padding:10px;border-radius:12px;}
-    .stat .k{font-weight:700;font-size:1.2em;}
-    .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
-    .input,select{padding:8px;border-radius:8px;border:1px solid var(--border);
-      background:var(--card);color:var(--text);}
-    .btn{padding:8px 12px;border-radius:8px;border:none;cursor:pointer;}
-    .btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text);}
-    .btn.main{background:var(--accent-2);color:#fff;}
-    .list{display:flex;flex-direction:column;gap:10px;}
-    .card{background:var(--card);padding:12px;border-radius:12px;}
-    .cust{font-weight:700;}
-    .muted{color:var(--muted);font-size:0.85em;}
-    .badges{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0;}
-    .pill{background:#1f2937;padding:4px 8px;border-radius:999px;font-size:0.8em;}
-    .field{display:flex;flex-direction:column;margin-top:8px;}
-    .row-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
-    .linkbtn{padding:6px 10px;border-radius:8px;background:#0f172a;
-      border:1px solid var(--border);color:#cbd5e1;text-decoration:none;font-size:0.9em;}
-    .term-input{width:100%;}
+    header{
+      position:sticky; top:0; z-index:50; backdrop-filter:saturate(160%) blur(8px);
+      background:linear-gradient(180deg, rgba(11,11,12,.9), rgba(11,11,12,.6) 60%, transparent);
+      border-bottom:1px solid var(--border);
+    }
+    .wrap{max-width:1100px; margin:0 auto; padding:16px;}
+    .title{font-size: clamp(28px, 6vw, 48px); line-height:1.05; font-weight:800; letter-spacing:.2px;}
+    .subtitle{color:var(--muted); margin-top:4px; font-size:14px}
+    .toolbar{display:grid; gap:8px; grid-template-columns: 1fr; margin-top:12px;}
+    @media (min-width: 700px){ .toolbar{grid-template-columns: 1fr auto auto auto;}}
+    .input, select{background:var(--card); color:var(--text); border:1px solid var(--border); padding:12px 12px; border-radius:12px; font-size:14px; outline:none;}
+    .btn{background:var(--accent-2); color:white; border:none; padding:12px 14px; border-radius:12px; font-weight:600; cursor:pointer;}
+    .btn.ghost{ background:transparent; border:1px solid var(--border); color:var(--text); }
+    .stats{display:grid; gap:10px; grid-template-columns: repeat(2, 1fr); margin:16px 0 8px;}
+    @media (min-width: 680px){ .stats{ grid-template-columns: repeat(4, 1fr);} }
+    .stat{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px;}
+    .stat .k{font-size:22px; font-weight:800}
+    .stat .l{font-size:12px; color:var(--muted); margin-top:4px}
+    .list{display:flex; flex-direction:column; gap:10px; padding:16px 0 80px;}
+    .card{background:var(--card); border:1px solid var(--border); border-radius:18px; padding:14px;}
+    .row1{display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap;}
+    .cust{ font-weight:700; font-size:16px; }
+    .badges{ display:flex; gap:6px; flex-wrap:wrap;}
+    .pill{background:var(--pill); color:var(--text); border:1px solid var(--border); padding:6px 10px; font-size:12px; border-radius:999px; white-space:nowrap;}
+    .grid{display:grid; gap:8px; grid-template-columns: 1fr; margin-top:12px;}
+    @media (min-width: 760px){ .grid{ grid-template-columns: 1.3fr 1fr 1fr; } }
+    .field{ display:flex; flex-direction:column; gap:6px; }
+    .label{ font-size:12px; color:var(--muted); }
+    .row-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .link{ text-decoration:none; }
+    .linkbtn{display:inline-flex; align-items:center; gap:8px; background:#0f172a; border:1px solid var(--border); color:#cbd5e1; padding:10px 12px; border-radius:12px; font-size:14px; font-weight:600;}
+    .linkbtn:hover{ filter:brightness(1.08); }
+    .status-select, .zadavatel-select, .term-input{ width:100%; }
+    .footer-space{ height:24px;}
+    .muted{ color:var(--muted); }
   </style>
 </head>
 <body>
-<header>
-  <div class="wrap">
-    <div class="title">White Glove Service</div>
-    <div class="subtitle">Reklamace & servis</div>
-    <div class="stats">
-      <div class="stat"><div class="k" id="s_total">0</div><div class="l">Celkem</div></div>
-      <div class="stat"><div class="k" id="s_new">0</div><div class="l">Nová</div></div>
-      <div class="stat"><div class="k" id="s_scheduled">0</div><div class="l">Domluven termín</div></div>
-      <div class="stat"><div class="k" id="s_silent">0</div><div class="l">Nekomunikuje</div></div>
+  <header>
+    <div class="wrap">
+      <div class="title">White Glove Service</div>
+      <div class="subtitle">Reklamace & servis – rychlý přehled, filtrace a akce pro techniky</div>
+
+      <div class="stats" id="stats">
+        <div class="stat"><div class="k" id="s_total">0</div><div class="l">Celkem položek</div></div>
+        <div class="stat"><div class="k" id="s_new">0</div><div class="l">Nová</div></div>
+        <div class="stat"><div class="k" id="s_scheduled">0</div><div class="l">Domluven termín</div></div>
+        <div class="stat"><div class="k" id="s_silent">0</div><div class="l">Zákazník nekomunikuje</div></div>
+      </div>
+
+      <div class="toolbar">
+        <input id="q" class="input" placeholder="Hledat: zákazník, adresa, objednávka, model, popis…" />
+        <select id="fltStatus" class="input">
+          <option value="">Stav: vše</option>
+          <option value="nová">Nová</option>
+          <option value="domluven termín">Domluven termín</option>
+          <option value="zákazník nekomunikuje">Zákazník nekomunikuje</option>
+        </select>
+        <select id="fltZadavatel" class="input">
+          <option value="">Zadavatel: všichni</option>
+          <option>Natuzzi Strejček</option>
+          <option>Natuzzi Vimrová</option>
+          <option>Natuzzi Italia SK</option>
+          <option>Phase Klucarova</option>
+          <option>Natuzzi Jama</option>
+          <option>Natuzzi River</option>
+          <option>Natuzzi Soho</option>
+          <option>Softaly</option>
+          <option>Pozarucni servis</option>
+        </select>
+        <div style="display:flex; gap:8px;">
+          <button class="btn ghost" id="btnReset">Reset filtrů</button>
+          <button class="btn" id="btnExport">Export změn CSV</button>
+        </div>
+      </div>
     </div>
-    <div class="toolbar">
-      <input id="q" class="input" placeholder="Hledat cokoliv..." />
-      <select id="fltStatus" class="input">
-        <option value="">Stav: vše</option>
-        <option value="nová">Nová</option>
-        <option value="domluven termín">Domluven termín</option>
-        <option value="zákazník nekomunikuje">Zákazník nekomunikuje</option>
-      </select>
-      <select id="fltZadavatel" class="input">
-        <option value="">Zadavatel: všichni</option>
-        <option>Natuzzi Strejček</option>
-        <option>Natuzzi Vimrová</option>
-        <option>Natuzzi Italia SK</option>
-        <option>Phase Klucarova</option>
-        <option>Natuzzi Jama</option>
-        <option>Natuzzi River</option>
-        <option>Natuzzi Soho</option>
-        <option>Softaly</option>
-        <option>Pozarucni servis</option>
-      </select>
-      <button id="btnReset" class="btn ghost">Reset</button>
-    </div>
-  </div>
-</header>
-<main class="wrap">
-  <div class="list" id="list"></div>
-</main>
+  </header>
 
-<script>
-const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1IlBI3Wqh_7J3JbJcxfD9W1Af3jFGbBkKeGXKs92oySU/edit?usp=sharing";
+  <main class="wrap">
+    <div class="list" id="list"></div>
+    <div class="footer-space"></div>
+  </main>
 
-const COLS = {
-  customer:"Customer",address:"Address",kontakt:"KONTAKT",
-  statusTerm:"STAV - termín návštěvy",orderNo:"Order number",label:"Label",cena:"CENA",
-  milan:"MILAN",radek:"RADEK",model:"Model",popis:"POPIS REKLAMACE - OPRAVY",
-  complaintDate:"Complaint date",deliveryDate:"Delivery date"
-};
-const ZadavatelOptions=[
- "Natuzzi Strejček","Natuzzi Vimrová","Natuzzi Italia SK","Phase Klucarova",
- "Natuzzi Jama","Natuzzi River","Natuzzi Soho","Softaly","Pozarucni servis"
-];
-const StatusOptions=["nová","domluven termín","zákazník nekomunikuje"];
+  <script>
+    // ====== KONFIGURACE (tvé odkazy) ======
+    const SHEET_ID = "1IlBI3Wqh_7J3JbJcxfD9W1Af3jFGbBkKeGXKs92oySU"; // z tvé edit URL
+    const SHEET_GID = "0"; // list SEZNAM REKLAMACÍ
+    // Primární CSV (GViz) – obvykle funguje když je tabulka sdílena "Kdokoliv s odkazem"
+    const GVIZ_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
+    // Fallback: "Publish to web" CSV (pokud si list publikuješ)
+    const PUBLISH_CSV_URL = `https://docs.google.com/spreadsheets/d/e/REPLACE_YOUR_PUBLISH_ID/pub?gid=${SHEET_GID}&single=true&output=csv`;
+    // Tvůj Apps Script fallback (vrací JSON záznamy se stejnými klíči jako sloupce)
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCL5s2dLRygGE3OzOJm50IaSSLGOeCr0fwi70UKBI-73D-WvA0brcrNFXSCaObDVM-SA/exec`;
 
-function csvToRows(text){
-  const lines=text.replace(/\r/g,"").split("\n").filter(Boolean);
-  const header=parseCsvLine(lines[0]);
-  const rows=lines.slice(1).map(l=>parseCsvLine(l));
-  return {header,rows};
-}
-function parseCsvLine(line){
-  const out=[];let cur="";let inQ=false;
-  for(let i=0;i<line.length;i++){
-    const ch=line[i];
-    if(ch=='"'){ if(inQ && line[i+1]=='"'){cur+='"';i++;} else {inQ=!inQ;} }
-    else if(ch=="," && !inQ){ out.push(cur);cur=""; }
-    else { cur+=ch; }
-  }
-  out.push(cur);return out;
-}
-function headerIndexMap(header){const map={};header.forEach((h,i)=>{map[h.trim()]=i;});return map;}
-function safe(v){return (v??"").toString().trim();}
+    // Názvy sloupců v listu
+    const COLS = {
+      customer: "Customer",
+      address: "Address",
+      kontakt: "KONTAKT",
+      statusTerm: "STAV - termín návštěvy",
+      orderNo: "Order number",
+      label: "Label", // nahradíme Zadavatelem
+      cena: "CENA",
+      milan: "MILAN",
+      radek: "RADEK",
+      model: "Model",
+      popis: "POPIS REKLAMACE - OPRAVY",
+      complaintDate: "Complaint date",
+      deliveryDate: "Delivery date",
+    };
 
-function telHref(raw){const d=safe(raw).replace(/[^\d+]/g,"");return d?`tel:${d}`:null;}
-function wazeHref(a){const q=encodeURIComponent(safe(a));return q?`https://waze.com/ul?q=${q}&navigate=yes`:null;}
+    const ZadavatelOptions = [
+      "Natuzzi Strejček",
+      "Natuzzi Vimrová",
+      "Natuzzi Italia SK",
+      "Phase Klucarova",
+      "Natuzzi Jama",
+      "Natuzzi River",
+      "Natuzzi Soho",
+      "Softaly",
+      "Pozarucni servis",
+    ];
+    const StatusOptions = ["nová", "domluven termín", "zákazník nekomunikuje"];
 
-let DATA=[],VIEW=[],headerMap={};
-const els={list:document.getElementById("list"),q:document.getElementById("q"),
-fltStatus:document.getElementById("fltStatus"),fltZ:document.getElementById("fltZadavatel"),
-s_total:document.getElementById("s_total"),s_new:document.getElementById("s_new"),
-s_scheduled:document.getElementById("s_scheduled"),s_silent:document.getElementById("s_silent"),
-btnReset:document.getElementById("btnReset")};
+    // ====== Pomocné funkce ======
+    function csvToRows(text){
+      const lines = text.replace(/\r/g,"").split("\n").filter(l => l.length>0);
+      const header = parseCsvLine(lines[0]);
+      const rows = lines.slice(1).map(l => parseCsvLine(l));
+      return { header, rows };
+    }
+    function parseCsvLine(line){
+      const out=[]; let cur=""; let inQ=false;
+      for(let i=0;i<line.length;i++){
+        const ch=line[i];
+        if(ch === '"'){
+          if(inQ && line[i+1] === '"'){ cur+='"'; i++; }
+          else { inQ=!inQ; }
+        }else if(ch === ',' && !inQ){
+          out.push(cur); cur="";
+        }else{
+          cur+=ch;
+        }
+      }
+      out.push(cur);
+      return out;
+    }
+    function headerIndexMap(header){
+      const map={};
+      header.forEach((h,i)=>{ map[h.trim()] = i; });
+      return map;
+    }
+    const safe = v => (v??"").toString().trim();
 
-function buildRecord(row){
-  function get(c){const i=headerMap[c];return i!=null?row[i]:"";}
-  return {
-    customer:safe(get(COLS.customer)),address:safe(get(COLS.address)),kontakt:safe(get(COLS.kontakt)),
-    orderNo:safe(get(COLS.orderNo)),cena:safe(get(COLS.cena)),
-    milan:safe(get(COLS.milan)),radek:safe(get(COLS.radek)),
-    model:safe(get(COLS.model)),popis:safe(get(COLS.popis)),
-    complaintDate:safe(get(COLS.complaintDate)),deliveryDate:safe(get(COLS.deliveryDate))
-  };
-}
+    function telHref(raw){
+      const digits = safe(raw).replace(/[^\d+]/g,"");
+      return digits ? `tel:${digits}` : null;
+    }
+    function wazeHref(address){
+      const q = encodeURIComponent(safe(address));
+      return q ? `https://waze.com/ul?q=${q}&navigate=yes` : null;
+    }
+    function storageKey(orderNo, address, customer){
+      const base = safe(orderNo) || (safe(customer)+"|"+safe(address));
+      return "wgs_claim_"+base.toLowerCase();
+    }
+    function loadLocal(key){ try{ return JSON.parse(localStorage.getItem(key) || "{}"); }catch{ return {}; } }
+    function saveLocal(key, obj){ localStorage.setItem(key, JSON.stringify(obj)); }
+    function download(filename, content){
+      const blob = new Blob([content], {type:"text/csv;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
+    }
 
-function matchesFilters(rec){
-  const q=els.q.value.trim().toLowerCase();
-  const fS=els.fltStatus.value, fZ=els.fltZ.value;
-  if(fS && rec.status!==fS) return false;
-  if(fZ && rec.zadavatel!==fZ) return false;
-  if(q){
-    const hay=[rec.customer,rec.address,rec.orderNo,rec.model,rec.popis,
-      rec.kontakt,rec.cena,rec.milan,rec.radek,rec.complaintDate,rec.deliveryDate].join(" ").toLowerCase();
-    if(!hay.includes(q)) return false;
-  }
-  return true;
-}
+    // ====== Stav aplikace ======
+    let DATA = [];      // data obohacená o localStorage
+    let RAW = [];       // čisté z CSV/JSON
+    let VIEW = [];
+    let headerMap = {};
 
-function updateStats(){
-  els.s_total.textContent=VIEW.length;
-  els.s_new.textContent=VIEW.filter(r=>r.status==="nová").length;
-  els.s_scheduled.textContent=VIEW.filter(r=>r.status==="domluven termín").length;
-  els.s_silent.textContent=VIEW.filter(r=>r.status==="zákazník nekomunikuje").length;
-}
+    const els = {
+      list: document.getElementById("list"),
+      s_total: document.getElementById("s_total"),
+      s_new: document.getElementById("s_new"),
+      s_scheduled: document.getElementById("s_scheduled"),
+      s_silent: document.getElementById("s_silent"),
+      q: document.getElementById("q"),
+      fltStatus: document.getElementById("fltStatus"),
+      fltZ: document.getElementById("fltZadavatel"),
+      btnReset: document.getElementById("btnReset"),
+      btnExport: document.getElementById("btnExport"),
+    };
 
-function render(){
-  VIEW=DATA.filter(matchesFilters);
-  updateStats();
-  els.list.innerHTML="";
-  if(VIEW.length===0){els.list.innerHTML="<div class='muted'>Žádné položky</div>";return;}
-  VIEW.forEach(rec=>{
-    const card=document.createElement("div");card.className="card";
-    card.innerHTML=`<div class="cust">${rec.customer}</div>
-    <div class="muted">${rec.address}</div>`;
-    const badges=document.createElement("div");badges.className="badges";
-    if(rec.orderNo) badges.innerHTML+=`<div class="pill">Obj: ${rec.orderNo}</div>`;
-    if(rec.model) badges.innerHTML+=`<div class="pill">Model: ${rec.model}</div>`;
-    if(rec.cena) badges.innerHTML+=`<div class="pill">Cena: ${rec.cena}</div>`;
-    card.appendChild(badges);
-    if(rec.popis){const d=document.createElement("div");d.textContent="Popis: "+rec.popis;card.appendChild(d);}
-    const actions=document.createElement("div");actions.className="row-actions";
-    if(wazeHref(rec.address)) actions.innerHTML+=`<a class="linkbtn" href="${wazeHref(rec.address)}" target="_blank">Waze</a>`;
-    if(telHref(rec.kontakt)) actions.innerHTML+=`<a class="linkbtn" href="${telHref(rec.kontakt)}">Zavolat</a>`;
-    card.appendChild(actions);
-    const foot=document.createElement("div");foot.className="muted";
-    foot.textContent=[rec.complaintDate?`Reklamace: ${rec.complaintDate}`:"",
-      rec.deliveryDate?`Dodání: ${rec.deliveryDate}`:"",
-      rec.milan?`Milan: ${rec.milan}`:"",
-      rec.radek?`Radek: ${rec.radek}`:""].filter(Boolean).join(" • ");
-    if(foot.textContent) card.appendChild(foot);
-    els.list.appendChild(card);
-  });
-}
+    // ====== Načtení dat (CSV → JSON), fallbacky ======
+    async function fetchCSV(url){
+      const res = await fetch(url, { cache: "no-store" });
+      if(!res.ok) throw new Error("CSV HTTP "+res.status);
+      const txt = await res.text();
+      const { header, rows } = csvToRows(txt);
+      headerMap = headerIndexMap(header);
+      const list = rows.map(row => {
+        const get = (col) => {
+          const i = headerMap[col];
+          return i!=null ? row[i] : "";
+        };
+        return {
+          Customer: safe(get(COLS.customer)),
+          Address: safe(get(COLS.address)),
+          KONTAKT: safe(get(COLS.kontakt)),
+          "STAV - termín návštěvy": safe(get(COLS.statusTerm)),
+          "Order number": safe(get(COLS.orderNo)),
+          Label: safe(get(COLS.label)),
+          CENA: safe(get(COLS.cena)),
+          MILAN: safe(get(COLS.milan)),
+          RADEK: safe(get(COLS.radek)),
+          Model: safe(get(COLS.model)),
+          "POPIS REKLAMACE - OPRAVY": safe(get(COLS.popis)),
+          "Complaint date": safe(get(COLS.complaintDate)),
+          "Delivery date": safe(get(COLS.deliveryDate)),
+        };
+      });
+      return list;
+    }
 
-["input","change"].forEach(ev=>{
-  els.q.addEventListener(ev,render);els.fltStatus.addEventListener(ev,render);els.fltZ.addEventListener(ev,render);
-});
-els.btnReset.addEventListener("click",()=>{els.q.value="";els.fltStatus.value="";els.fltZ.value="";render();});
+    async function fetchAppsScript(url){
+      const res = await fetch(url, { cache: "no-store" });
+      if(!res.ok) throw new Error("AppsScript HTTP "+res.status);
+      const json = await res.json();
+      // Očekáváme pole objektů s klíči jako v listu (pokud máš jinak, mapuj si zde)
+      if(!Array.isArray(json)) throw new Error("AppsScript: nečekaný formát");
+      return json.map(r => ({
+        Customer: safe(r["Customer"]),
+        Address: safe(r["Address"]),
+        KONTAKT: safe(r["KONTAKT"] ?? r["Kontakt"]),
+        "STAV - termín návštěvy": safe(r["STAV - termín návštěvy"] ?? r["Stav"]),
+        "Order number": safe(r["Order number"] ?? r["Order"]),
+        Label: safe(r["Label"]),
+        CENA: safe(r["CENA"] ?? r["Cena"]),
+        MILAN: safe(r["MILAN"]),
+        RADEK: safe(r["RADEK"]),
+        Model: safe(r["Model"]),
+        "POPIS REKLAMACE - OPRAVY": safe(r["POPIS REKLAMACE - OPRAVY"] ?? r["Popis"]),
+        "Complaint date": safe(r["Complaint date"]),
+        "Delivery date": safe(r["Delivery date"]),
+      }));
+    }
 
-(async function init(){
-  try{
-    const res=await fetch(https://docs.google.com/spreadsheets/d/1IlBI3Wqh_7J3JbJcxfD9W1Af3jFGbBkKeGXKs92oySU/edit?gid=0#gid=0,{cache:"no-store"});
-    const txt=await res.text();const {header,rows}=csvToRows(txt);
-    headerMap=headerIndexMap(header);
-    DATA=rows.map(buildRecord);
-    render();
-  }catch(e){
-    els.list.innerHTML="<div class='muted'>Chyba načtení CSV</div>";
-  }
-})();
-</script>
+    async function loadData(){
+      try{
+        return await fetchCSV(GVIZ_CSV_URL);
+      }catch(e1){
+        try{
+          // Pokud máš publish link, nahraď REPLACE_YOUR_PUBLISH_ID
+          if(!PUBLISH_CSV_URL.includes("REPLACE_YOUR_PUBLISH_ID")){
+            return await fetchCSV(PUBLISH_CSV_URL);
+          }
+          throw new Error("publish-not-configured");
+        }catch(e2){
+          // Fallback na Apps Script JSON
+          return await fetchAppsScript(APPS_SCRIPT_URL);
+        }
+      }
+    }
+
+    // ====== Transformace do interního tvaru + localStorage ======
+    function toRecord(row){
+      return {
+        customer: safe(row["Customer"]),
+        address: safe(row["Address"]),
+        kontakt: safe(row["KONTAKT"]),
+        statusTerm: safe(row["STAV - termín návštěvy"]),
+        orderNo: safe(row["Order number"]),
+        label: safe(row["Label"]),
+        cena: safe(row["CENA"]),
+        milan: safe(row["MILAN"]),
+        radek: safe(row["RADEK"]),
+        model: safe(row["Model"]),
+        popis: safe(row["POPIS REKLAMACE - OPRAVY"]),
+        complaintDate: safe(row["Complaint date"]),
+        deliveryDate: safe(row["Delivery date"]),
+      };
+    }
+
+    function enrichWithLocal(rec){
+      const key = storageKey(rec.orderNo, rec.address, rec.customer);
+      const loc = loadLocal(key);
+      return {
+        ...rec,
+        zadavatel: safe(loc.zadavatel) || (ZadavatelOptions.includes(rec.label) ? rec.label : ""),
+        status: safe(loc.status) || "",
+        termin: safe(loc.termin) || "",
+      };
+    }
+
+    // ====== Filtry, statistiky, render ======
+    function matchesFilters(rec){
+      const q = els.q.value.trim().toLowerCase();
+      const fS = els.fltStatus.value;
+      const fZ = els.fltZ.value;
+
+      if(fS && rec.status !== fS) return false;
+      if(fZ && rec.zadavatel !== fZ) return false;
+
+      if(q){
+        const hay = [
+          rec.customer, rec.address, rec.orderNo, rec.model, rec.popis, rec.kontakt,
+          rec.cena, rec.milan, rec.radek, rec.complaintDate, rec.deliveryDate,
+          rec.zadavatel, rec.status
+        ].join(" ").toLowerCase();
+        if(!hay.includes(q)) return false;
+      }
+      return true;
+    }
+
+    function updateStats(){
+      const total = VIEW.length;
+      const cNew = VIEW.filter(r=>r.status==="nová").length;
+      const cSched = VIEW.filter(r=>r.status==="domluven termín").length;
+      const cSilent = VIEW.filter(r=>r.status==="zákazník nekomunikuje").length;
+      els.s_total.textContent = total;
+      els.s_new.textContent = cNew;
+      els.s_scheduled.textContent = cSched;
+      els.s_silent.textContent = cSilent;
+    }
+
+    function updateStatsLive(){
+      const temp = VIEW.map(r=>{
+        const key = storageKey(r.orderNo, r.address, r.customer);
+        const loc = loadLocal(key);
+        return { ...r, status: safe(loc.status) || r.status };
+      });
+      els.s_total.textContent = temp.length;
+      els.s_new.textContent = temp.filter(r=>r.status==="nová").length;
+      els.s_scheduled.textContent = temp.filter(r=>r.status==="domluven termín").length;
+      els.s_silent.textContent = temp.filter(r=>r.status==="zákazník nekomunikuje").length;
+    }
+
+    function render(){
+      VIEW = DATA.filter(matchesFilters);
+      updateStats();
+      els.list.innerHTML = "";
+      if(VIEW.length===0){
+        const empty = document.createElement("div");
+        empty.className="muted"; empty.style.padding="16px";
+        empty.textContent = "Žádné položky pro zvolený filtr.";
+        els.list.appendChild(empty);
+        return;
+      }
+      VIEW.forEach(rec=>{
+        const key = storageKey(rec.orderNo, rec.address, rec.customer);
+
+        const card = document.createElement("div"); card.className = "card";
+
+        // Horní řada (název + badges)
+        const row1 = document.createElement("div"); row1.className = "row1";
+        const left = document.createElement("div");
+        const cust = document.createElement("div"); cust.className="cust"; cust.textContent = rec.customer || "(bez názvu)";
+        const adr = document.createElement("div"); adr.className="muted"; adr.style.marginTop="2px"; adr.textContent = rec.address;
+        left.appendChild(cust); left.appendChild(adr);
+
+        const right = document.createElement("div"); right.className = "badges";
+        if(rec.orderNo){ const p=document.createElement("div"); p.className="pill"; p.textContent="Obj.: "+rec.orderNo; right.appendChild(p); }
+        if(rec.model){ const p=document.createElement("div"); p.className="pill"; p.textContent="Model: "+rec.model; right.appendChild(p); }
+        if(rec.cena){ const p=document.createElement("div"); p.className="pill"; p.textContent="Cena: "+rec.cena; right.appendChild(p); }
+        row1.appendChild(left); row1.appendChild(right);
+        card.appendChild(row1);
+
+        // Popis
+        if(rec.popis){
+          const desc = document.createElement("div"); desc.className="muted";
+          desc.style.marginTop="8px"; desc.textContent = "Popis: " + rec.popis;
+          card.appendChild(desc);
+        }
+
+        // Grid Zadavatel / Status / Termín
+        const grid = document.createElement("div"); grid.className="grid";
+
+        // Zadavatel
+        const fZ = document.createElement("div"); fZ.className="field";
+        const lZ = document.createElement("div"); lZ.className="label"; lZ.textContent="Zadavatel";
+        const sZ = document.createElement("select"); sZ.className="zadavatel-select";
+        const optEmptyZ = document.createElement("option"); optEmptyZ.value=""; optEmptyZ.textContent="— vybrat —";
+        sZ.appendChild(optEmptyZ);
+        ZadavatelOptions.forEach(z=>{
+          const opt=document.createElement("option");
+          opt.value=z; opt.textContent=z; if(rec.zadavatel===z) opt.selected=true;
+          sZ.appendChild(opt);
+        });
+        sZ.addEventListener("change", ()=>{
+          const obj = loadLocal(key); obj.zadavatel = sZ.value; saveLocal(key, obj);
+        });
+        fZ.appendChild(lZ); fZ.appendChild(sZ);
+
+        // Status
+        const fS = document.createElement("div"); fS.className="field";
+        const lS = document.createElement("div"); lS.className="label"; lS.textContent="Status";
+        const sS = document.createElement("select"); sS.className="status-select";
+        const optEmptyS = document.createElement("option"); optEmptyS.value=""; optEmptyS.textContent="— vybrat —";
+        sS.appendChild(optEmptyS);
+        StatusOptions.forEach(st=>{
+          const opt=document.createElement("option");
+          opt.value=st; opt.textContent=st; if(rec.status===st) opt.selected=true;
+          sS.appendChild(opt);
+        });
+        sS.addEventListener("change", ()=>{
+          const obj = loadLocal(key); obj.status = sS.value; saveLocal(key, obj);
+          showTerm(); updateStatsLive();
+        });
+        fS.appendChild(lS); fS.appendChild(sS);
+
+        // Termín (jen když je „domluven termín“)
+        const fT = document.createElement("div"); fT.className="field";
+        const lT = document.createElement("div"); lT.className="label"; lT.textContent="Termín návštěvy";
+        const iT = document.createElement("input"); iT.className="term-input"; iT.type="datetime-local";
+        if(rec.termin) iT.value = rec.termin;
+        iT.addEventListener("change", ()=>{ const obj = loadLocal(key); obj.termin = iT.value; saveLocal(key, obj); });
+        fT.appendChild(lT); fT.appendChild(iT);
+        function showTerm(){ fT.style.display = (sS.value==="domluven termín") ? "flex":"none"; }
+        showTerm();
+
+        grid.appendChild(fZ); grid.appendChild(fS); grid.appendChild(fT);
+        card.appendChild(grid);
+
+        // Akce (Waze / Volat)
+        const actions = document.createElement("div"); actions.className="row-actions";
+        const wurl = wazeHref(rec.address); if(wurl){ const a=document.createElement("a"); a.href=wurl; a.target="_blank"; a.rel="noopener"; a.className="link linkbtn"; a.textContent="Navigovat ve Waze"; actions.appendChild(a); }
+        const turl = telHref(rec.kontakt); if(turl){ const a=document.createElement("a"); a.href=turl; a.className="link linkbtn"; a.textContent="Zavolat"; actions.appendChild(a); }
+        card.appendChild(actions);
+
+        // Spodní info řádek
+        const foot = document.createElement("div"); foot.className="muted"; foot.style.marginTop="6px";
+        const parts = [];
+        if(rec.complaintDate) parts.push("Reklamace: "+rec.complaintDate);
+        if(rec.deliveryDate) parts.push("Dodání: "+rec.deliveryDate);
+        if(rec.milan) parts.push("Milan: "+rec.milan);
+        if(rec.radek) parts.push("Radek: "+rec.radek);
+        foot.textContent = parts.join("  •  ");
+        if(parts.length) card.appendChild(foot);
+
+        els.list.appendChild(card);
+      });
+    }
+
+    // ====== Akce toolbaru ======
+    ["input","change"].forEach(ev=>{
+      els.q.addEventListener(ev, render);
+      els.fltStatus.addEventListener(ev, render);
+      els.fltZ.addEventListener(ev, render);
+    });
+    els.btnReset.addEventListener("click", ()=>{ els.q.value=""; els.fltStatus.value=""; els.fltZ.value=""; render(); });
+    els.btnExport.addEventListener("click", ()=>{
+      const keys = Object.keys(localStorage).filter(k=>k.startsWith("wgs_claim_"));
+      const header = ["Order number","Customer","Address","Zadavatel","Status","Termin"].join(",");
+      const rows = [header];
+      keys.forEach(k=>{
+        const obj = loadLocal(k);
+        // zkus napárovat na záznam
+        let rec = DATA.find(r=>storageKey(r.orderNo, r.address, r.customer)===k);
+        if(!rec){ rec = { orderNo:"", customer:"", address:"" }; }
+        const vals = [
+          (rec.orderNo||"").replace(/"/g,'""'),
+          (rec.customer||"").replace(/"/g,'""'),
+          (rec.address||"").replace(/"/g,'""'),
+          (obj.zadavatel||"").replace(/"/g,'""'),
+          (obj.status||"").replace(/"/g,'""'),
+          (obj.termin||"").replace(/"/g,'""'),
+        ].map(v=>`"${v}"`);
+        rows.push(vals.join(","));
+      });
+      download(`wgs-zmeny-${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.csv`, rows.join("\n"));
+    });
+
+    // ====== Init ======
+    (async function init(){
+      try{
+        RAW = await loadData();
+        // do interní struktury
+        DATA = RAW.map(toRecord).map(enrichWithLocal);
+
+        // řazení: novější reklamace nahoře, jinak podle zákazníka
+        DATA.sort((a,b)=>{
+          const da = Date.parse(a.complaintDate||"")||0;
+          const db = Date.parse(b.complaintDate||"")||0;
+          if(db - da !== 0) return db - da;
+          return (a.customer||"").localeCompare(b.customer||"");
+        });
+
+        render();
+      }catch(e){
+        const err = document.createElement("div");
+        err.className="card";
+        err.innerHTML = `
+          <div class="cust" style="color:#fca5a5;margin-bottom:6px;">Chyba načtení dat</div>
+          <div class="muted">Zkontroluj sdílení listu (stačí "Kdokoliv s odkazem") nebo publikaci, případně že Apps Script vrací JSON pole.</div>
+          <div class="muted" style="margin-top:6px;">Detail: ${String(e)}</div>
+        `;
+        document.getElementById("list").appendChild(err);
+      }
+    })();
+  </script>
 </body>
 </html>
