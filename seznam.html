@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Seznam reklamací</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
     body { font-family: Inter, sans-serif; margin:20px; background:#f6f7fb; }
     h2 { margin-top:0; text-align:center; }
@@ -43,8 +44,9 @@ async function loadData() {
   try {
     const res = await fetch(sheetUrl);
     const text = await res.text();
-    allData = text.split("\n").map(r => r.split(",")).filter(r => r.join("").trim() !== "");
-    renderTable(allData.slice(1));
+    const parsed = Papa.parse(text, { header:true, skipEmptyLines:true });
+    allData = parsed.data;
+    renderTable(allData);
   } catch (err) {
     document.getElementById("results").innerHTML = "Chyba při načítání dat: " + err;
   }
@@ -53,27 +55,27 @@ async function loadData() {
 function renderTable(rows){
   if (!rows.length){ document.getElementById("results").innerHTML = "Žádná data"; return; }
   let html = "<table><thead><tr>";
-  allData[0].forEach(h => { html += "<th>"+h+"</th>"; });
+  Object.keys(rows[0]).forEach(h => { html += "<th>"+h+"</th>"; });
   html += "</tr></thead><tbody>";
-  rows.forEach((r,idx) => {
-    html += `<tr onclick="selectRow(${idx+1})">`;
-    r.forEach(c => { html += "<td>"+c+"</td>"; });
-    html += "</tr>`;
+  rows.forEach((row,idx) => {
+    html += `<tr onclick="selectRow(${idx})">`;
+    Object.values(row).forEach(c => { html += "<td>"+(c||"")+"</td>"; });
+    html += "</tr>";
   });
   html += "</tbody></table>";
   document.getElementById("results").innerHTML = html;
 }
 
-function selectRow(rowIndex){
-  const row = allData[rowIndex];
+function selectRow(index){
+  const row = allData[index];
   if (!row) return;
-  window.opener.postMessage({ type:"openProtocol", row }, "*");
+  window.opener.postMessage({ type:"openProtocol", row:Object.values(row) }, "*");
   window.close();
 }
 
 document.getElementById("search").addEventListener("input", e => {
   const q = e.target.value.toLowerCase();
-  const rows = allData.slice(1).filter(r => r.join(" ").toLowerCase().includes(q));
+  const rows = allData.filter(r => Object.values(r).join(" ").toLowerCase().includes(q));
   renderTable(rows);
 });
 
