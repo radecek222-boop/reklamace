@@ -119,6 +119,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycby2.../exec"; // tvoje 
 const claims = [];
 const $ = id=>document.getElementById(id);
 
+// aktualizace protokolu
 function updateProtocol(data){
   $("p_customer").textContent = data.customer;
   $("p_address").textContent = data.address;
@@ -135,8 +136,18 @@ function updateProtocol(data){
   ).toFixed(2);
 }
 
+// uložení do Sheet
 async function saveToSheet(obj){
   await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(obj)});
+}
+
+// načtení ze Sheet
+async function loadFromSheet(){
+  const res = await fetch(API_URL);
+  const data = await res.json();
+  claims.length = 0;
+  data.forEach(r => claims.push(r));
+  renderTable();
 }
 
 $("saveBtn").onclick = async ()=>{
@@ -149,10 +160,9 @@ $("saveBtn").onclick = async ()=>{
     visit_date:$("visit_date").value
   };
   await saveToSheet(obj);
-  claims.push(obj);
   updateProtocol(obj);
-  renderTable();
-  // vymazání polí po uložení
+  await loadFromSheet();
+  // vymazání polí
   ["customer","address","phone","email","status","order","issuer","tech","model","complaint",
    "price_work","price_mat","price_tech","price_trans","price_pickup","visit_date"].forEach(id=>{
     const el = $(id); if(el) el.value = (id.startsWith("price")) ? "0" : "";
@@ -166,6 +176,7 @@ $("clearBtn").onclick = ()=>{
   });
 };
 
+// render tabulky
 function renderTable(){
   const tbody=$("claimsTable").querySelector("tbody");
   tbody.innerHTML="";
@@ -185,6 +196,11 @@ const canvas=$("sigCanvas"),ctx=canvas.getContext("2d");let drawing=false;
 canvas.addEventListener("mousedown",()=>drawing=true);
 canvas.addEventListener("mouseup",()=>drawing=false);
 canvas.addEventListener("mousemove",e=>{if(!drawing)return;ctx.fillStyle="black";ctx.beginPath();ctx.arc(e.offsetX,e.offsetY,2,0,Math.PI*2);ctx.fill();});
+
+// při startu stránky načíst data
+window.onload = ()=>{
+  loadFromSheet();
+};
 </script>
 </body>
 </html>
