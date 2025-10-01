@@ -5,40 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>White Glove Service</title>
   <style>
-    :root {
-      font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif;
-      color: #111;
-    }
+    :root { font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:#111; }
     body { margin:0; padding:0; background:#f6f7fb; }
     .screen { display:none; min-height:100vh; padding:20px; }
     .active { display:block; }
 
     /* Úvodní obrazovka */
-    .home {
-      display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;
-    }
-    .home h1 {
-      font-size:3.5em;
-      font-weight:900;
-      margin:0 0 15px;
-    }
-    .home p {
-      font-size:1.3em;
-      margin:0 0 40px;
-      color:#555;
-    }
+    .home { display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; }
+    .home h1 { font-size:3.5em; font-weight:900; margin:0 0 15px; }
+    .home p { font-size:1.3em; margin:0 0 40px; color:#555; }
     .btn {
-      background:#e0e0e0;
-      color:#111;
-      padding:15px 30px;
-      margin:10px;
-      border:none;
-      border-radius:10px;
-      cursor:pointer;
-      font-size:1.1em;
-      min-width:220px;
-      box-shadow:0 2px 5px rgba(0,0,0,0.15);
-      transition:0.2s;
+      background:#e0e0e0; color:#111; padding:15px 30px; margin:10px;
+      border:none; border-radius:10px; cursor:pointer; font-size:1.1em;
+      min-width:220px; box-shadow:0 2px 5px rgba(0,0,0,0.15); transition:0.2s;
     }
     .btn:hover { background:#d5d5d5; }
 
@@ -82,8 +61,16 @@
       <input type="text" id="formOrder" name="order">
     </div>
     <div class="form-group">
+      <label>Datum reklamace</label>
+      <input type="text" id="formComplaintDate" name="complaint_date">
+    </div>
+    <div class="form-group">
+      <label>Datum dodání</label>
+      <input type="text" id="formDeliveryDate" name="delivery_date">
+    </div>
+    <div class="form-group">
       <label>Popis závady / opravy</label>
-      <textarea name="description"></textarea>
+      <textarea id="formDescription" name="description"></textarea>
     </div>
     <div class="form-group">
       <label>Podpis zákazníka</label>
@@ -129,21 +116,19 @@ async function exportPDF(){
   pdf.save("protokol.pdf");
 }
 
-// nasloucháme zprávám z seznam.html
+// posloucháme zprávy z seznam.html
 window.addEventListener("message", function(event){
   if (event.data && event.data.type === "openProtocol"){
     const row = event.data.row;
-    const headers = event.data.headers;
 
-    const idxCustomer = headers.findIndex(h => h.toLowerCase().includes("customer") || h.toLowerCase().includes("zákazník"));
-    const idxAddress  = headers.findIndex(h => h.toLowerCase().includes("address")  || h.toLowerCase().includes("adresa"));
-    const idxPhone    = headers.findIndex(h => h.toLowerCase().includes("kontakt"));
-    const idxOrder    = headers.findIndex(h => h.toLowerCase().includes("order"));
-
-    if (idxCustomer >= 0) document.getElementById("formCustomer").value = row[idxCustomer];
-    if (idxAddress  >= 0) document.getElementById("formAddress").value  = row[idxAddress];
-    if (idxPhone    >= 0) document.getElementById("formPhone").value    = row[idxPhone];
-    if (idxOrder    >= 0) document.getElementById("formOrder").value    = row[idxOrder];
+    // pevné indexy podle tvé tabulky
+    document.getElementById("formCustomer").value     = row[0] || "";  // Customer
+    document.getElementById("formAddress").value      = row[1] || "";  // Address
+    document.getElementById("formPhone").value        = row[2] || "";  // KONTAKT
+    document.getElementById("formOrder").value        = row[4] || "";  // Order number
+    document.getElementById("formDescription").value  = row[10]|| "";  // POPIS REKLAMACE - OPRAVY
+    document.getElementById("formComplaintDate").value= row[11]|| "";  // Complaint date
+    document.getElementById("formDeliveryDate").value = row[12]|| "";  // Delivery date
 
     showScreen("protocol");
   }
