@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>White Glove Service</title>
   <style>
-    :root { font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:#111; }
-    body { margin:0; padding:0; background:#f6f7fb; }
+    :root { font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:#111 }
+    body { margin:0; padding:0; background:#f6f7fb }
     .screen { display:none; min-height:100vh; padding:20px; }
     .active { display:block; }
 
@@ -21,41 +21,39 @@
     }
     .btn:hover { background:#d5d5d5; }
 
-    /* Karta protokolu */
+    /* Protokol */
+    h2 { margin-top:0; }
+    .grid { 
+      display:grid; 
+      grid-template-columns:1fr 420px; 
+      gap:20px; 
+      max-width:1200px; 
+      margin:auto;
+    }
+    @media(max-width: 800px){
+      .grid { grid-template-columns:1fr; }
+      .home h1 { font-size:2.2em; line-height:1.2; }
+      .home p { font-size:1em; margin:0 0 25px; }
+      .btn { font-size:1em; padding:12px 20px; min-width:160px; margin:8px 0; }
+    }
     .card {
       background:#fff; padding:20px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,.08);
-      max-width:800px; margin:auto;
     }
-    .form-group { margin-bottom:12px; }
-    label { font-weight:600; display:block; margin:10px 0 5px; }
+    label { font-weight:600; display:block; margin:10px 0 5px }
     input, textarea {
       width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:14px;
     }
     textarea { resize:vertical; }
-
-    /* Podpis */
     .signature-container {
       border:2px solid #555; border-radius:8px; width:100%; height:180px; touch-action:none; margin-top:5px;
     }
     canvas { width:100%; height:100%; }
-
-    /* Úpravy pro mobilní telefony */
-    @media (max-width: 600px) {
-      .home h1 {
-        font-size: 2.2em;
-        line-height: 1.2;
-      }
-      .home p {
-        font-size: 1em;
-        margin: 0 0 25px;
-      }
-      .btn {
-        font-size: 1em;
-        padding: 12px 20px;
-        min-width: 160px;
-        margin: 8px 0;
-      }
+    button {
+      background:#111; color:#fff; border:0;
+      padding:10px 16px; border-radius:8px;
+      font-size:14px; cursor:pointer; margin-top:12px;
     }
+    button.secondary { background:#777; }
   </style>
 </head>
 <body>
@@ -65,52 +63,42 @@
   <h1>WHITE GLOVE SERVIS</h1>
   <p>specializovaný autorizovaný servis Natuzzi</p>
   <button class="btn" onclick="openList()">Seznam reklamací</button>
-  <button class="btn" onclick="showScreen('protocol')">Protokol oprav</button>
 </div>
 
 <!-- Protokol oprav -->
 <div id="protocol" class="screen">
-  <h2>Protokol oprav</h2>
-  <div class="card">
-    <div class="form-group">
-      <label>Zákazník</label>
-      <input type="text" id="formCustomer" name="customer">
-    </div>
-    <div class="form-group">
-      <label>Adresa</label>
-      <input type="text" id="formAddress" name="address">
-    </div>
-    <div class="form-group">
-      <label>Telefon</label>
-      <input type="text" id="formPhone" name="phone">
-    </div>
-    <div class="form-group">
-      <label>Číslo objednávky</label>
-      <input type="text" id="formOrder" name="order">
-    </div>
-    <div class="form-group">
-      <label>Datum reklamace</label>
-      <input type="text" id="formComplaintDate" name="complaint_date">
-    </div>
-    <div class="form-group">
-      <label>Datum dodání</label>
-      <input type="text" id="formDeliveryDate" name="delivery_date">
-    </div>
-    <div class="form-group">
-      <label>Popis závady / opravy</label>
-      <textarea id="formDescription" name="description" rows="4"></textarea>
-    </div>
+  <h2>Servisní protokol - White Glove Service</h2>
+  <div class="grid">
+    <!-- FORMULÁŘ -->
+    <div class="card">
+      <label>Jméno zákazníka:</label>
+      <input type="text" id="customer">
 
-    <div class="form-group">
-      <label>Podpis zákazníka</label>
+      <label>Adresa:</label>
+      <input type="text" id="address">
+
+      <label>Telefon:</label>
+      <input type="text" id="phone">
+
+      <label>Popis opravy:</label>
+      <textarea id="description" rows="4"></textarea>
+
+      <label>Podpis zákazníka:</label>
       <div class="signature-container">
         <canvas id="signature"></canvas>
       </div>
-      <button class="btn" onclick="clearSignature()">Smazat podpis</button>
+      <button class="secondary" onclick="clearSignature()">Smazat podpis</button>
+      
+      <button onclick="savePDF()">Exportovat do PDF</button>
+      <button onclick="showScreen('home')">Zpět</button>
     </div>
 
-    <button class="btn" onclick="exportPDF()">Exportovat do PDF</button>
-    <button class="btn" onclick="showScreen('home')">Zpět</button>
+    <!-- INFO PANEL -->
+    <div class="card">
+      <h2>Náhled</h2>
+      <p>Zde bude uložen protokol zákazníka se všemi údaji a podpisem.</p>
+      <p><small>Export do PDF vloží i podpis napevno, aby nemohl zmizet.</small></p>
+    </div>
   </div>
 </div>
 
@@ -124,7 +112,7 @@ function openList(){
   window.open("seznam.html", "_blank", "width=1000,height=700");
 }
 
-// --- podpis přímo v protokolu ---
+// ==== SIGNATURE PAD ====
 const canvas = document.getElementById("signature");
 const ctx = canvas.getContext("2d");
 let drawing = false;
@@ -180,17 +168,15 @@ function clearSignature() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-async function exportPDF() {
+// ==== PDF EXPORT ====
+async function savePDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  const customer = document.getElementById("formCustomer").value;
-  const address = document.getElementById("formAddress").value;
-  const phone = document.getElementById("formPhone").value;
-  const order = document.getElementById("formOrder").value;
-  const complaintDate = document.getElementById("formComplaintDate").value;
-  const deliveryDate = document.getElementById("formDeliveryDate").value;
-  const description = document.getElementById("formDescription").value;
+  const customer = document.getElementById("customer").value;
+  const address = document.getElementById("address").value;
+  const phone = document.getElementById("phone").value;
+  const description = document.getElementById("description").value;
 
   // HLAVIČKA
   doc.setFontSize(18);
@@ -199,44 +185,40 @@ async function exportPDF() {
   doc.setLineWidth(0.5);
   doc.line(10, 20, 200, 20);
 
-  // OBSAH
+  // DATA
   doc.setFontSize(14);
   doc.setFont("helvetica","normal");
   doc.text(`Zákazník: ${customer}`, 10, 35);
   doc.text(`Adresa: ${address}`, 10, 45);
   doc.text(`Telefon: ${phone}`, 10, 55);
-  doc.text(`Objednávka: ${order}`, 10, 65);
-  doc.text(`Datum reklamace: ${complaintDate}`, 10, 75);
-  doc.text(`Datum dodání: ${deliveryDate}`, 10, 85);
 
-  doc.text(`Popis opravy:`, 10, 100);
+  doc.text(`Popis opravy:`, 10, 70);
   doc.setFontSize(12);
-  doc.text(description, 10, 110, { maxWidth:180 });
+  doc.text(description, 10, 80, { maxWidth:180 });
 
   // PODPIS
   const signatureImage = canvas.toDataURL("image/png");
   doc.setFontSize(14);
-  doc.text("Podpis zákazníka:", 10, 140);
-  doc.addImage(signatureImage, "PNG", 10, 145, 100, 40);
+  doc.text("Podpis zákazníka:", 10, 120);
+  doc.addImage(signatureImage, "PNG", 10, 125, 100, 50);
 
   // PATIČKA
+  const today = new Date().toLocaleDateString("cs-CZ");
   doc.setFontSize(10);
-  doc.text("Děkujeme za využití služeb White Glove Service", 105, 290, { align:"center" });
+  doc.text(`Datum vystavení: ${today}`, 10, 290);
+  doc.text("Děkujeme za využití služeb White Glove Service", 200, 290, { align:"right" });
 
   doc.save("protokol.pdf");
 }
 
-// --- příjem dat ze seznam.html ---
+// ==== DATA ZE SEZNAMU ====
 window.addEventListener("message", function(event){
   if (event.data && event.data.type === "openProtocol"){
     const row = event.data.row;
-    document.getElementById("formCustomer").value     = row[0] || "";
-    document.getElementById("formAddress").value      = row[1] || "";
-    document.getElementById("formPhone").value        = row[2] || "";
-    document.getElementById("formOrder").value        = row[4] || "";
-    document.getElementById("formDescription").value  = row[10]|| "";
-    document.getElementById("formComplaintDate").value= row[11]|| "";
-    document.getElementById("formDeliveryDate").value = row[12]|| "";
+    document.getElementById("customer").value     = row[0] || "";
+    document.getElementById("address").value      = row[1] || "";
+    document.getElementById("phone").value        = row[2] || "";
+    document.getElementById("description").value  = row[10]|| "";
     showScreen("protocol");
   }
 });
