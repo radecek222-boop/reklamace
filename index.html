@@ -18,8 +18,8 @@
       display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;
     }
     .home h1 {
-      font-size:3.5em;       /* větší */
-      font-weight:900;       /* extra tučný */
+      font-size:3.5em;
+      font-weight:900;
       margin:0 0 15px;
     }
     .home p {
@@ -28,7 +28,7 @@
       color:#555;
     }
     .btn {
-      background:#e0e0e0;        /* světle šedé tlačítko */
+      background:#e0e0e0;
       color:#111;
       padding:15px 30px;
       margin:10px;
@@ -36,21 +36,39 @@
       border-radius:10px;
       cursor:pointer;
       font-size:1.1em;
-      min-width:220px;           /* stejná šířka */
-      box-shadow:0 2px 5px rgba(0,0,0,0.15);  /* jemný stín */
+      min-width:220px;
+      box-shadow:0 2px 5px rgba(0,0,0,0.15);
       transition:0.2s;
     }
-    .btn:hover {
-      background:#d5d5d5;        /* mírné stmavení při hoveru */
-    }
+    .btn:hover { background:#d5d5d5; }
 
     /* Seznam */
     input[type="text"] {
       padding:8px; border-radius:6px; border:1px solid #ccc; width:100%; max-width:400px;
     }
-    table { width:100%; border-collapse:collapse; margin-top:20px; }
-    table th, table td { border:1px solid #ccc; padding:8px; text-align:left; font-size:0.9em; }
-    table th { background:#eee; }
+    .table-wrapper {
+      overflow-x: auto;
+      margin-top: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    table th, table td {
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 0.9em;
+    }
+    table th {
+      background: #f0f0f0;
+      font-weight: bold;
+    }
+    table tr:nth-child(even) { background: #fafafa; }
+    table tr:hover { background: #e9f0ff; cursor: pointer; }
 
     /* Protokol */
     .form-group { margin-bottom:12px; }
@@ -74,8 +92,8 @@
 <!-- Seznam reklamací -->
 <div id="list" class="screen">
   <h2>Seznam reklamací</h2>
-  <input type="text" id="search" placeholder="Hledat jméno, adresu, telefon, objednávku...">
-  <div id="results">Načítám data...</div>
+  <input type="text" id="search" placeholder="Hledat podle jména, adresy, telefonu nebo objednávky">
+  <div id="results" class="table-wrapper">Načítám data...</div>
   <button class="btn" onclick="showScreen('home')">Zpět</button>
 </div>
 
@@ -85,11 +103,11 @@
   <form id="repairForm">
     <div class="form-group">
       <label>Zákazník</label>
-      <input type="text" name="customer">
+      <input type="text" id="formCustomer" name="customer">
     </div>
     <div class="form-group">
       <label>Adresa</label>
-      <input type="text" name="address">
+      <input type="text" id="formAddress" name="address">
     </div>
     <div class="form-group">
       <label>Popis závady / opravy</label>
@@ -150,17 +168,36 @@ async function loadData() {
 }
 
 function renderTable(rows){
-  if (!rows.length){ document.getElementById("results").innerHTML = "Žádná data"; return; }
-  let html = "<table><tr>";
+  if (!rows.length){ 
+    document.getElementById("results").innerHTML = "Žádná data"; 
+    return; 
+  }
+  let html = "<table><thead><tr>";
   allData[0].forEach(h => { html += "<th>"+h+"</th>"; });
-  html += "</tr>";
-  rows.forEach(r => {
-    html += "<tr>";
+  html += "</tr></thead><tbody>";
+  rows.forEach((r,idx) => {
+    // idx+1 = posun kvůli hlavičce
+    html += `<tr onclick="openDetail(${idx+1})">`;
     r.forEach(c => { html += "<td>"+c+"</td>"; });
     html += "</tr>";
   });
-  html += "</table>";
+  html += "</tbody></table>";
   document.getElementById("results").innerHTML = html;
+}
+
+// kliknutí na řádek -> otevře protokol a vyplní formulář
+function openDetail(rowIndex){
+  const row = allData[rowIndex];
+  if (!row) return;
+  // najdeme indexy podle hlavičky
+  const headers = allData[0];
+  const idxCustomer = headers.findIndex(h => h.toLowerCase().includes("customer") || h.toLowerCase().includes("zákazník"));
+  const idxAddress  = headers.findIndex(h => h.toLowerCase().includes("address") || h.toLowerCase().includes("adresa"));
+
+  if (idxCustomer >= 0) document.getElementById("formCustomer").value = row[idxCustomer];
+  if (idxAddress >= 0) document.getElementById("formAddress").value = row[idxAddress];
+
+  showScreen("protocol");
 }
 
 // vyhledávání
