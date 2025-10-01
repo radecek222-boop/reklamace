@@ -7,7 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; background: #f9f9f9; padding: 20px; border-radius: 10px; }
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 20px auto; background: #f9f9f9; padding: 20px; border-radius: 10px; }
     h2 { text-align: center; margin-bottom: 20px; }
     .logo { text-align: center; margin-bottom: 20px; }
     .logo img { max-width: 220px; }
@@ -35,12 +35,6 @@
 
     <label>Číslo reklamace / Claim number</label>
     <input id="cislo_reklamace">
-
-    <label>Technik / Worker</label>
-    <input id="technik">
-
-    <label>Datum návštěvy / Date of visit</label>
-    <input id="datum_navstevy" type="date">
   </div>
 
   <div class="section">
@@ -49,6 +43,12 @@
 
     <label>Adresa zákazníka / Address customer</label>
     <input id="adresa">
+
+    <label>Kontakt / Contact</label>
+    <input id="kontakt">
+
+    <label>Stav – termín návštěvy / Status – visit date</label>
+    <input id="stav">
   </div>
 
   <div class="section">
@@ -58,68 +58,27 @@
     <label>Model</label>
     <input id="model">
 
-    <label>Potah / Upholstery</label>
-    <input id="potah">
+    <label>Popis reklamace / Complaint description</label>
+    <textarea id="zakaznik_reklamace"></textarea>
   </div>
 
   <div class="section">
-    <label>Datum doručení / Delivery date (customer)</label>
+    <label>Datum doručení / Delivery date</label>
     <input id="datum_doruceni" type="date">
 
-    <label>Datum podání reklamace / Complaint date (customer)</label>
+    <label>Datum podání reklamace / Complaint date</label>
     <input id="datum_reklamace" type="date">
+
+    <label>MILAN</label>
+    <input id="milan">
+
+    <label>RADEK</label>
+    <input id="radek">
   </div>
 
   <div class="section">
-    <label>Zákazník reklamuje / The customer complains</label>
-    <textarea id="zakaznik_reklamace"></textarea>
-
-    <label>Problém zjištěný na místě technikem / Problem detected on site by technician</label>
-    <textarea id="problem"></textarea>
-
-    <label>Návrh opravy / Repair proposal</label>
-    <textarea id="oprava"></textarea>
-  </div>
-
-  <div class="section">
-    <h3>Stav reklamace / Claim status</h3>
-    <div class="checkbox-group">
-      <input type="checkbox" id="vyreseno">
-      <label for="vyreseno">Reklamace vyřešena</label>
-    </div>
-    <div class="checkbox-group">
-      <input type="checkbox" id="cekani">
-      <label for="cekani">Čeká se na vyjádření prodejce</label>
-    </div>
-    <div class="checkbox-group">
-      <input type="checkbox" id="poskozeni">
-      <label for="poskozeni">Poškození technikem</label>
-    </div>
-    <div class="checkbox-group">
-      <input type="checkbox" id="uhrada">
-      <label for="uhrada">Úhradu provede zákazník</label>
-    </div>
-  </div>
-
-  <div class="section">
-    <h3>Ceny / Prices</h3>
-    <label>Počet opravovaných dílů / Number of repaired parts</label>
-    <input id="dily" type="number">
-
-    <label>Cena za práci / Price for work</label>
-    <input id="prace" type="number">
-
-    <label>Cena za materiál / Price for material</label>
-    <input id="material" type="number">
-
-    <label>Cena za druhého technika / Price for second technician</label>
-    <input id="druhy_technik" type="number">
-
-    <label>Cena za dopravu / Price for transport</label>
-    <input id="doprava" type="number">
-
-    <label>Cena celkem EUR / Total price EUR</label>
-    <input id="celkem" type="number">
+    <label>Cena / Price</label>
+    <input id="celkem">
   </div>
 
   <div class="section">
@@ -145,38 +104,45 @@
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
-    function clearSig() {
-      signaturePad.clear();
-    }
+    function clearSig() { signaturePad.clear(); }
 
-    // 👇 vlož sem svou Apps Script URL
-    const API_URL = "https://script.google.com/macros/s/AKfycbwCL5s2dLRygGE3OzOJm50IaSSLGOeCr0fwi70UKBI-73D-WvA0brcrNFXSCaObDVM-SA/exec";
+    // 👇 sem vlož svou Apps Script URL
+    const API_URL = "TVOJE_APPS_SCRIPT_URL";
 
     async function fetchData() {
       const order = document.getElementById("cislo_objednavky").value;
-      if (!order) {
-        alert("Zadej číslo objednávky!");
-        return;
-      }
+      if (!order) { alert("Zadej číslo objednávky!"); return; }
+
+      const url = API_URL + "?order=" + encodeURIComponent(order) + "&sheet=SEZNAM%20REKLAMACÍ";
+
       try {
-        const response = await fetch(API_URL + "?order=" + encodeURIComponent(order));
+        const response = await fetch(url);
         const data = await response.json();
+
         if (data.length > 0) {
           const row = data[0];
-          document.getElementById("cislo_reklamace").value = row["Claim number"] || "";
+
           document.getElementById("zakaznik").value = row["Customer"] || "";
-          document.getElementById("adresa").value = row["Address"] || "";
-          document.getElementById("znacka").value = row["Label"] || "";
-          document.getElementById("model").value = row["Model"] || "";
-          document.getElementById("potah").value = row["Upholstery"] || "";
+          document.getElementById("adresa").value   = row["Address"] || "";
+          document.getElementById("kontakt").value  = row["KONTAKT"] || "";
+          document.getElementById("stav").value     = row["STAV - termín návštěvy"] || "";
+          document.getElementById("znacka").value   = row["Label"] || "";
+          document.getElementById("model").value    = row["Model"] || "";
+          document.getElementById("zakaznik_reklamace").value = row["POPIS REKLAMACE - OPRAVY"] || "";
+
           if (row["Delivery date"]) {
             document.getElementById("datum_doruceni").value = new Date(row["Delivery date"]).toISOString().split("T")[0];
           }
           if (row["Complaint date"]) {
             document.getElementById("datum_reklamace").value = new Date(row["Complaint date"]).toISOString().split("T")[0];
           }
+
+          document.getElementById("milan").value = row["MILAN"] || "";
+          document.getElementById("radek").value = row["RADEK"] || "";
+          document.getElementById("celkem").value = row["CENA"] || "";
+
         } else {
-          alert("Objednávka nenalezena v Google Sheets");
+          alert("Objednávka nenalezena v listu SEZNAM REKLAMACÍ");
         }
       } catch (err) {
         alert("Chyba při načítání: " + err);
@@ -186,7 +152,6 @@
     function generatePDF() {
       const doc = new jsPDF({ unit: "mm", format: "a4" });
 
-      // HLAVIČKA
       doc.setFontSize(16);
       doc.text("WHITE GLOVE SERVICE s.r.o.", 105, 15, { align: "center" });
       doc.setFontSize(10);
@@ -194,57 +159,30 @@
       doc.setFontSize(14);
       doc.text("CLAIM PROTOCOL", 105, 30, { align: "center" });
 
-      // TABULKY
-      doc.autoTable({ startY: 40, head: [['Order number','Claim number','Worker','Date of visit']], body: [[
+      // tabulky
+      doc.autoTable({ startY: 40, head: [['Order number','Label','Model','Price']], body: [[
         document.getElementById("cislo_objednavky").value,
-        document.getElementById("cislo_reklamace").value,
-        document.getElementById("technik").value,
-        document.getElementById("datum_navstevy").value
-      ]]});
-
-      doc.autoTable({ startY: doc.lastAutoTable.finalY+5, head: [['Customer','Address']], body: [[
-        document.getElementById("zakaznik").value,
-        document.getElementById("adresa").value
-      ]]});
-
-      doc.autoTable({ startY: doc.lastAutoTable.finalY+5, head: [['Label','Model','Upholstery']], body: [[
         document.getElementById("znacka").value,
         document.getElementById("model").value,
-        document.getElementById("potah").value
+        document.getElementById("celkem").value
       ]]});
 
-      doc.autoTable({ startY: doc.lastAutoTable.finalY+5, head: [['Delivery date','Complaint date']], body: [[
-        document.getElementById("datum_doruceni").value,
-        document.getElementById("datum_reklamace").value
+      doc.autoTable({ startY: doc.lastAutoTable.finalY+5, head: [['Customer','Address','Contact','Status']], body: [[
+        document.getElementById("zakaznik").value,
+        document.getElementById("adresa").value,
+        document.getElementById("kontakt").value,
+        document.getElementById("stav").value
       ]]});
 
-      doc.autoTable({ startY: doc.lastAutoTable.finalY+5, head: [['The customer complains']], body: [[
+      doc.autoTable({ startY: doc.lastAutoTable.finalY+5, head: [['Complaint description']], body: [[
         document.getElementById("zakaznik_reklamace").value
       ]]});
-      doc.autoTable({ startY: doc.lastAutoTable.finalY+2, head: [['Problem detected on site']], body: [[
-        document.getElementById("problem").value
-      ]]});
-      doc.autoTable({ startY: doc.lastAutoTable.finalY+2, head: [['Repair proposal']], body: [[
-        document.getElementById("oprava").value
-      ]]});
 
-      doc.autoTable({ startY: doc.lastAutoTable.finalY+5, head: [['Claim status']], body: [[
-        (document.getElementById('vyreseno').checked ? "✔" : "✖") + " Complaint resolved"
-      ],[
-        (document.getElementById('cekani').checked ? "✔" : "✖") + " Waiting for dealer response"
-      ],[
-        (document.getElementById('poskozeni').checked ? "✔" : "✖") + " Damage caused by technician"
-      ],[
-        (document.getElementById('uhrada').checked ? "✔" : "✖") + " Paid by customer"
-      ]]});
-
-      doc.autoTable({ startY: doc.lastAutoTable.finalY+5, head: [['Parts','Work','Material','2nd worker','Transport','Total EUR']], body: [[
-        document.getElementById("dily").value,
-        document.getElementById("prace").value,
-        document.getElementById("material").value,
-        document.getElementById("druhy_technik").value,
-        document.getElementById("doprava").value,
-        document.getElementById("celkem").value
+      doc.autoTable({ startY: doc.lastAutoTable.finalY+5, head: [['Delivery date','Complaint date','MILAN','RADEK']], body: [[
+        document.getElementById("datum_doruceni").value,
+        document.getElementById("datum_reklamace").value,
+        document.getElementById("milan").value,
+        document.getElementById("radek").value
       ]]});
 
       let y = doc.lastAutoTable.finalY + 15;
