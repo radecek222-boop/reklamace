@@ -27,7 +27,21 @@
     input, textarea {
       width:100%; padding:8px; border-radius:6px; border:1px solid #ccc; font-size:0.95em;
     }
-    #signature { border:1px solid #ccc; background:#fff; width:100%; height:200px; }
+
+    /* Modal */
+    #signatureModal {
+      display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:1000;
+    }
+    #signatureModal .modal-content {
+      background:#fff; padding:20px; border-radius:10px; max-width:500px; width:90%; text-align:center;
+    }
+    #signatureModal h3 { margin-top:0; }
+    #signatureCanvas { border:1px solid #ccc; width:100%; height:200px; }
+    #signaturePreview {
+      border:1px solid #ccc; background:#fff; width:100%; height:150px;
+      display:flex; align-items:center; justify-content:center; color:#777;
+    }
   </style>
 </head>
 <body>
@@ -74,12 +88,25 @@
     </div>
     <div class="form-group">
       <label>Podpis zákazníka</label>
-      <canvas id="signature"></canvas><br>
-      <button type="button" class="btn" onclick="clearSignature()">Vymazat podpis</button>
+      <div id="signaturePreview">(zatím nepodepsáno)</div>
+      <button type="button" class="btn" onclick="openSignatureModal()">Podepsat</button>
     </div>
   </form>
   <button class="btn" onclick="exportPDF()">Exportovat do PDF</button>
   <button class="btn" onclick="showScreen('home')">Zpět</button>
+</div>
+
+<!-- Modal pro podpis -->
+<div id="signatureModal">
+  <div class="modal-content">
+    <h3>Podpis zákazníka</h3>
+    <canvas id="signatureCanvas"></canvas>
+    <div style="margin-top:10px;">
+      <button class="btn" onclick="saveSignature()">Uložit</button>
+      <button class="btn" onclick="clearSignatureCanvas()">Vymazat</button>
+      <button class="btn" onclick="closeSignatureModal()">Zrušit</button>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -94,16 +121,6 @@ function showScreen(id){
 function openList(){
   window.open("seznam.html", "_blank", "width=1000,height=700");
 }
-
-// podpis (canvas)
-let canvas = document.getElementById("signature");
-let ctx = canvas.getContext("2d");
-let drawing = false;
-canvas.addEventListener("mousedown", e => {drawing=true; ctx.beginPath(); ctx.moveTo(e.offsetX,e.offsetY);});
-canvas.addEventListener("mousemove", e => {if(drawing){ctx.lineTo(e.offsetX,e.offsetY); ctx.stroke();}});
-canvas.addEventListener("mouseup", ()=> drawing=false);
-canvas.addEventListener("mouseleave", ()=> drawing=false);
-function clearSignature(){ ctx.clearRect(0,0,canvas.width,canvas.height); }
 
 // Export do PDF
 async function exportPDF(){
@@ -121,7 +138,7 @@ window.addEventListener("message", function(event){
   if (event.data && event.data.type === "openProtocol"){
     const row = event.data.row;
 
-    // pevné indexy podle tvé tabulky
+    // pevné indexy podle tabulky
     document.getElementById("formCustomer").value     = row[0] || "";  // Customer
     document.getElementById("formAddress").value      = row[1] || "";  // Address
     document.getElementById("formPhone").value        = row[2] || "";  // KONTAKT
@@ -133,6 +150,60 @@ window.addEventListener("message", function(event){
     showScreen("protocol");
   }
 });
+
+
+// --- Podpis (modal) ---
+let sigModal = document.getElementById("signatureModal");
+let sigCanvas = document.getElementById("signatureCanvas");
+let sigCtx = sigCanvas.getContext("2d");
+let drawingSig = false;
+
+function openSignatureModal(){
+  sigModal.style.display = "flex";
+  resizeSigCanvas();
+}
+function closeSignatureModal(){
+  sigModal.style.display = "none";
+}
+function resizeSigCanvas(){
+  sigCanvas.width = sigCanvas.clientWidth;
+  sigCanvas.height = sigCanvas.clientHeight;
+}
+function clearSignatureCanvas(){
+  sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height);
+}
+
+sigCanvas.addEventListener("mousedown", e => {drawingSig=true; sigCtx.beginPath(); sigCtx.moveTo(e.offsetX,e.offsetY);});
+sigCanvas.addEventListener("mousemove", e => {if(drawingSig){sigCtx.lineTo(e.offsetX,e.offsetY); sigCtx.stroke();}});
+sigCanvas.addEventListener("mouseup", ()=> drawingSig=false);
+sigCanvas.addEventListener("mouseleave", ()=> drawingSig=false);
+
+// Dotyk pro mobil
+sigCanvas.addEventListener("touchstart", e => {
+  e.preventDefault();
+  let rect = sigCanvas.getBoundingClientRect();
+  let x = e.touches[0].clientX - rect.left;
+  let y = e.touches[0].clientY - rect.top;
+  drawingSig = true;
+  sigCtx.beginPath();
+  sigCtx.moveTo(x,y);
+});
+sigCanvas.addEventListener("touchmove", e => {
+  e.preventDefault();
+  if (!drawingSig) return;
+  let rect = sigCanvas.getBoundingClientRect();
+  let x = e.touches[0].clientX - rect.left;
+  let y = e.touches[0].clientY - rect.top;
+  sigCtx.lineTo(x,y);
+  sigCtx.stroke();
+});
+sigCanvas.addEventListener("touchend", ()=> drawingSig=false);
+
+function saveSignature(){
+  let dataURL = sigCanvas.toDataURL("image/png");
+  document.getElementById("signaturePreview").innerHTML = `<img src="${dataURL}" style="max-width:100%; max-height:150px;">`;
+  closeSignatureModal();
+}
 </script>
 
 </body>
