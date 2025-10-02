@@ -32,6 +32,7 @@
     .two-col-table { display:flex; gap:30px; flex-wrap:wrap; }
     .two-col-table .col { flex:1; min-width:300px; }
     .section-title { font-weight:700; margin-top:20px; }
+    .side-label { font-size:11px; font-weight:500; color:#555; margin-bottom:4px; }
     #signature-pad {
       border:2px dashed #888;
       width:100%;
@@ -41,11 +42,23 @@
     .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
     .btns { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
     .btns button { padding:10px 20px; font-size:1em; border:none; background:#333; color:white; border-radius:6px; cursor:pointer; }
+
+    /* mobilní zobrazení */
+    @media (max-width:768px){
+      .wrapper{padding:10px;}
+      .two-col-table{flex-direction:column;}
+      .split-section{flex-direction:column;}
+    }
+
+    /* vynucení desktop vzhledu při exportu */
+    .force-desktop .two-col-table { flex-direction: row !important; }
+    .force-desktop .split-section { flex-direction: row !important; }
+    .force-desktop { max-width: 900px !important; }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 <div class="wrapper">
@@ -115,6 +128,7 @@
 
   <div class="section-title">Podpis zákazníka</div>
   <canvas id="signature-pad"></canvas>
+  <div class="signature-label">Podepište se prstem nebo myší</div>
 
   <div class="btns">
     <button onclick="signaturePad.clear()">🗑️ Vymazat podpis</button>
@@ -130,86 +144,38 @@
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
     signaturePad = new SignaturePad(canvas);
+
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("visit-date").value = today;
     document.getElementById("sign-date").value = today;
   });
 
-  function downloadPDF(){
+  function downloadPDF() {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF("p","mm","a4");
+    const doc = new jsPDF("p", "mm", "a4");
 
-    doc.setFont("times","normal"); // ✅ Times podporuje českou diakritiku
+    const wrapper = document.querySelector(".wrapper");
+    wrapper.classList.add("force-desktop"); // 🔥 vynutíme desktop layout
 
-    // Hlavička
-    doc.setFontSize(16);
-    doc.text("WHITE GLOVE SERVICE",105,15,{align:"center"});
-    doc.setFontSize(10);
-    doc.text("Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684",105,22,{align:"center"});
+    html2canvas(wrapper, { scale: 2 }).then(canvas => {
+      const imgData = canvas.toDataURL("image/png");
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
 
-    // Údaje zákazník/technik
-    doc.autoTable({
-      startY:30,
-      theme:"grid",
-      styles:{font:"times",fontSize:10},
-      headStyles:{fillColor:[255,255,255], textColor:[0,0,0]},
-      head:[["Číslo objednávky",document.getElementById("order-number").value,"Technik",document.getElementById("technician").value]],
-      body:[
-        ["Číslo reklamace",document.getElementById("claim-number").value,"Datum návštěvy",document.getElementById("visit-date").value],
-        ["Zákazník",document.getElementById("customer").value,"Datum doručení",document.getElementById("delivery-date").value],
-        ["Adresa zákazníka",document.getElementById("address").value,"Datum podání reklamace",document.getElementById("claim-date").value],
-        ["Značka / Contract",document.getElementById("brand").value,"Model",document.getElementById("model").value]
-      ],
-      columnStyles:{0:{cellWidth:40},1:{cellWidth:55},2:{cellWidth:40},3:{cellWidth:55}}
+      const imgProps = doc.getImageProperties(imgData);
+      const imgHeight = (imgProps.height * pageWidth) / imgProps.width;
+
+      doc.addImage(imgData, "PNG", 0, 0, pageWidth, imgHeight);
+
+      // podpis navrch
+      if (signaturePad && !signaturePad.isEmpty()) {
+        const signData = signaturePad.toDataURL();
+        doc.addImage(signData, "PNG", 15, pageHeight - 40, 60, 20);
+      }
+
+      doc.save("protokol.pdf");
+      wrapper.classList.remove("force-desktop"); // vrátíme původní vzhled
     });
-
-    // Complaint/problem/repair bloky
-    function block(title,cz,en){
-      doc.autoTable({
-        startY:doc.lastAutoTable.finalY+10,
-        theme:"grid",
-        styles:{font:"times",fontSize:10,cellPadding:2,valign:"top"},
-        headStyles:{fillColor:[255,255,255], textColor:[0,0,0]},
-        head:[[title,""]],
-        body:[
-          ["CZ",document.getElementById(cz).value],
-          ["EN",document.getElementById(en).value]
-        ],
-        columnStyles:{0:{cellWidth:20,fontStyle:"bold"},1:{cellWidth:170}}
-      });
-    }
-    block("Zákazník reklamuje / Customer complaint","description-cz","description-en");
-    block("Problém zjištěný technikem / Detected problem","problem-cz","problem-en");
-    block("Návrh opravy / Repair proposal","repair-cz","repair-en");
-
-    // Finance a stav
-    doc.autoTable({
-      startY:doc.lastAutoTable.finalY+10,
-      theme:"grid",
-      styles:{font:"times",fontSize:10},
-      headStyles:{fillColor:[255,255,255], textColor:[0,0,0]},
-      head:[["Finanční údaje","","Stav reklamace",""]],
-      body:[
-        ["Počet dílů",document.getElementById("parts").value,"Vyřešeno",document.getElementById("solved").value],
-        ["Práce",document.getElementById("price-work").value,"Vyjádření prodejce",document.getElementById("dealer").value],
-        ["Materiál",document.getElementById("price-material").value,"Poškození technikem",document.getElementById("damage").value],
-        ["2. technik",document.getElementById("price-second").value,"Úhrada zákazník",document.getElementById("payment").value],
-        ["Doprava",document.getElementById("price-transport").value,"Datum podpisu",document.getElementById("sign-date").value],
-        ["Celkem",document.getElementById("price-total").value,"",""]
-      ],
-      columnStyles:{0:{cellWidth:40},1:{cellWidth:55},2:{cellWidth:40},3:{cellWidth:55}}
-    });
-
-    // Podpis
-    let y = doc.lastAutoTable.finalY+20;
-    doc.setFont("times","bold"); doc.setFontSize(11);
-    doc.text("Podpis zákazníka:",10,y);
-    if(signaturePad && !signaturePad.isEmpty()){
-      const signData = signaturePad.toDataURL();
-      doc.addImage(signData,"PNG",50,y-10,60,20);
-    }
-
-    doc.save("protokol.pdf");
   }
 </script>
 </body>
