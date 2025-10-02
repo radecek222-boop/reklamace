@@ -122,3 +122,108 @@
         <textarea id="description-en"></textarea>
       </div>
     </div>
+<div class="grid section">
+  <div>
+    <label>Počet opravovaných dílů / Number of parts repaired</label>
+    <input id="repair-count" type="text">
+
+    <label>Cena za práci / Labor cost</label>
+    <input id="labor-cost" type="text">
+
+    <label>Cena za materiál / Material cost</label>
+    <input id="material-cost" type="text">
+
+    <label>Cena za druhého technika / Second technician cost</label>
+    <input id="second-tech-cost" type="text">
+
+    <label>Cena za dopravu / Transport cost</label>
+    <input id="transport-cost" type="text">
+
+    <label>Cena celkem / Total cost</label>
+    <input id="total-cost" type="text">
+  </div>
+  <div>
+    <label>Reklamace vyřešena? / Complaint resolved?</label>
+    <input id="resolved" type="text">
+
+    <label>Čeká se na vyjádření prodejce? / Waiting for seller response?</label>
+    <input id="waiting" type="text">
+
+    <label>Poškození technikem? / Damaged by technician?</label>
+    <input id="damage" type="text">
+
+    <label>Úhradu provede zákazník? / Will customer pay?</label>
+    <input id="payment" type="text">
+
+    <label>Datum podpisu / Date of signature</label>
+    <input id="signature-date" type="date">
+  </div>
+</div>
+
+<div class="section">
+  <label>Podpis zákazníka / Customer signature</label>
+  <canvas id="signature" class="signature"></canvas>
+</div>
+<div class="btns">
+  <button onclick="signaturePad.clear()">🗑️ Vymazat podpis</button>
+  <button onclick="window.location.href='index.html'">⬅️ Zpět na hlavní stránku</button>
+  <button onclick="downloadPDF()">📄 Exportovat do PDF</button>
+</div>
+</div>
+
+<script>
+  const signaturePad = new SignaturePad(document.getElementById("signature"));
+
+  window.addEventListener("message", (event) => {
+    if (event.data.type === "openProtocol") {
+      const d = event.data.row;
+      if (!d) return;
+      document.getElementById("order-number").value = d["Order number"] || "";
+      document.getElementById("claim-number").value = d["Label"] || "";
+      document.getElementById("customer").value = d["Customer"] || "";
+      document.getElementById("address").value = d["Address"] || "";
+      document.getElementById("brand").value = d["Contract"] || d["Label"] || "";
+      document.getElementById("model").value = d["Model"] || "";
+      document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
+      autoTranslate("description-cz", "description-en");
+      const today = new Date().toISOString().split("T")[0];
+      document.getElementById("visit-date").value = today;
+      document.getElementById("signature-date").value = today;
+    }
+  });
+
+  function downloadPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const wrapper = document.querySelector(".wrapper");
+    window.scrollTo(0, 0);
+    setTimeout(() => {
+      doc.html(wrapper, {
+        callback: function (pdf) {
+          if (signaturePad && !signaturePad.isEmpty()) {
+            const imgData = signaturePad.toDataURL();
+            pdf.addImage(imgData, 'PNG', 15, 260, 60, 20);
+          }
+          pdf.save("protokol.pdf");
+        },
+        margin: [10, 10, 10, 10],
+        autoPaging: true,
+        html2canvas: { scale: 1.5, scrollY: 0 }
+      });
+    }, 500);
+  }
+
+  function autoTranslate(fromId, toId) {
+    const text = document.getElementById(fromId).value;
+    if (!text.trim()) return;
+    const prompt = encodeURIComponent("Přelož do angličtiny: " + text);
+    fetch(`https://api.mymemory.translated.net/get?q=${prompt}&langpair=cs|en`)
+      .then(res => res.json())
+      .then(data => {
+        const translated = data.responseData.translatedText;
+        document.getElementById(toId).value = translated;
+      });
+  }
+</script>
+</body>
+</html>
