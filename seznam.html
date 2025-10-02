@@ -127,6 +127,8 @@ function renderTable(rows){
   ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(h => { html += "<th>"+h+"</th>"; });
   html += "</tr></thead><tbody>";
   rows.forEach((row,idx) => {
+    if (idx === 0) return; // přeskočí řádek 2 v Google Sheets
+
     const statusRaw = row["STAV - termín návštěvy"] || "";
     const status = statusRaw.toLowerCase();
 
