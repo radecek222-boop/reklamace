@@ -185,7 +185,9 @@
     <button onclick="downloadPDF()">📄 Exportovat do PDF</button>
   </div>
 </div>
-  <script>
+
+<script>
+  // Přenos dat ze seznamu
   window.addEventListener("message", (event) => {
     if (event.data.type === "openProtocol") {
       const d = event.data.row;
@@ -200,8 +202,38 @@
       autoTranslate("description-cz", "description-en");
     }
   });
-</script>
 
+  // Export do PDF s opravou pro mobil
+  function downloadPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4"
+    });
+
+    const wrapper = document.querySelector(".wrapper");
+    window.scrollTo(0, 0);
+
+    setTimeout(() => {
+      doc.html(wrapper, {
+        callback: function (pdf) {
+          if (signaturePad && !signaturePad.isEmpty()) {
+            const imgData = signaturePad.toDataURL();
+            pdf.addImage(imgData, 'PNG', 15, 260, 60, 20);
+          }
+          pdf.save("protokol.pdf");
+        },
+        margin: [10, 10, 10, 10],
+        autoPaging: true,
+        html2canvas: {
+          scale: 1.5,
+          scrollY: 0
+        }
+      });
+    }, 500);
+  }
+</script>
 
 </body>
 </html>
