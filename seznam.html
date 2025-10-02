@@ -1,77 +1,163 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Seznam reklamací</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WHITE GLOVE SERVICE – Seznam reklamací</title>
   <style>
     body {
-      font-family: Inter, sans-serif;
       margin: 0;
       padding: 20px;
-      background: #f6f7fb;
-    }
-    .wrapper {
-      max-width: 1000px;
-      margin: auto;
+      font-family: Arial, sans-serif;
+      background-color: #fff;
     }
     h1 {
-      font-size: 24px;
-      font-weight: bold;
       text-align: center;
+      font-size: 28px;
+      font-weight: bold;
       margin-bottom: 20px;
     }
-    .table-container {
-      overflow-x: auto;
+    #search {
+      display: block;
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto 20px;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      background: white;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+      margin-top: 20px;
     }
     th, td {
+      border: 1px solid #ccc;
       padding: 10px;
       text-align: left;
-      border-bottom: 1px solid #ddd;
-      min-width: 120px;
+      font-size: 14px;
     }
     th {
       background-color: #eee;
-      font-weight: 600;
     }
     tr:hover {
-      background-color: #f1f1f1;
+      background-color: #f9f9f9;
     }
-    @media (max-width: 768px) {
-      th, td {
+    .highlight {
+      animation: blinker 1s linear infinite;
+      background-color: #ffdddd !important;
+    }
+    @keyframes blinker {
+      50% { opacity: 0.5; }
+    }
+    @media screen and (max-width: 768px) {
+      table {
         font-size: 12px;
+      }
+      th, td {
         padding: 6px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="wrapper">
-    <h1>Seznam reklamací</h1>
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>Zákazník</th>
-            <th>Adresa</th>
-            <th>Kontakt</th>
-            <th>Termín návštěvy</th>
-            <th>Model</th>
-            <th>Popis</th>
-            <th>Akce</th>
-          </tr>
-        </thead>
-        <tbody id="claims-table">
-          <!-- Data se načtou zde -->
-        </tbody>
-      </table>
-    </div>
+  <h1>WHITE GLOVE SERVICE<br>Seznam reklamací</h1>
+
+  <input type="text" id="search" placeholder="Hledat podle jména, adresy, modelu...">
+
+  <div style="overflow-x:auto">
+    <table id="reklamace">
+      <thead>
+        <tr>
+          <th>Zákazník</th>
+          <th>Adresa</th>
+          <th>Kontakt</th>
+          <th>STAV - termín návštěvy</th>
+          <th>Model</th>
+          <th>POPIS</th>
+          <th>Akce</th>
+        </tr>
+      </thead>
+      <tbody id="claims-table">
+        <!-- Data se načtou sem -->
+      </tbody>
+    </table>
   </div>
+
+  <script>
+    const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQzpP83wIYZPcnb1NI9pPSPixzcEQuRVrTOyPD7SRbgYZSrQs7QdcLNwPJ5lQleGbVVK29nr2-bMo6Y/pub?gid=0&single=true&output=csv";
+
+    function isToday(dateString) {
+      const today = new Date();
+      const date = new Date(dateString);
+      return date.toDateString() === today.toDateString();
+    }
+
+    let allRows = [];
+
+    fetch(sheetURL)
+      .then(response => response.text())
+      .then(text => {
+        const rows = text.trim().split("\n").map(r => r.split(","));
+        const headers = rows[0];
+        allRows = rows.slice(1).map(row => {
+          const obj = {};
+          headers.forEach((h, j) => obj[h] = row[j]);
+          return obj;
+        });
+        renderTable(allRows);
+      });
+
+    function renderTable(data) {
+      const table = document.getElementById("claims-table");
+      table.innerHTML = "";
+
+      data.forEach(data => {
+        const tr = document.createElement("tr");
+
+        const kontakt = data["KONTAKT"] || "";
+        const adresa = data["Address"] || "";
+
+        if (isToday(data["STAV - termín návštěvy"])) {
+          tr.classList.add("highlight");
+        }
+
+        tr.innerHTML = `
+          <td>${data["Customer"] || ""}</td>
+          <td><a href="https://waze.com/ul?ll=&q=${encodeURIComponent(adresa)}" target="_blank">${adresa}</a></td>
+          <td><a href="tel:${kontakt}">${kontakt}</a></td>
+          <td>${data["STAV - termín návštěvy"] || ""}</td>
+          <td>${data["Model"] || ""}</td>
+          <td>${data["POPIS REKLAMACE - OPRAVY"] || ""}</td>
+          <td><button onclick='openProtocol(${JSON.stringify(data)})'>Otevřít protokol</button></td>
+        `;
+
+        table.appendChild(tr);
+      });
+    }
+
+    document.getElementById("search").addEventListener("input", function() {
+      const query = this.value.toLowerCase();
+      const filtered = allRows.filter(row => {
+        return (
+          (row["Customer"] || "").toLowerCase().includes(query) ||
+          (row["Address"] || "").toLowerCase().includes(query) ||
+          (row["Model"] || "").toLowerCase().includes(query) ||
+          (row["POPIS REKLAMACE - OPRAVY"] || "").toLowerCase().includes(query)
+        );
+      });
+      renderTable(filtered);
+    });
+
+    function openProtocol(row) {
+      const popup = window.open("protokol.html", "_blank");
+      window.addEventListener("message", function forward(e) {
+        if (e.source === popup) {
+          popup.postMessage({ type: "openProtocol", row }, "*");
+          window.removeEventListener("message", forward);
+        }
+      });
+    }
+  </script>
 </body>
 </html>
