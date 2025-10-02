@@ -5,23 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Protokol - White Glove Service</title>
   <style>
-    body { font-family: Inter, sans-serif; background:#f6f7fb; padding:20px; margin:0; }
-    .header { text-align:center; margin-bottom:20px; }
-    .header div:first-child { font-size:28px; font-weight:900; }
-    .header div:last-child { font-size:12px; margin-top:4px; font-weight:normal; }
-    table { width:100%; border-collapse:collapse; margin:10px 0; }
-    td { padding:6px; vertical-align:top; }
+    body { font-family: Inter, sans-serif; background:#f6f7fb; padding:10px; margin:0; font-size:14px; }
+    .header { text-align:center; margin-bottom:10px; }
+    .header div:first-child { font-size:26px; font-weight:900; }
+    .header div:last-child { font-size:11px; margin-top:2px; font-weight:normal; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    table { width:100%; border-collapse:collapse; margin:5px 0; }
+    td { padding:4px; vertical-align:top; }
     .label { font-weight:600; width:25%; }
-    input, select, textarea { width:100%; padding:4px; font-size:1em; }
-    .split-section { display:flex; gap:10px; margin:10px 0; }
-    .split-box { flex:1; min-height:80px; border:1px solid #ccc; padding:8px; background:white; }
-    .two-col-table { display:flex; gap:30px; }
-    .two-col-table table { width:100%; }
-    .section-title { font-weight:700; margin-top:20px; }
-    #signature-pad { border:2px dashed #888; width:100%; height:150px; background:white; }
-    .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
-    .btns { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
-    .btns button { padding:10px 20px; font-size:1em; border:none; background:#333; color:white; border-radius:6px; cursor:pointer; }
+    input, select, textarea { width:100%; padding:4px; font-size:0.95em; }
+    .split-section { display:flex; gap:6px; margin:8px 0; flex-wrap:wrap; }
+    .split-box { flex:1; min-height:60px; border:1px solid #ccc; padding:6px; background:white; font-size:0.95em; }
+    .two-col-table { display:flex; gap:10px; flex-wrap:wrap; }
+    .two-col-table table { width:100%; max-width:48%; }
+    .section-title { font-weight:700; margin-top:15px; font-size:1em; }
+    #signature-pad { border:2px dashed #888; width:100%; height:120px; background:white; }
+    .signature-label { font-size:0.85em; color:#444; margin:4px 0 12px; }
+    .btns { margin-top:10px; display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+    .btns button { padding:8px 14px; font-size:0.95em; border:none; background:#333; color:white; border-radius:6px; cursor:pointer; }
+    @media(max-width:600px){
+      .header div:first-child { font-size:20px; }
+      .header div:last-child { font-size:10px; }
+      .section-title { font-size:0.95em; }
+      input, select, textarea, .split-box { font-size:0.9em; }
+    }
   </style>
 </head>
 <body>
@@ -98,14 +104,14 @@
         <tr><td class="label">Cena za materiál</td><td><input type="text" value="0"></td></tr>
         <tr><td class="label">Cena za druhého technika</td><td><input type="text" value="0"></td></tr>
         <tr><td class="label">Cena za dopravu</td><td><input type="text" value="0"></td></tr>
-        <tr><td class="label">Cena celkem</td><td><input type="text" value="95 EUR"></td></tr>
+        <tr><td class="label">Datum podpisu</td><td><span id="signature-date"></span></td></tr>
       </table>
       <table>
+        <tr><td class="label">Cena celkem</td><td><input type="text" value="95 EUR"></td></tr>
         <tr><td class="label">Reklamace vyřešena?</td><td><select><option>ANO</option><option>NE</option></select></td></tr>
         <tr><td class="label">Čeká se na vyjádření prodejce?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
         <tr><td class="label">Poškození technikem?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
         <tr><td class="label">Úhradu provede zákazník?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
-        <tr><td class="label">Datum podpisu</td><td><span id="signature-date"></span></td></tr>
       </table>
     </div>
 
@@ -114,7 +120,7 @@
     <div class="signature-label">Podepište se prosím prstem nebo myší / Sign using finger or mouse</div>
 
     <div class="btns">
-      <button onclick="window.location.href='index.html'">⬅️ Zpět na hlavní stránku</button>
+      <button onclick="goHome()">⬅️ Zpět na hlavní stránku</button>
       <button onclick="downloadPDF()">📄 Exportovat do PDF</button>
       <button onclick="clearSignature()">🧹 Smazat podpis</button>
     </div>
@@ -123,18 +129,23 @@
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    // Vyplnění aktuálního data
     const now = new Date();
     const format = now.toLocaleDateString("cs-CZ");
     document.getElementById("visit-date").innerText = format;
     document.getElementById("signature-date").innerText = format;
 
-    // Inicializace podpisového pole
     const canvas = document.getElementById("signature-pad");
     const signaturePad = new SignaturePad(canvas);
 
-    function clearSignature() {
-      signaturePad.clear();
+    function clearSignature() { signaturePad.clear(); }
+
+    function goHome() {
+      if (window.opener) {
+        window.opener.location.href = "index.html";
+        window.close();
+      } else {
+        location.href = "index.html";
+      }
     }
 
     async function downloadPDF() {
@@ -154,7 +165,6 @@
       });
     }
 
-    // Převzetí dat ze seznam.html
     window.addEventListener("message", function(event) {
       if (event.data.type === "openProtocol") {
         const d = event.data.row;
