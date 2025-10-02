@@ -81,6 +81,7 @@
     tr.done { background:#c8e6c9 !important; color:#1b5e20; font-weight:600; }
     tr.waiting { background:#ffe0b2 !important; color:#e65100; font-weight:600; }
     tr.scheduled { background:#bbdefb !important; color:#0d47a1; font-weight:700; }
+    tr.newcase { background:#fff59d !important; color:#000; font-weight:600; }
 
     @keyframes blink {
       0%   { background-color:#ffcccc; color:#111; }
@@ -151,6 +152,7 @@ function renderTable(rows){
     let rowClass = "";
     if (status.includes("hotovo")) rowClass = "done";
     else if (status.includes("čeká")) rowClass = "waiting";
+    else if (status.includes("nová")) rowClass = "newcase";
     else if (days.some(d => status.includes(d)) || /\d/.test(status)) rowClass = "scheduled";
 
     if (Object.values(row).some(v => {
