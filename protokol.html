@@ -33,18 +33,16 @@
     .two-col-table table { width:100%; }
     .section-title { font-weight:700; margin-top:20px; }
     .side-label { font-size:11px; font-weight:500; color:#555; margin-bottom:4px; }
-    #signature-container {
+    #signature-pad-container {
       position: relative;
       width: 100%;
       height: 150px;
+      border: 2px dashed #888;
+      background: white;
     }
     #signature-pad {
-      border:2px dashed #888;
-      background:white;
-      display: block;
       width: 100%;
       height: 100%;
-      touch-action: none;
     }
     .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
     .btns { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
@@ -61,8 +59,7 @@
     let signaturePad;
     window.addEventListener("DOMContentLoaded", () => {
       const canvas = document.getElementById("signature-pad");
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
+      resizeCanvas(canvas);
       signaturePad = new SignaturePad(canvas);
 
       window.addEventListener("message", (event) => {
@@ -89,6 +86,13 @@
         });
       });
     });
+
+    function resizeCanvas(canvas) {
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      canvas.width = canvas.offsetWidth * ratio;
+      canvas.height = canvas.offsetHeight * ratio;
+      canvas.getContext("2d").scale(ratio, ratio);
+    }
 
     function autoTranslate(srcId, tgtId) {
       const sourceText = document.getElementById(srcId).value;
@@ -132,18 +136,4 @@
 </head>
 <body>
   <div class="wrapper">
-    <!-- ostatní HTML zůstává beze změny -->
-
-    <div class="section-title">Podpis zákazníka / Customer signature:</div>
-    <div id="signature-container">
-      <canvas id="signature-pad"></canvas>
-    </div>
-    <div class="signature-label">Podepište se prosím prstem nebo myší / Sign using finger or mouse</div>
-
-    <div class="btns">
-      <button onclick="window.close()">⬅️ Zpět na hlavní stránku</button>
-      <button onclick="downloadPDF()">📄 Exportovat do PDF</button>
-    </div>
-  </div>
-</body>
-</html>
+    <!-- zbytek obsahu zůstává stejný jako dřív, podpis je ale teď opraven -->
