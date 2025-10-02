@@ -178,5 +178,40 @@
     });
   }
 </script>
+  <script>
+  // Přenos dat ze seznamu
+  window.addEventListener("message", (event) => {
+    if (event.data.type === "openProtocol") {
+      const d = event.data.row;
+      if (!d) return;
+
+      document.getElementById("order-number").value = d["Order number"] || "";
+      document.getElementById("claim-number").value = d["Label"] || "";
+      document.getElementById("customer").value = d["Customer"] || "";
+      document.getElementById("address").value = d["Address"] || "";
+      document.getElementById("brand").value = d["Contract"] || "";
+      document.getElementById("model").value = d["Model"] || "";
+      document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
+
+      // hned pustíme překlad
+      autoTranslate("description-cz", "description-en");
+    }
+  });
+
+  // Automatický překlad CZ → EN
+  function autoTranslate(srcId, tgtId) {
+    const sourceText = document.getElementById(srcId).value;
+    const targetEl = document.getElementById(tgtId);
+    if (!sourceText.trim()) return targetEl.value = "";
+
+    fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=cs&tl=en&dt=t&q=${encodeURIComponent(sourceText)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data[0]) {
+          targetEl.value = data[0].map(pair => pair[0]).join("");
+        }
+      });
+  }
+</script>
 </body>
 </html>
