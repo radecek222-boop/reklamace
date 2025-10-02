@@ -32,7 +32,6 @@
     .two-col-table { display:flex; gap:30px; flex-wrap:wrap; }
     .two-col-table .col { flex:1; min-width:300px; }
     .section-title { font-weight:700; margin-top:20px; }
-    .side-label { font-size:11px; font-weight:500; color:#555; margin-bottom:4px; }
     #signature-pad {
       border:2px dashed #888;
       width:100%;
@@ -43,14 +42,13 @@
     .btns { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
     .btns button { padding:10px 20px; font-size:1em; border:none; background:#333; color:white; border-radius:6px; cursor:pointer; }
 
-    /* mobilní zobrazení */
     @media (max-width:768px){
       .wrapper{padding:10px;}
       .two-col-table{flex-direction:column;}
       .split-section{flex-direction:column;}
     }
 
-    /* vynucení desktop vzhledu při exportu */
+    /* vynucení desktop vzhledu pro export */
     .force-desktop .two-col-table { flex-direction: row !important; }
     .force-desktop .split-section { flex-direction: row !important; }
     .force-desktop { max-width: 900px !important; }
@@ -90,17 +88,17 @@
 
   <div class="section-title">Zákazník reklamuje / Customer complaint</div>
   <div class="split-section">
-    <textarea id="description-cz" placeholder="CZ"></textarea>
+    <textarea id="description-cz" placeholder="CZ" oninput="autoTranslate('description-cz','description-en')"></textarea>
     <textarea id="description-en" placeholder="EN"></textarea>
   </div>
   <div class="section-title">Problém zjištěný technikem / Detected problem</div>
   <div class="split-section">
-    <textarea id="problem-cz" placeholder="CZ"></textarea>
+    <textarea id="problem-cz" placeholder="CZ" oninput="autoTranslate('problem-cz','problem-en')"></textarea>
     <textarea id="problem-en" placeholder="EN"></textarea>
   </div>
   <div class="section-title">Návrh opravy / Repair proposal</div>
   <div class="split-section">
-    <textarea id="repair-cz" placeholder="CZ"></textarea>
+    <textarea id="repair-cz" placeholder="CZ" oninput="autoTranslate('repair-cz','repair-en')"></textarea>
     <textarea id="repair-en" placeholder="EN"></textarea>
   </div>
 
@@ -150,12 +148,13 @@
     document.getElementById("sign-date").value = today;
   });
 
+  // Export PDF s vynuceným desktop vzhledem
   function downloadPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF("p", "mm", "a4");
 
     const wrapper = document.querySelector(".wrapper");
-    wrapper.classList.add("force-desktop"); // 🔥 vynutíme desktop layout
+    wrapper.classList.add("force-desktop"); // přepneme layout
 
     html2canvas(wrapper, { scale: 2 }).then(canvas => {
       const imgData = canvas.toDataURL("image/png");
@@ -174,11 +173,10 @@
       }
 
       doc.save("protokol.pdf");
-      wrapper.classList.remove("force-desktop"); // vrátíme původní vzhled
+      wrapper.classList.remove("force-desktop"); // vrátíme zpět
     });
   }
-</script>
-  <script>
+
   // Přenos dat ze seznamu
   window.addEventListener("message", (event) => {
     if (event.data.type === "openProtocol") {
@@ -193,12 +191,12 @@
       document.getElementById("model").value = d["Model"] || "";
       document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
 
-      // hned pustíme překlad
+      // hned překlad
       autoTranslate("description-cz", "description-en");
     }
   });
 
-  // Automatický překlad CZ → EN
+  // Automatický překlad
   function autoTranslate(srcId, tgtId) {
     const sourceText = document.getElementById(srcId).value;
     const targetEl = document.getElementById(tgtId);
