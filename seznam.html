@@ -6,8 +6,8 @@
   <title>WHITE GLOVE SERVICE – Seznam reklamací</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
-    body { font-family: Inter, sans-serif; margin:20px; background:#f6f7fb; font-size: 13px; }
-    h1 { text-align:center; font-size:22px; font-weight:700; margin-bottom:5px; }
+    body { font-family: Inter, sans-serif; margin:10px; background:#f6f7fb; font-size: 14px; }
+    h1 { text-align:center; font-size:20px; font-weight:700; margin-bottom:5px; }
     h2 { text-align:center; font-size:16px; font-weight:600; margin-top:0; }
     .btn {
       background:#e0e0e0; color:#111; padding:8px 16px; margin:15px auto;
@@ -17,7 +17,7 @@
     .btn:hover { background:#d5d5d5; }
     .table-wrapper { overflow-x:auto; margin-top:15px; }
     table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px;
-      box-shadow:0 2px 6px rgba(0,0,0,0.1); font-size:12px; text-align:center; }
+      box-shadow:0 2px 6px rgba(0,0,0,0.1); font-size:12px; }
     th, td { padding:6px 8px; border:1px solid #ccc; font-size:0.85em; text-align:center; }
     th { background:#f0f0f0; font-weight:600; }
     tr:nth-child(even) { background:#fafafa; }
@@ -30,6 +30,13 @@
     .protocol-btn { background:#4CAF50; color:#fff; padding:6px 12px; border:none;
       border-radius:6px; cursor:pointer; margin-top:10px; font-size:0.8em; }
     .protocol-btn:hover { background:#43a047; }
+
+    @media(max-width:600px){
+      h1 { font-size:18px; }
+      h2 { font-size:14px; }
+      .btn { font-size:0.8em; padding:6px 12px; }
+      table { font-size:11px; }
+    }
   </style>
 </head>
 <body>
@@ -37,9 +44,9 @@
   <h2>Seznam reklamací</h2>
 
   <!-- tlačítko zpět -->
-  <button class="btn" onclick="location.href='index.html'">Zpět na hlavní stránku</button>
+  <button class="btn" onclick="goHome()">Zpět na hlavní stránku</button>
 
-  <input type="text" id="search" placeholder="Hledat podle jména, adresy, telefonu nebo objednávky">
+  <input type="text" id="search" placeholder="Hledat podle jména, adresy, telefonu nebo objednávky" style="width:100%;max-width:400px;display:block;margin:0 auto;">
   <div id="results" class="table-wrapper">Načítám data...</div>
 
 <script>
@@ -100,7 +107,6 @@ function openProtocol(index, event){
   event.stopPropagation();
   const row = allData[index];
   if (!row) return;
-
   const protokolWindow = window.open("protokol.html", "_blank");
   protokolWindow.onload = () => {
     protokolWindow.postMessage({ type:"openProtocol", row }, "*");
@@ -114,6 +120,16 @@ document.getElementById("search").addEventListener("input", e => {
 });
 
 loadData();
+
+// návrat na hlavní
+function goHome(){
+  if (window.opener) {
+    window.opener.location.href = "index.html";
+    window.close();
+  } else {
+    location.href = "index.html";
+  }
+}
 </script>
 </body>
 </html>
