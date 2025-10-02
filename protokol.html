@@ -43,22 +43,15 @@
     .btns { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
     .btns button { padding:10px 20px; font-size:1em; border:none; background:#333; color:white; border-radius:6px; cursor:pointer; }
 
-    /* Mobilní režim */
     @media (max-width: 768px) {
       .wrapper { padding: 10px; }
       .two-col-table { flex-direction: column; }
       .split-section { flex-direction: column; }
     }
-
-    /* Vynucený desktopový režim pro export PDF */
-    .force-desktop .two-col-table { flex-direction: row !important; }
-    .force-desktop .split-section { flex-direction: row !important; }
-    .force-desktop { max-width: 900px !important; }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
     let signaturePad;
     window.addEventListener("DOMContentLoaded", () => {
@@ -94,46 +87,106 @@
       document.getElementById("price-total").value = total.toFixed(2);
     }
 
-    // ✅ Export do PDF s desktop vzhledem i z telefonu
+    // ✅ Export do PDF – pevné dvousloupcové rozložení
     function downloadPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF("p", "mm", "a4");
-      const wrapper = document.querySelector(".wrapper");
 
-      // Uložíme původní className
-      const originalClass = wrapper.className;
-      wrapper.classList.add("force-desktop");
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 10;
+      let y = 20;
 
-      html2canvas(wrapper, { scale: 3, width: 900 }).then(canvas => {
-        const imgData = canvas.toDataURL("image/png");
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const pageHeight = doc.internal.pageSize.getHeight();
+      // HLAVIČKA
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text("WHITE GLOVE SERVICE", pageWidth/2, y, {align: "center"});
+      y += 8;
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text("Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684", pageWidth/2, y, {align: "center"});
+      y += 15;
 
-        const imgProps = doc.getImageProperties(imgData);
-        const imgWidth = pageWidth;
-        const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+      // DVA SLOUPCE – základní údaje
+      const col1x = margin;
+      const col2x = pageWidth/2 + 5;
 
-        let finalWidth = imgWidth;
-        let finalHeight = imgHeight;
-        if (imgHeight > pageHeight) {
-          finalHeight = pageHeight;
-          finalWidth = (imgProps.width * finalHeight) / imgProps.height;
+      doc.setFontSize(11);
+      doc.text("Číslo objednávky: " + (document.getElementById("order-number").value || ""), col1x, y);
+      doc.text("Technik: " + (document.querySelector("select").value || ""), col2x, y);
+      y+=7;
+      doc.text("Číslo reklamace: " + (document.getElementById("claim-number").value || ""), col1x, y);
+      doc.text("Datum návštěvy: " + (document.getElementById("visit-date").value || ""), col2x, y);
+      y+=7;
+      doc.text("Zákazník: " + (document.getElementById("customer").value || ""), col1x, y);
+      doc.text("Datum doručení: " + (document.querySelectorAll('input[type=date]')[1].value || ""), col2x, y);
+      y+=7;
+      doc.text("Adresa zákazníka: " + (document.getElementById("address").value || ""), col1x, y);
+      doc.text("Datum podání reklamace: " + (document.querySelectorAll('input[type=date]')[2].value || ""), col2x, y);
+      y+=7;
+      doc.text("Značka / Contract: " + (document.getElementById("brand").value || ""), col1x, y);
+      doc.text("Model: " + (document.getElementById("model").value || ""), col2x, y);
+      y+=15;
+
+      // BLOKY TEXTŮ (CZ / EN)
+      function addBlock(title, czId, enId) {
+        doc.setFont("helvetica", "bold");
+        doc.text(title, margin, y);
+        y+=6;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        let cz = document.getElementById(czId).value || "";
+        let en = document.getElementById(enId).value || "";
+        let splitCZ = doc.splitTextToSize("CZ: " + cz, pageWidth/2 - 15);
+        let splitEN = doc.splitTextToSize("EN: " + en, pageWidth/2 - 15);
+        let maxLines = Math.max(splitCZ.length, splitEN.length);
+        for (let i=0;i<maxLines;i++) {
+          if (splitCZ[i]) doc.text(splitCZ[i], col1x, y);
+          if (splitEN[i]) doc.text(splitEN[i], col2x, y);
+          y+=5;
         }
+        y+=5;
+      }
 
-        const x = (pageWidth - finalWidth) / 2;
-        const y = 10;
-        doc.addImage(imgData, "PNG", x, y, finalWidth, finalHeight);
+      addBlock("Zákazník reklamuje / Customer complaint", "description-cz", "description-en");
+      addBlock("Problém zjištěný technikem / Detected problem", "problem-cz", "problem-en");
+      addBlock("Návrh opravy / Repair proposal", "repair-cz", "repair-en");
 
-        if (signaturePad && !signaturePad.isEmpty()) {
-          const signData = signaturePad.toDataURL();
-          doc.addImage(signData, "PNG", 15, 260, 60, 20);
-        }
+      // TABULKA CEN A STAVU
+      y+=5;
+      doc.setFont("helvetica", "bold");
+      doc.text("Finanční údaje", col1x, y);
+      doc.text("Stav reklamace", col2x, y);
+      y+=7;
+      doc.setFont("helvetica", "normal");
 
-        doc.save("protokol.pdf");
+      doc.text("Počet dílů: " + (document.querySelectorAll("input")[6].value || ""), col1x, y);
+      doc.text("Vyřešeno: " + (document.querySelectorAll("select")[1].value || ""), col2x, y);
+      y+=6;
+      doc.text("Práce: " + (document.getElementById("price-work").value || ""), col1x, y);
+      doc.text("Vyjádření prodejce: " + (document.querySelectorAll("select")[2].value || ""), col2x, y);
+      y+=6;
+      doc.text("Materiál: " + (document.getElementById("price-material").value || ""), col1x, y);
+      doc.text("Poškození technikem: " + (document.querySelectorAll("select")[3].value || ""), col2x, y);
+      y+=6;
+      doc.text("2. technik: " + (document.getElementById("price-second").value || ""), col1x, y);
+      doc.text("Úhrada zákazník: " + (document.querySelectorAll("select")[4].value || ""), col2x, y);
+      y+=6;
+      doc.text("Doprava: " + (document.getElementById("price-transport").value || ""), col1x, y);
+      doc.text("Datum podpisu: " + (document.getElementById("sign-date").value || ""), col2x, y);
+      y+=6;
+      doc.text("Celkem: " + (document.getElementById("price-total").value || ""), col1x, y);
+      y+=20;
 
-        // Vrátíme původní třídy
-        wrapper.className = originalClass;
-      });
+      // PODPIS
+      doc.setFont("helvetica", "bold");
+      doc.text("Podpis zákazníka:", col1x, y);
+      y+=5;
+      if (signaturePad && !signaturePad.isEmpty()) {
+        const signData = signaturePad.toDataURL();
+        doc.addImage(signData, "PNG", col1x, y, 60, 20);
+      }
+
+      doc.save("protokol.pdf");
     }
   </script>
 </head>
