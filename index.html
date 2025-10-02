@@ -3,250 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Protokol - White Glove Service</title>
+  <title>White Glove Service</title>
   <style>
     body {
-      font-family: Inter, sans-serif;
-      background:#f6f7fb;
-      margin:0;
-      padding:20px;
-      font-size:12px;
-      display:flex;
-      justify-content:center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #ffffff;
+      text-align: center;
     }
-    .wrapper {
-      width:100%;
-      max-width:900px;
-      background:white;
-      padding:20px;
-      box-shadow:0 0 10px rgba(0,0,0,0.1);
+    h1 {
+      font-size: clamp(1.5em, 5vw, 2.5em); /* přizpůsobí se velikosti obrazovky */
+      font-weight: bold;
+      margin: 0;
     }
-    .header { text-align:center; margin-bottom:20px; }
-    .header div:first-child { font-size:28px; font-weight:900; }
-    .header div:last-child { font-size:12px; margin-top:4px; font-weight:normal; }
-    table { width:100%; border-collapse:collapse; margin:10px 0; }
-    td { padding:6px; vertical-align:top; }
-    .label { font-weight:600; width:40%; }
-    input, select, textarea { width:100%; padding:4px; font-size:1em; }
-    .split-section { display:flex; gap:10px; margin:10px 0; }
-    .two-col-table { display:flex; gap:30px; flex-wrap:wrap; }
-    .two-col-table .col { flex:1; min-width:300px; }
-    .section-title { font-weight:700; margin-top:20px; }
-    #signature-pad {
-      border:2px dashed #888;
-      width:100%;
-      height:150px;
-      background:white;
+    h2 {
+      font-size: clamp(0.9em, 3vw, 1.2em);
+      font-weight: normal; /* není tučné */
+      margin: 10px 0 30px;
+      color: #333;
     }
-    .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
-    .btns { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
-    .btns button {
-      padding:10px 20px;
-      font-size:1em;
-      border:none;
-      border-radius:6px;
-      cursor:pointer;
-      color:white;
+    .btn {
+      padding: 12px 24px;
+      font-size: 1em;
+      background-color: #ddd;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
     }
-    .btns button:nth-child(1) { background:#666; } /* vymazat podpis */
-    .btns button:nth-child(2) { background:#999; } /* zpět */
-    #exportBtn { background:#4CAF50; } /* zelené exportní tlačítko */
-    #exportBtn:hover { background:#45a049; }
-
-    /* mobilní layout */
-    @media (max-width:768px){
-      .wrapper{padding:10px;}
-      .two-col-table{flex-direction:column;}
-      .split-section{flex-direction:column;}
+    .btn:hover {
+      background-color: #ccc;
     }
-
-    /* desktop layout při exportu */
-    .force-desktop {
-      width: 794px !important; /* A4 šířka */
-      max-width: 794px !important;
-    }
-    .force-desktop .two-col-table { flex-direction: row !important; }
-    .force-desktop .split-section { flex-direction: row !important; }
   </style>
-
-  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
-<div class="wrapper">
-  <div class="header">
-    <div>WHITE GLOVE SERVICE</div>
-    <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
-  </div>
-
-  <form id="protocolForm">
-    <div class="two-col-table">
-      <div class="col">
-        <table>
-          <tr><td class="label">Číslo objednávky</td><td><input id="order-number" name="Order number"></td></tr>
-          <tr><td class="label">Číslo reklamace</td><td><input id="claim-number" name="Label"></td></tr>
-          <tr><td class="label">Zákazník</td><td><input id="customer" name="Customer"></td></tr>
-          <tr><td class="label">Adresa zákazníka</td><td><input id="address" name="Address"></td></tr>
-          <tr><td class="label">Značka / Contract</td><td><input id="brand" name="Contract"></td></tr>
-          <tr><td class="label">Model</td><td><input id="model" name="Model"></td></tr>
-        </table>
-      </div>
-      <div class="col">
-        <table>
-          <tr><td class="label">Technik</td><td>
-            <select id="technician" name="Technician">
-              <option>Milan Kolín</option>
-              <option>Radek Zikmund</option>
-              <option>Kolín/Zikmund</option>
-            </select>
-          </td></tr>
-          <tr><td class="label">Datum návštěvy</td><td><input id="visit-date" type="date" name="Visit date"></td></tr>
-          <tr><td class="label">Datum doručení</td><td><input id="delivery-date" type="date" name="Delivery date"></td></tr>
-          <tr><td class="label">Datum podání reklamace</td><td><input id="claim-date" type="date" name="Complaint date"></td></tr>
-        </table>
-      </div>
-    </div>
-
-    <div class="section-title">Zákazník reklamuje / Customer complaint</div>
-    <div class="split-section">
-      <textarea id="description-cz" name="Description CZ" placeholder="CZ" oninput="autoTranslate('description-cz','description-en')"></textarea>
-      <textarea id="description-en" name="Description EN" placeholder="EN"></textarea>
-    </div>
-    <div class="section-title">Problém zjištěný technikem / Detected problem</div>
-    <div class="split-section">
-      <textarea id="problem-cz" name="Problem CZ" placeholder="CZ" oninput="autoTranslate('problem-cz','problem-en')"></textarea>
-      <textarea id="problem-en" name="Problem EN" placeholder="EN"></textarea>
-    </div>
-    <div class="section-title">Návrh opravy / Repair proposal</div>
-    <div class="split-section">
-      <textarea id="repair-cz" name="Repair CZ" placeholder="CZ" oninput="autoTranslate('repair-cz','repair-en')"></textarea>
-      <textarea id="repair-en" name="Repair EN" placeholder="EN"></textarea>
-    </div>
-
-    <div class="two-col-table">
-      <div class="col">
-        <table>
-          <tr><td class="label">Počet opravovaných dílů</td><td><input id="parts" name="Parts"></td></tr>
-          <tr><td class="label">Cena za práci</td><td><input id="price-work" name="Price work"></td></tr>
-          <tr><td class="label">Cena za materiál</td><td><input id="price-material" name="Price material"></td></tr>
-          <tr><td class="label">Cena za druhého technika</td><td><input id="price-second" name="Price second"></td></tr>
-          <tr><td class="label">Cena za dopravu</td><td><input id="price-transport" name="Price transport"></td></tr>
-          <tr><td class="label">Cena celkem</td><td><input id="price-total" name="CENA"></td></tr>
-        </table>
-      </div>
-      <div class="col">
-        <table>
-          <tr><td class="label">Reklamace vyřešena?</td><td><select id="solved" name="Solved"><option>ANO</option><option>NE</option></select></td></tr>
-          <tr><td class="label">Čeká se na vyjádření prodejce?</td><td><select id="dealer" name="Dealer"><option>NE</option><option>ANO</option></select></td></tr>
-          <tr><td class="label">Poškození technikem?</td><td><select id="damage" name="Damage"><option>NE</option><option>ANO</option></select></td></tr>
-          <tr><td class="label">Úhradu provede zákazník?</td><td><select id="payment" name="Payment"><option>NE</option><option>ANO</option></select></td></tr>
-          <tr><td class="label">Datum podpisu</td><td><input id="sign-date" type="date" name="Datum podpisu"></td></tr>
-        </table>
-      </div>
-    </div>
-
-    <div class="section-title">Podpis zákazníka</div>
-    <canvas id="signature-pad"></canvas>
-    <div class="signature-label">Podepište se prstem nebo myší</div>
-
-    <div class="btns">
-      <button type="button" onclick="signaturePad.clear()">🗑️ Vymazat podpis</button>
-      <button type="button" onclick="window.location.href='index.html'">⬅️ Zpět</button>
-      <button type="button" id="exportBtn" onclick="downloadPDF()">📄 Exportovat do PDF</button>
-    </div>
-  </form>
-</div>
-
-<script>
-  let signaturePad;
-  window.addEventListener("DOMContentLoaded", () => {
-    const canvas = document.getElementById("signature-pad");
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-    signaturePad = new SignaturePad(canvas);
-
-    const today = new Date().toISOString().split("T")[0];
-    document.getElementById("visit-date").value = today;
-    document.getElementById("sign-date").value = today;
-  });
-
-  // --- Export PDF bez zdvojení podpisu ---
-  function downloadPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF("p", "mm", "a4");
-
-    const wrapper = document.querySelector(".wrapper");
-    wrapper.classList.add("force-desktop");
-
-    // přepočítat podpisový canvas
-    const canvasEl = document.getElementById("signature-pad");
-    const tempData = signaturePad.toData();
-    canvasEl.width = canvasEl.offsetWidth;
-    canvasEl.height = canvasEl.offsetHeight;
-    signaturePad.clear();
-    signaturePad.fromData(tempData);
-
-    const wrapperWidth = wrapper.scrollWidth;
-    const wrapperHeight = wrapper.scrollHeight;
-
-    html2canvas(wrapper, {
-      width: wrapperWidth,
-      height: wrapperHeight,
-      scale: 2,
-      useCORS: true,
-      windowWidth: wrapperWidth,
-      windowHeight: wrapperHeight
-    }).then(canvas => {
-      const imgData = canvas.toDataURL("image/png");
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-
-      const imgProps = doc.getImageProperties(imgData);
-      const imgHeight = (imgProps.height * pageWidth) / imgProps.width;
-
-      let position = 0;
-      while (position < imgHeight) {
-        doc.addImage(imgData, "PNG", 0, position * -1, pageWidth, imgHeight);
-        position += pageHeight;
-        if (position < imgHeight) doc.addPage();
-      }
-
-      doc.save("protokol.pdf");
-      wrapper.classList.remove("force-desktop");
-    });
-  }
-
-  // --- Přenos dat ze seznamu ---
-  window.addEventListener("message", (event) => {
-    if (event.data.type === "openProtocol") {
-      const d = event.data.row;
-      if (!d) return;
-      document.getElementById("order-number").value = d["Order number"] || "";
-      document.getElementById("claim-number").value = d["Label"] || "";
-      document.getElementById("customer").value = d["Customer"] || "";
-      document.getElementById("address").value = d["Address"] || "";
-      document.getElementById("brand").value = d["Contract"] || "";
-      document.getElementById("model").value = d["Model"] || "";
-      document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
-      autoTranslate("description-cz", "description-en");
-    }
-  });
-
-  // --- Automatický překlad ---
-  function autoTranslate(srcId, tgtId) {
-    const sourceText = document.getElementById(srcId).value;
-    const targetEl = document.getElementById(tgtId);
-    if (!sourceText.trim()) return targetEl.value = "";
-
-    fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=cs&tl=en&dt=t&q=${encodeURIComponent(sourceText)}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data && data[0]) {
-          targetEl.value = data[0].map(pair => pair[0]).join("");
-        }
-      });
-  }
-</script>
+  <h1>WHITE GLOVE SERVICE</h1>
+  <h2>specializovaný autorizovaný servis Natuzzi</h2>
+  <a href="seznam.html" class="btn">Seznam reklamací</a>
 </body>
 </html>
