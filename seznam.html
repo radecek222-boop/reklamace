@@ -1,124 +1,77 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WHITE GLOVE SERVICE – Seznam reklamací</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seznam reklamací</title>
+  <style>
+    body {
+      font-family: Inter, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f6f7fb;
+    }
+    .wrapper {
+      max-width: 1000px;
+      margin: auto;
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .table-container {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+      min-width: 120px;
+    }
+    th {
+      background-color: #eee;
+      font-weight: 600;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+    @media (max-width: 768px) {
+      th, td {
+        font-size: 12px;
+        padding: 6px;
+      }
+    }
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-900 p-4">
-  <div class="max-w-screen-xl mx-auto">
-    <h1 class="text-3xl font-extrabold text-center mb-2">WHITE GLOVE SERVICE</h1>
-    <h2 class="text-xl font-semibold text-center mb-6">Seznam reklamací</h2>
-
-    <button onclick="goHome()" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded mb-4 mx-auto block">Zpět na hlavní stránku</button>
-
-    <input id="search" type="text" placeholder="Hledat podle jména, adresy, telefonu nebo objednávky"
-           class="w-full max-w-md mx-auto block px-4 py-2 mb-4 border rounded shadow"/>
-
-    <div id="results" class="overflow-auto text-sm">Načítám data...</div>
+<body>
+  <div class="wrapper">
+    <h1>Seznam reklamací</h1>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Zákazník</th>
+            <th>Adresa</th>
+            <th>Kontakt</th>
+            <th>Termín návštěvy</th>
+            <th>Model</th>
+            <th>Popis</th>
+            <th>Akce</th>
+          </tr>
+        </thead>
+        <tbody id="claims-table">
+          <!-- Data se načtou zde -->
+        </tbody>
+      </table>
+    </div>
   </div>
-
-  <script>
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQzpP83wIYZPcnb1NI9pPSPixzcEQuRVrTOyPD7SRbgYZSrQs7QdcLNwPJ5lQleGbVVK29nr2-bMo6Y/pub?gid=0&single=true&output=csv";
-    let allData = [];
-    const days = ["pondělí","úterý","středa","čtvrtek","pátek","sobota","neděle"];
-
-    const today = new Date();
-    const day = today.getDate();
-    const month = today.getMonth()+1;
-    const todayStr1 = day + "." + month;
-    const todayStr2 = (day<10?"0"+day:day) + "." + (month<10?"0"+month:month);
-
-    const norm = s => (s || "").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-
-    async function loadData() {
-      try {
-        const res = await fetch(sheetUrl);
-        const text = await res.text();
-        const parsed = Papa.parse(text, { header:true, skipEmptyLines:true });
-        allData = parsed.data.slice(1);
-        renderTable(allData);
-      } catch (err) {
-        document.getElementById("results").innerHTML = "Chyba při načítání dat: " + err;
-      }
-    }
-
-    function renderTable(rows){
-      if (!rows.length){ document.getElementById("results").innerHTML = "Žádná data"; return; }
-      let html = "<table class='table-auto w-full border border-gray-300 bg-white shadow rounded'><thead><tr>";
-      ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(h => { html += `<th class='border px-2 py-1 bg-gray-100'>${h}</th>`; });
-      html += "</tr></thead><tbody>";
-
-      rows.forEach((row,idx) => {
-        const statusRaw = row["STAV - termín návštěvy"] || "";
-        const status = statusRaw.toLowerCase();
-        let rowClass = "";
-        if (status.includes("hotovo")) rowClass = "bg-green-100 text-green-900 font-semibold";
-        else if (status.includes("čeká")) rowClass = "bg-orange-100 text-orange-900 font-semibold";
-        else if (days.some(d => status.includes(d)) || /\d/.test(status)) rowClass = "bg-blue-100 text-blue-900 font-semibold";
-        if (Object.values(row).some(v => (v||"").includes(todayStr1) || (v||"").includes(todayStr2))) rowClass = "animate-pulse bg-red-300 text-white font-bold";
-
-        html += `<tr class='${rowClass} cursor-pointer' onclick='toggleDetails(${idx})'>`;
-        ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(key => {
-          let val = row[key] || "";
-          let cell = val;
-          if (key.toLowerCase().includes("kontakt")) cell = `<a href='tel:${val}' onclick='event.stopPropagation()'>${val}</a>`;
-          if (key.toLowerCase().includes("address") || key.toLowerCase().includes("adresa"))
-            cell = `<a href='https://waze.com/ul?q=${encodeURIComponent(val)}' target='_blank' onclick='event.stopPropagation()'>${val}</a>`;
-          html += `<td class='border px-2 py-1'>${cell}</td>`;
-        });
-        html += "</tr>";
-
-        let details = "";
-        Object.entries(row).forEach(([key,val])=>{
-          if (!["Customer","Address","KONTAKT","STAV - termín návštěvy"].includes(key)) {
-            if (key.startsWith("_")) return;
-            let label = key === "Label" ? "Contract" : key;
-            details += `<div class='mb-1'><b>${label}:</b> ${val || ""}</div>`;
-          }
-        });
-        details += `<button class='bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded mt-2' onclick='openProtocol(${idx}, event)'>Vytvořit protokol</button>`;
-        html += `<tr><td colspan='4'><div id='details-${idx}' class='hidden p-3 border-t bg-gray-50'>${details}</div></td></tr>`;
-      });
-
-      html += "</tbody></table>";
-      document.getElementById("results").innerHTML = html;
-    }
-
-    function toggleDetails(index){
-      document.querySelectorAll("[id^='details-']").forEach(el => el.classList.add("hidden"));
-      const details = document.getElementById("details-"+index);
-      if (details) details.classList.remove("hidden");
-    }
-
-    function openProtocol(index, event){
-      event.stopPropagation();
-      const row = allData[index];
-      if (!row) return;
-      const protokolWindow = window.open("protokol.html", "_blank");
-      protokolWindow.onload = () => {
-        protokolWindow.postMessage({ type:"openProtocol", row }, "*");
-      };
-    }
-
-    document.getElementById("search").addEventListener("input", e => {
-      const q = norm(e.target.value);
-      const rows = allData.filter(r => norm(Object.values(r).join(" ")).includes(q));
-      renderTable(rows);
-    });
-
-    function goHome(){
-      if (window.opener) {
-        window.opener.location.href = "index.html";
-        window.close();
-      } else {
-        location.href = "index.html";
-      }
-    }
-
-    loadData();
-  </script>
 </body>
 </html>
