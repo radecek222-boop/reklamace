@@ -162,7 +162,9 @@ function renderTable(rows){
     let details = "";
     Object.entries(row).forEach(([key,val])=>{
       if (!["Customer","Address","KONTAKT","STAV - termín návštěvy"].includes(key)) {
-        details += `<div><b>${key}:</b> ${val||""}</div>`;
+        let displayKey = key;
+        if (key === "Label") displayKey = "Contract"; // ✅ přejmenování
+        details += `<div><b>${displayKey}:</b> ${val||""}</div>`;
       }
     });
     details += `<button class="protocol-btn" onclick="openProtocol(${idx}, event)">Vytvořit protokol</button>`;
