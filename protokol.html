@@ -69,74 +69,82 @@
     <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
   </div>
 
-  <div class="two-col-table">
-    <div class="col">
-      <table>
-        <tr><td class="label">Číslo objednávky</td><td><input id="order-number"></td></tr>
-        <tr><td class="label">Číslo reklamace</td><td><input id="claim-number"></td></tr>
-        <tr><td class="label">Zákazník</td><td><input id="customer"></td></tr>
-        <tr><td class="label">Adresa zákazníka</td><td><input id="address"></td></tr>
-        <tr><td class="label">Značka / Contract</td><td><input id="brand"></td></tr>
-        <tr><td class="label">Model</td><td><input id="model"></td></tr>
-      </table>
+  <form id="protocolForm">
+    <div class="two-col-table">
+      <div class="col">
+        <table>
+          <tr><td class="label">Číslo objednávky</td><td><input id="order-number" name="Order number"></td></tr>
+          <tr><td class="label">Číslo reklamace</td><td><input id="claim-number" name="Label"></td></tr>
+          <tr><td class="label">Zákazník</td><td><input id="customer" name="Customer"></td></tr>
+          <tr><td class="label">Adresa zákazníka</td><td><input id="address" name="Address"></td></tr>
+          <tr><td class="label">Značka / Contract</td><td><input id="brand" name="Contract"></td></tr>
+          <tr><td class="label">Model</td><td><input id="model" name="Model"></td></tr>
+        </table>
+      </div>
+      <div class="col">
+        <table>
+          <tr><td class="label">Technik</td><td>
+            <select id="technician" name="Technician">
+              <option>Milan Kolín</option>
+              <option>Radek Zikmund</option>
+              <option>Kolín/Zikmund</option>
+            </select>
+          </td></tr>
+          <tr><td class="label">Datum návštěvy</td><td><input id="visit-date" type="date" name="Visit date"></td></tr>
+          <tr><td class="label">Datum doručení</td><td><input id="delivery-date" type="date" name="Delivery date"></td></tr>
+          <tr><td class="label">Datum podání reklamace</td><td><input id="claim-date" type="date" name="Complaint date"></td></tr>
+        </table>
+      </div>
     </div>
-    <div class="col">
-      <table>
-        <tr><td class="label">Technik</td><td><select id="technician"><option>Milan Kolín</option><option>Radek Zikmund</option><option>Kolín/Zikmund</option></select></td></tr>
-        <tr><td class="label">Datum návštěvy</td><td><input id="visit-date" type="date"></td></tr>
-        <tr><td class="label">Datum doručení</td><td><input id="delivery-date" type="date"></td></tr>
-        <tr><td class="label">Datum podání reklamace</td><td><input id="claim-date" type="date"></td></tr>
-      </table>
+
+    <div class="section-title">Zákazník reklamuje / Customer complaint</div>
+    <div class="split-section">
+      <textarea id="description-cz" name="Description CZ" placeholder="CZ" oninput="autoTranslate('description-cz','description-en')"></textarea>
+      <textarea id="description-en" name="Description EN" placeholder="EN"></textarea>
     </div>
-  </div>
-
-  <div class="section-title">Zákazník reklamuje / Customer complaint</div>
-  <div class="split-section">
-    <textarea id="description-cz" placeholder="CZ" oninput="autoTranslate('description-cz','description-en')"></textarea>
-    <textarea id="description-en" placeholder="EN"></textarea>
-  </div>
-  <div class="section-title">Problém zjištěný technikem / Detected problem</div>
-  <div class="split-section">
-    <textarea id="problem-cz" placeholder="CZ" oninput="autoTranslate('problem-cz','problem-en')"></textarea>
-    <textarea id="problem-en" placeholder="EN"></textarea>
-  </div>
-  <div class="section-title">Návrh opravy / Repair proposal</div>
-  <div class="split-section">
-    <textarea id="repair-cz" placeholder="CZ" oninput="autoTranslate('repair-cz','repair-en')"></textarea>
-    <textarea id="repair-en" placeholder="EN"></textarea>
-  </div>
-
-  <div class="two-col-table">
-    <div class="col">
-      <table>
-        <tr><td class="label">Počet opravovaných dílů</td><td><input id="parts"></td></tr>
-        <tr><td class="label">Cena za práci</td><td><input id="price-work"></td></tr>
-        <tr><td class="label">Cena za materiál</td><td><input id="price-material"></td></tr>
-        <tr><td class="label">Cena za druhého technika</td><td><input id="price-second"></td></tr>
-        <tr><td class="label">Cena za dopravu</td><td><input id="price-transport"></td></tr>
-        <tr><td class="label">Cena celkem</td><td><input id="price-total"></td></tr>
-      </table>
+    <div class="section-title">Problém zjištěný technikem / Detected problem</div>
+    <div class="split-section">
+      <textarea id="problem-cz" name="Problem CZ" placeholder="CZ" oninput="autoTranslate('problem-cz','problem-en')"></textarea>
+      <textarea id="problem-en" name="Problem EN" placeholder="EN"></textarea>
     </div>
-    <div class="col">
-      <table>
-        <tr><td class="label">Reklamace vyřešena?</td><td><select id="solved"><option>ANO</option><option>NE</option></select></td></tr>
-        <tr><td class="label">Čeká se na vyjádření prodejce?</td><td><select id="dealer"><option>NE</option><option>ANO</option></select></td></tr>
-        <tr><td class="label">Poškození technikem?</td><td><select id="damage"><option>NE</option><option>ANO</option></select></td></tr>
-        <tr><td class="label">Úhradu provede zákazník?</td><td><select id="payment"><option>NE</option><option>ANO</option></select></td></tr>
-        <tr><td class="label">Datum podpisu</td><td><input id="sign-date" type="date"></td></tr>
-      </table>
+    <div class="section-title">Návrh opravy / Repair proposal</div>
+    <div class="split-section">
+      <textarea id="repair-cz" name="Repair CZ" placeholder="CZ" oninput="autoTranslate('repair-cz','repair-en')"></textarea>
+      <textarea id="repair-en" name="Repair EN" placeholder="EN"></textarea>
     </div>
-  </div>
 
-  <div class="section-title">Podpis zákazníka</div>
-  <canvas id="signature-pad"></canvas>
-  <div class="signature-label">Podepište se prstem nebo myší</div>
+    <div class="two-col-table">
+      <div class="col">
+        <table>
+          <tr><td class="label">Počet opravovaných dílů</td><td><input id="parts" name="Parts"></td></tr>
+          <tr><td class="label">Cena za práci</td><td><input id="price-work" name="Price work"></td></tr>
+          <tr><td class="label">Cena za materiál</td><td><input id="price-material" name="Price material"></td></tr>
+          <tr><td class="label">Cena za druhého technika</td><td><input id="price-second" name="Price second"></td></tr>
+          <tr><td class="label">Cena za dopravu</td><td><input id="price-transport" name="Price transport"></td></tr>
+          <tr><td class="label">Cena celkem</td><td><input id="price-total" name="CENA"></td></tr>
+        </table>
+      </div>
+      <div class="col">
+        <table>
+          <tr><td class="label">Reklamace vyřešena?</td><td><select id="solved" name="Solved"><option>ANO</option><option>NE</option></select></td></tr>
+          <tr><td class="label">Čeká se na vyjádření prodejce?</td><td><select id="dealer" name="Dealer"><option>NE</option><option>ANO</option></select></td></tr>
+          <tr><td class="label">Poškození technikem?</td><td><select id="damage" name="Damage"><option>NE</option><option>ANO</option></select></td></tr>
+          <tr><td class="label">Úhradu provede zákazník?</td><td><select id="payment" name="Payment"><option>NE</option><option>ANO</option></select></td></tr>
+          <tr><td class="label">Datum podpisu</td><td><input id="sign-date" type="date" name="Datum podpisu"></td></tr>
+        </table>
+      </div>
+    </div>
 
-  <div class="btns">
-    <button onclick="signaturePad.clear()">🗑️ Vymazat podpis</button>
-    <button onclick="window.location.href='index.html'">⬅️ Zpět</button>
-    <button onclick="downloadPDF()">📄 Exportovat do PDF</button>
-  </div>
+    <div class="section-title">Podpis zákazníka</div>
+    <canvas id="signature-pad"></canvas>
+    <div class="signature-label">Podepište se prstem nebo myší</div>
+
+    <div class="btns">
+      <button type="button" onclick="signaturePad.clear()">🗑️ Vymazat podpis</button>
+      <button type="button" onclick="window.location.href='index.html'">⬅️ Zpět</button>
+      <button type="button" onclick="downloadPDF()">📄 Exportovat do PDF</button>
+    </div>
+  </form>
 </div>
 
 <script>
@@ -152,15 +160,15 @@
     document.getElementById("sign-date").value = today;
   });
 
-  // Export PDF s desktop layoutem
+  // --- Export PDF v desktop layoutu (i na mobilu) ---
   function downloadPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF("p", "mm", "a4");
 
     const wrapper = document.querySelector(".wrapper");
-    wrapper.classList.add("force-desktop"); // přepneme layout
+    wrapper.classList.add("force-desktop");
 
-    html2canvas(wrapper, { scale: 2 }).then(canvas => {
+    html2canvas(wrapper, { scale: 3, useCORS: true }).then(canvas => {
       const imgData = canvas.toDataURL("image/png");
       const pageWidth = doc.internal.pageSize.getWidth();
       const imgProps = doc.getImageProperties(imgData);
@@ -168,23 +176,21 @@
 
       doc.addImage(imgData, "PNG", 0, 0, pageWidth, imgHeight);
 
-      // podpis navrch
       if (signaturePad && !signaturePad.isEmpty()) {
         const signData = signaturePad.toDataURL();
-        doc.addImage(signData, "PNG", 15, doc.internal.pageSize.getHeight() - 40, 60, 20);
+        doc.addImage(signData, "PNG", 20, doc.internal.pageSize.getHeight() - 50, 100, 30);
       }
 
       doc.save("protokol.pdf");
-      wrapper.classList.remove("force-desktop"); // zpět
+      wrapper.classList.remove("force-desktop");
     });
   }
 
-  // Přenos dat ze seznamu
+  // --- Přenos dat ze seznamu ---
   window.addEventListener("message", (event) => {
     if (event.data.type === "openProtocol") {
       const d = event.data.row;
       if (!d) return;
-
       document.getElementById("order-number").value = d["Order number"] || "";
       document.getElementById("claim-number").value = d["Label"] || "";
       document.getElementById("customer").value = d["Customer"] || "";
@@ -192,12 +198,11 @@
       document.getElementById("brand").value = d["Contract"] || "";
       document.getElementById("model").value = d["Model"] || "";
       document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
-
       autoTranslate("description-cz", "description-en");
     }
   });
 
-  // Automatický překlad
+  // --- Automatický překlad ---
   function autoTranslate(srcId, tgtId) {
     const sourceText = document.getElementById(srcId).value;
     const targetEl = document.getElementById(tgtId);
