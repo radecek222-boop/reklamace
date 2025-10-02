@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WHITE GLOVE SERVICE - Protokol</title>
+  <style>
+    body {
+      font-family: Inter, sans-serif;
+      margin:20px;
+      background:#f6f7fb;
+      font-size: 14px;
+    }
+    h2 {
+      text-align:center;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing:1px;
+    }
+    .protocol {
+      background:#fff;
+      border-radius:8px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.15);
+      padding:20px;
+      max-width:800px;
+      margin:20px auto;
+    }
+    .field {
+      margin-bottom:12px;
+    }
+    .field label {
+      display:block;
+      font-weight:600;
+      margin-bottom:4px;
+    }
+    .field input, .field textarea {
+      width:100%;
+      padding:8px;
+      border:1px solid #ccc;
+      border-radius:6px;
+      font-size:14px;
+    }
+    .btn {
+      background:#4CAF50;
+      color:#fff;
+      padding:10px 20px;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;
+      margin-top:15px;
+      font-size:14px;
+    }
+    .btn:hover {
+      background:#43a047;
+    }
+  </style>
+</head>
+<body>
+  <h2>WHITE GLOVE SERVICE – Protokol</h2>
+  <div class="protocol">
+    <div class="field">
+      <label>Zákazník</label>
+      <input type="text" id="customer" readonly>
+    </div>
+    <div class="field">
+      <label>Adresa</label>
+      <input type="text" id="address" readonly>
+    </div>
+    <div class="field">
+      <label>Kontakt</label>
+      <input type="text" id="contact" readonly>
+    </div>
+    <div class="field">
+      <label>Stav / termín návštěvy</label>
+      <input type="text" id="status" readonly>
+    </div>
+    <div class="field">
+      <label>Popis reklamace</label>
+      <textarea id="description" rows="4" readonly></textarea>
+    </div>
+    <button class="btn" onclick="exportPDF()">Uložit do PDF</button>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+window.addEventListener("message", (event) => {
+  if(event.data.type === "openProtocol") {
+    const row = event.data.row;
+    // vyplníme data podle názvů sloupců
+    document.getElementById("customer").value = row["Customer"] || "";
+    document.getElementById("address").value = row["Address"] || "";
+    document.getElementById("contact").value = row["KONTAKT"] || "";
+    document.getElementById("status").value = row["STAV - termín návštěvy"] || "";
+    document.getElementById("description").value = row["POPIS REKLAMACE - OPRAVY"] || "";
+  }
+});
+
+// Export do PDF
+async function exportPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFontSize(16);
+  doc.text("WHITE GLOVE SERVICE – Protokol", 20, 20);
+
+  doc.setFontSize(12);
+  doc.text("Zákazník: " + document.getElementById("customer").value, 20, 40);
+  doc.text("Adresa: " + document.getElementById("address").value, 20, 50);
+  doc.text("Kontakt: " + document.getElementById("contact").value, 20, 60);
+  doc.text("Stav: " + document.getElementById("status").value, 20, 70);
+
+  let description = document.getElementById("description").value;
+  let splitText = doc.splitTextToSize("Popis: " + description, 170);
+  doc.text(splitText, 20, 90);
+
+  doc.save("protokol.pdf");
+}
+</script>
+</body>
+</html>
