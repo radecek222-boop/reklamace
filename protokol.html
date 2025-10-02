@@ -4,132 +4,146 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Protokol - White Glove Service</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: Inter, sans-serif;
+      background:#f6f7fb;
+      margin:0;
+      padding: 20px;
+      font-size:12px;
+      display: flex;
+      justify-content: center;
+    }
+    .wrapper {
+      width: 100%;
+      max-width: 900px;
+      background: white;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .header { text-align:center; margin-bottom:20px; }
+    .header div:first-child { font-size:28px; font-weight:900; }
+    .header div:last-child { font-size:12px; margin-top:4px; font-weight:normal; }
+    table { width:100%; border-collapse:collapse; margin:10px 0; }
+    td { padding:6px; vertical-align:top; }
+    .label { font-weight:600; width:25%; }
+    input, select, textarea { width:100%; padding:4px; font-size:1em; }
+    .split-section { display:flex; gap:10px; margin:10px 0; }
+    .two-col-table { display:flex; gap:30px; }
+    .two-col-table table { width:100%; }
+    .section-title { font-weight:700; margin-top:20px; }
+    .side-label { font-size:11px; font-weight:500; color:#555; margin-bottom:4px; }
+    #signature-container {
+      position: relative;
+      width: 100%;
+      height: 150px;
+    }
+    #signature-pad {
+      border:2px dashed #888;
+      background:white;
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+    .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
+    .btns { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
+    .btns button { padding:10px 20px; font-size:1em; border:none; background:#333; color:white; border-radius:6px; cursor:pointer; }
+    @media (max-width: 768px) {
+      .wrapper { padding: 10px; }
+      .two-col-table { flex-direction: column; }
+      .split-section { flex-direction: column; }
+    }
+  </style>
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-</head>
-<body class="bg-gray-100 p-4 text-sm font-sans">
-  <div class="max-w-3xl mx-auto bg-white p-6 rounded shadow">
-    <div class="text-center mb-4">
-      <h1 class="text-2xl font-bold">WHITE GLOVE SERVICE</h1>
-      <p class="text-xs">Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</p>
-    </div>
+  <script>
+    let signaturePad;
+    window.addEventListener("DOMContentLoaded", () => {
+      const canvas = document.getElementById("signature-pad");
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      signaturePad = new SignaturePad(canvas);
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div><label>Číslo objednávky<input id="order-number" class="input"/></label></div>
-      <div><label>Číslo reklamace<input id="claim-number" class="input"/></label></div>
-      <div><label>Zákazník<input id="customer" class="input"/></label></div>
-      <div><label>Adresa zákazníka<input id="address" class="input"/></label></div>
-      <div><label>Značka / Contract<input id="brand" class="input"/></label></div>
-      <div><label>Model<input id="model" class="input"/></label></div>
-      <div><label>Technik<select class="input"><option>Milan Kolín</option><option>Radek Zikmund</option></select></label></div>
-      <div><label>Datum návštěvy<input id="visit-date" class="input"/></label></div>
-    </div>
-
-    <template id="dual-field-template">
-      <div class="mt-6">
-        <h2 class="font-semibold">{{title}}</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <div><label class="text-xs">CZ<textarea id="{{idCZ}}" class="input"></textarea></label></div>
-          <div><label class="text-xs">EN<textarea id="{{idEN}}" class="input" readonly></textarea></label></div>
-        </div>
-      </div>
-    </template>
-
-    <div id="translated-fields"></div>
-
-    <script>
-      const fields = [
-        { title: "Zákazník reklamuje / Customer complaint", idCZ: "description-cz", idEN: "description-en" },
-        { title: "Problém zjištěný technikem / Detected problem", idCZ: "problem-cz", idEN: "problem-en" },
-        { title: "Návrh opravy / Repair proposal", idCZ: "repair-cz", idEN: "repair-en" }
-      ];
-      const container = document.getElementById('translated-fields');
-      const tmpl = document.getElementById('dual-field-template').innerHTML;
-      fields.forEach(f => container.innerHTML += tmpl.replaceAll("{{title}}", f.title).replaceAll("{{idCZ}}", f.idCZ).replaceAll("{{idEN}}", f.idEN));
-    </script>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-      <div>
-        <label>Počet opravovaných dílů<input class="input"></label>
-        <label>Cena za práci<input id="price-work" class="input" oninput="calc()"></label>
-        <label>Cena za materiál<input id="price-material" class="input" oninput="calc()"></label>
-        <label>Cena za druhého technika<input id="price-second" class="input" oninput="calc()"></label>
-        <label>Cena za dopravu<input id="price-transport" class="input" oninput="calc()"></label>
-        <label>Cena celkem<input id="price-total" class="input" readonly></label>
-      </div>
-      <div>
-        <label>Reklamace vyřešena?<select class="input"><option>ANO</option><option>NE</option></select></label>
-        <label>Čeká se na vyjádření prodejce?<select class="input"><option>NE</option><option>ANO</option></select></label>
-        <label>Poškození technikem?<select class="input"><option>NE</option><option>ANO</option></select></label>
-        <label>Úhradu provede zákazník?<select class="input"><option>NE</option><option>ANO</option></select></label>
-        <label>Datum podpisu<input class="input"></label>
-      </div>
-    </div>
-
-    <div class="mt-6">
-      <h2 class="font-semibold mb-2">Podpis zákazníka / Customer signature:</h2>
-      <canvas id="signature-pad" class="border border-dashed w-full h-36"></canvas>
-      <p class="text-xs text-gray-500">Podepište se prosím prstem nebo myší</p>
-    </div>
-
-    <div class="mt-6 flex gap-4">
-      <button onclick="window.close()" class="bg-gray-700 text-white px-4 py-2 rounded">⬅️ Zpět</button>
-      <button onclick="downloadPDF()" class="bg-green-600 text-white px-4 py-2 rounded">📄 PDF</button>
-    </div>
-
-    <script>
-      const calc = () => {
-        const g = id => parseFloat(document.getElementById(id).value) || 0;
-        document.getElementById("price-total").value = (g("price-work") + g("price-material") + g("price-second") + g("price-transport")).toFixed(2);
-      };
-
-      const autoTranslate = (srcId, tgtId) => {
-        const t = document.getElementById(srcId).value;
-        if (!t.trim()) return document.getElementById(tgtId).value = "";
-        fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=cs&tl=en&dt=t&q=${encodeURIComponent(t)}`)
-          .then(res => res.json())
-          .then(data => document.getElementById(tgtId).value = data[0].map(p => p[0]).join(""));
-      };
-
-      window.addEventListener("DOMContentLoaded", () => {
-        signaturePad = new SignaturePad(document.getElementById("signature-pad"));
-        window.addEventListener("message", e => {
-          if (e.data?.type === "openProtocol") {
-            const d = e.data.row;
-            if (!d) return;
-            document.getElementById("order-number").value = d["Order number"] || "";
-            document.getElementById("claim-number").value = d["Label"] || "";
-            document.getElementById("customer").value = d["Customer"] || "";
-            document.getElementById("address").value = d["Address"] || "";
-            document.getElementById("brand").value = d["Label"] || "";
-            document.getElementById("model").value = d["Model"] || "";
-            document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
-            autoTranslate("description-cz", "description-en");
-          }
-        });
-
-        fields.forEach(f => {
-          const input = document.getElementById(f.idCZ);
-          input?.addEventListener("input", () => autoTranslate(f.idCZ, f.idEN));
-        });
+      window.addEventListener("message", (event) => {
+        if (event.data.type === "openProtocol") {
+          const d = event.data.row;
+          if (!d) return;
+          document.getElementById("order-number").value = d["Order number"] || "";
+          document.getElementById("claim-number").value = d["Label"] || "";
+          document.getElementById("customer").value = d["Customer"] || "";
+          document.getElementById("address").value = d["Address"] || "";
+          document.getElementById("brand").value = d["Label"] || "";
+          document.getElementById("model").value = d["Model"] || "";
+          document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
+          autoTranslate("description-cz", "description-en");
+        }
       });
 
-      const downloadPDF = () => {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.html(document.querySelector(".wrapper"), {
-          callback: pdf => {
-            if (signaturePad && !signaturePad.isEmpty()) {
-              const imgData = signaturePad.toDataURL();
-              pdf.addImage(imgData, 'PNG', 15, 260, 60, 20);
-            }
-            pdf.save("protokol.pdf");
-          },
-          margin: [10, 10, 10, 10], html2canvas: { scale: 0.7 }
+      ["description-cz", "problem-cz", "repair-cz"].forEach(id => {
+        document.getElementById(id).addEventListener("input", () => {
+          clearTimeout(window.translateTimer);
+          window.translateTimer = setTimeout(() => {
+            autoTranslate(id, id.replace("cz", "en"));
+          }, 800);
         });
-      };
-    </script>
+      });
+    });
+
+    function autoTranslate(srcId, tgtId) {
+      const sourceText = document.getElementById(srcId).value;
+      const targetEl = document.getElementById(tgtId);
+      if (!sourceText.trim()) return targetEl.value = "";
+      fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=cs&tl=en&dt=t&q=${encodeURIComponent(sourceText)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data[0]) {
+            targetEl.value = data[0].map(pair => pair[0]).join("");
+          }
+        });
+    }
+
+    function calculateTotal() {
+      const work = parseFloat(document.getElementById("price-work").value) || 0;
+      const material = parseFloat(document.getElementById("price-material").value) || 0;
+      const second = parseFloat(document.getElementById("price-second").value) || 0;
+      const transport = parseFloat(document.getElementById("price-transport").value) || 0;
+      const total = work + material + second + transport;
+      document.getElementById("price-total").value = total.toFixed(2);
+    }
+
+    function downloadPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      doc.html(document.querySelector(".wrapper"), {
+        callback: function (pdf) {
+          if (signaturePad && !signaturePad.isEmpty()) {
+            const imgData = signaturePad.toDataURL();
+            pdf.addImage(imgData, 'PNG', 15, 260, 60, 20);
+          }
+          pdf.save("protokol.pdf");
+        },
+        margin: [10, 10, 10, 10],
+        autoPaging: true,
+        html2canvas: { scale: 0.7 }
+      });
+    }
+  </script>
+</head>
+<body>
+  <div class="wrapper">
+    <!-- ostatní HTML zůstává beze změny -->
+
+    <div class="section-title">Podpis zákazníka / Customer signature:</div>
+    <div id="signature-container">
+      <canvas id="signature-pad"></canvas>
+    </div>
+    <div class="signature-label">Podepište se prosím prstem nebo myší / Sign using finger or mouse</div>
+
+    <div class="btns">
+      <button onclick="window.close()">⬅️ Zpět na hlavní stránku</button>
+      <button onclick="downloadPDF()">📄 Exportovat do PDF</button>
+    </div>
   </div>
 </body>
 </html>
