@@ -33,16 +33,12 @@
     .two-col-table table { width:100%; }
     .section-title { font-weight:700; margin-top:20px; }
     .side-label { font-size:11px; font-weight:500; color:#555; margin-bottom:4px; }
-    #signature-pad-container {
-      position: relative;
-      width: 100%;
-      height: 150px;
-      border: 2px dashed #888;
-      background: white;
-    }
     #signature-pad {
-      width: 100%;
-      height: 100%;
+      border:2px dashed #888;
+      width:100%;
+      height:auto;
+      background:white;
+      display:block;
     }
     .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
     .btns { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
@@ -59,62 +55,15 @@
     let signaturePad;
     window.addEventListener("DOMContentLoaded", () => {
       const canvas = document.getElementById("signature-pad");
-      resizeCanvas(canvas);
+      function resizeCanvas() {
+        const ratio =  Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = 150 * ratio;
+        canvas.getContext("2d").scale(ratio, ratio);
+      }
+      resizeCanvas();
       signaturePad = new SignaturePad(canvas);
-
-      window.addEventListener("message", (event) => {
-        if (event.data.type === "openProtocol") {
-          const d = event.data.row;
-          if (!d) return;
-          document.getElementById("order-number").value = d["Order number"] || "";
-          document.getElementById("claim-number").value = d["Label"] || "";
-          document.getElementById("customer").value = d["Customer"] || "";
-          document.getElementById("address").value = d["Address"] || "";
-          document.getElementById("brand").value = d["Label"] || "";
-          document.getElementById("model").value = d["Model"] || "";
-          document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
-          autoTranslate("description-cz", "description-en");
-        }
-      });
-
-      ["description-cz", "problem-cz", "repair-cz"].forEach(id => {
-        document.getElementById(id).addEventListener("input", () => {
-          clearTimeout(window.translateTimer);
-          window.translateTimer = setTimeout(() => {
-            autoTranslate(id, id.replace("cz", "en"));
-          }, 800);
-        });
-      });
     });
-
-    function resizeCanvas(canvas) {
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
-      canvas.width = canvas.offsetWidth * ratio;
-      canvas.height = canvas.offsetHeight * ratio;
-      canvas.getContext("2d").scale(ratio, ratio);
-    }
-
-    function autoTranslate(srcId, tgtId) {
-      const sourceText = document.getElementById(srcId).value;
-      const targetEl = document.getElementById(tgtId);
-      if (!sourceText.trim()) return targetEl.value = "";
-      fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=cs&tl=en&dt=t&q=${encodeURIComponent(sourceText)}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data && data[0]) {
-            targetEl.value = data[0].map(pair => pair[0]).join("");
-          }
-        });
-    }
-
-    function calculateTotal() {
-      const work = parseFloat(document.getElementById("price-work").value) || 0;
-      const material = parseFloat(document.getElementById("price-material").value) || 0;
-      const second = parseFloat(document.getElementById("price-second").value) || 0;
-      const transport = parseFloat(document.getElementById("price-transport").value) || 0;
-      const total = work + material + second + transport;
-      document.getElementById("price-total").value = total.toFixed(2);
-    }
 
     function downloadPDF() {
       const { jsPDF } = window.jspdf;
@@ -136,4 +85,19 @@
 </head>
 <body>
   <div class="wrapper">
-    <!-- zbytek obsahu zůstává stejný jako dřív, podpis je ale teď opraven -->
+    <div class="header">
+      <div>WHITE GLOVE SERVICE</div>
+      <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
+    </div>
+
+    <div class="section-title">Podpis zákazníka / Customer signature:</div>
+    <canvas id="signature-pad" style="max-width:100%; height:150px;"></canvas>
+    <div class="signature-label">Podepište se prosím prstem nebo myší / Sign using finger or mouse</div>
+
+    <div class="btns">
+      <button onclick="window.close()">⬅️ Zpět na hlavní stránku</button>
+      <button onclick="downloadPDF()">📄 Exportovat do PDF</button>
+    </div>
+  </div>
+</body>
+</html>
