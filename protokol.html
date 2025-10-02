@@ -23,7 +23,7 @@
     .sig-clear:hover { background:#c62828; }
     .back-btn { background:#777; }
     .back-btn:hover { background:#555; }
-    .actions { margin-top:20px; display:flex; gap:10px; justify-content:flex-start; flex-wrap:wrap; }
+    .actions { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
   </style>
 </head>
 <body>
@@ -45,8 +45,8 @@
 
     <div class="actions">
       <button class="btn" onclick="exportPDF()">Uložit do PDF</button>
-      <button class="btn back-btn" onclick="location.href='seznam.html'">Zpět na seznam reklamací</button>
-      <button class="btn back-btn" onclick="location.href='index.html'">Zpět na hlavní stránku</button>
+      <button class="btn back-btn" onclick="goBackToList()">Zpět na seznam reklamací</button>
+      <button class="btn back-btn" onclick="goHome()">Zpět na hlavní stránku</button>
     </div>
   </div>
 
@@ -113,6 +113,25 @@ async function exportPDF(){
   let customerName = document.getElementById("customer").value || "Protokol";
   customerName = customerName.replace(/\s+/g, "_");
   doc.save(`Protokol_${customerName}_${dateStr}.pdf`);
+}
+
+// návraty
+function goHome(){
+  if (window.opener) {
+    window.opener.location.href = "index.html";
+    window.close();
+  } else {
+    location.href = "index.html";
+  }
+}
+
+function goBackToList(){
+  if (window.opener) {
+    window.opener.location.href = "seznam.html";
+    window.close();
+  } else {
+    location.href = "seznam.html";
+  }
 }
 </script>
 </body>
