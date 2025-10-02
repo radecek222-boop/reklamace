@@ -42,7 +42,7 @@
     }
     .protocol-btn:hover { background:#218838; }
 
-    /* vyhledávací pole */
+    /* vyhledávací pole (větší) */
     #search {
       width:100%;
       max-width:500px;
@@ -121,12 +121,22 @@ let allData = [];
 
 const days = ["pondělí","úterý","středa","čtvrtek","pátek","sobota","neděle"];
 
+// pomocná funkce pro „chytré“ vyhledávání (bez diakritiky, case-insensitive)
+function norm(s){
+  return (s || "")
+    .toString()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, ""); // odstraní diakritiku
+}
+
 async function loadData() {
   try {
     const res = await fetch(sheetUrl);
     const text = await res.text();
     const parsed = Papa.parse(text, { header:true, skipEmptyLines:true });
-    allData = parsed.data;
+    // trvale vynecháme 2. řádek v Google Sheets (pracovní řádek)
+    allData = parsed.data.slice(1);
     renderTable(allData);
   } catch (err) {
     document.getElementById("results").innerHTML = "Chyba při načítání dat: " + err;
@@ -139,8 +149,6 @@ function renderTable(rows){
   ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(h => { html += "<th>"+h+"</th>"; });
   html += "</tr></thead><tbody>";
   rows.forEach((row,idx) => {
-    if (idx === 0) return; // přeskočí řádek 2 v Google Sheets
-
     const statusRaw = row["STAV - termín návštěvy"] || "";
     const status = statusRaw.toLowerCase();
 
@@ -174,9 +182,9 @@ function renderTable(rows){
     let details = "";
     Object.entries(row).forEach(([key,val])=>{
       if (!["Customer","Address","KONTAKT","STAV - termín návštěvy"].includes(key)) {
-        if (key.startsWith("_")) return; // skryje sloupce bez názvu
+        if (key.startsWith("_")) return; // skryje sloupce bez názvu z CSV
         let displayKey = key;
-        if (key === "Label") displayKey = "Contract"; // přejmenování Label → Contract
+        if (key === "Label") displayKey = "Contract"; // Label → Contract
         details += `<div><b>${displayKey}:</b> ${val||""}</div>`;
       }
     });
@@ -215,9 +223,10 @@ function openProtocol(index, event){
   };
 }
 
+// vyhledávání – bez diakritiky a case-insensitive
 document.getElementById("search").addEventListener("input", e => {
-  const q = e.target.value.toLowerCase();
-  const rows = allData.filter(r => Object.values(r).join(" ").toLowerCase().includes(q));
+  const q = norm(e.target.value);
+  const rows = allData.filter(r => norm(Object.values(r).join(" ")).includes(q));
   renderTable(rows);
 });
 
