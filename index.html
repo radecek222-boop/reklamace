@@ -1,70 +1,49 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>WHITE GLOVE SERVICE</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>White Glove Service</title>
   <style>
     body {
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
       margin: 0;
       font-family: Arial, sans-serif;
       background-color: #ffffff;
-      flex-direction: column;
     }
     h1 {
       font-size: 3em;
-      color: #000000;
       font-weight: bold;
-      margin: 0 0 10px;
-      text-align: center;
+      margin: 0;
     }
     h2 {
       font-size: 1.2em;
-      color: #333333;
-      margin: 0 0 20px;
-      text-align: center;
+      font-weight: normal; /* už není tučné */
+      margin: 10px 0 30px;
+      color: #333;
     }
     .btn {
-      display: block;
-      width: 220px;   /* stejná šířka pro všechna tlačítka */
-      padding: 14px 0;
-      margin: 10px auto;
-      font-size: 16px;
-      border: none;
-      border-radius: 6px;
-      background: #ddd;
+      padding: 15px 30px;
+      font-size: 1em;
+      background-color: #ddd;
       color: #000;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
-      text-align: center;
+      text-decoration: none;
     }
     .btn:hover {
-      background: #ccc;
+      background-color: #ccc;
     }
   </style>
 </head>
 <body>
   <h1>WHITE GLOVE SERVICE</h1>
   <h2>specializovaný autorizovaný servis Natuzzi</h2>
-  
-  <!-- Původní tlačítko -->
-  <button class="btn" onclick="location.href='seznam.html'">Seznam reklamací</button>
-  
-  <!-- Nové tlačítko Statistiky -->
-  <button class="btn" onclick="checkPin()">Statistiky</button>
-
-  <script>
-    function checkPin() {
-      const pin = prompt("Zadejte PIN pro přístup ke statistikám:");
-      if (pin === "7890") {
-        window.location.href = "statistic.html";
-      } else if (pin !== null) {
-        alert("Nesprávný PIN!");
-      }
-    }
-  </script>
+  <a href="seznam.html" class="btn">Seznam reklamací</a>
 </body>
 </html>
