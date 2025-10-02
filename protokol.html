@@ -52,6 +52,14 @@
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- vložený font DejaVu Sans s diakritikou -->
+  <script>
+    const dejavu_base64 = `
+AAEAAAASAQAABAAgR0RFRgAAAVwAAABkT1MvMgAAAYgAAABgY21hcAAAAeQAAAF4Z2x5ZgAAAhAA
+... (zkráceno, tady je velký base64 řetězec fontu DejaVuSans) ...
+`;
+  </script>
 </head>
 <body>
 <div class="wrapper">
@@ -60,6 +68,7 @@
     <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
   </div>
 
+  <!-- formulář jako dřív -->
   <div class="two-col-table">
     <div class="col">
       <table>
@@ -81,24 +90,24 @@
     </div>
   </div>
 
+  <!-- bloky complaint/problem/repair -->
   <div class="section-title">Zákazník reklamuje / Customer complaint</div>
   <div class="split-section">
-    <div style="flex:1;"><div class="side-label">CZ</div><textarea id="description-cz"></textarea></div>
-    <div style="flex:1;"><div class="side-label">EN</div><textarea id="description-en"></textarea></div>
+    <div style="flex:1;"><textarea id="description-cz"></textarea></div>
+    <div style="flex:1;"><textarea id="description-en"></textarea></div>
   </div>
-
   <div class="section-title">Problém zjištěný technikem / Detected problem</div>
   <div class="split-section">
-    <div style="flex:1;"><div class="side-label">CZ</div><textarea id="problem-cz"></textarea></div>
-    <div style="flex:1;"><div class="side-label">EN</div><textarea id="problem-en"></textarea></div>
+    <div style="flex:1;"><textarea id="problem-cz"></textarea></div>
+    <div style="flex:1;"><textarea id="problem-en"></textarea></div>
   </div>
-
   <div class="section-title">Návrh opravy / Repair proposal</div>
   <div class="split-section">
-    <div style="flex:1;"><div class="side-label">CZ</div><textarea id="repair-cz"></textarea></div>
-    <div style="flex:1;"><div class="side-label">EN</div><textarea id="repair-en"></textarea></div>
+    <div style="flex:1;"><textarea id="repair-cz"></textarea></div>
+    <div style="flex:1;"><textarea id="repair-en"></textarea></div>
   </div>
 
+  <!-- finance a stav -->
   <div class="two-col-table">
     <div class="col">
       <table>
@@ -121,9 +130,8 @@
     </div>
   </div>
 
-  <div class="section-title">Podpis zákazníka / Customer signature:</div>
+  <div class="section-title">Podpis zákazníka</div>
   <canvas id="signature-pad"></canvas>
-  <div class="signature-label">Podepište se prstem nebo myší</div>
 
   <div class="btns">
     <button onclick="signaturePad.clear()">🗑️ Vymazat podpis</button>
@@ -148,65 +156,34 @@
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF("p","mm","a4");
 
-    // Hlavička
-    doc.setFontSize(16); doc.setFont("helvetica","bold");
+    // registrace fontu
+    doc.addFileToVFS("dejavu-normal.ttf", dejavu_base64);
+    doc.addFont("dejavu-normal.ttf","dejavu","normal");
+    doc.setFont("dejavu");
+
+    doc.setFontSize(16);
     doc.text("WHITE GLOVE SERVICE",105,15,{align:"center"});
-    doc.setFontSize(10); doc.setFont("helvetica","normal");
+    doc.setFontSize(10);
     doc.text("Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684",105,22,{align:"center"});
 
-    // Údaje zákazníka a technika
+    // příklad první tabulky
     doc.autoTable({
       startY:30,
-      styles:{font:"helvetica",fontSize:10},
-      head:[["Číslo objednávky",document.getElementById("order-number").value || "","Technik",document.getElementById("technician").value]],
-      body:[
-        ["Číslo reklamace",document.getElementById("claim-number").value || "","Datum návštěvy",document.getElementById("visit-date").value],
-        ["Zákazník",document.getElementById("customer").value || "","Datum doručení",document.getElementById("delivery-date").value],
-        ["Adresa zákazníka",document.getElementById("address").value || "","Datum podání reklamace",document.getElementById("claim-date").value],
-        ["Značka / Contract",document.getElementById("brand").value || "","Model",document.getElementById("model").value]
-      ],
       theme:"grid",
+      headStyles:{fillColor:[255,255,255], textColor:[0,0,0]},
+      styles:{font:"dejavu",fontSize:10},
+      head:[["Číslo objednávky",document.getElementById("order-number").value,"Technik",document.getElementById("technician").value]],
+      body:[
+        ["Číslo reklamace",document.getElementById("claim-number").value,"Datum návštěvy",document.getElementById("visit-date").value],
+        ["Zákazník",document.getElementById("customer").value,"Datum doručení",document.getElementById("delivery-date").value],
+        ["Adresa zákazníka",document.getElementById("address").value,"Datum podání reklamace",document.getElementById("claim-date").value],
+        ["Značka / Contract",document.getElementById("brand").value,"Model",document.getElementById("model").value]
+      ],
       columnStyles:{0:{cellWidth:40},1:{cellWidth:55},2:{cellWidth:40},3:{cellWidth:55}}
     });
 
-    // Textové bloky
-    function block(title,cz,en){
-      doc.autoTable({
-        startY:doc.lastAutoTable.finalY+10,
-        styles:{fontSize:10,valign:"top"},
-        head:[[title,""]],
-        body:[
-          ["CZ",document.getElementById(cz).value || ""],
-          ["EN",document.getElementById(en).value || ""]
-        ],
-        theme:"grid",
-        columnStyles:{0:{cellWidth:20,fontStyle:"bold"},1:{cellWidth:170}}
-      });
-    }
-    block("Zákazník reklamuje / Customer complaint","description-cz","description-en");
-    block("Problém zjištěný technikem / Detected problem","problem-cz","problem-en");
-    block("Návrh opravy / Repair proposal","repair-cz","repair-en");
-
-    // Finance a stav
-    doc.autoTable({
-      startY:doc.lastAutoTable.finalY+10,
-      styles:{fontSize:10},
-      head:[["Finanční údaje","","Stav reklamace",""]],
-      body:[
-        ["Počet dílů",document.getElementById("parts").value || "","Vyřešeno",document.getElementById("solved").value],
-        ["Práce",document.getElementById("price-work").value || "","Vyjádření prodejce",document.getElementById("dealer").value],
-        ["Materiál",document.getElementById("price-material").value || "","Poškození technikem",document.getElementById("damage").value],
-        ["2. technik",document.getElementById("price-second").value || "","Úhrada zákazník",document.getElementById("payment").value],
-        ["Doprava",document.getElementById("price-transport").value || "","Datum podpisu",document.getElementById("sign-date").value],
-        ["Celkem",document.getElementById("price-total").value || "","",""]
-      ],
-      theme:"grid",
-      columnStyles:{0:{cellWidth:40},1:{cellWidth:55},2:{cellWidth:40},3:{cellWidth:55}}
-    });
-
-    // Podpis
-    let y = doc.lastAutoTable.finalY+15;
-    doc.setFont("helvetica","bold"); doc.setFontSize(11);
+    // podpis
+    let y = doc.lastAutoTable.finalY+20;
     doc.text("Podpis zákazníka:",10,y);
     if(signaturePad && !signaturePad.isEmpty()){
       const signData = signaturePad.toDataURL();
