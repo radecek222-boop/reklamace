@@ -15,10 +15,10 @@
     input, select, textarea { width:100%; padding:4px; font-size:1em; }
     .split-section { display:flex; gap:10px; margin:10px 0; }
     .split-box { flex:1; min-height:80px; border:1px solid #ccc; padding:8px; background:white; }
-    .two-col-table { display:flex; gap:30px; flex-wrap:wrap; }
+    .two-col-table { display:flex; gap:30px; }
     .two-col-table table { width:100%; }
     .section-title { font-weight:700; margin-top:20px; }
-    #signature-pad { border:2px dashed #888; width:100%; height:150px; background:white; touch-action: none; }
+    #signature-pad { border:2px dashed #888; width:100%; height:150px; background:white; }
     .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
     .btns { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
     .btns button { padding:10px 20px; font-size:1em; border:none; background:#333; color:white; border-radius:6px; cursor:pointer; }
@@ -120,18 +120,13 @@
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>
+    const now = new Date();
+    const format = now.toLocaleDateString("cs-CZ");
+    document.getElementById("visit-date").innerText = format;
+    document.getElementById("signature-date").innerText = format;
+
     const canvas = document.getElementById("signature-pad");
     const signaturePad = new SignaturePad(canvas);
-
-    function resizeCanvas() {
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
-      canvas.width = canvas.offsetWidth * ratio;
-      canvas.height = canvas.offsetHeight * ratio;
-      canvas.getContext("2d").scale(ratio, ratio);
-      signaturePad.clear();
-    }
-    window.addEventListener("resize", resizeCanvas);
-    resizeCanvas();
 
     function clearSignature() {
       signaturePad.clear();
@@ -139,24 +134,19 @@
 
     function downloadPDF() {
       const element = document.getElementById("protocol-form");
-      html2pdf()
-        .set({ margin: 10, filename: 'protokol.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } })
-        .from(element)
-        .toPdf()
-        .get('pdf')
-        .then(function (pdf) {
-          if (!signaturePad.isEmpty()) {
-            const imgData = signaturePad.toDataURL();
-            pdf.addImage(imgData, 'PNG', 15, 260, 180, 30);
-          }
-        })
-        .save();
+      html2pdf().set({
+        margin: 10,
+        filename: 'protokol.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      }).from(element).toPdf().get('pdf').then(function (pdf) {
+        if (!signaturePad.isEmpty()) {
+          const imgData = signaturePad.toDataURL();
+          pdf.addImage(imgData, 'PNG', 15, 260, 180, 30);
+        }
+      }).save();
     }
-
-    const now = new Date();
-    const format = now.toLocaleDateString("cs-CZ");
-    document.getElementById("visit-date").innerText = format;
-    document.getElementById("signature-date").innerText = format;
 
     function updateTotal() {
       const labor = parseFloat(document.getElementById("labor").value) || 0;
@@ -171,6 +161,22 @@
       document.getElementById(id).addEventListener("input", updateTotal);
     });
     updateTotal();
+
+    window.addEventListener("message", function(event) {
+      if (event.data.type === "openProtocol") {
+        const d = event.data.row;
+        if (!d) return;
+        document.getElementById("order-number").value = d["Order number"] || "";
+        document.getElementById("claim-number").value = d["Label"] || "";
+        document.getElementById("worker").value = d["RADEK"] ? "Radek Zikmund" : d["MILAN"] ? "Milan Kolín" : "Kolin/Zikmund";
+        document.getElementById("customer").value = d["Customer"] || "";
+        document.getElementById("address").value = d["Address"] || "";
+        document.getElementById("contract").value = d["Label"] || "";
+        document.getElementById("model").value = d["Model"] || "";
+        document.getElementById("description-cz").innerText = d["POPIS REKLAMACE - OPRAVY"] || "";
+        document.getElementById("description-en").innerText = d["POPIS REKLAMACE - OPRAVY"] || "";
+      }
+    });
   </script>
 </body>
 </html>
