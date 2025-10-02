@@ -32,12 +32,6 @@
     tr:hover {
       background: #f1f1f1;
     }
-    /* Styl pro řádky s novým stavem */
-    .stav-nova {
-      background-color: yellow !important;
-      color: black !important;
-      font-weight: bold;
-    }
   </style>
 </head>
 <body>
@@ -75,13 +69,36 @@
             // zvýraznění pokud je STAV "Nová"
             var stav = (row["STAV - termín návštěvy"] || "").toLowerCase();
             if (stav.includes("nová")) {
-              tr.classList.add("stav-nova");
+              tr.style.backgroundColor = "yellow";
+              tr.style.color = "black";
+              tr.style.fontWeight = "bold";
             }
 
             // buňky
             Object.keys(row).forEach(function(key) {
               var td = document.createElement("td");
-              td.textContent = row[key];
+              let value = row[key];
+
+              // klikací telefon
+              if (key.toLowerCase().includes("kontakt") && value) {
+                var a = document.createElement("a");
+                a.href = "tel:" + value.replace(/\s+/g, "");
+                a.textContent = value;
+                td.appendChild(a);
+              }
+              // klikací adresa
+              else if (key.toLowerCase().includes("address") && value) {
+                var a = document.createElement("a");
+                a.href = "https://waze.com/ul?q=" + encodeURIComponent(value);
+                a.target = "_blank";
+                a.textContent = value;
+                td.appendChild(a);
+              }
+              // normální text
+              else {
+                td.textContent = value;
+              }
+
               tr.appendChild(td);
             });
 
