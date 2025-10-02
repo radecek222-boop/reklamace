@@ -34,12 +34,28 @@
       padding:0 10px;
       transition:max-height 0.4s ease, padding 0.3s ease;
     }
-    .details.open {
-      padding:10px;
-    }
+    .details.open { padding:10px; }
     .protocol-btn { background:#4CAF50; color:#fff; padding:6px 12px; border:none;
       border-radius:6px; cursor:pointer; margin-top:10px; font-size:0.9em; }
     .protocol-btn:hover { background:#43a047; }
+
+    /* zvýraznění stavů */
+    tr.done {
+      background:#d4edda !important; /* zelená */
+      color:#155724;
+      font-weight:600;
+    }
+    tr.waiting {
+      background:#fff3cd !important; /* oranžová */
+      color:#856404;
+      font-weight:600;
+    }
+    tr.scheduled {
+      background:#d1ecf1 !important; /* světle modrá */
+      color:#0c5460;
+      font-weight:600;
+    }
+
     @media(max-width:600px){
       h1 { font-size:1.5em; }
       h2 { font-size:1em; }
@@ -61,6 +77,8 @@
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQzpP83wIYZPcnb1NI9pPSPixzcEQuRVrTOyPD7SRbgYZSrQs7QdcLNwPJ5lQleGbVVK29nr2-bMo6Y/pub?gid=0&single=true&output=csv";
 let allData = [];
 
+const days = ["pondělí","úterý","středa","čtvrtek","pátek","sobota","neděle"];
+
 async function loadData() {
   try {
     const res = await fetch(sheetUrl);
@@ -79,7 +97,19 @@ function renderTable(rows){
   ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(h => { html += "<th>"+h+"</th>"; });
   html += "</tr></thead><tbody>";
   rows.forEach((row,idx) => {
-    html += `<tr onclick="toggleDetails(${idx})">`;
+    const statusRaw = row["STAV - termín návštěvy"] || "";
+    const status = statusRaw.toLowerCase();
+
+    let rowClass = "";
+    if (status.includes("hotovo")) {
+      rowClass = "done";
+    } else if (status.includes("čeká")) {
+      rowClass = "waiting";
+    } else if (days.some(d => status.includes(d)) || /\d/.test(status)) {
+      rowClass = "scheduled";
+    }
+
+    html += `<tr class="${rowClass}" onclick="toggleDetails(${idx})">`;
     ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(key => {
       let val = row[key] || "";
       let cellContent = val;
@@ -93,6 +123,7 @@ function renderTable(rows){
       html += "<td>"+cellContent+"</td>";
     });
     html += "</tr>";
+
     let details = "";
     Object.entries(row).forEach(([key,val])=>{
       if (!["Customer","Address","KONTAKT","STAV - termín návštěvy"].includes(key)) {
