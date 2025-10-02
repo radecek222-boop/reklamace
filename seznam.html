@@ -90,13 +90,14 @@
       color:#fff;
       background:#888;
       border-radius:50%;
-      width:22px;
-      height:22px;
+      width:18px;
+      height:18px;
       display:flex;
       align-items:center;
       justify-content:center;
       margin:0 auto;
-      font-size:14px;
+      font-size:12px;
+      line-height:1;
       user-select:none;
       transition: background 0.2s;
     }
@@ -148,13 +149,11 @@ function renderTable(rows){
   }
 
   let html = "<table><thead><tr>";
-  html += "<th></th>";
-  ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(h => { html += "<th>"+h+"</th>"; });
+  ["Customer","Address","KONTAKT","STAV - termín návštěvy","Detail"].forEach(h => { html += "<th>"+h+"</th>"; });
   html += "</tr></thead><tbody>";
   
   rows.forEach((row,idx) => {
     html += `<tr onclick="toggleDetails(${idx})">`;
-    html += `<td><div class="toggle-icon" id="icon-${idx}">+</div></td>`;
 
     ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(key => {
       let val = row[key] || "";
@@ -171,6 +170,8 @@ function renderTable(rows){
       html += "<td>"+cellContent+"</td>";
     });
 
+    // poslední sloupec s ikonou
+    html += `<td><div class="toggle-icon" id="icon-${idx}" onclick="toggleDetails(${idx}); event.stopPropagation();">+</div></td>`;
     html += "</tr>";
 
     // detaily + tlačítko
@@ -201,10 +202,9 @@ function toggleDetails(index){
 }
 
 function createProtocol(index, event){
-  event.stopPropagation(); // nevyvolá toggle
+  event.stopPropagation();
   const row = allData[index];
   if (!row) return;
-  // pošle data do protokolu
   window.opener.postMessage({ type:"openProtocol", row }, "*");
   window.close();
 }
