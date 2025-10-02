@@ -104,14 +104,15 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQzpP83wIYZPcnb1NI9pPSPixzcEQuRVrTOyPD7SRbgYZSrQs7QdcLNwPJ5lQleGbVVK29nr2-bMo6Y/pub?output=csv";
-    let rateEUR = 25.0; // default, nahradí se kurzem z ČNB
+    let rateEUR = 25.0; // default
     let chart; // graf
 
-    // načtení kurzu z ČNB
+    // Načtení kurzu z ČNB přes proxy (AllOrigins)
     async function loadRate() {
       try {
-        const res = await fetch("https://api.cnb.cz/cnbapi/exrates/daily?lang=cz");
-        const data = await res.json();
+        const res = await fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://api.cnb.cz/cnbapi/exrates/daily?lang=cz"));
+        const dataWrapper = await res.json();
+        const data = JSON.parse(dataWrapper.contents);
         const eur = data.Rates.find(r => r.code === "EUR");
         if (eur) {
           rateEUR = parseFloat(eur.rate.replace(",", "."));
@@ -122,7 +123,7 @@
       }
     }
 
-    // načtení statistik
+    // Načtení statistik
     function loadStats() {
       Papa.parse(sheetUrl, {
         download: true,
@@ -199,7 +200,7 @@
       loadStats();
     }
 
-    // spuštění
+    // Spuštění
     loadRate().then(loadStats);
   </script>
 </body>
