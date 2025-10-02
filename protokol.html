@@ -51,10 +51,10 @@
     .btns button:nth-child(1) { background:#666; } /* vymazat podpis */
     .btns button:nth-child(2) { background:#999; } /* zpět */
     #exportBtn {
-      background: linear-gradient(135deg, #888, #444);
+      background: linear-gradient(135deg, #9b59b6, #8e44ad); /* fialový gradient */
     }
     #exportBtn:hover {
-      background: linear-gradient(135deg, #777, #333);
+      background: linear-gradient(135deg, #8e44ad, #732d91);
     }
 
     /* mobilní layout */
@@ -175,7 +175,7 @@
     document.getElementById("sign-date").value = today;
   });
 
-  // --- Export PDF opravený ---
+  // --- Export PDF se zarovnáním na střed ---
   function downloadPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF("p", "mm", "a4");
@@ -221,7 +221,8 @@
 
       let positionY = 0;
       while (positionY < renderHeight) {
-        doc.addImage(imgData, "PNG", 0, -positionY, renderWidth, renderHeight);
+        const xOffset = (pdfWidth - renderWidth) / 2; // zarovnání na střed
+        doc.addImage(imgData, "PNG", xOffset, -positionY, renderWidth, renderHeight);
         positionY += pdfHeight;
         if (positionY < renderHeight) doc.addPage();
       }
