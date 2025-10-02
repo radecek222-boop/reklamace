@@ -42,6 +42,19 @@
     }
     .protocol-btn:hover { background:#218838; }
 
+    /* vyhledávací pole */
+    #search {
+      width:100%;
+      max-width:500px;
+      display:block;
+      margin:0 auto 20px auto;
+      padding:12px 16px;
+      font-size:1.1em;
+      border:1px solid #ccc;
+      border-radius:8px;
+      box-shadow:0 1px 3px rgba(0,0,0,0.1) inset;
+    }
+
     .table-wrapper { overflow-x:auto; margin-top:20px; }
     table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px;
       box-shadow:0 2px 6px rgba(0,0,0,0.1); font-size:13px; }
@@ -99,8 +112,7 @@
 
   <button class="btn" onclick="goHome()">Zpět na hlavní stránku</button>
 
-  <input type="text" id="search" placeholder="Hledat podle jména, adresy, telefonu nebo objednávky"
-         style="width:100%;max-width:400px;display:block;margin:0 auto;">
+  <input type="text" id="search" placeholder="Hledat podle jména, adresy, telefonu nebo objednávky">
   <div id="results" class="table-wrapper">Načítám data...</div>
 
 <script>
@@ -162,9 +174,9 @@ function renderTable(rows){
     let details = "";
     Object.entries(row).forEach(([key,val])=>{
       if (!["Customer","Address","KONTAKT","STAV - termín návštěvy"].includes(key)) {
-        if (key.startsWith("_")) return; // ⬅ skryje sloupce bez názvu
+        if (key.startsWith("_")) return; // skryje sloupce bez názvu
         let displayKey = key;
-        if (key === "Label") displayKey = "Contract"; // přejmenování
+        if (key === "Label") displayKey = "Contract"; // přejmenování Label → Contract
         details += `<div><b>${displayKey}:</b> ${val||""}</div>`;
       }
     });
