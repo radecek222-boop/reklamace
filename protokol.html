@@ -67,22 +67,32 @@
         }
       });
       let translateTimer;
-      document.getElementById("description-cz").addEventListener("input", () => {
-        clearTimeout(translateTimer);
-        translateTimer = setTimeout(autoTranslate, 800);
+      const czInputs = ["description-cz", "problem-cz", "repair-cz"];
+      czInputs.forEach(id => {
+        document.getElementById(id).addEventListener("input", () => {
+          clearTimeout(translateTimer);
+          translateTimer = setTimeout(autoTranslate, 800);
+        });
       });
     });
     function autoTranslate() {
-      const sourceText = document.getElementById("description-cz").value;
-      const targetEl = document.getElementById("description-en");
-      if (!sourceText.trim()) return targetEl.value = "";
-      fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=cs&tl=en&dt=t&q=${encodeURIComponent(sourceText)}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data && data[0]) {
-            targetEl.value = data[0].map(pair => pair[0]).join("");
-          }
-        });
+      const fields = [
+        { cz: "description-cz", en: "description-en" },
+        { cz: "problem-cz", en: "problem-en" },
+        { cz: "repair-cz", en: "repair-en" }
+      ];
+      fields.forEach(({cz, en}) => {
+        const sourceText = document.getElementById(cz).value;
+        const targetEl = document.getElementById(en);
+        if (!sourceText.trim()) return targetEl.value = "";
+        fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=cs&tl=en&dt=t&q=${encodeURIComponent(sourceText)}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data[0]) {
+              targetEl.value = data[0].map(pair => pair[0]).join("");
+            }
+          });
+      });
     }
     function calculateTotal() {
       const work = parseFloat(document.getElementById("price-work").value) || 0;
@@ -143,14 +153,14 @@
 
     <div class="section-title">Problém zjištěný technikem / Detected problem</div>
     <div class="split-section">
-      <textarea></textarea>
-      <textarea readonly></textarea>
+      <textarea id="problem-cz" placeholder="Problém česky"></textarea>
+      <textarea id="problem-en" readonly></textarea>
     </div>
 
     <div class="section-title">Návrh opravy / Repair proposal</div>
     <div class="split-section">
-      <textarea></textarea>
-      <textarea readonly></textarea>
+      <textarea id="repair-cz" placeholder="Oprava česky"></textarea>
+      <textarea id="repair-en" readonly></textarea>
     </div>
 
     <div class="two-col-table">
