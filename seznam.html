@@ -111,7 +111,7 @@
       50%  { background-color:#ff0000; color:#fff; }
       100% { background-color:#ffcccc; color:#111; }
     }
-    tr.today {
+    tr.today td {
       animation: blink 1s infinite;
       font-weight:900;
     }
@@ -138,9 +138,12 @@ let allData = [];
 
 const days = ["pondělí","úterý","středa","čtvrtek","pátek","sobota","neděle"];
 
-// dnešní datum zařízení → jen den.měsíc (např. 2.10)
+// dnešní datum zařízení → ve variantách "2.10" a "02.10"
 const today = new Date();
-const todayStr = today.getDate() + "." + (today.getMonth()+1);
+const day = today.getDate();
+const month = today.getMonth()+1;
+const todayStr1 = day + "." + month;        
+const todayStr2 = (day<10?"0"+day:day) + "." + (month<10?"0"+month:month);
 
 // pomocná funkce pro „chytré“ vyhledávání (bez diakritiky, case-insensitive)
 function norm(s){
@@ -182,8 +185,11 @@ function renderTable(rows){
       rowClass = "scheduled";
     }
 
-    // pokud se v řádku nachází dnešní den.měsíc → blikání
-    if (Object.values(row).some(v => (v || "").includes(todayStr))) {
+    // pokud se v řádku nachází dnešní datum → blikání
+    if (Object.values(row).some(v => {
+      const val = (v || "").toString();
+      return val.includes(todayStr1) || val.includes(todayStr2);
+    })) {
       rowClass = "today";
     }
 
