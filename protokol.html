@@ -5,29 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Protokol - White Glove Service</title>
   <style>
-    html { font-size: 14px; }
-    body { font-family: Inter, sans-serif; background:#f6f7fb; padding:10px; margin:0; }
-    .header { text-align:center; margin-bottom:10px; }
+    body { font-family: Inter, sans-serif; background:#f6f7fb; padding:20px; margin:0; font-size:14px; }
+    .header { text-align:center; margin-bottom:20px; }
     .header div:first-child { font-size:28px; font-weight:900; }
-    .header div:last-child { font-size:11px; margin-top:4px; font-weight:normal; }
-    table { width:100%; border-collapse:collapse; margin:8px 0; font-size:14px; }
-    td { padding:4px; vertical-align:top; }
+    .header div:last-child { font-size:12px; margin-top:4px; font-weight:normal; }
+    table { width:100%; border-collapse:collapse; margin:10px 0; }
+    td { padding:6px; vertical-align:top; }
     .label { font-weight:600; width:25%; }
     input, select, textarea { width:100%; padding:4px; font-size:1em; }
-    .split-section { display:flex; gap:10px; margin:8px 0; flex-wrap:wrap; }
-    .split-box { flex:1; min-height:80px; border:1px solid #ccc; padding:6px; background:white; }
-    .two-col-table { display:flex; gap:20px; flex-wrap:wrap; }
-    .two-col-table table { width:100%; }
-    .section-title { font-weight:700; margin-top:12px; }
-    #signature-pad { border:2px dashed #888; width:100%; height:150px; background:white; touch-action:none; }
-    .signature-label { font-size:0.9em; color:#444; margin:4px 0 12px; }
-    .btns { margin-top:10px; display:flex; gap:10px; flex-wrap:wrap; }
-    .btns button { padding:8px 16px; font-size:0.95em; border:none; background:#333; color:white; border-radius:6px; cursor:pointer; }
-    @media(max-width:600px){
-      html { font-size: 13px; }
-      .split-section { flex-direction: column; }
-      .two-col-table { flex-direction: column; gap: 10px; }
-    }
+    .split-section { display:flex; gap:10px; margin:10px 0; }
+    .split-box { flex:1; min-height:80px; border:1px solid #ccc; padding:8px; background:white; }
+    .two-col-table { display:flex; flex-wrap:wrap; gap:30px; }
+    .two-col-table table { flex:1; min-width:300px; }
+    .section-title { font-weight:700; margin-top:20px; }
+    #signature-pad { border:2px dashed #888; width:100%; height:150px; background:white; }
+    .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
+    .btns { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
+    .btns button { padding:10px 20px; font-size:1em; border:none; background:#333; color:white; border-radius:6px; cursor:pointer; }
   </style>
 </head>
 <body>
@@ -87,14 +81,14 @@
 
     <div class="section-title">Problém zjištěný technikem / Problem detected on site by technician:</div>
     <div class="split-section">
-      <div class="split-box" contenteditable="true" id="problem-cz"></div>
-      <div class="split-box" contenteditable="true" id="problem-en"></div>
+      <div class="split-box" contenteditable="true"></div>
+      <div class="split-box" contenteditable="true"></div>
     </div>
 
     <div class="section-title">Návrh opravy / Repair:</div>
     <div class="split-section">
-      <div class="split-box" contenteditable="true" id="repair-cz"></div>
-      <div class="split-box" contenteditable="true" id="repair-en"></div>
+      <div class="split-box" contenteditable="true"></div>
+      <div class="split-box" contenteditable="true"></div>
     </div>
 
     <div class="two-col-table">
@@ -117,10 +111,10 @@
 
     <div class="section-title">Podpis zákazníka / Customer signature:</div>
     <canvas id="signature-pad"></canvas>
-    <div class="signature-label">Podepište se prstem nebo myší / Sign using finger or mouse</div>
+    <div class="signature-label">Podepište se prosím prstem nebo myší / Sign using finger or mouse</div>
 
     <div class="btns">
-      <button onclick="goHome()">⬅️ Zpět na hlavní stránku</button>
+      <button onclick="window.close()">⬅️ Zpět na hlavní stránku</button>
       <button onclick="downloadPDF()">📄 Exportovat do PDF</button>
       <button onclick="clearSignature()">🧹 Smazat podpis</button>
     </div>
@@ -135,24 +129,10 @@
     document.getElementById("signature-date").innerText = format;
 
     const canvas = document.getElementById("signature-pad");
-    function resizeCanvas() {
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
-      canvas.width = canvas.offsetWidth * ratio;
-      canvas.height = canvas.offsetHeight * ratio;
-      canvas.getContext("2d").scale(ratio, ratio);
-    }
-    window.addEventListener("resize", resizeCanvas);
-    resizeCanvas();
     const signaturePad = new SignaturePad(canvas);
 
-    function clearSignature() { signaturePad.clear(); }
-    function goHome() {
-      if (window.opener) {
-        window.opener.location.href = "index.html";
-        window.close();
-      } else {
-        location.href = "index.html";
-      }
+    function clearSignature() {
+      signaturePad.clear();
     }
 
     async function downloadPDF() {
@@ -184,24 +164,8 @@
         document.getElementById("contract").value = d["Label"] || "";
         document.getElementById("model").value = d["Model"] || "";
         document.getElementById("description-cz").innerText = d["POPIS REKLAMACE - OPRAVY"] || "";
+        document.getElementById("description-en").innerText = d["POPIS REKLAMACE - OPRAVY"] || "";
       }
-    });
-
-    async function autoTranslate(sourceId, targetId) {
-      const text = document.getElementById(sourceId).innerText.trim();
-      if (!text) return;
-      const res = await fetch("https://libretranslate.de/translate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ q: text, source: "cs", target: "en", format: "text" })
-      });
-      const json = await res.json();
-      document.getElementById(targetId).innerText = json.translatedText || "";
-    }
-
-    ["description-cz", "problem-cz", "repair-cz"].forEach((id, idx) => {
-      const targetId = ["description-en", "problem-en", "repair-en"][idx];
-      document.getElementById(id).addEventListener("input", () => autoTranslate(id, targetId));
     });
   </script>
 </body>
