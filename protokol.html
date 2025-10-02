@@ -50,8 +50,12 @@
     }
     .btns button:nth-child(1) { background:#666; } /* vymazat podpis */
     .btns button:nth-child(2) { background:#999; } /* zpět */
-    #exportBtn { background:#4CAF50; } /* zelené exportní tlačítko */
-    #exportBtn:hover { background:#45a049; }
+    #exportBtn {
+      background: linear-gradient(135deg, #888, #444);
+    }
+    #exportBtn:hover {
+      background: linear-gradient(135deg, #777, #333);
+    }
 
     /* mobilní layout */
     @media (max-width:768px){
@@ -171,7 +175,7 @@
     document.getElementById("sign-date").value = today;
   });
 
-  // --- Export PDF v desktop layoutu (i na mobilu) ---
+  // --- Export PDF opravený ---
   function downloadPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF("p", "mm", "a4");
@@ -179,7 +183,7 @@
     const wrapper = document.querySelector(".wrapper");
     wrapper.classList.add("force-desktop");
 
-    // přepočítat podpisové pole před exportem
+    // Přepočítat podpisový canvas
     const canvasEl = document.getElementById("signature-pad");
     const tempData = signaturePad.toData();
     canvasEl.width = canvasEl.offsetWidth;
@@ -187,27 +191,39 @@
     signaturePad.clear();
     signaturePad.fromData(tempData);
 
-    // pevná velikost A4 v px
-    const a4WidthPx = 794;
-    const a4HeightPx = 1123;
+    const wrapperWidth = wrapper.scrollWidth;
+    const wrapperHeight = wrapper.scrollHeight;
 
     html2canvas(wrapper, {
-      width: a4WidthPx,
-      height: a4HeightPx,
+      width: wrapperWidth,
+      height: wrapperHeight,
       scale: 2,
-      useCORS: true
+      useCORS: true,
+      windowWidth: wrapperWidth,
+      windowHeight: wrapperHeight
     }).then(canvas => {
       const imgData = canvas.toDataURL("image/png");
-      const pageWidth = doc.internal.pageSize.getWidth();
+      const pdfWidth = doc.internal.pageSize.getWidth();
+      const pdfHeight = doc.internal.pageSize.getHeight();
+
       const imgProps = doc.getImageProperties(imgData);
-      const imgHeight = (imgProps.height * pageWidth) / imgProps.width;
+      const imgRatio = imgProps.width / imgProps.height;
+      const pdfRatio = pdfWidth / pdfHeight;
 
-      doc.addImage(imgData, "PNG", 0, 0, pageWidth, imgHeight);
+      let renderWidth, renderHeight;
+      if (imgRatio > pdfRatio) {
+        renderWidth = pdfWidth;
+        renderHeight = pdfWidth / imgRatio;
+      } else {
+        renderHeight = pdfHeight;
+        renderWidth = pdfHeight * imgRatio;
+      }
 
-      if (signaturePad && !signaturePad.isEmpty()) {
-        const signData = signaturePad.toDataURL();
-        const pdfHeight = doc.internal.pageSize.getHeight();
-        doc.addImage(signData, "PNG", 20, pdfHeight - 60, 120, 40);
+      let positionY = 0;
+      while (positionY < renderHeight) {
+        doc.addImage(imgData, "PNG", 0, -positionY, renderWidth, renderHeight);
+        positionY += pdfHeight;
+        if (positionY < renderHeight) doc.addPage();
       }
 
       doc.save("protokol.pdf");
