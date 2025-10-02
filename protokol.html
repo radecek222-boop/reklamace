@@ -9,15 +9,15 @@
     .header { text-align:center; margin-bottom:20px; }
     .header div:first-child { font-size:28px; font-weight:900; }
     .header div:last-child { font-size:12px; margin-top:4px; font-weight:normal; }
-    table { width:100%; border-collapse:collapse; margin:10px 0; }
+    table { width:100%; border-collapse:collapse; margin:10px 0; font-size:12px; }
     td { padding:6px; vertical-align:top; }
-    .label { font-weight:600; width:25%; }
-    input, select, textarea { width:100%; padding:4px; font-size:1em; }
+    .label { font-weight:600; width:25%; font-size:12px; }
+    input, select, textarea { width:100%; padding:4px; font-size:12px; }
     .split-section { display:flex; gap:10px; margin:10px 0; }
-    .split-box { flex:1; min-height:80px; border:1px solid #ccc; padding:8px; background:white; }
-    .two-col-table { display:flex; gap:30px; }
+    .split-box { flex:1; min-height:80px; border:1px solid #ccc; padding:8px; background:white; font-size:12px; }
+    .two-col-table { display:flex; gap:30px; flex-wrap:wrap; }
     .two-col-table table { width:100%; }
-    .section-title { font-weight:700; margin-top:20px; }
+    .section-title { font-weight:700; margin-top:20px; font-size:12px; }
     #signature-pad { border:2px dashed #888; width:100%; height:150px; background:white; }
     .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
     .btns { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
@@ -84,8 +84,47 @@
       </table>
     </div>
 
-    <!-- Zbytek protokolu zůstává nezměněn -->
+    <div class="section-title">Zákazník reklamuje / The customer complains:</div>
+    <div class="split-section">
+      <div class="split-box" contenteditable="true" id="description-cz"></div>
+      <div class="split-box" contenteditable="true" id="description-en"></div>
+    </div>
 
+    <div class="section-title">Problém zjištěný technikem / Problem detected on site by technician:</div>
+    <div class="split-section">
+      <div class="split-box" contenteditable="true"></div>
+      <div class="split-box" contenteditable="true"></div>
+    </div>
+
+    <div class="section-title">Návrh opravy / Repair:</div>
+    <div class="split-section">
+      <div class="split-box" contenteditable="true"></div>
+      <div class="split-box" contenteditable="true"></div>
+    </div>
+
+    <div class="two-col-table">
+      <table>
+        <tr><td class="label">Počet opravovaných dílů</td><td><input type="number" value="1"></td></tr>
+        <tr><td class="label">Cena za práci</td><td><input type="text" value="95 EUR"></td></tr>
+        <tr><td class="label">Cena za materiál</td><td><input type="text" value="0"></td></tr>
+        <tr><td class="label">Cena za druhého technika</td><td><input type="text" value="0"></td></tr>
+        <tr><td class="label">Cena za dopravu</td><td><input type="text" value="0"></td></tr>
+        <tr><td class="label">Datum podpisu</td><td><span id="signature-date"></span></td></tr>
+      </table>
+      <table>
+        <tr><td class="label">Reklamace vyřešena?</td><td><select><option>ANO</option><option>NE</option></select></td></tr>
+        <tr><td class="label">Čeká se na vyjádření prodejce?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Poškození technikem?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Úhradu provede zákazník?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Cena celkem</td><td><input type="text" value="95 EUR"></td></tr>
+      </table>
+    </div>
   </div>
+
+  <script>
+    const today = new Date();
+    document.getElementById("visit-date").innerText = today.toLocaleDateString("cs-CZ");
+    document.getElementById("signature-date").innerText = today.toLocaleDateString("cs-CZ");
+  </script>
 </body>
 </html>
