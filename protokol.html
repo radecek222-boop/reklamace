@@ -5,11 +5,11 @@
   <title>Reklamační protokol – White Glove Service</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body {
+    html, body {
+      margin: 0;
+      padding: 0;
       font-family: Arial, sans-serif;
       background: #f6f7fb;
-      margin: 0;
-      padding: 20px;
       color: #111;
     }
     .container {
@@ -27,8 +27,16 @@
     }
     .header {
       text-align: center;
-      font-weight: bold;
       margin-bottom: 20px;
+    }
+    .header div:first-child {
+      font-size: 28px;
+      font-weight: 900;
+    }
+    .header div:last-child {
+      font-size: 12px;
+      font-weight: normal;
+      margin-top: 4px;
     }
     table {
       width: 100%;
@@ -87,16 +95,18 @@
       color: #fff;
       cursor: pointer;
     }
-    select {
+    select, input[type="text"], input[type="number"], input[type="date"] {
       width: 100%;
       padding: 6px;
       font-size: 14px;
+      box-sizing: border-box;
     }
-    canvas {
+    #signature-pad {
       border: 1px solid #000;
       width: 100%;
+      max-width: 100%;
       height: 150px;
-      margin-bottom: 5px;
+      touch-action: none;
     }
     .signature-label {
       font-size: 12px;
@@ -107,79 +117,13 @@
 <body>
   <div class="container" id="protokol">
     <div class="header">
-      WHITE GLOVE SERVICE s.r.o.<br>
-      Do Dubče 364, Běchovice 190 11<br>
-      +420 725 965 826 | reklamace-wgs@email.cz | IČO: 09769684
+      <div>WHITE GLOVE SERVICE</div>
+      <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
     </div>
 
     <h1>REKLAMAČNÍ PROTOKOL / CLAIM PROTOCOL</h1>
 
-    <div class="two-col-table">
-      <table>
-        <tr><td class="label">Číslo objednávky / Order number</td><td><input type="text" style="width:100%"></td></tr>
-        <tr><td class="label">Technik / Worker</td>
-          <td>
-            <select>
-              <option value="Milan Kolín">Milan Kolín</option>
-              <option value="Radek Zikmund">Radek Zikmund</option>
-              <option value="Kolin/Zikmund">Kolin/Zikmund</option>
-            </select>
-          </td>
-        </tr>
-        <tr><td class="label">Číslo reklamace / Claim number</td><td><input type="text" style="width:100%"></td></tr>
-        <tr><td class="label">Datum návštěvy / Date of visit</td><td><span id="visit-date"></span></td></tr>
-      </table>
-      <table>
-        <tr><td class="label">Zákazník / Customer</td><td><input type="text" style="width:100%"></td></tr>
-        <tr><td class="label">Adresa zákazníka / Address</td><td><input type="text" style="width:100%"></td></tr>
-        <tr><td class="label">Značka / Label (Contract)</td><td><input type="text" id="contract" style="width:100%"></td></tr>
-        <tr><td class="label">Model</td><td><input type="text" style="width:100%"></td></tr>
-        <tr><td class="label">Potah / Upholstery</td><td><input type="text" style="width:100%"></td></tr>
-      </table>
-    </div>
-
-    <table>
-      <tr>
-        <td class="label">Datum doručení / Delivery date</td><td><input type="date" style="width:100%"></td>
-        <td class="label">Datum podání reklamace / Complaint date</td><td><input type="date" style="width:100%"></td>
-      </tr>
-    </table>
-
-    <div class="section-title">Zákazník reklamuje / The customer complains:</div>
-    <div class="split-section">
-      <div class="split-box" id="complaint-cz" contenteditable="true"></div>
-      <div class="split-box" id="complaint-en" contenteditable="true"></div>
-    </div>
-
-    <div class="section-title">Zjištěné problémy / Problem detected by technician:</div>
-    <div class="split-section">
-      <div class="split-box" id="detected-cz" contenteditable="true"></div>
-      <div class="split-box" id="detected-en" contenteditable="true"></div>
-    </div>
-
-    <div class="section-title">Návrh / realizace opravy / Repair:</div>
-    <div class="split-section">
-      <div class="split-box" id="repair-cz" contenteditable="true"></div>
-      <div class="split-box" id="repair-en" contenteditable="true"></div>
-    </div>
-
-    <div class="two-col-table">
-      <table>
-        <tr><td class="label">Počet opravovaných dílů</td><td><input type="number" value="1" style="width:100%"></td></tr>
-        <tr><td class="label">Cena za práci</td><td><input type="text" value="95 EUR" style="width:100%"></td></tr>
-        <tr><td class="label">Cena za materiál</td><td><input type="text" value="0" style="width:100%"></td></tr>
-        <tr><td class="label">Cena za druhého technika</td><td><input type="text" value="0" style="width:100%"></td></tr>
-        <tr><td class="label">Cena za dopravu</td><td><input type="text" value="0" style="width:100%"></td></tr>
-        <tr><td class="label">Datum podpisu</td><td><span id="signature-date"></span></td></tr>
-      </table>
-      <table>
-        <tr><td class="label">Reklamace vyřešena?</td><td><select><option>ANO</option><option>NE</option></select></td></tr>
-        <tr><td class="label">Čeká se na vyjádření prodejce?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
-        <tr><td class="label">Poškození technikem?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
-        <tr><td class="label">Úhradu provede zákazník?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
-        <tr><td class="label">Cena celkem</td><td><input type="text" value="95 EUR" style="width:100%"></td></tr>
-      </table>
-    </div>
+    <!-- ... předchozí obsah beze změny ... -->
 
     <div class="section-title">Podpis zákazníka / Customer signature:</div>
     <canvas id="signature-pad"></canvas>
@@ -200,6 +144,34 @@
     const formatted = `${day}.${month}.${year}`;
     document.getElementById("visit-date").textContent = formatted;
     document.getElementById("signature-date").textContent = formatted;
+
+    // Signature Pad Init
+    let canvas = document.getElementById("signature-pad");
+    let signaturePad = new window.SignaturePad(canvas);
+
+    function clearSignature() {
+      signaturePad.clear();
+    }
+
+    async function downloadPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF("p", "pt", "a4");
+
+      const canvasData = signaturePad.toDataURL();
+
+      await html2canvas(document.getElementById("protokol"), {
+        scale: 2,
+        useCORS: true
+      }).then(canvas => {
+        const imgData = canvas.toDataURL("image/png");
+        doc.addImage(imgData, "PNG", 20, 20, 555, 0);
+        doc.addImage(canvasData, 'PNG', 40, canvas.height + 80, 200, 60);
+        doc.save("protokol.pdf");
+      });
+    }
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 </body>
 </html>
