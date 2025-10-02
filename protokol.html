@@ -32,7 +32,6 @@
     .two-col-table { display:flex; gap:30px; flex-wrap:wrap; }
     .two-col-table .col { flex:1; min-width:300px; }
     .section-title { font-weight:700; margin-top:20px; }
-    .side-label { font-size:11px; font-weight:500; color:#555; margin-bottom:4px; }
     #signature-pad {
       border:2px dashed #888;
       width:100%;
@@ -42,24 +41,11 @@
     .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
     .btns { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
     .btns button { padding:10px 20px; font-size:1em; border:none; background:#333; color:white; border-radius:6px; cursor:pointer; }
-    @media (max-width:768px){
-      .wrapper{padding:10px;}
-      .two-col-table{flex-direction:column;}
-      .split-section{flex-direction:column;}
-    }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
-
-  <!-- vložený font DejaVu Sans s diakritikou -->
-  <script>
-    const dejavu_base64 = `
-AAEAAAASAQAABAAgR0RFRgAAAVwAAABkT1MvMgAAAYgAAABgY21hcAAAAeQAAAF4Z2x5ZgAAAhAA
-... (zkráceno, tady je velký base64 řetězec fontu DejaVuSans) ...
-`;
-  </script>
 </head>
 <body>
 <div class="wrapper">
@@ -68,7 +54,6 @@ AAEAAAASAQAABAAgR0RFRgAAAVwAAABkT1MvMgAAAYgAAABgY21hcAAAAeQAAAF4Z2x5ZgAAAhAA
     <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
   </div>
 
-  <!-- formulář jako dřív -->
   <div class="two-col-table">
     <div class="col">
       <table>
@@ -90,24 +75,22 @@ AAEAAAASAQAABAAgR0RFRgAAAVwAAABkT1MvMgAAAYgAAABgY21hcAAAAeQAAAF4Z2x5ZgAAAhAA
     </div>
   </div>
 
-  <!-- bloky complaint/problem/repair -->
   <div class="section-title">Zákazník reklamuje / Customer complaint</div>
   <div class="split-section">
-    <div style="flex:1;"><textarea id="description-cz"></textarea></div>
-    <div style="flex:1;"><textarea id="description-en"></textarea></div>
+    <textarea id="description-cz" placeholder="CZ"></textarea>
+    <textarea id="description-en" placeholder="EN"></textarea>
   </div>
   <div class="section-title">Problém zjištěný technikem / Detected problem</div>
   <div class="split-section">
-    <div style="flex:1;"><textarea id="problem-cz"></textarea></div>
-    <div style="flex:1;"><textarea id="problem-en"></textarea></div>
+    <textarea id="problem-cz" placeholder="CZ"></textarea>
+    <textarea id="problem-en" placeholder="EN"></textarea>
   </div>
   <div class="section-title">Návrh opravy / Repair proposal</div>
   <div class="split-section">
-    <div style="flex:1;"><textarea id="repair-cz"></textarea></div>
-    <div style="flex:1;"><textarea id="repair-en"></textarea></div>
+    <textarea id="repair-cz" placeholder="CZ"></textarea>
+    <textarea id="repair-en" placeholder="EN"></textarea>
   </div>
 
-  <!-- finance a stav -->
   <div class="two-col-table">
     <div class="col">
       <table>
@@ -156,22 +139,20 @@ AAEAAAASAQAABAAgR0RFRgAAAVwAAABkT1MvMgAAAYgAAABgY21hcAAAAeQAAAF4Z2x5ZgAAAhAA
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF("p","mm","a4");
 
-    // registrace fontu
-    doc.addFileToVFS("dejavu-normal.ttf", dejavu_base64);
-    doc.addFont("dejavu-normal.ttf","dejavu","normal");
-    doc.setFont("dejavu");
+    doc.setFont("times","normal"); // ✅ Times podporuje českou diakritiku
 
+    // Hlavička
     doc.setFontSize(16);
     doc.text("WHITE GLOVE SERVICE",105,15,{align:"center"});
     doc.setFontSize(10);
     doc.text("Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684",105,22,{align:"center"});
 
-    // příklad první tabulky
+    // Údaje zákazník/technik
     doc.autoTable({
       startY:30,
       theme:"grid",
+      styles:{font:"times",fontSize:10},
       headStyles:{fillColor:[255,255,255], textColor:[0,0,0]},
-      styles:{font:"dejavu",fontSize:10},
       head:[["Číslo objednávky",document.getElementById("order-number").value,"Technik",document.getElementById("technician").value]],
       body:[
         ["Číslo reklamace",document.getElementById("claim-number").value,"Datum návštěvy",document.getElementById("visit-date").value],
@@ -182,8 +163,46 @@ AAEAAAASAQAABAAgR0RFRgAAAVwAAABkT1MvMgAAAYgAAABgY21hcAAAAeQAAAF4Z2x5ZgAAAhAA
       columnStyles:{0:{cellWidth:40},1:{cellWidth:55},2:{cellWidth:40},3:{cellWidth:55}}
     });
 
-    // podpis
+    // Complaint/problem/repair bloky
+    function block(title,cz,en){
+      doc.autoTable({
+        startY:doc.lastAutoTable.finalY+10,
+        theme:"grid",
+        styles:{font:"times",fontSize:10,cellPadding:2,valign:"top"},
+        headStyles:{fillColor:[255,255,255], textColor:[0,0,0]},
+        head:[[title,""]],
+        body:[
+          ["CZ",document.getElementById(cz).value],
+          ["EN",document.getElementById(en).value]
+        ],
+        columnStyles:{0:{cellWidth:20,fontStyle:"bold"},1:{cellWidth:170}}
+      });
+    }
+    block("Zákazník reklamuje / Customer complaint","description-cz","description-en");
+    block("Problém zjištěný technikem / Detected problem","problem-cz","problem-en");
+    block("Návrh opravy / Repair proposal","repair-cz","repair-en");
+
+    // Finance a stav
+    doc.autoTable({
+      startY:doc.lastAutoTable.finalY+10,
+      theme:"grid",
+      styles:{font:"times",fontSize:10},
+      headStyles:{fillColor:[255,255,255], textColor:[0,0,0]},
+      head:[["Finanční údaje","","Stav reklamace",""]],
+      body:[
+        ["Počet dílů",document.getElementById("parts").value,"Vyřešeno",document.getElementById("solved").value],
+        ["Práce",document.getElementById("price-work").value,"Vyjádření prodejce",document.getElementById("dealer").value],
+        ["Materiál",document.getElementById("price-material").value,"Poškození technikem",document.getElementById("damage").value],
+        ["2. technik",document.getElementById("price-second").value,"Úhrada zákazník",document.getElementById("payment").value],
+        ["Doprava",document.getElementById("price-transport").value,"Datum podpisu",document.getElementById("sign-date").value],
+        ["Celkem",document.getElementById("price-total").value,"",""]
+      ],
+      columnStyles:{0:{cellWidth:40},1:{cellWidth:55},2:{cellWidth:40},3:{cellWidth:55}}
+    });
+
+    // Podpis
     let y = doc.lastAutoTable.finalY+20;
+    doc.setFont("times","bold"); doc.setFontSize(11);
     doc.text("Podpis zákazníka:",10,y);
     if(signaturePad && !signaturePad.isEmpty()){
       const signData = signaturePad.toDataURL();
