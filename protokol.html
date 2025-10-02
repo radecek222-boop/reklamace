@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WHITE GLOVE SERVICE – Protokol</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     body {
       margin:0;
@@ -80,23 +82,23 @@
 
   <form id="protocolForm">
     <label>Zákazník</label>
-    <input type="text" name="customer">
+    <input type="text" id="customer">
 
     <label>Adresa</label>
-    <input type="text" name="address">
+    <input type="text" id="address">
 
     <label>Kontakt</label>
-    <input type="text" name="kontakt">
+    <input type="text" id="kontakt">
 
     <label>Popis reklamace / opravy</label>
-    <textarea name="description" rows="4"></textarea>
+    <textarea id="description" rows="4"></textarea>
 
     <label>Podpis zákazníka</label>
     <canvas id="signature-pad"></canvas>
     <button type="button" class="btn" onclick="clearSignature()">Vymazat podpis</button>
 
     <br><br>
-    <button type="button" class="save-btn">Uložit protokol</button>
+    <button type="button" class="save-btn" onclick="savePDF()">Uložit protokol do PDF</button>
     <button type="button" class="btn" onclick="location.href='seznam.html'">Zpět na seznam</button>
     <button type="button" class="btn" onclick="location.href='index.html'">Zpět na hlavní stránku</button>
   </form>
@@ -104,9 +106,9 @@
 <script>
 const canvas = document.getElementById("signature-pad");
 const ctx = canvas.getContext("2d");
-
 let drawing = false;
 
+// --- kreslení podpisu ---
 canvas.addEventListener("mousedown", startDraw);
 canvas.addEventListener("mousemove", draw);
 canvas.addEventListener("mouseup", endDraw);
@@ -156,6 +158,43 @@ function endDraw(e){
 
 function clearSignature(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
+}
+
+// --- generování PDF ---
+async function savePDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const customer = document.getElementById("customer").value;
+  const address = document.getElementById("address").value;
+  const kontakt = document.getElementById("kontakt").value;
+  const description = document.getElementById("description").value;
+
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(16);
+  doc.text("Servisní protokol", 105, 20, {align:"center"});
+
+  doc.setFontSize(12);
+  doc.setFont("helvetica","normal");
+  doc.text("Zákazník: " + customer, 20, 40);
+  doc.text("Adresa: " + address, 20, 50);
+  doc.text("Kontakt: " + kontakt, 20, 60);
+
+  doc.text("Popis reklamace / opravy:", 20, 80);
+  doc.setFont("helvetica","italic");
+  doc.text(description, 20, 90, {maxWidth:170});
+
+  doc.setFont("helvetica","normal");
+  doc.text("Podpis zákazníka:", 20, 130);
+
+  // podpis jako obrázek
+  const signatureImg = canvas.toDataURL("image/png");
+  if (signatureImg){
+    doc.addImage(signatureImg, "PNG", 20, 135, 80, 40);
+  }
+
+  // uložit
+  doc.save("protokol.pdf");
 }
 </script>
 </body>
