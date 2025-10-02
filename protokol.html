@@ -42,12 +42,20 @@
     .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
     .btns { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
     .btns button { padding:10px 20px; font-size:1em; border:none; background:#333; color:white; border-radius:6px; cursor:pointer; }
+
+    /* Mobilní režim */
     @media (max-width: 768px) {
       .wrapper { padding: 10px; }
       .two-col-table { flex-direction: column; }
       .split-section { flex-direction: column; }
     }
+
+    /* Vynucený desktopový režim pro export PDF */
+    .force-desktop .two-col-table { flex-direction: row !important; }
+    .force-desktop .split-section { flex-direction: row !important; }
+    .force-desktop { max-width: 900px !important; }
   </style>
+
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -86,13 +94,17 @@
       document.getElementById("price-total").value = total.toFixed(2);
     }
 
-    // ✅ Opravený export do PDF – vše na 1 A4 list
+    // ✅ Export do PDF s desktop vzhledem i z telefonu
     function downloadPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF("p", "mm", "a4");
       const wrapper = document.querySelector(".wrapper");
 
-      html2canvas(wrapper, { scale: 3 }).then(canvas => {
+      // Uložíme původní className
+      const originalClass = wrapper.className;
+      wrapper.classList.add("force-desktop");
+
+      html2canvas(wrapper, { scale: 3, width: 900 }).then(canvas => {
         const imgData = canvas.toDataURL("image/png");
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
@@ -118,6 +130,9 @@
         }
 
         doc.save("protokol.pdf");
+
+        // Vrátíme původní třídy
+        wrapper.className = originalClass;
       });
     }
   </script>
