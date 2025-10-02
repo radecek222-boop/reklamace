@@ -3,199 +3,143 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WHITE GLOVE SERVICE – Protokol</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <title>Servisní protokol - White Glove Service</title>
   <style>
     body {
-      margin:0;
-      padding:20px;
-      background:#f6f7fb;
-      font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif;
-      color:#111;
+      font-family: Arial, sans-serif;
+      background: #f6f7fb;
+      margin: 0;
+      padding: 20px;
+      color: #111;
     }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+      border-radius: 8px;
+    }
+
     h1 {
-      text-align:center;
-      font-size:2em;
-      font-weight:900;
-      margin-bottom:20px;
-    }
-    form {
-      max-width:800px;
-      margin:0 auto;
-      background:#fff;
-      padding:20px;
-      border-radius:8px;
-      box-shadow:0 2px 6px rgba(0,0,0,0.1);
-    }
-    label { display:block; margin-top:10px; font-weight:600; }
-    input, textarea {
-      width:100%;
-      padding:8px;
-      margin-top:5px;
-      border:1px solid #ccc;
-      border-radius:6px;
-      font-size:1em;
+      text-align: center;
+      font-size: 22px;
+      margin-bottom: 30px;
     }
 
-    /* tlačítka */
-    .btn {
-      background:#6c757d;
-      color:#fff;
-      padding:10px 20px;
-      margin:10px 5px 0 0;
-      border:none;
-      border-radius:8px;
-      cursor:pointer;
-      font-size:1em;
-      box-shadow:0 2px 5px rgba(0,0,0,0.15);
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: bold;
     }
-    .btn:hover { background:#5a6268; }
 
-    .save-btn {
-      background:#28a745;
-      color:#fff;
-      padding:10px 20px;
-      margin:10px 5px 0 0;
-      border:none;
-      border-radius:8px;
-      cursor:pointer;
-      font-size:1em;
-      font-weight:600;
-      box-shadow:0 2px 5px rgba(0,0,0,0.2);
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      font-size: 14px;
     }
-    .save-btn:hover { background:#218838; }
 
-    /* podpis */
-    #signature-pad {
-      border:1px solid #ccc;
-      border-radius:6px;
-      width:100%;
-      height:200px;
-      margin-top:10px;
-      touch-action: none;
+    td {
+      padding: 8px;
+      vertical-align: top;
+    }
+
+    td.label {
+      font-weight: bold;
+      width: 30%;
+      background: #f0f0f0;
+    }
+
+    .section-title {
+      font-weight: bold;
+      margin: 20px 0 10px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+
+    .signature-line {
+      height: 60px;
+      border-bottom: 1px solid #000;
+      width: 250px;
+    }
+
+    .signature-label {
+      margin-top: 5px;
+      font-size: 12px;
     }
   </style>
 </head>
 <body>
-  <h1>Servisní protokol</h1>
+  <div class="container">
 
-  <form id="protocolForm">
-    <label>Zákazník</label>
-    <input type="text" id="customer">
+    <div class="header">
+      WHITE GLOVE SERVICE s.r.o.<br>
+      Do Dubče 364, Běchovice 190 11<br>
+      +420 725 965 826 &nbsp; | &nbsp; reklamace-wgs@email.cz &nbsp; | &nbsp; IČO: 09769684
+    </div>
 
-    <label>Adresa</label>
-    <input type="text" id="address">
+    <h1>CLAIM PROTOCOL / REKLAMAČNÍ PROTOKOL</h1>
 
-    <label>Kontakt</label>
-    <input type="text" id="kontakt">
+    <table>
+      <tr><td class="label">Číslo objednávky / Order number</td><td>NBU26-00001820-38</td></tr>
+      <tr><td class="label">Technik / Worker</td><td>Milan Kolín</td></tr>
+      <tr><td class="label">Číslo reklamace / Claim number</td><td>VIMROVA</td></tr>
+      <tr><td class="label">Datum návštěvy / Date of visit</td><td>2.10.2025</td></tr>
+    </table>
 
-    <label>Popis reklamace / opravy</label>
-    <textarea id="description" rows="4"></textarea>
+    <table>
+      <tr><td class="label">Zákazník / Customer</td><td>Filip Velikov</td></tr>
+      <tr><td class="label">Adresa zákazníka / Customer address</td><td>Jižní 1354/14, Rudná u Prahy</td></tr>
+    </table>
 
-    <label>Podpis zákazníka</label>
-    <canvas id="signature-pad"></canvas>
-    <button type="button" class="btn" onclick="clearSignature()">Vymazat podpis</button>
+    <table>
+      <tr><td class="label">Značka / Label</td><td>NATUZZI</td></tr>
+      <tr><td class="label">Model</td><td>C054</td></tr>
+      <tr><td class="label">Potah / Upholstery</td><td></td></tr>
+    </table>
 
-    <br><br>
-    <button type="button" class="save-btn" onclick="savePDF()">Uložit protokol do PDF</button>
-    <button type="button" class="btn" onclick="location.href='seznam.html'">Zpět na seznam</button>
-    <button type="button" class="btn" onclick="location.href='index.html'">Zpět na hlavní stránku</button>
-  </form>
+    <table>
+      <tr><td class="label">Datum doručení / Delivery date</td><td></td></tr>
+      <tr><td class="label">Datum podání reklamace / Complaint date</td><td></td></tr>
+    </table>
 
-<script>
-const canvas = document.getElementById("signature-pad");
-const ctx = canvas.getContext("2d");
-let drawing = false;
+    <div class="section-title">Zákazník reklamuje / The customer complains:</div>
+    <p>Špatně vyrobená sedačka / Poorly made seat</p>
 
-// --- kreslení podpisu ---
-canvas.addEventListener("mousedown", startDraw);
-canvas.addEventListener("mousemove", draw);
-canvas.addEventListener("mouseup", endDraw);
-canvas.addEventListener("mouseout", endDraw);
+    <div class="section-title">Zjištěné problémy / Problem detected on site by technician:</div>
+    <p>Terminály křivý, opěrky se špatně polohují, sedák je vysezený / The terminals are crooked, the armrests are poorly positioned, the seat is unseated.</p>
 
-canvas.addEventListener("touchstart", startDraw);
-canvas.addEventListener("touchmove", draw);
-canvas.addEventListener("touchend", endDraw);
+    <div class="section-title">Návrh / realizace opravy / Repair:</div>
+    <p>Po dohodě se zákazníkem se vyměnily díly za původní produkt, který měl zákazník dodaný. Zůstal mu pouze nový vkládací díl.  
+    / After agreement with the customer, the parts were exchanged for the original product that the customer had delivered. He only had the new insert part left.</p>
 
-function getPos(e){
-  const rect = canvas.getBoundingClientRect();
-  if (e.touches){
-    return {
-      x: e.touches[0].clientX - rect.left,
-      y: e.touches[0].clientY - rect.top
-    };
-  } else {
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    };
-  }
-}
+    <table>
+      <tr><td class="label">Reklamace vyřešena? / Resolved?</td><td>ANO</td></tr>
+      <tr><td class="label">Čeká se na vyjádření prodejce?</td><td>NE</td></tr>
+      <tr><td class="label">Poškození technikem?</td><td>NE</td></tr>
+      <tr><td class="label">Úhradu provede zákazník?</td><td>NE</td></tr>
+    </table>
 
-function startDraw(e){
-  e.preventDefault();
-  drawing = true;
-  ctx.beginPath();
-  const pos = getPos(e);
-  ctx.moveTo(pos.x, pos.y);
-}
+    <table>
+      <tr><td class="label">Počet opravovaných dílů</td><td>1</td></tr>
+      <tr><td class="label">Cena za práci</td><td>95 EUR</td></tr>
+      <tr><td class="label">Cena za materiál</td><td>0</td></tr>
+      <tr><td class="label">Cena za druhého technika</td><td>0</td></tr>
+      <tr><td class="label">Cena za dopravu</td><td>0</td></tr>
+      <tr><td class="label">Datum podpisu</td><td>2.10.2025</td></tr>
+    </table>
 
-function draw(e){
-  if(!drawing) return;
-  e.preventDefault();
-  const pos = getPos(e);
-  ctx.lineTo(pos.x, pos.y);
-  ctx.strokeStyle = "#000";
-  ctx.lineWidth = 2;
-  ctx.stroke();
-}
+    <div style="margin-top:40px;">
+      <div class="signature-line"></div>
+      <div class="signature-label">Podpis zákazníka / Signature of customer</div>
+    </div>
 
-function endDraw(e){
-  if(!drawing) return;
-  drawing = false;
-}
+    <table style="margin-top:30px;">
+      <tr><td class="label">Cena celkem EUR / Total price</td><td>95 EUR</td></tr>
+    </table>
 
-function clearSignature(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-}
-
-// --- generování PDF ---
-async function savePDF(){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-
-  const customer = document.getElementById("customer").value;
-  const address = document.getElementById("address").value;
-  const kontakt = document.getElementById("kontakt").value;
-  const description = document.getElementById("description").value;
-
-  doc.setFont("helvetica","bold");
-  doc.setFontSize(16);
-  doc.text("Servisní protokol", 105, 20, {align:"center"});
-
-  doc.setFontSize(12);
-  doc.setFont("helvetica","normal");
-  doc.text("Zákazník: " + customer, 20, 40);
-  doc.text("Adresa: " + address, 20, 50);
-  doc.text("Kontakt: " + kontakt, 20, 60);
-
-  doc.text("Popis reklamace / opravy:", 20, 80);
-  doc.setFont("helvetica","italic");
-  doc.text(description, 20, 90, {maxWidth:170});
-
-  doc.setFont("helvetica","normal");
-  doc.text("Podpis zákazníka:", 20, 130);
-
-  // podpis jako obrázek
-  const signatureImg = canvas.toDataURL("image/png");
-  if (signatureImg){
-    doc.addImage(signatureImg, "PNG", 20, 135, 80, 40);
-  }
-
-  // uložit
-  doc.save("protokol.pdf");
-}
-</script>
+  </div>
 </body>
 </html>
