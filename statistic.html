@@ -1,1 +1,139 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Statistiky – White Glove Service</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f6f7fb;
+      color: #111;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      min-width: 250px;
+      text-align: center;
+    }
+    .card h2 {
+      margin: 0 0 10px;
+    }
+    .summary {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 18px;
+    }
+    .back-btn {
+      display: block;
+      margin: 30px auto 0;
+      padding: 10px 20px;
+      background: #ddd;
+      color: #000;
+      text-decoration: none;
+      border-radius: 8px;
+      text-align: center;
+      width: fit-content;
+    }
+  </style>
+</head>
+<body>
+  <h1>Statistiky – White Glove Service</h1>
+  <div class="stats">
+    <div class="card">
+      <h2>Milan Kolín</h2>
+      <p id="milan-eur">EUR: …</p>
+      <p id="milan-czk">CZK: …</p>
+    </div>
+    <div class="card">
+      <h2>Radek Zikmund</h2>
+      <p id="radek-eur">EUR: …</p>
+      <p id="radek-czk">CZK: …</p>
+    </div>
+  </div>
+  <div class="summary">
+    <p id="total">Celkem účtováno: … EUR (… CZK)</p>
+    <p id="rate">Kurz: …</p>
+  </div>
+  <a href="index.html" class="back-btn">Zpět na hlavní stránku</a>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script>
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQzpP83wIYZPcnb1NI9pPSPixzcEQuRVrTOyPD7SRbgYZSrQs7QdcLNwPJ5lQleGbVVK29nr2-bMo6Y/pub?output=csv";
+
+    let rateEUR = 25.0; // default, přepíše se kurzem z ČNB
+
+    // Načti kurz z ČNB
+    async function loadRate() {
+      try {
+        const res = await fetch("https://api.cnb.cz/cnbapi/exrates/daily?lang=cz");
+        const data = await res.json();
+        const eur = data.Rates.find(r => r.code === "EUR");
+        if (eur) {
+          rateEUR = parseFloat(eur.rate.replace(",", "."));
+          document.getElementById("rate").textContent = `Kurz: 1 EUR = ${rateEUR.toFixed(2)} CZK`;
+        }
+      } catch (e) {
+        document.getElementById("rate").textContent = "Kurz: nepodařilo se načíst (použitý default " + rateEUR + ")";
+      }
+    }
+
+    // Načti data z Google Sheets a spočítej
+    function loadStats() {
+      Papa.parse(sheetUrl, {
+        download: true,
+        header: true,
+        complete: function(results) {
+          let milanEUR = 0;
+          let radekEUR = 0;
+          let totalEUR = 0;
+
+          results.data.forEach(row => {
+            let cena = parseFloat((row["CENA"] || "0").replace(",", "."));
+            if (!isNaN(cena) && cena > 0) {
+              totalEUR += cena;
+
+              let milan = row["MILAN"] ? row["MILAN"].trim() : "";
+              let radek = row["RADEK"] ? row["RADEK"].trim() : "";
+
+              if (milan && radek) {
+                // oba jeli → 33% každý
+                milanEUR += cena * 0.33;
+                radekEUR += cena * 0.33;
+              } else if (milan) {
+                milanEUR += cena * 0.45;
+              } else if (radek) {
+                radekEUR += cena * 0.45;
+              }
+            }
+          });
+
+          // zobrazení výsledků
+          document.getElementById("milan-eur").textContent = `EUR: ${milanEUR.toFixed(2)}`;
+          document.getElementById("milan-czk").textContent = `CZK: ${(milanEUR * rateEUR).toFixed(2)}`;
+          document.getElementById("radek-eur").textContent = `EUR: ${radekEUR.toFixed(2)}`;
+          document.getElementById("radek-czk").textContent = `CZK: ${(radekEUR * rateEUR).toFixed(2)}`;
+          document.getElementById("total").textContent = `Celkem účtováno: ${totalEUR.toFixed(2)} EUR (${(totalEUR * rateEUR).toFixed(2)} CZK)`;
+        }
+      });
+    }
+
+    // Spusť obojí
+    loadRate().then(loadStats);
+  </script>
+</body>
+</html>
