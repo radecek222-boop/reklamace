@@ -5,20 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Protokol - White Glove Service</title>
   <style>
-    body { font-family: Inter, sans-serif; background:#f6f7fb; padding:20px; margin:0; }
+    body { font-family: Inter, sans-serif; background:#f6f7fb; padding:20px; margin:0; font-size:12px; }
     .header { text-align:center; margin-bottom:20px; }
     .header div:first-child { font-size:28px; font-weight:900; }
     .header div:last-child { font-size:12px; margin-top:4px; font-weight:normal; }
-    table { width:100%; border-collapse:collapse; margin:10px 0; font-size:12px; }
+    table { width:100%; border-collapse:collapse; margin:10px 0; }
     td { padding:6px; vertical-align:top; }
-    .label { font-weight:600; width:25%; }
+    .label { font-weight:600; width:40%; }
     input, select, textarea { width:100%; padding:4px; font-size:1em; }
     .split-section { display:flex; gap:10px; margin:10px 0; }
-    .split-box { flex:1; min-height:80px; border:1px solid #ccc; padding:8px; background:white; font-size:12px; }
-    .split-box[contenteditable="false"] { background:#f0f0f0; color:#333; }
-    .two-col-table { display:flex; gap:30px; font-size:12px; }
+    .split-box { flex:1; min-height:80px; border:1px solid #ccc; padding:8px; background:white; }
+    .two-col-table { display:flex; gap:30px; }
     .two-col-table table { width:100%; }
-    .section-title { font-weight:700; margin-top:20px; font-size:12px; }
+    .section-title { font-weight:700; margin-top:20px; }
     #signature-pad { border:2px dashed #888; width:100%; height:150px; background:white; }
     .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
     .btns { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
@@ -73,8 +72,8 @@
 
     <div class="section-title">Zákazník reklamuje / The customer complains:</div>
     <div class="split-section">
-      <div class="split-box" contenteditable="true" id="complaint-cz"></div>
-      <div class="split-box" contenteditable="false" id="complaint-en"></div>
+      <div class="split-box" contenteditable="true" id="description-cz"></div>
+      <div class="split-box" contenteditable="false" id="description-en"></div>
     </div>
 
     <div class="section-title">Problém zjištěný technikem / Problem detected on site by technician:</div>
@@ -112,7 +111,7 @@
     <div class="signature-label">Podepište se prosím prstem nebo myší / Sign using finger or mouse</div>
 
     <div class="btns">
-      <button onclick="goHome()">⬅️ Zpět na hlavní stránku</button>
+      <button onclick="closeWindow()">⬅️ Zpět na hlavní stránku</button>
       <button onclick="downloadPDF()">📄 Exportovat do PDF</button>
       <button onclick="clearSignature()">🧹 Smazat podpis</button>
     </div>
@@ -133,58 +132,6 @@
       signaturePad.clear();
     }
 
-    function goHome() {
-      if (window.opener) {
-        window.opener.location.href = "index.html";
-        window.close();
-      } else {
-        location.href = "index.html";
-      }
-    }
-
-    async function translateText(text, from = "cs", to = "en") {
-      const response = await fetch("https://libretranslate.de/translate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ q: text, source: from, target: to, format: "text" })
-      });
-      const data = await response.json();
-      return data.translatedText || "";
-    }
-
-    function setupLiveTranslation(sourceId, targetId) {
-      let timeout;
-      document.getElementById(sourceId).addEventListener("input", () => {
-        clearTimeout(timeout);
-        timeout = setTimeout(async () => {
-          const sourceText = document.getElementById(sourceId).innerText;
-          const translated = await translateText(sourceText);
-          document.getElementById(targetId).innerText = translated;
-        }, 500);
-      });
-    }
-
-    setupLiveTranslation("complaint-cz", "complaint-en");
-    setupLiveTranslation("problem-cz", "problem-en");
-    setupLiveTranslation("repair-cz", "repair-en");
-
-    window.addEventListener("message", function(event) {
-      if (event.data.type === "openProtocol") {
-        const d = event.data.row;
-        if (!d) return;
-        document.getElementById("order-number").value = d["Order number"] || "";
-        document.getElementById("claim-number").value = d["Label"] || "";
-        document.getElementById("worker").value = d["RADEK"] ? "Radek Zikmund" : d["MILAN"] ? "Milan Kolín" : "Kolin/Zikmund";
-        document.getElementById("customer").value = d["Customer"] || "";
-        document.getElementById("address").value = d["Address"] || "";
-        document.getElementById("contract").value = d["Label"] || "";
-        document.getElementById("model").value = d["Model"] || "";
-        document.getElementById("complaint-cz").innerText = d["POPIS REKLAMACE - OPRAVY"] || "";
-        document.getElementById("problem-cz").innerText = "";
-        document.getElementById("repair-cz").innerText = "";
-      }
-    });
-
     async function downloadPDF() {
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF();
@@ -200,6 +147,75 @@
         autoPaging: true,
         html2canvas: { scale: 0.5 }
       });
+    }
+
+    window.addEventListener("message", function(event) {
+      if (event.data.type === "openProtocol") {
+        const d = event.data.row;
+        if (!d) return;
+        document.getElementById("order-number").value = d["Order number"] || "";
+        document.getElementById("claim-number").value = d["Label"] || "";
+        document.getElementById("worker").value = d["RADEK"] ? "Radek Zikmund" : d["MILAN"] ? "Milan Kolín" : "Kolin/Zikmund";
+        document.getElementById("customer").value = d["Customer"] || "";
+        document.getElementById("address").value = d["Address"] || "";
+        document.getElementById("contract").value = d["Label"] || "";
+        document.getElementById("model").value = d["Model"] || "";
+        document.getElementById("description-cz").innerText = d["POPIS REKLAMACE - OPRAVY"] || "";
+      }
+    });
+
+    const translateFields = [
+      { cz: "description-cz", en: "description-en" },
+      { cz: "problem-cz", en: "problem-en" },
+      { cz: "repair-cz", en: "repair-en" }
+    ];
+
+    function debounce(fn, delay) {
+      let timeout;
+      return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => fn(...args), delay);
+      };
+    }
+
+    async function translateText(text, target = "en") {
+      try {
+        const response = await fetch("https://libretranslate.de/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ q: text, source: "cs", target, format: "text" })
+        });
+        const data = await response.json();
+        return data.translatedText || "";
+      } catch (err) {
+        console.error("Překlad selhal:", err);
+        return "";
+      }
+    }
+
+    translateFields.forEach(({ cz, en }) => {
+      const czField = document.getElementById(cz);
+      const enField = document.getElementById(en);
+      if (!czField || !enField) return;
+
+      czField.addEventListener("input", debounce(async () => {
+        const text = czField.innerText.trim();
+        if (!text) {
+          enField.innerText = "";
+          return;
+        }
+        const translated = await translateText(text);
+        enField.innerText = translated;
+      }, 600));
+    });
+
+    function closeWindow() {
+      if (window.opener) {
+        window.opener.location.href = "index.html";
+        window.close();
+      } else {
+        location.href = "index.html";
+      }
     }
   </script>
 </body>
