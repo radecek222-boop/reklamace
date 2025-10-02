@@ -3,229 +3,218 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>White Glove Service</title>
+  <title>WHITE GLOVE SERVICE</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    :root { font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:#111 }
-    body { margin:0; padding:0; background:#f6f7fb }
-    .screen { display:none; min-height:100vh; padding:20px; }
-    .active { display:block; }
+    body { font-family: Inter, sans-serif; margin:20px; background:#f6f7fb; font-size: 13px; }
+    h2 { text-align:center; font-size:20px; font-weight:700; letter-spacing:1px; }
+    .hidden { display:none; }
 
-    /* Úvodní obrazovka */
-    .home { display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; min-height:100vh; }
-    .home h1 { font-size:3.5em; font-weight:900; margin:0 0 15px; }
-    .home p { font-size:1.3em; margin:0 0 40px; color:#555; }
-    .btn {
-      background:#e0e0e0; color:#111; padding:15px 30px; margin:10px;
-      border:none; border-radius:10px; cursor:pointer; font-size:1.1em;
-      min-width:220px; box-shadow:0 2px 5px rgba(0,0,0,0.15); transition:0.2s;
-    }
+    /* Seznam */
+    .table-wrapper { overflow-x:auto; margin-top:15px; }
+    table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1); font-size:12px; text-align:center; }
+    th, td { padding:6px 8px; border:1px solid #ccc; font-size:0.85em; text-align:center; }
+    th { background:#f0f0f0; font-weight:600; }
+    tr:nth-child(even) { background:#fafafa; }
+    tr:hover { background:#e9f0ff; cursor:pointer; }
+    a { color:#0645ad; text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .btn { background:#e0e0e0; color:#111; padding:8px 16px; margin:20px auto;
+      display:block; border:none; border-radius:8px; cursor:pointer; font-size:0.9em;
+      box-shadow:0 2px 5px rgba(0,0,0,0.15); }
     .btn:hover { background:#d5d5d5; }
+    .details { max-height: 0; overflow:hidden; background:#f9f9f9; font-size:0.8em;
+      text-align:left; padding:0 10px; transition:max-height 0.4s ease, padding 0.3s ease; }
+    .details.open { max-height:300px; padding:10px; }
+    .protocol-btn { background:#4CAF50; color:#fff; padding:6px 12px; border:none;
+      border-radius:6px; cursor:pointer; margin-top:10px; font-size:0.8em; }
+    .protocol-btn:hover { background:#43a047; }
 
     /* Protokol */
-    h2 { margin-top:0; }
-    .grid { 
-      display:grid; 
-      grid-template-columns:1fr 420px; 
-      gap:20px; 
-      max-width:1200px; 
-      margin:auto;
-    }
-    @media(max-width: 800px){
-      .grid { grid-template-columns:1fr; }
-      .home h1 { font-size:2.2em; line-height:1.2; }
-      .home p { font-size:1em; margin:0 0 25px; }
-      .btn { font-size:1em; padding:12px 20px; min-width:160px; margin:8px 0; }
-    }
-    .card {
-      background:#fff; padding:20px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,.08);
-    }
-    label { font-weight:600; display:block; margin:10px 0 5px }
-    input, textarea {
-      width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:14px;
-    }
-    textarea { resize:vertical; }
-    .signature-container {
-      border:2px solid #555; border-radius:8px; width:100%; height:180px; touch-action:none; margin-top:5px;
-    }
-    canvas { width:100%; height:100%; }
-    button {
-      background:#111; color:#fff; border:0;
-      padding:10px 16px; border-radius:8px;
-      font-size:14px; cursor:pointer; margin-top:12px;
-    }
-    button.secondary { background:#777; }
+    .protocol { background:#fff; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.15);
+      padding:20px; max-width:800px; margin:20px auto; }
+    .field { margin-bottom:12px; }
+    .field label { display:block; font-weight:600; margin-bottom:4px; }
+    .field input, .field textarea { width:100%; padding:8px; border:1px solid #ccc;
+      border-radius:6px; font-size:14px; }
+    #signature-pad { border:2px dashed #aaa; border-radius:6px; width:100%; height:200px;
+      touch-action:none; margin-top:10px; }
+    .sig-controls { margin-top:8px; display:flex; gap:10px; }
+    .sig-clear { background:#e53935; color:#fff; flex:1; padding:8px; border:none; border-radius:6px; cursor:pointer; }
+    .sig-clear:hover { background:#c62828; }
   </style>
 </head>
 <body>
+  <h2>WHITE GLOVE SERVICE</h2>
 
-<!-- Úvodní obrazovka -->
-<div id="home" class="screen home active">
-  <h1>WHITE GLOVE SERVICE</h1>
-  <p>specializovaný autorizovaný servis Natuzzi</p>
-  <button class="btn" onclick="openList()">Seznam reklamací</button>
-</div>
+  <!-- SEZNAM -->
+  <div id="list-view">
+    <input type="text" id="search" placeholder="Hledat podle jména, adresy, telefonu nebo objednávky">
+    <div id="results" class="table-wrapper">Načítám data...</div>
+  </div>
 
-<!-- Protokol oprav -->
-<div id="protocol" class="screen">
-  <h2>Servisní protokol - White Glove Service</h2>
-  <div class="grid">
-    <!-- FORMULÁŘ -->
-    <div class="card">
-      <label>Jméno zákazníka:</label>
-      <input type="text" id="customer">
-
-      <label>Adresa:</label>
-      <input type="text" id="address">
-
-      <label>Telefon:</label>
-      <input type="text" id="phone">
-
-      <label>Popis opravy:</label>
-      <textarea id="description" rows="4"></textarea>
-
-      <label>Podpis zákazníka:</label>
-      <div class="signature-container">
-        <canvas id="signature"></canvas>
-      </div>
-      <button class="secondary" onclick="clearSignature()">Smazat podpis</button>
+  <!-- PROTOKOL -->
+  <div id="protocol-view" class="hidden">
+    <div class="protocol">
+      <div class="field"><label>Zákazník</label><input type="text" id="customer" readonly></div>
+      <div class="field"><label>Adresa</label><input type="text" id="address" readonly></div>
+      <div class="field"><label>Kontakt</label><input type="text" id="contact" readonly></div>
+      <div class="field"><label>Stav / termín návštěvy</label><input type="text" id="status" readonly></div>
+      <div class="field"><label>Popis reklamace</label><textarea id="description" rows="4" readonly></textarea></div>
       
-      <button onclick="savePDF()">Exportovat do PDF</button>
-      <button onclick="showScreen('home')">Zpět</button>
-    </div>
+      <div class="field">
+        <label>Podpis zákazníka</label>
+        <canvas id="signature-pad"></canvas>
+        <div class="sig-controls">
+          <button class="sig-clear" onclick="clearSignature()">Vymazat podpis</button>
+        </div>
+      </div>
 
-    <!-- INFO PANEL -->
-    <div class="card">
-      <h2>Náhled</h2>
-      <p>Zde bude uložen protokol zákazníka se všemi údaji a podpisem.</p>
-      <p><small>Export do PDF vloží i podpis napevno, aby nemohl zmizet.</small></p>
+      <button class="btn" onclick="exportPDF()">Uložit do PDF</button>
+      <button class="btn" onclick="backToList()">Zpět na seznam</button>
     </div>
   </div>
-</div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-function openList(){
-  window.open("seznam.html", "_blank", "width=1000,height=700");
+const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQzpP83wIYZPcnb1NI9pPSPixzcEQuRVrTOyPD7SRbgYZSrQs7QdcLNwPJ5lQleGbVVK29nr2-bMo6Y/pub?gid=0&single=true&output=csv";
+let allData = [];
+
+async function loadData() {
+  try {
+    const res = await fetch(sheetUrl);
+    const text = await res.text();
+    const parsed = Papa.parse(text, { header:true, skipEmptyLines:true });
+    allData = parsed.data;
+    renderTable(allData);
+  } catch (err) {
+    document.getElementById("results").innerHTML = "Chyba při načítání dat: " + err;
+  }
 }
 
-// ==== SIGNATURE PAD ====
-const canvas = document.getElementById("signature");
+function renderTable(rows){
+  if (!rows.length){ document.getElementById("results").innerHTML = "Žádná data"; return; }
+  let html = "<table><thead><tr>";
+  ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(h => { html += "<th>"+h+"</th>"; });
+  html += "</tr></thead><tbody>";
+  rows.forEach((row,idx) => {
+    html += `<tr onclick="toggleDetails(${idx})">`;
+    ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(key => {
+      let val = row[key] || "";
+      let cellContent = val;
+      if (key.toLowerCase().includes("kontakt")) {
+        cellContent = `<a href="tel:${val}" onclick="event.stopPropagation()">${val}</a>`;
+      }
+      if (key.toLowerCase().includes("address") || key.toLowerCase().includes("adresa")) {
+        const encoded = encodeURIComponent(val);
+        cellContent = `<a href="https://waze.com/ul?q=${encoded}" target="_blank" onclick="event.stopPropagation()">${val}</a>`;
+      }
+      html += "<td>"+cellContent+"</td>";
+    });
+    html += "</tr>";
+    let details = "";
+    Object.entries(row).forEach(([key,val])=>{
+      if (!["Customer","Address","KONTAKT","STAV - termín návštěvy"].includes(key)) {
+        details += `<div><b>${key}:</b> ${val||""}</div>`;
+      }
+    });
+    details += `<button class="protocol-btn" onclick="openProtocol(${idx}, event)">Vytvořit protokol</button>`;
+    html += `<tr><td colspan="4"><div id="details-${idx}" class="details">${details}</div></td></tr>`;
+  });
+  html += "</tbody></table>";
+  document.getElementById("results").innerHTML = html;
+}
+
+function toggleDetails(index){
+  const detailsDiv = document.getElementById("details-"+index);
+  detailsDiv.classList.toggle("open");
+}
+
+function openProtocol(index, event){
+  event.stopPropagation();
+  const row = allData[index];
+  if (!row) return;
+
+  // přepnutí view
+  document.getElementById("list-view").classList.add("hidden");
+  document.getElementById("protocol-view").classList.remove("hidden");
+
+  // vyplnění polí
+  document.getElementById("customer").value = row["Customer"] || "";
+  document.getElementById("address").value = row["Address"] || "";
+  document.getElementById("contact").value = row["KONTAKT"] || "";
+  document.getElementById("status").value = row["STAV - termín návštěvy"] || "";
+  document.getElementById("description").value = row["POPIS REKLAMACE - OPRAVY"] || "";
+
+  clearSignature();
+}
+
+function backToList(){
+  document.getElementById("protocol-view").classList.add("hidden");
+  document.getElementById("list-view").classList.remove("hidden");
+}
+
+// === Podpis ===
+const canvas = document.getElementById("signature-pad");
 const ctx = canvas.getContext("2d");
 let drawing = false;
-
-function resizeCanvas() {
-  canvas.width = canvas.offsetWidth;
-  canvas.height = canvas.offsetHeight;
-}
-resizeCanvas();
-window.addEventListener("resize", resizeCanvas);
-
-function getPos(e) {
-  if (e.touches) {
-    return {
-      x: e.touches[0].clientX - canvas.getBoundingClientRect().left,
-      y: e.touches[0].clientY - canvas.getBoundingClientRect().top
-    };
-  }
-  return {
-    x: e.clientX - canvas.getBoundingClientRect().left,
-    y: e.clientY - canvas.getBoundingClientRect().top
-  };
-}
-function startDraw(e) {
-  e.preventDefault();
-  drawing = true;
-  const pos = getPos(e);
-  ctx.beginPath();
-  ctx.moveTo(pos.x, pos.y);
-}
-function endDraw(e) {
-  e.preventDefault();
-  drawing = false;
-}
-function draw(e) {
-  if (!drawing) return;
-  e.preventDefault();
-  const pos = getPos(e);
-  ctx.lineWidth = 2;
-  ctx.lineCap = "round";
-  ctx.strokeStyle = "#000";
-  ctx.lineTo(pos.x, pos.y);
-  ctx.stroke();
-}
+function resizeCanvas(){ canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }
+window.addEventListener("resize", resizeCanvas); resizeCanvas();
+function startDraw(e){ drawing = true; ctx.beginPath(); ctx.moveTo(getX(e), getY(e)); e.preventDefault(); }
+function draw(e){ if(!drawing) return; ctx.lineTo(getX(e), getY(e)); ctx.strokeStyle="#000"; ctx.lineWidth=2; ctx.stroke(); e.preventDefault(); }
+function endDraw(e){ if(drawing){ ctx.stroke(); ctx.closePath(); drawing=false; } e.preventDefault(); }
+function getX(e){ return e.clientX ? e.clientX - canvas.getBoundingClientRect().left : e.touches[0].clientX - canvas.getBoundingClientRect().left; }
+function getY(e){ return e.clientY ? e.clientY - canvas.getBoundingClientRect().top : e.touches[0].clientY - canvas.getBoundingClientRect().top; }
 canvas.addEventListener("mousedown", startDraw);
-canvas.addEventListener("mouseup", endDraw);
 canvas.addEventListener("mousemove", draw);
-canvas.addEventListener("touchstart", startDraw, { passive: false });
-canvas.addEventListener("touchend", endDraw, { passive: false });
-canvas.addEventListener("touchmove", draw, { passive: false });
+canvas.addEventListener("mouseup", endDraw);
+canvas.addEventListener("mouseout", endDraw);
+canvas.addEventListener("touchstart", startDraw);
+canvas.addEventListener("touchmove", draw);
+canvas.addEventListener("touchend", endDraw);
+function clearSignature(){ ctx.clearRect(0,0,canvas.width,canvas.height); }
 
-function clearSignature() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
-
-// ==== PDF EXPORT ====
-async function savePDF() {
+// === Export PDF ===
+async function exportPDF(){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  const customer = document.getElementById("customer").value;
-  const address = document.getElementById("address").value;
-  const phone = document.getElementById("phone").value;
-  const description = document.getElementById("description").value;
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("cs-CZ");
+  const timeStr = now.toLocaleTimeString("cs-CZ");
 
-  // Dnešní datum
-  const today = new Date().toLocaleDateString("cs-CZ");
+  doc.setFontSize(16);
+  doc.text("WHITE GLOVE SERVICE – Protokol", 20, 20);
+  doc.setFontSize(11);
+  doc.text(`Datum vytvoření: ${dateStr} ${timeStr}`, 20, 30);
 
-  // HLAVIČKA
-  doc.setFontSize(18);
-  doc.setFont("helvetica","bold");
-  doc.text("White Glove Service", 105, 15, { align:"center" });
-  doc.setLineWidth(0.5);
-  doc.line(10, 20, 200, 20);
-
-  // DATA
-  doc.setFontSize(14);
-  doc.setFont("helvetica","normal");
-  doc.text(`Datum vystavení: ${today}`, 10, 35);
-  doc.text(`Zákazník: ${customer}`, 10, 45);
-  doc.text(`Adresa: ${address}`, 10, 55);
-  doc.text(`Telefon: ${phone}`, 10, 65);
-
-  doc.text(`Popis opravy:`, 10, 80);
   doc.setFontSize(12);
-  doc.text(description, 10, 90, { maxWidth:180 });
+  doc.text("Zákazník: " + document.getElementById("customer").value, 20, 50);
+  doc.text("Adresa: " + document.getElementById("address").value, 20, 60);
+  doc.text("Kontakt: " + document.getElementById("contact").value, 20, 70);
+  doc.text("Stav: " + document.getElementById("status").value, 20, 80);
 
-  // PODPIS
+  let description = document.getElementById("description").value;
+  let splitText = doc.splitTextToSize("Popis: " + description, 170);
+  doc.text(splitText, 20, 100);
+
   const signatureImage = canvas.toDataURL("image/png");
-  doc.setFontSize(14);
-  doc.text("Podpis zákazníka:", 10, 130);
-  doc.addImage(signatureImage, "PNG", 10, 135, 100, 50);
+  doc.text("Podpis zákazníka:", 20, 150);
+  doc.addImage(signatureImage, "PNG", 20, 155, 60, 30);
 
-  // PATIČKA
-  doc.setFontSize(10);
-  doc.text("Děkujeme za využití služeb White Glove Service", 200, 290, { align:"right" });
-
-  doc.save("protokol.pdf");
+  let customerName = document.getElementById("customer").value || "Protokol";
+  customerName = customerName.replace(/\s+/g, "_");
+  doc.save(`Protokol_${customerName}_${dateStr}.pdf`);
 }
 
-// ==== DATA ZE SEZNAMU ====
-window.addEventListener("message", function(event){
-  if (event.data && event.data.type === "openProtocol"){
-    const row = event.data.row;
-    // Pozice sloupců podle tvého Google Sheet:
-    document.getElementById("customer").value     = row[0] || "";  // Customer
-    document.getElementById("address").value      = row[1] || "";  // Address
-    document.getElementById("phone").value        = row[2] || "";  // KONTAKT
-    document.getElementById("description").value  = row[10]|| "";  // POPIS REKLAMACE - OPRAVY
-    showScreen("protocol");
-  }
+document.getElementById("search").addEventListener("input", e => {
+  const q = e.target.value.toLowerCase();
+  const rows = allData.filter(r => Object.values(r).join(" ").toLowerCase().includes(q));
+  renderTable(rows);
 });
-</script>
 
+loadData();
+</script>
 </body>
 </html>
