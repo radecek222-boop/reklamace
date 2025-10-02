@@ -16,6 +16,21 @@
     .btn { background:#4CAF50; color:#fff; padding:10px 20px; border:none;
       border-radius:6px; cursor:pointer; margin-top:15px; font-size:14px; }
     .btn:hover { background:#43a047; }
+    #signature-pad {
+      border:2px dashed #aaa;
+      border-radius:6px;
+      width:100%; 
+      height:200px;
+      touch-action: none; /* zabrání posunu stránky na mobilu */
+      margin-top:10px;
+    }
+    .sig-controls {
+      margin-top:8px;
+      display:flex;
+      gap:10px;
+    }
+    .sig-clear { background:#e53935; color:#fff; flex:1; padding:8px; border:none; border-radius:6px; cursor:pointer; }
+    .sig-clear:hover { background:#c62828; }
   </style>
 </head>
 <body>
@@ -26,6 +41,15 @@
     <div class="field"><label>Kontakt</label><input type="text" id="contact" readonly></div>
     <div class="field"><label>Stav / termín návštěvy</label><input type="text" id="status" readonly></div>
     <div class="field"><label>Popis reklamace</label><textarea id="description" rows="4" readonly></textarea></div>
+    
+    <div class="field">
+      <label>Podpis zákazníka</label>
+      <canvas id="signature-pad"></canvas>
+      <div class="sig-controls">
+        <button class="sig-clear" onclick="clearSignature()">Vymazat podpis</button>
+      </div>
+    </div>
+
     <button class="btn" onclick="exportPDF()">Uložit do PDF</button>
   </div>
 
@@ -42,24 +66,89 @@ window.addEventListener("message", (event) => {
   }
 });
 
+// === Podpis (canvas) ===
+const canvas = document.getElementById("signature-pad");
+const ctx = canvas.getContext("2d");
+let drawing = false;
+
+function resizeCanvas(){
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+function startDraw(e){
+  drawing = true;
+  ctx.beginPath();
+  ctx.moveTo(getX(e), getY(e));
+  e.preventDefault();
+}
+function draw(e){
+  if(!drawing) return;
+  ctx.lineTo(getX(e), getY(e));
+  ctx.strokeStyle = "#000";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  e.preventDefault();
+}
+function endDraw(e){
+  if(drawing){
+    ctx.stroke();
+    ctx.closePath();
+    drawing = false;
+  }
+  e.preventDefault();
+}
+function getX(e){ return e.clientX ? e.clientX - canvas.getBoundingClientRect().left : e.touches[0].clientX - canvas.getBoundingClientRect().left; }
+function getY(e){ return e.clientY ? e.clientY - canvas.getBoundingClientRect().top : e.touches[0].clientY - canvas.getBoundingClientRect().top; }
+
+canvas.addEventListener("mousedown", startDraw);
+canvas.addEventListener("mousemove", draw);
+canvas.addEventListener("mouseup", endDraw);
+canvas.addEventListener("mouseout", endDraw);
+canvas.addEventListener("touchstart", startDraw);
+canvas.addEventListener("touchmove", draw);
+canvas.addEventListener("touchend", endDraw);
+
+function clearSignature(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+}
+
+// === Export PDF ===
 async function exportPDF(){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("cs-CZ");
+  const timeStr = now.toLocaleTimeString("cs-CZ");
+
   doc.setFontSize(16);
   doc.text("WHITE GLOVE SERVICE – Protokol", 20, 20);
 
+  doc.setFontSize(11);
+  doc.text(`Datum vytvoření: ${dateStr} ${timeStr}`, 20, 30);
+
   doc.setFontSize(12);
-  doc.text("Zákazník: " + document.getElementById("customer").value, 20, 40);
-  doc.text("Adresa: " + document.getElementById("address").value, 20, 50);
-  doc.text("Kontakt: " + document.getElementById("contact").value, 20, 60);
-  doc.text("Stav: " + document.getElementById("status").value, 20, 70);
+  doc.text("Zákazník: " + document.getElementById("customer").value, 20, 50);
+  doc.text("Adresa: " + document.getElementById("address").value, 20, 60);
+  doc.text("Kontakt: " + document.getElementById("contact").value, 20, 70);
+  doc.text("Stav: " + document.getElementById("status").value, 20, 80);
 
   let description = document.getElementById("description").value;
   let splitText = doc.splitTextToSize("Popis: " + description, 170);
-  doc.text(splitText, 20, 90);
+  doc.text(splitText, 20, 100);
 
-  doc.save("protokol.pdf");
+  // podpis
+  const signatureImage = canvas.toDataURL("image/png");
+  doc.text("Podpis zákazníka:", 20, 150);
+  doc.addImage(signatureImage, "PNG", 20, 155, 60, 30);
+
+  // název souboru podle zákazníka + datum
+  let customerName = document.getElementById("customer").value || "Protokol";
+  customerName = customerName.replace(/\s+/g, "_");
+  doc.save(`Protokol_${customerName}_${dateStr}.pdf`);
 }
 </script>
 </body>
