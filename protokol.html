@@ -58,6 +58,10 @@
       canvas.height = canvas.offsetHeight;
       signaturePad = new SignaturePad(canvas);
 
+      const today = new Date().toISOString().split("T")[0];
+      document.getElementById("visit-date").value = today;
+      document.getElementById("sign-date").value = today;
+
       window.addEventListener("message", (event) => {
         if (event.data.type === "openProtocol") {
           const d = event.data.row;
@@ -186,7 +190,7 @@
           <tr><td class="label">Čeká se na vyjádření prodejce?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
           <tr><td class="label">Poškození technikem?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
           <tr><td class="label">Úhradu provede zákazník?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
-          <tr><td class="label">Datum podpisu</td><td><input></td></tr>
+          <tr><td class="label">Datum podpisu</td><td><input id="sign-date"></td></tr>
         </table>
       </div>
     </div>
