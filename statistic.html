@@ -15,6 +15,13 @@
       text-align: center;
       margin-bottom: 20px;
     }
+    .filter {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .filter label {
+      margin: 0 10px;
+    }
     .stats {
       display: flex;
       justify-content: center;
@@ -38,6 +45,14 @@
       margin-top: 20px;
       font-size: 18px;
     }
+    .chart-container {
+      max-width: 500px;
+      margin: 30px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
     .back-btn {
       display: block;
       margin: 30px auto 0;
@@ -53,6 +68,15 @@
 </head>
 <body>
   <h1>Statistiky – White Glove Service</h1>
+
+  <!-- Filtr období -->
+  <div class="filter">
+    <label>Od: <input type="date" id="dateFrom"></label>
+    <label>Do: <input type="date" id="dateTo"></label>
+    <button onclick="loadStats()">Filtrovat</button>
+    <button onclick="resetFilter()">Zobrazit vše</button>
+  </div>
+
   <div class="stats">
     <div class="card">
       <h2>Milan Kolín</h2>
@@ -65,6 +89,11 @@
       <p id="radek-czk">CZK: …</p>
     </div>
   </div>
+
+  <div class="chart-container">
+    <canvas id="earningsChart"></canvas>
+  </div>
+
   <div class="summary">
     <p id="total">Celkem účtováno: … EUR (… CZK)</p>
     <p id="rate">Kurz: …</p>
@@ -72,12 +101,13 @@
   <a href="index.html" class="back-btn">Zpět na hlavní stránku</a>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQzpP83wIYZPcnb1NI9pPSPixzcEQuRVrTOyPD7SRbgYZSrQs7QdcLNwPJ5lQleGbVVK29nr2-bMo6Y/pub?output=csv";
+    let rateEUR = 25.0; // default, nahradí se kurzem z ČNB
+    let chart; // graf
 
-    let rateEUR = 25.0; // default, přepíše se kurzem z ČNB
-
-    // Načti kurz z ČNB
+    // načtení kurzu z ČNB
     async function loadRate() {
       try {
         const res = await fetch("https://api.cnb.cz/cnbapi/exrates/daily?lang=cz");
@@ -92,7 +122,7 @@
       }
     }
 
-    // Načti data z Google Sheets a spočítej
+    // načtení statistik
     function loadStats() {
       Papa.parse(sheetUrl, {
         download: true,
@@ -102,16 +132,26 @@
           let radekEUR = 0;
           let totalEUR = 0;
 
+          const dateFrom = document.getElementById("dateFrom").value ? new Date(document.getElementById("dateFrom").value) : null;
+          const dateTo = document.getElementById("dateTo").value ? new Date(document.getElementById("dateTo").value) : null;
+
           results.data.forEach(row => {
             let cena = parseFloat((row["CENA"] || "0").replace(",", "."));
+            let datumPodpisu = row["Datum podpisu"] ? new Date(row["Datum podpisu"].split(".").reverse().join("-")) : null;
+
             if (!isNaN(cena) && cena > 0) {
+              // filtr na období
+              if (datumPodpisu) {
+                if (dateFrom && datumPodpisu < dateFrom) return;
+                if (dateTo && datumPodpisu > dateTo) return;
+              }
+
               totalEUR += cena;
 
               let milan = row["MILAN"] ? row["MILAN"].trim() : "";
               let radek = row["RADEK"] ? row["RADEK"].trim() : "";
 
               if (milan && radek) {
-                // oba jeli → 33% každý
                 milanEUR += cena * 0.33;
                 radekEUR += cena * 0.33;
               } else if (milan) {
@@ -122,17 +162,44 @@
             }
           });
 
-          // zobrazení výsledků
+          // aktualizace textů
           document.getElementById("milan-eur").textContent = `EUR: ${milanEUR.toFixed(2)}`;
           document.getElementById("milan-czk").textContent = `CZK: ${(milanEUR * rateEUR).toFixed(2)}`;
           document.getElementById("radek-eur").textContent = `EUR: ${radekEUR.toFixed(2)}`;
           document.getElementById("radek-czk").textContent = `CZK: ${(radekEUR * rateEUR).toFixed(2)}`;
           document.getElementById("total").textContent = `Celkem účtováno: ${totalEUR.toFixed(2)} EUR (${(totalEUR * rateEUR).toFixed(2)} CZK)`;
+
+          // graf
+          const ctx = document.getElementById('earningsChart').getContext('2d');
+          if (chart) chart.destroy();
+          chart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+              labels: ['Milan Kolín', 'Radek Zikmund'],
+              datasets: [{
+                data: [milanEUR, radekEUR],
+                backgroundColor: ['#4CAF50', '#2196F3']
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { position: 'bottom' },
+                title: { display: true, text: 'Podíl výdělků (EUR)' }
+              }
+            }
+          });
         }
       });
     }
 
-    // Spusť obojí
+    function resetFilter() {
+      document.getElementById("dateFrom").value = "";
+      document.getElementById("dateTo").value = "";
+      loadStats();
+    }
+
+    // spuštění
     loadRate().then(loadStats);
   </script>
 </body>
