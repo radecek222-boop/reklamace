@@ -69,14 +69,39 @@
     }
     .btn:hover { background:#d5d5d5; }
     .details {
-      display:none;
+      max-height: 0;
+      overflow: hidden;
       background:#f9f9f9;
       font-size:0.8em;
       text-align:left;
+      padding:0 10px;
+      transition: max-height 0.4s ease, padding 0.3s ease;
+    }
+    .details.open {
+      max-height: 300px; /* max velikost, aby animace fungovala */
       padding:10px;
     }
     .details td {
       border:none !important;
+    }
+    .toggle-icon {
+      font-weight:bold;
+      cursor:pointer;
+      color:#fff;
+      background:#888;
+      border-radius:50%;
+      width:22px;
+      height:22px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin:0 auto;
+      font-size:14px;
+      user-select:none;
+      transition: background 0.2s;
+    }
+    .toggle-icon:hover {
+      background:#555;
     }
   </style>
 </head>
@@ -110,11 +135,13 @@ function renderTable(rows){
   }
 
   let html = "<table><thead><tr>";
+  html += "<th></th>"; // sloupec pro ikonu
   ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(h => { html += "<th>"+h+"</th>"; });
   html += "</tr></thead><tbody>";
   
   rows.forEach((row,idx) => {
     html += `<tr onclick="toggleDetails(${idx})">`;
+    html += `<td><div class="toggle-icon" id="icon-${idx}">+</div></td>`;
 
     ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(key => {
       let val = row[key] || "";
@@ -140,7 +167,7 @@ function renderTable(rows){
         details += `<div><b>${key}:</b> ${val||""}</div>`;
       }
     });
-    html += `<tr id="details-${idx}" class="details"><td colspan="4">${details}</td></tr>`;
+    html += `<tr><td colspan="5"><div id="details-${idx}" class="details">${details}</div></td></tr>`;
   });
   
   html += "</tbody></table>";
@@ -148,11 +175,14 @@ function renderTable(rows){
 }
 
 function toggleDetails(index){
-  const row = document.getElementById("details-"+index);
-  if (row.style.display === "table-row") {
-    row.style.display = "none";
+  const detailsDiv = document.getElementById("details-"+index);
+  const icon = document.getElementById("icon-"+index);
+  if (detailsDiv.classList.contains("open")) {
+    detailsDiv.classList.remove("open");
+    icon.textContent = "+";
   } else {
-    row.style.display = "table-row";
+    detailsDiv.classList.add("open");
+    icon.textContent = "–";
   }
 }
 
