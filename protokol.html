@@ -35,22 +35,15 @@
       border-radius:4px;
       box-sizing:border-box;
     }
-    /* 🔹 sjednocení velikosti input/select/date */
     input, select {
       height:36px;
       line-height:36px;
-      -webkit-appearance:none; /* sjednocení iOS Safari */
+      -webkit-appearance:none;
       appearance:none;
       background-color:white;
     }
-    /* 🔹 odstranění šipky u select */
-    select {
-      background-image:none !important;
-    }
-    textarea {
-      min-height:60px;
-      resize:vertical;
-    }
+    select { background-image:none !important; }
+    textarea { min-height:60px; resize:vertical; }
     .split-section { display:flex; gap:10px; margin:10px 0; }
     .two-col-table { display:flex; gap:30px; flex-wrap:wrap; }
     .two-col-table .col { flex:1; min-width:300px; }
@@ -64,18 +57,14 @@
     .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
     .btns { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
     .btns button { padding:10px 20px; font-size:1em; border:none; background:#333; color:white; border-radius:6px; cursor:pointer; }
-
-    /* mobilní layout */
     @media (max-width:768px){
       .wrapper{padding:10px;}
       .two-col-table{flex-direction:column;}
       .split-section{flex-direction:column;}
     }
-
-    /* desktop layout při exportu */
     .force-desktop {
-      width: 794px !important; /* A4 šířka */
-      max-width: 794px !important;
+      width:794px !important;
+      max-width:794px !important;
     }
     .force-desktop .two-col-table { flex-direction: row !important; }
     .force-desktop .split-section { flex-direction: row !important; }
@@ -156,9 +145,9 @@
   <div class="signature-label">Podepište se prstem nebo myší</div>
 
   <div class="btns">
-    <button onclick="signaturePad.clear()">🗑️ Vymazat podpis</button>
-    <button onclick="window.location.href='index.html'">⬅️ Zpět</button>
-    <button onclick="downloadPDF()">📄 Exportovat do PDF</button>
+    <button type="button" onclick="signaturePad.clear()">🗑️ Vymazat podpis</button>
+    <button type="button" onclick="window.location.href='index.html'">⬅️ Zpět</button>
+    <button type="button" onclick="downloadPDF()">📄 Exportovat do PDF</button>
   </div>
 </div>
 
@@ -166,10 +155,15 @@
   let signaturePad;
   window.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("signature-pad");
+    // pevně nastavit velikost canvasu podle CSS
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
-    signaturePad = new SignaturePad(canvas);
+    // inicializace podpisu s bílým pozadím (kvůli iOS)
+    signaturePad = new SignaturePad(canvas, {
+      backgroundColor: "white"
+    });
 
+    // předvyplnit dnešní datum
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("visit-date").value = today;
     document.getElementById("sign-date").value = today;
@@ -190,9 +184,11 @@
 
       doc.addImage(imgData, "PNG", 0, 0, pageWidth, imgHeight);
 
+      // podpis zvlášť a vždy celý
       if (signaturePad && !signaturePad.isEmpty()) {
-        const signData = signaturePad.toDataURL();
-        doc.addImage(signData, "PNG", 15, doc.internal.pageSize.getHeight() - 40, 60, 20);
+        const signData = signaturePad.toDataURL("image/png");
+        // pevný rozměr, aby se neukrojila půlka
+        doc.addImage(signData, "PNG", 20, doc.internal.pageSize.getHeight() - 40, 80, 30);
       }
 
       doc.save("protokol.pdf");
@@ -200,6 +196,7 @@
     });
   }
 
+  // Přenos dat ze seznamu
   window.addEventListener("message", (event) => {
     if (event.data.type === "openProtocol") {
       const d = event.data.row;
