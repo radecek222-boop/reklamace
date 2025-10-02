@@ -33,6 +33,7 @@
     .two-col-table { display:flex; gap:30px; }
     .two-col-table table { width:100%; }
     .section-title { font-weight:700; margin-top:20px; }
+    .side-label { font-size:11px; font-weight:500; color:#555; margin-bottom:4px; }
     #signature-pad {
       border:2px dashed #888;
       width:100%;
@@ -55,9 +56,8 @@
     let signaturePad;
     window.addEventListener("DOMContentLoaded", () => {
       const canvas = document.getElementById("signature-pad");
-      if (canvas) {
-        signaturePad = new SignaturePad(canvas);
-      }
+      if (canvas) signaturePad = new SignaturePad(canvas);
+
       window.addEventListener("message", (event) => {
         if (event.data.type === "openProtocol") {
           const d = event.data.row;
@@ -72,12 +72,14 @@
           autoTranslate();
         }
       });
+
       let translateTimer;
       document.getElementById("description-cz").addEventListener("input", () => {
         clearTimeout(translateTimer);
         translateTimer = setTimeout(autoTranslate, 800);
       });
     });
+
     function autoTranslate() {
       const sourceText = document.getElementById("description-cz").value;
       const targetEl = document.getElementById("description-en");
@@ -90,6 +92,7 @@
           }
         });
     }
+
     function calculateTotal() {
       const work = parseFloat(document.getElementById("price-work").value) || 0;
       const material = parseFloat(document.getElementById("price-material").value) || 0;
@@ -98,6 +101,7 @@
       const total = work + material + second + transport;
       document.getElementById("price-total").value = total.toFixed(2);
     }
+
     function downloadPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -135,7 +139,7 @@
 
       <table>
         <tr><td class="label">Technik</td><td><select><option>Milan Kolín</option><option>Radek Zikmund</option><option>Kolín/Zikmund</option></select></td></tr>
-        <tr><td class="label">Datum návštěvy</td><td><input value="" id="visit-date"></td></tr>
+        <tr><td class="label">Datum návštěvy</td><td><input id="visit-date"></td></tr>
         <tr><td class="label">Datum doručení</td><td><input></td></tr>
         <tr><td class="label">Datum podání reklamace</td><td><input></td></tr>
       </table>
@@ -143,20 +147,38 @@
 
     <div class="section-title">Zákazník reklamuje / Customer complaint</div>
     <div class="split-section">
-      <textarea id="description-cz" placeholder="Popis v češtině"></textarea>
-      <textarea id="description-en" placeholder="Translation" readonly></textarea>
+      <div style="flex:1;">
+        <div class="side-label">CZ</div>
+        <textarea id="description-cz" placeholder="Popis v češtině"></textarea>
+      </div>
+      <div style="flex:1;">
+        <div class="side-label">EN</div>
+        <textarea id="description-en" placeholder="Translation" readonly></textarea>
+      </div>
     </div>
 
     <div class="section-title">Problém zjištěný technikem / Detected problem</div>
     <div class="split-section">
-      <textarea></textarea>
-      <textarea readonly></textarea>
+      <div style="flex:1;">
+        <div class="side-label">CZ</div>
+        <textarea placeholder="Popis v češtině"></textarea>
+      </div>
+      <div style="flex:1;">
+        <div class="side-label">EN</div>
+        <textarea placeholder="Translation" readonly></textarea>
+      </div>
     </div>
 
     <div class="section-title">Návrh opravy / Repair proposal</div>
     <div class="split-section">
-      <textarea></textarea>
-      <textarea readonly></textarea>
+      <div style="flex:1;">
+        <div class="side-label">CZ</div>
+        <textarea placeholder="Popis v češtině"></textarea>
+      </div>
+      <div style="flex:1;">
+        <div class="side-label">EN</div>
+        <textarea placeholder="Translation" readonly></textarea>
+      </div>
     </div>
 
     <div class="two-col-table">
@@ -173,7 +195,7 @@
         <tr><td class="label">Reklamace vyřešena?</td><td><select><option>ANO</option><option>NE</option></select></td></tr>
         <tr><td class="label">Čeká se na vyjádření prodejce?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
         <tr><td class="label">Poškození technikem?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
-        <tr><td class="label">Úradu provede zákazník?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Úhradu provede zákazník?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
         <tr><td class="label">Datum podpisu</td><td><input></td></tr>
       </table>
     </div>
