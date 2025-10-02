@@ -185,20 +185,23 @@
     <button onclick="downloadPDF()">📄 Exportovat do PDF</button>
   </div>
 </div>
+  <script>
   window.addEventListener("message", (event) => {
-  if (event.data.type === "openProtocol") {
-    const d = event.data.row;
-    if (!d) return;
-    document.getElementById("order-number").value = d["Order number"] || "";
-    document.getElementById("claim-number").value = d["Label"] || "";
-    document.getElementById("customer").value = d["Customer"] || "";
-    document.getElementById("address").value = d["Address"] || "";
-    document.getElementById("brand").value = d["Label"] || "";
-    document.getElementById("model").value = d["Model"] || "";
-    document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
-    autoTranslate("description-cz", "description-en");
-  }
-});
+    if (event.data.type === "openProtocol") {
+      const d = event.data.row;
+      if (!d) return;
+      document.getElementById("order-number").value = d["Order number"] || "";
+      document.getElementById("claim-number").value = d["Label"] || "";
+      document.getElementById("customer").value = d["Customer"] || "";
+      document.getElementById("address").value = d["Address"] || "";
+      document.getElementById("brand").value = d["Label"] || "";
+      document.getElementById("model").value = d["Model"] || "";
+      document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
+      autoTranslate("description-cz", "description-en");
+    }
+  });
+</script>
+
 
 </body>
 </html>
