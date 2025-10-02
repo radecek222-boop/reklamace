@@ -63,7 +63,7 @@
       transition:max-height 0.4s ease, padding 0.3s ease;
     }
     .details.open {
-      max-height:80vh;          /* skoro celá obrazovka */
+      max-height:80vh;
       padding:20px;
       overflow-y:auto;
       box-shadow:0 4px 10px rgba(0,0,0,0.2);
@@ -131,47 +131,29 @@ function renderTable(rows){
     const status = statusRaw.toLowerCase();
 
     let rowClass = "";
-    let isColored = false;
     if (status.includes("hotovo")) {
       rowClass = "done";
-      isColored = true;
     } else if (status.includes("čeká")) {
       rowClass = "waiting";
-      isColored = true;
     } else if (days.some(d => status.includes(d)) || /\d/.test(status)) {
       rowClass = "scheduled";
-      isColored = true;
     }
 
     html += `<tr class="${rowClass}" onclick="toggleDetails(${idx})">`;
 
-    if (isColored) {
-      ["Address","KONTAKT"].forEach(key => {
-        let val = row[key] || "";
-        let cellContent = val;
-        if (key.toLowerCase().includes("kontakt")) {
-          cellContent = `<a href="tel:${val}" onclick="event.stopPropagation()">${val}</a>`;
-        }
-        if (key.toLowerCase().includes("address") || key.toLowerCase().includes("adresa")) {
-          const encoded = encodeURIComponent(val);
-          cellContent = `<a href="https://waze.com/ul?q=${encoded}" target="_blank" onclick="event.stopPropagation()">${val}</a>`;
-        }
-        html += `<td colspan="2">${cellContent}</td>`;
-      });
-    } else {
-      ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(key => {
-        let val = row[key] || "";
-        let cellContent = val;
-        if (key.toLowerCase().includes("kontakt")) {
-          cellContent = `<a href="tel:${val}" onclick="event.stopPropagation()">${val}</a>`;
-        }
-        if (key.toLowerCase().includes("address") || key.toLowerCase().includes("adresa")) {
-          const encoded = encodeURIComponent(val);
-          cellContent = `<a href="https://waze.com/ul?q=${encoded}" target="_blank" onclick="event.stopPropagation()">${val}</a>`;
-        }
-        html += "<td>"+cellContent+"</td>";
-      });
-    }
+    // vždy 4 sloupce
+    ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(key => {
+      let val = row[key] || "";
+      let cellContent = val;
+      if (key.toLowerCase().includes("kontakt")) {
+        cellContent = `<a href="tel:${val}" onclick="event.stopPropagation()">${val}</a>`;
+      }
+      if (key.toLowerCase().includes("address") || key.toLowerCase().includes("adresa")) {
+        const encoded = encodeURIComponent(val);
+        cellContent = `<a href="https://waze.com/ul?q=${encoded}" target="_blank" onclick="event.stopPropagation()">${val}</a>`;
+      }
+      html += "<td>"+cellContent+"</td>";
+    });
 
     html += "</tr>";
 
@@ -193,19 +175,15 @@ function toggleDetails(index){
   const tr = detailsDiv.closest("tr");
 
   if (detailsDiv.classList.contains("open")) {
-    // zavírání
     detailsDiv.style.maxHeight = null;
     detailsDiv.classList.remove("open");
   } else {
-    // zavřít všechny ostatní
     document.querySelectorAll(".details.open").forEach(el=>{
       el.style.maxHeight = null;
       el.classList.remove("open");
     });
-    // otevřít tenhle
     detailsDiv.classList.add("open");
     detailsDiv.style.maxHeight = "80vh";
-    // posunout stránku na řádek
     tr.scrollIntoView({behavior:"smooth", block:"start"});
   }
 }
