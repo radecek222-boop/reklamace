@@ -123,7 +123,83 @@
 
     <h1>REKLAMAČNÍ PROTOKOL / CLAIM PROTOCOL</h1>
 
-    <!-- zde bude vložen formulář a další části dle předchozích úprav -->
+    <table>
+  <tr>
+    <td class="label">Číslo objednávky / Order number</td>
+    <td><input type="text" id="order-number"></td>
+    <td class="label">Technik / Worker</td>
+    <td>
+      <select id="worker">
+        <option value="Milan Kolín">Milan Kolín</option>
+        <option value="Radek Zikmund">Radek Zikmund</option>
+        <option value="Kolin/Zikmund">Kolin/Zikmund</option>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td class="label">Číslo reklamace / Claim number</td>
+    <td><input type="text" id="claim-number"></td>
+    <td class="label">Datum návštěvy / Date of visit</td>
+    <td><span id="visit-date">"+formatted+"</span></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td class="label">Zákazník / Customer</td>
+    <td><input type="text" id="customer"></td>
+    <td class="label">Adresa zákazníka / Customer address</td>
+    <td><input type="text" id="address"></td>
+  </tr>
+  <tr>
+    <td class="label">Značka / Label (Contract)</td>
+    <td><input type="text" id="contract"></td>
+    <td class="label">Model</td>
+    <td><input type="text" id="model"></td>
+  </tr>
+  <tr>
+    <td class="label">Datum doručení / Delivery date</td>
+    <td><input type="date"></td>
+    <td class="label">Datum podání reklamace / Complaint date</td>
+    <td><input type="date"></td>
+  </tr>
+</table>
+
+<div class="section-title">Zákazník reklamuje / The customer complains:</div>
+<div class="split-section">
+  <div class="split-box" contenteditable="true" id="description-cz"></div>
+  <div class="split-box" contenteditable="true" id="description-en"></div>
+</div>
+
+<div class="section-title">Problém zjištěný technikem / Problem detected on site by technician:</div>
+<div class="split-section">
+  <div class="split-box" contenteditable="true"></div>
+  <div class="split-box" contenteditable="true"></div>
+</div>
+
+<div class="section-title">Návrh opravy / Repair:</div>
+<div class="split-section">
+  <div class="split-box" contenteditable="true"></div>
+  <div class="split-box" contenteditable="true"></div>
+</div>
+
+<div class="two-col-table">
+  <table>
+    <tr><td class="label">Počet opravovaných dílů</td><td><input type="number" value="1"></td></tr>
+    <tr><td class="label">Cena za práci</td><td><input type="text" value="95 EUR"></td></tr>
+    <tr><td class="label">Cena za materiál</td><td><input type="text" value="0"></td></tr>
+    <tr><td class="label">Cena za druhého technika</td><td><input type="text" value="0"></td></tr>
+    <tr><td class="label">Cena za dopravu</td><td><input type="text" value="0"></td></tr>
+    <tr><td class="label">Cena celkem</td><td><input type="text" value="95 EUR"></td></tr>
+  </table>
+  <table>
+    <tr><td class="label">Reklamace vyřešena?</td><td><select><option>ANO</option><option>NE</option></select></td></tr>
+    <tr><td class="label">Čeká se na vyjádření prodejce?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
+    <tr><td class="label">Poškození technikem?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
+    <tr><td class="label">Úhradu provede zákazník?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
+    <tr><td class="label">Datum podpisu</td><td><span id="signature-date">"+formatted+"</span></td></tr>
+  </table>
+</div>
 
     <div class="section-title">Podpis zákazníka / Customer signature:</div>
     <canvas id="signature-pad"></canvas>
