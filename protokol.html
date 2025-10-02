@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WHITE GLOVE SERVICE - Protokol</title>
+  <title>WHITE GLOVE SERVICE – Protokol</title>
   <style>
     body { font-family: Inter, sans-serif; margin:20px; background:#f6f7fb; font-size:14px; }
-    h2 { text-align:center; font-size:20px; font-weight:700; letter-spacing:1px; }
+    h1 { text-align:center; font-size:20px; font-weight:700; }
     .protocol { background:#fff; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.15);
       padding:20px; max-width:800px; margin:20px auto; }
     .field { margin-bottom:12px; }
@@ -16,25 +16,15 @@
     .btn { background:#4CAF50; color:#fff; padding:10px 20px; border:none;
       border-radius:6px; cursor:pointer; margin-top:15px; font-size:14px; }
     .btn:hover { background:#43a047; }
-    #signature-pad {
-      border:2px dashed #aaa;
-      border-radius:6px;
-      width:100%; 
-      height:200px;
-      touch-action: none; /* zabrání posunu stránky na mobilu */
-      margin-top:10px;
-    }
-    .sig-controls {
-      margin-top:8px;
-      display:flex;
-      gap:10px;
-    }
+    #signature-pad { border:2px dashed #aaa; border-radius:6px; width:100%; height:200px;
+      touch-action:none; margin-top:10px; }
+    .sig-controls { margin-top:8px; display:flex; gap:10px; }
     .sig-clear { background:#e53935; color:#fff; flex:1; padding:8px; border:none; border-radius:6px; cursor:pointer; }
     .sig-clear:hover { background:#c62828; }
   </style>
 </head>
 <body>
-  <h2>WHITE GLOVE SERVICE – Protokol</h2>
+  <h1>WHITE GLOVE SERVICE – Protokol</h1>
   <div class="protocol">
     <div class="field"><label>Zákazník</label><input type="text" id="customer" readonly></div>
     <div class="field"><label>Adresa</label><input type="text" id="address" readonly></div>
@@ -66,43 +56,17 @@ window.addEventListener("message", (event) => {
   }
 });
 
-// === Podpis (canvas) ===
+// === Podpis ===
 const canvas = document.getElementById("signature-pad");
 const ctx = canvas.getContext("2d");
 let drawing = false;
-
-function resizeCanvas(){
-  canvas.width = canvas.offsetWidth;
-  canvas.height = canvas.offsetHeight;
-}
-window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
-
-function startDraw(e){
-  drawing = true;
-  ctx.beginPath();
-  ctx.moveTo(getX(e), getY(e));
-  e.preventDefault();
-}
-function draw(e){
-  if(!drawing) return;
-  ctx.lineTo(getX(e), getY(e));
-  ctx.strokeStyle = "#000";
-  ctx.lineWidth = 2;
-  ctx.stroke();
-  e.preventDefault();
-}
-function endDraw(e){
-  if(drawing){
-    ctx.stroke();
-    ctx.closePath();
-    drawing = false;
-  }
-  e.preventDefault();
-}
+function resizeCanvas(){ canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }
+window.addEventListener("resize", resizeCanvas); resizeCanvas();
+function startDraw(e){ drawing = true; ctx.beginPath(); ctx.moveTo(getX(e), getY(e)); e.preventDefault(); }
+function draw(e){ if(!drawing) return; ctx.lineTo(getX(e), getY(e)); ctx.strokeStyle="#000"; ctx.lineWidth=2; ctx.stroke(); e.preventDefault(); }
+function endDraw(e){ if(drawing){ ctx.stroke(); ctx.closePath(); drawing=false; } e.preventDefault(); }
 function getX(e){ return e.clientX ? e.clientX - canvas.getBoundingClientRect().left : e.touches[0].clientX - canvas.getBoundingClientRect().left; }
 function getY(e){ return e.clientY ? e.clientY - canvas.getBoundingClientRect().top : e.touches[0].clientY - canvas.getBoundingClientRect().top; }
-
 canvas.addEventListener("mousedown", startDraw);
 canvas.addEventListener("mousemove", draw);
 canvas.addEventListener("mouseup", endDraw);
@@ -110,10 +74,7 @@ canvas.addEventListener("mouseout", endDraw);
 canvas.addEventListener("touchstart", startDraw);
 canvas.addEventListener("touchmove", draw);
 canvas.addEventListener("touchend", endDraw);
-
-function clearSignature(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-}
+function clearSignature(){ ctx.clearRect(0,0,canvas.width,canvas.height); }
 
 // === Export PDF ===
 async function exportPDF(){
@@ -126,7 +87,6 @@ async function exportPDF(){
 
   doc.setFontSize(16);
   doc.text("WHITE GLOVE SERVICE – Protokol", 20, 20);
-
   doc.setFontSize(11);
   doc.text(`Datum vytvoření: ${dateStr} ${timeStr}`, 20, 30);
 
@@ -140,12 +100,10 @@ async function exportPDF(){
   let splitText = doc.splitTextToSize("Popis: " + description, 170);
   doc.text(splitText, 20, 100);
 
-  // podpis
   const signatureImage = canvas.toDataURL("image/png");
   doc.text("Podpis zákazníka:", 20, 150);
   doc.addImage(signatureImage, "PNG", 20, 155, 60, 30);
 
-  // název souboru podle zákazníka + datum
   let customerName = document.getElementById("customer").value || "Protokol";
   customerName = customerName.replace(/\s+/g, "_");
   doc.save(`Protokol_${customerName}_${dateStr}.pdf`);
