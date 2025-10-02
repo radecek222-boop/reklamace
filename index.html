@@ -3,229 +3,54 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>White Glove Service</title>
+  <title>WHITE GLOVE SERVICE</title>
   <style>
-    :root { font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:#111 }
-    body { margin:0; padding:0; background:#f6f7fb }
-    .screen { display:none; min-height:100vh; padding:20px; }
-    .active { display:block; }
-
-    /* Úvodní obrazovka */
-    .home { display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; min-height:100vh; }
-    .home h1 { font-size:3.5em; font-weight:900; margin:0 0 15px; }
-    .home p { font-size:1.3em; margin:0 0 40px; color:#555; }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #ffffff;
+      text-align: center;
+    }
+    h1 {
+      font-size: 3em;
+      color: #000000;
+      line-height: 1.3;
+      margin: 0 0 20px;
+    }
+    small {
+      display: block;
+      font-size: 0.4em;
+      font-weight: normal;
+      color: #444;
+      margin-top: 8px;
+    }
     .btn {
-      background:#e0e0e0; color:#111; padding:15px 30px; margin:10px;
-      border:none; border-radius:10px; cursor:pointer; font-size:1.1em;
-      min-width:220px; box-shadow:0 2px 5px rgba(0,0,0,0.15); transition:0.2s;
+      display: block;
+      margin: 0 auto;
+      padding: 14px 28px;
+      font-size: 18px;
+      background: #4CAF50;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      transition: 0.2s;
     }
-    .btn:hover { background:#d5d5d5; }
-
-    /* Protokol */
-    h2 { margin-top:0; }
-    .grid { 
-      display:grid; 
-      grid-template-columns:1fr 420px; 
-      gap:20px; 
-      max-width:1200px; 
-      margin:auto;
-    }
-    @media(max-width: 800px){
-      .grid { grid-template-columns:1fr; }
-      .home h1 { font-size:2.2em; line-height:1.2; }
-      .home p { font-size:1em; margin:0 0 25px; }
-      .btn { font-size:1em; padding:12px 20px; min-width:160px; margin:8px 0; }
-    }
-    .card {
-      background:#fff; padding:20px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,.08);
-    }
-    label { font-weight:600; display:block; margin:10px 0 5px }
-    input, textarea {
-      width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:14px;
-    }
-    textarea { resize:vertical; }
-    .signature-container {
-      border:2px solid #555; border-radius:8px; width:100%; height:180px; touch-action:none; margin-top:5px;
-    }
-    canvas { width:100%; height:100%; }
-    button {
-      background:#111; color:#fff; border:0;
-      padding:10px 16px; border-radius:8px;
-      font-size:14px; cursor:pointer; margin-top:12px;
-    }
-    button.secondary { background:#777; }
+    .btn:hover { background:#43a047; }
   </style>
 </head>
 <body>
-
-<!-- Úvodní obrazovka -->
-<div id="home" class="screen home active">
-  <h1>WHITE GLOVE SERVICE</h1>
-  <p>specializovaný autorizovaný servis Natuzzi</p>
-  <button class="btn" onclick="openList()">Seznam reklamací</button>
-</div>
-
-<!-- Protokol oprav -->
-<div id="protocol" class="screen">
-  <h2>Servisní protokol - White Glove Service</h2>
-  <div class="grid">
-    <!-- FORMULÁŘ -->
-    <div class="card">
-      <label>Jméno zákazníka:</label>
-      <input type="text" id="customer">
-
-      <label>Adresa:</label>
-      <input type="text" id="address">
-
-      <label>Telefon:</label>
-      <input type="text" id="phone">
-
-      <label>Popis opravy:</label>
-      <textarea id="description" rows="4"></textarea>
-
-      <label>Podpis zákazníka:</label>
-      <div class="signature-container">
-        <canvas id="signature"></canvas>
-      </div>
-      <button class="secondary" onclick="clearSignature()">Smazat podpis</button>
-      
-      <button onclick="savePDF()">Exportovat do PDF</button>
-      <button onclick="showScreen('home')">Zpět</button>
-    </div>
-
-    <!-- INFO PANEL -->
-    <div class="card">
-      <h2>Náhled</h2>
-      <p>Zde bude uložen protokol zákazníka se všemi údaji a podpisem.</p>
-      <p><small>Export do PDF vloží i podpis napevno, aby nemohl zmizet.</small></p>
-    </div>
+  <div>
+    <h1>
+      WHITE GLOVE SERVICE
+      <small>specializovaný autorizovaný servis Natuzzi</small>
+    </h1>
+    <button class="btn" onclick="location.href='seznam.html'">Otevřít seznam reklamací</button>
   </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script>
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-function openList(){
-  window.open("seznam.html", "_blank", "width=1000,height=700");
-}
-
-// ==== SIGNATURE PAD ====
-const canvas = document.getElementById("signature");
-const ctx = canvas.getContext("2d");
-let drawing = false;
-
-function resizeCanvas() {
-  canvas.width = canvas.offsetWidth;
-  canvas.height = canvas.offsetHeight;
-}
-resizeCanvas();
-window.addEventListener("resize", resizeCanvas);
-
-function getPos(e) {
-  if (e.touches) {
-    return {
-      x: e.touches[0].clientX - canvas.getBoundingClientRect().left,
-      y: e.touches[0].clientY - canvas.getBoundingClientRect().top
-    };
-  }
-  return {
-    x: e.clientX - canvas.getBoundingClientRect().left,
-    y: e.clientY - canvas.getBoundingClientRect().top
-  };
-}
-function startDraw(e) {
-  e.preventDefault();
-  drawing = true;
-  const pos = getPos(e);
-  ctx.beginPath();
-  ctx.moveTo(pos.x, pos.y);
-}
-function endDraw(e) {
-  e.preventDefault();
-  drawing = false;
-}
-function draw(e) {
-  if (!drawing) return;
-  e.preventDefault();
-  const pos = getPos(e);
-  ctx.lineWidth = 2;
-  ctx.lineCap = "round";
-  ctx.strokeStyle = "#000";
-  ctx.lineTo(pos.x, pos.y);
-  ctx.stroke();
-}
-canvas.addEventListener("mousedown", startDraw);
-canvas.addEventListener("mouseup", endDraw);
-canvas.addEventListener("mousemove", draw);
-canvas.addEventListener("touchstart", startDraw, { passive: false });
-canvas.addEventListener("touchend", endDraw, { passive: false });
-canvas.addEventListener("touchmove", draw, { passive: false });
-
-function clearSignature() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
-
-// ==== PDF EXPORT ====
-async function savePDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-
-  const customer = document.getElementById("customer").value;
-  const address = document.getElementById("address").value;
-  const phone = document.getElementById("phone").value;
-  const description = document.getElementById("description").value;
-
-  // Dnešní datum
-  const today = new Date().toLocaleDateString("cs-CZ");
-
-  // HLAVIČKA
-  doc.setFontSize(18);
-  doc.setFont("helvetica","bold");
-  doc.text("White Glove Service", 105, 15, { align:"center" });
-  doc.setLineWidth(0.5);
-  doc.line(10, 20, 200, 20);
-
-  // DATA
-  doc.setFontSize(14);
-  doc.setFont("helvetica","normal");
-  doc.text(`Datum vystavení: ${today}`, 10, 35);
-  doc.text(`Zákazník: ${customer}`, 10, 45);
-  doc.text(`Adresa: ${address}`, 10, 55);
-  doc.text(`Telefon: ${phone}`, 10, 65);
-
-  doc.text(`Popis opravy:`, 10, 80);
-  doc.setFontSize(12);
-  doc.text(description, 10, 90, { maxWidth:180 });
-
-  // PODPIS
-  const signatureImage = canvas.toDataURL("image/png");
-  doc.setFontSize(14);
-  doc.text("Podpis zákazníka:", 10, 130);
-  doc.addImage(signatureImage, "PNG", 10, 135, 100, 50);
-
-  // PATIČKA
-  doc.setFontSize(10);
-  doc.text("Děkujeme za využití služeb White Glove Service", 200, 290, { align:"right" });
-
-  doc.save("protokol.pdf");
-}
-
-// ==== DATA ZE SEZNAMU ====
-window.addEventListener("message", function(event){
-  if (event.data && event.data.type === "openProtocol"){
-    const row = event.data.row;
-    // Pozice sloupců podle tvého Google Sheet:
-    document.getElementById("customer").value     = row[0] || "";  // Customer
-    document.getElementById("address").value      = row[1] || "";  // Address
-    document.getElementById("phone").value        = row[2] || "";  // KONTAKT
-    document.getElementById("description").value  = row[10]|| "";  // POPIS REKLAMACE - OPRAVY
-    showScreen("protocol");
-  }
-});
-</script>
-
 </body>
 </html>
