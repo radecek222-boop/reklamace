@@ -123,7 +123,7 @@
 
     <h1>REKLAMAČNÍ PROTOKOL / CLAIM PROTOCOL</h1>
 
-    <!-- ... předchozí obsah beze změny ... -->
+    <!-- zde bude vložen formulář a další části dle předchozích úprav -->
 
     <div class="section-title">Podpis zákazníka / Customer signature:</div>
     <canvas id="signature-pad"></canvas>
@@ -142,10 +142,8 @@
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const year = today.getFullYear();
     const formatted = `${day}.${month}.${year}`;
-    document.getElementById("visit-date").textContent = formatted;
-    document.getElementById("signature-date").textContent = formatted;
+    document.getElementById("signature-date")?.textContent = formatted;
 
-    // Signature Pad Init
     let canvas = document.getElementById("signature-pad");
     let signaturePad = new window.SignaturePad(canvas);
 
@@ -169,6 +167,24 @@
         doc.save("protokol.pdf");
       });
     }
+
+    // Přijmi data z okna seznam.html
+    window.addEventListener("message", function(event) {
+      if (event.data.type === "openProtocol") {
+        const d = event.data.row;
+        if (!d) return;
+
+        document.getElementById("order-number")?.setAttribute("value", d["Order number"] || "");
+        document.getElementById("claim-number")?.setAttribute("value", d["Label"] || "");
+        document.getElementById("worker")?.value = d["RADEK"] ? "Radek Zikmund" : d["MILAN"] ? "Milan Kolín" : "Kolin/Zikmund";
+        document.getElementById("customer")?.setAttribute("value", d["Customer"] || "");
+        document.getElementById("address")?.setAttribute("value", d["Address"] || "");
+        document.getElementById("contract")?.setAttribute("value", d["Label"] || "");
+        document.getElementById("model")?.setAttribute("value", d["Model"] || "");
+        document.getElementById("description-cz")?.innerText = d["POPIS REKLAMACE - OPRAVY"] || "";
+        document.getElementById("description-en")?.innerText = d["POPIS REKLAMACE - OPRAVY"] || "";
+      }
+    });
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
