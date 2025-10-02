@@ -78,7 +78,7 @@
       transition: max-height 0.4s ease, padding 0.3s ease;
     }
     .details.open {
-      max-height: 300px; /* max velikost, aby animace fungovala */
+      max-height: 300px;
       padding:10px;
     }
     .details td {
@@ -102,6 +102,19 @@
     }
     .toggle-icon:hover {
       background:#555;
+    }
+    .protocol-btn {
+      background:#4CAF50;
+      color:#fff;
+      padding:6px 12px;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;
+      margin-top:10px;
+      font-size:0.8em;
+    }
+    .protocol-btn:hover {
+      background:#43a047;
     }
   </style>
 </head>
@@ -135,7 +148,7 @@ function renderTable(rows){
   }
 
   let html = "<table><thead><tr>";
-  html += "<th></th>"; // sloupec pro ikonu
+  html += "<th></th>";
   ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(h => { html += "<th>"+h+"</th>"; });
   html += "</tr></thead><tbody>";
   
@@ -160,13 +173,14 @@ function renderTable(rows){
 
     html += "</tr>";
 
-    // skryté detaily
+    // detaily + tlačítko
     let details = "";
     Object.entries(row).forEach(([key,val])=>{
       if (!["Customer","Address","KONTAKT","STAV - termín návštěvy"].includes(key)) {
         details += `<div><b>${key}:</b> ${val||""}</div>`;
       }
     });
+    details += `<button class="protocol-btn" onclick="createProtocol(${idx}, event)">Vytvořit protokol</button>`;
     html += `<tr><td colspan="5"><div id="details-${idx}" class="details">${details}</div></td></tr>`;
   });
   
@@ -184,6 +198,15 @@ function toggleDetails(index){
     detailsDiv.classList.add("open");
     icon.textContent = "–";
   }
+}
+
+function createProtocol(index, event){
+  event.stopPropagation(); // nevyvolá toggle
+  const row = allData[index];
+  if (!row) return;
+  // pošle data do protokolu
+  window.opener.postMessage({ type:"openProtocol", row }, "*");
+  window.close();
 }
 
 document.getElementById("search").addEventListener("input", e => {
