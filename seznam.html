@@ -28,50 +28,108 @@
       width: 100%;
       border-collapse: collapse;
       background: white;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
     }
     th, td {
+      border: 1px solid #ddd;
       padding: 10px;
       text-align: left;
-      border-bottom: 1px solid #ddd;
-      min-width: 120px;
+      font-size: 14px;
+      white-space: nowrap;
     }
     th {
-      background-color: #eee;
+      background-color: #f0f0f0;
       font-weight: 600;
     }
-    tr:hover {
-      background-color: #f1f1f1;
+    tr.today {
+      animation: blink 1s step-start 0s infinite;
+      background-color: #ffdddd !important;
     }
-    @media (max-width: 768px) {
-      th, td {
-        font-size: 12px;
-        padding: 6px;
-      }
+    @keyframes blink {
+      50% { background-color: #ffffff; }
+    }
+    .search {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
     }
   </style>
 </head>
 <body>
   <div class="wrapper">
     <h1>Seznam reklamací</h1>
+    <div class="search">
+      <input type="text" id="searchBox" placeholder="Hledat zákazníka, adresu...">
+    </div>
     <div class="table-container">
-      <table>
+      <table id="dataTable">
         <thead>
           <tr>
             <th>Zákazník</th>
             <th>Adresa</th>
             <th>Kontakt</th>
-            <th>Termín návštěvy</th>
-            <th>Model</th>
-            <th>Popis</th>
+            <th>Datum návštěvy</th>
             <th>Akce</th>
           </tr>
         </thead>
-        <tbody id="claims-table">
-          <!-- Data se načtou zde -->
+        <tbody id="tableBody">
+          <!-- Data from Google Sheets will be injected here -->
         </tbody>
       </table>
     </div>
   </div>
+
+  <script>
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-.../pub?output=tsv"; // doplň adresu
+
+    async function fetchData() {
+      const res = await fetch(sheetUrl);
+      const text = await res.text();
+      const rows = text.trim().split("\n").map(r => r.split("\t"));
+      const headers = rows[0];
+      const data = rows.slice(1).map(row => Object.fromEntries(headers.map((h, i) => [h, row[i]])));
+      populateTable(data);
+    }
+
+    function populateTable(data) {
+      const tbody = document.getElementById("tableBody");
+      const today = new Date().toLocaleDateString("cs-CZ");
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+        const dateMatch = row["STAV - termín návštěvy"]?.includes(today);
+        if (dateMatch) tr.classList.add("today");
+
+        tr.innerHTML = `
+          <td>${row["Customer"]}</td>
+          <td><a href="https://waze.com/ul?ll=${encodeURIComponent(row["Address"])}" target="_blank">${row["Address"]}</a></td>
+          <td><a href="tel:${row["KONTAKT"]}">${row["KONTAKT"]}</a></td>
+          <td>${row["STAV - termín návštěvy"]}</td>
+          <td><button onclick='openProtocol(${JSON.stringify(row)})'>Otevřít protokol</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openProtocol(row) {
+      window.open("protokol.html", "_blank").postMessage({ type: "openProtocol", row }, "*");
+    }
+
+    document.getElementById("searchBox").addEventListener("input", function() {
+      const filter = this.value.toLowerCase();
+      const trs = document.querySelectorAll("#dataTable tbody tr");
+      trs.forEach(tr => {
+        const text = tr.textContent.toLowerCase();
+        tr.style.display = text.includes(filter) ? "" : "none";
+      });
+    });
+
+    fetchData();
+  </script>
 </body>
 </html>
