@@ -42,16 +42,20 @@
     .btns { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
     .btns button { padding:10px 20px; font-size:1em; border:none; background:#333; color:white; border-radius:6px; cursor:pointer; }
 
+    /* mobilní layout */
     @media (max-width:768px){
       .wrapper{padding:10px;}
       .two-col-table{flex-direction:column;}
       .split-section{flex-direction:column;}
     }
 
-    /* vynucení desktop vzhledu pro export */
+    /* desktop layout při exportu */
+    .force-desktop {
+      width: 794px !important; /* A4 šířka */
+      max-width: 794px !important;
+    }
     .force-desktop .two-col-table { flex-direction: row !important; }
     .force-desktop .split-section { flex-direction: row !important; }
-    .force-desktop { max-width: 900px !important; }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
@@ -148,7 +152,7 @@
     document.getElementById("sign-date").value = today;
   });
 
-  // Export PDF s vynuceným desktop vzhledem
+  // Export PDF s desktop layoutem
   function downloadPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF("p", "mm", "a4");
@@ -159,8 +163,6 @@
     html2canvas(wrapper, { scale: 2 }).then(canvas => {
       const imgData = canvas.toDataURL("image/png");
       const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-
       const imgProps = doc.getImageProperties(imgData);
       const imgHeight = (imgProps.height * pageWidth) / imgProps.width;
 
@@ -169,11 +171,11 @@
       // podpis navrch
       if (signaturePad && !signaturePad.isEmpty()) {
         const signData = signaturePad.toDataURL();
-        doc.addImage(signData, "PNG", 15, pageHeight - 40, 60, 20);
+        doc.addImage(signData, "PNG", 15, doc.internal.pageSize.getHeight() - 40, 60, 20);
       }
 
       doc.save("protokol.pdf");
-      wrapper.classList.remove("force-desktop"); // vrátíme zpět
+      wrapper.classList.remove("force-desktop"); // zpět
     });
   }
 
@@ -191,7 +193,6 @@
       document.getElementById("model").value = d["Model"] || "";
       document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
 
-      // hned překlad
       autoTranslate("description-cz", "description-en");
     }
   });
