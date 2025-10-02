@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>White Glove Service – seznam reklamací</title>
+  <title>WHITE GLOVE SERVICE – Seznam reklamací</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
     :root { font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:#111 }
@@ -25,9 +25,18 @@
     tr:hover { background:#e9f0ff; cursor:pointer; }
     a { color:#0645ad; text-decoration:none; }
     a:hover { text-decoration:underline; }
-    .details { max-height: 0; overflow:hidden; background:#f9f9f9; font-size:0.9em;
-      text-align:left; padding:0 10px; transition:max-height 0.4s ease, padding 0.3s ease; }
-    .details.open { max-height:300px; padding:10px; }
+    .details {
+      max-height: 0;
+      overflow:hidden;
+      background:#f9f9f9;
+      font-size:1em;
+      text-align:left;
+      padding:0 10px;
+      transition:max-height 0.4s ease, padding 0.3s ease;
+    }
+    .details.open {
+      padding:10px;
+    }
     .protocol-btn { background:#4CAF50; color:#fff; padding:6px 12px; border:none;
       border-radius:6px; cursor:pointer; margin-top:10px; font-size:0.9em; }
     .protocol-btn:hover { background:#43a047; }
@@ -99,7 +108,13 @@ function renderTable(rows){
 
 function toggleDetails(index){
   const detailsDiv = document.getElementById("details-"+index);
-  detailsDiv.classList.toggle("open");
+  if (detailsDiv.classList.contains("open")) {
+    detailsDiv.style.maxHeight = null;
+    detailsDiv.classList.remove("open");
+  } else {
+    detailsDiv.style.maxHeight = detailsDiv.scrollHeight + "px";
+    detailsDiv.classList.add("open");
+  }
 }
 
 function openProtocol(index, event){
