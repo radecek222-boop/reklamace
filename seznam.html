@@ -68,6 +68,16 @@
       box-shadow:0 2px 5px rgba(0,0,0,0.15);
     }
     .btn:hover { background:#d5d5d5; }
+    .details {
+      display:none;
+      background:#f9f9f9;
+      font-size:0.8em;
+      text-align:left;
+      padding:10px;
+    }
+    .details td {
+      border:none !important;
+    }
   </style>
 </head>
 <body>
@@ -98,39 +108,52 @@ function renderTable(rows){
     document.getElementById("results").innerHTML = "Žádná data"; 
     return; 
   }
+
   let html = "<table><thead><tr>";
-  Object.keys(rows[0]).forEach(h => { html += "<th>"+h+"</th>"; });
+  ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(h => { html += "<th>"+h+"</th>"; });
   html += "</tr></thead><tbody>";
   
   rows.forEach((row,idx) => {
-    html += `<tr onclick="selectRow(${idx})">`;
-    Object.entries(row).forEach(([key, val]) => {
-      let cellContent = val || "";
-      
-      // Telefon = klikací odkaz tel:
-      if (key.toLowerCase().includes("kontakt") || key.toLowerCase().includes("telefon")) {
+    html += `<tr onclick="toggleDetails(${idx})">`;
+
+    ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(key => {
+      let val = row[key] || "";
+      let cellContent = val;
+
+      if (key.toLowerCase().includes("kontakt")) {
         cellContent = `<a href="tel:${val}" onclick="event.stopPropagation()">${val}</a>`;
       }
-      // Adresa = klikací odkaz do Waze
       if (key.toLowerCase().includes("address") || key.toLowerCase().includes("adresa")) {
         const encoded = encodeURIComponent(val);
         cellContent = `<a href="https://waze.com/ul?q=${encoded}" target="_blank" onclick="event.stopPropagation()">${val}</a>`;
       }
-      
+
       html += "<td>"+cellContent+"</td>";
     });
+
     html += "</tr>";
+
+    // skryté detaily
+    let details = "";
+    Object.entries(row).forEach(([key,val])=>{
+      if (!["Customer","Address","KONTAKT","STAV - termín návštěvy"].includes(key)) {
+        details += `<div><b>${key}:</b> ${val||""}</div>`;
+      }
+    });
+    html += `<tr id="details-${idx}" class="details"><td colspan="4">${details}</td></tr>`;
   });
   
   html += "</tbody></table>";
   document.getElementById("results").innerHTML = html;
 }
 
-function selectRow(index){
-  const row = allData[index];
-  if (!row) return;
-  window.opener.postMessage({ type:"openProtocol", row:Object.values(row) }, "*");
-  window.close();
+function toggleDetails(index){
+  const row = document.getElementById("details-"+index);
+  if (row.style.display === "table-row") {
+    row.style.display = "none";
+  } else {
+    row.style.display = "table-row";
+  }
 }
 
 document.getElementById("search").addEventListener("input", e => {
