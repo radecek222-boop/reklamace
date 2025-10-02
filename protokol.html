@@ -64,28 +64,6 @@
       document.getElementById("sign-date").value = today;
     });
 
-    function downloadPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF('p', 'mm', 'a4');
-      const wrapper = document.querySelector('.wrapper');
-
-      html2canvas(wrapper, { scale: 2 }).then(canvas => {
-        const imgData = canvas.toDataURL('image/png');
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const pageHeight = doc.internal.pageSize.getHeight();
-        const imgProps = doc.getImageProperties(imgData);
-        const imgHeight = (imgProps.height * pageWidth) / imgProps.width;
-        doc.addImage(imgData, 'PNG', 0, 0, pageWidth, imgHeight);
-
-        if (signaturePad && !signaturePad.isEmpty()) {
-          const signData = signaturePad.toDataURL();
-          doc.addImage(signData, 'PNG', 15, 260, 60, 20);
-        }
-
-        doc.save("protokol.pdf");
-      });
-    }
-
     function autoTranslate(srcId, tgtId) {
       const sourceText = document.getElementById(srcId).value;
       const targetEl = document.getElementById(tgtId);
@@ -106,6 +84,41 @@
       const transport = parseFloat(document.getElementById("price-transport").value) || 0;
       const total = work + material + second + transport;
       document.getElementById("price-total").value = total.toFixed(2);
+    }
+
+    // ✅ Opravený export do PDF – vše na 1 A4 list
+    function downloadPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF("p", "mm", "a4");
+      const wrapper = document.querySelector(".wrapper");
+
+      html2canvas(wrapper, { scale: 3 }).then(canvas => {
+        const imgData = canvas.toDataURL("image/png");
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+
+        const imgProps = doc.getImageProperties(imgData);
+        const imgWidth = pageWidth;
+        const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+        let finalWidth = imgWidth;
+        let finalHeight = imgHeight;
+        if (imgHeight > pageHeight) {
+          finalHeight = pageHeight;
+          finalWidth = (imgProps.width * finalHeight) / imgProps.height;
+        }
+
+        const x = (pageWidth - finalWidth) / 2;
+        const y = 10;
+        doc.addImage(imgData, "PNG", x, y, finalWidth, finalHeight);
+
+        if (signaturePad && !signaturePad.isEmpty()) {
+          const signData = signaturePad.toDataURL();
+          doc.addImage(signData, "PNG", 15, 260, 60, 20);
+        }
+
+        doc.save("protokol.pdf");
+      });
     }
   </script>
 </head>
@@ -184,24 +197,7 @@
     <button onclick="window.location.href='index.html'">⬅️ Zpět na hlavní stránku</button>
     <button onclick="downloadPDF()">📄 Exportovat do PDF</button>
   </div>
-</div> <script>
-  window.addEventListener("message", (event) => {
-    if (event.data.type === "openProtocol") {
-      const d = event.data.row;
-      if (!d) return;
-      document.getElementById("order-number").value = d["Order number"] || "";
-      document.getElementById("claim-number").value = d["Label"] || "";
-      document.getElementById("customer").value = d["Customer"] || "";
-      document.getElementById("address").value = d["Address"] || "";
-      document.getElementById("brand").value = d["Label"] || "";
-      document.getElementById("model").value = d["Model"] || "";
-      document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
-      autoTranslate("description-cz", "description-en");
-    }
-  });
-</script>
-
-</body> </div>
+</div>
 
 <script>
   // Přenos dat ze seznamu
@@ -219,41 +215,6 @@
       autoTranslate("description-cz", "description-en");
     }
   });
-
-  // Export do PDF s opravou pro mobil
-  function downloadPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4"
-    });
-
-    const wrapper = document.querySelector(".wrapper");
-    window.scrollTo(0, 0);
-
-    setTimeout(() => {
-      doc.html(wrapper, {
-        callback: function (pdf) {
-          if (signaturePad && !signaturePad.isEmpty()) {
-            const imgData = signaturePad.toDataURL();
-            pdf.addImage(imgData, 'PNG', 15, 260, 60, 20);
-          }
-          pdf.save("protokol.pdf");
-        },
-        margin: [10, 10, 10, 10],
-        autoPaging: true,
-        html2canvas: {
-          scale: 1.5,
-          scrollY: 0
-        }
-      });
-    }, 500);
-  }
 </script>
-
 </body>
 </html>
-
-</html>
-
