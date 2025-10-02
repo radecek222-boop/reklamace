@@ -67,8 +67,6 @@
           document.getElementById("model").value = d["Model"] || "";
           document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
           autoTranslate("description-cz", "description-en");
-          autoTranslate("problem-cz", "problem-en");
-          autoTranslate("repair-cz", "repair-en");
         }
       });
 
@@ -165,7 +163,33 @@
       <div style="flex:1;"><div class="side-label">EN</div><textarea id="repair-en" placeholder="Translation" readonly></textarea></div>
     </div>
 
-    <!-- Zbytek formuláře zůstává beze změny -->
+    <div class="two-col-table">
+      <table>
+        <tr><td class="label">Počet opravovaných dílů</td><td><input></td></tr>
+        <tr><td class="label">Cena za práci</td><td><input id="price-work" oninput="calculateTotal()"></td></tr>
+        <tr><td class="label">Cena za materiál</td><td><input id="price-material" oninput="calculateTotal()"></td></tr>
+        <tr><td class="label">Cena za druhého technika</td><td><input id="price-second" oninput="calculateTotal()"></td></tr>
+        <tr><td class="label">Cena za dopravu</td><td><input id="price-transport" oninput="calculateTotal()"></td></tr>
+        <tr><td class="label">Cena celkem</td><td><input id="price-total" readonly></td></tr>
+      </table>
+
+      <table>
+        <tr><td class="label">Reklamace vyřešena?</td><td><select><option>ANO</option><option>NE</option></select></td></tr>
+        <tr><td class="label">Čeká se na vyjádření prodejce?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Poškození technikem?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Úhradu provede zákazník?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Datum podpisu</td><td><input></td></tr>
+      </table>
+    </div>
+
+    <div class="section-title">Podpis zákazníka / Customer signature:</div>
+    <canvas id="signature-pad"></canvas>
+    <div class="signature-label">Podepište se prosím prstem nebo myší / Sign using finger or mouse</div>
+
+    <div class="btns">
+      <button onclick="window.close()">⬅️ Zpět na hlavní stránku</button>
+      <button onclick="downloadPDF()">📄 Exportovat do PDF</button>
+    </div>
   </div>
 </body>
 </html>
