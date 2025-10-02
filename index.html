@@ -3,107 +3,52 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WHITE GLOVE SERVICE – Seznam reklamací</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <title>WHITE GLOVE SERVICE – autorizovaný servis Natuzzi</title>
   <style>
-    body { font-family: Inter, sans-serif; margin:20px; background:#f6f7fb; font-size: 13px; }
-    h1 { text-align:center; font-size:22px; font-weight:700; margin-bottom:5px; }
-    h2 { text-align:center; font-size:16px; font-weight:600; margin-top:0; }
-    .table-wrapper { overflow-x:auto; margin-top:15px; }
-    table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px;
-      box-shadow:0 2px 6px rgba(0,0,0,0.1); font-size:12px; text-align:center; }
-    th, td { padding:6px 8px; border:1px solid #ccc; font-size:0.85em; text-align:center; }
-    th { background:#f0f0f0; font-weight:600; }
-    tr:nth-child(even) { background:#fafafa; }
-    tr:hover { background:#e9f0ff; cursor:pointer; }
-    a { color:#0645ad; text-decoration:none; }
-    a:hover { text-decoration:underline; }
-    .details { max-height: 0; overflow:hidden; background:#f9f9f9; font-size:0.8em;
-      text-align:left; padding:0 10px; transition:max-height 0.4s ease, padding 0.3s ease; }
-    .details.open { max-height:300px; padding:10px; }
-    .protocol-btn { background:#4CAF50; color:#fff; padding:6px 12px; border:none;
-      border-radius:6px; cursor:pointer; margin-top:10px; font-size:0.8em; }
-    .protocol-btn:hover { background:#43a047; }
+    body {
+      font-family: Inter, sans-serif;
+      margin:0;
+      height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background:#f6f7fb;
+      text-align:center;
+    }
+    .container {
+      max-width: 600px;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #222;
+    }
+    p {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 30px;
+    }
+    .btn {
+      background: #4CAF50;
+      color: #fff;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      transition: 0.2s;
+    }
+    .btn:hover { background:#43a047; }
   </style>
 </head>
 <body>
-  <h1>WHITE GLOVE SERVICE – specializovaný autorizovaný servis Natuzzi</h1>
-  <h2>Seznam reklamací</h2>
-  <input type="text" id="search" placeholder="Hledat podle jména, adresy, telefonu nebo objednávky">
-  <div id="results" class="table-wrapper">Načítám data...</div>
-
-<script>
-const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQzpP83wIYZPcnb1NI9pPSPixzcEQuRVrTOyPD7SRbgYZSrQs7QdcLNwPJ5lQleGbVVK29nr2-bMo6Y/pub?gid=0&single=true&output=csv";
-let allData = [];
-
-async function loadData() {
-  try {
-    const res = await fetch(sheetUrl);
-    const text = await res.text();
-    const parsed = Papa.parse(text, { header:true, skipEmptyLines:true });
-    allData = parsed.data;
-    renderTable(allData);
-  } catch (err) {
-    document.getElementById("results").innerHTML = "Chyba při načítání dat: " + err;
-  }
-}
-
-function renderTable(rows){
-  if (!rows.length){ document.getElementById("results").innerHTML = "Žádná data"; return; }
-  let html = "<table><thead><tr>";
-  ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(h => { html += "<th>"+h+"</th>"; });
-  html += "</tr></thead><tbody>";
-  rows.forEach((row,idx) => {
-    html += `<tr onclick="toggleDetails(${idx})">`;
-    ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(key => {
-      let val = row[key] || "";
-      let cellContent = val;
-      if (key.toLowerCase().includes("kontakt")) {
-        cellContent = `<a href="tel:${val}" onclick="event.stopPropagation()">${val}</a>`;
-      }
-      if (key.toLowerCase().includes("address") || key.toLowerCase().includes("adresa")) {
-        const encoded = encodeURIComponent(val);
-        cellContent = `<a href="https://waze.com/ul?q=${encoded}" target="_blank" onclick="event.stopPropagation()">${val}</a>`;
-      }
-      html += "<td>"+cellContent+"</td>";
-    });
-    html += "</tr>";
-    let details = "";
-    Object.entries(row).forEach(([key,val])=>{
-      if (!["Customer","Address","KONTAKT","STAV - termín návštěvy"].includes(key)) {
-        details += `<div><b>${key}:</b> ${val||""}</div>`;
-      }
-    });
-    details += `<button class="protocol-btn" onclick="openProtocol(${idx}, event)">Vytvořit protokol</button>`;
-    html += `<tr><td colspan="4"><div id="details-${idx}" class="details">${details}</div></td></tr>`;
-  });
-  html += "</tbody></table>";
-  document.getElementById("results").innerHTML = html;
-}
-
-function toggleDetails(index){
-  const detailsDiv = document.getElementById("details-"+index);
-  detailsDiv.classList.toggle("open");
-}
-
-function openProtocol(index, event){
-  event.stopPropagation();
-  const row = allData[index];
-  if (!row) return;
-
-  const protokolWindow = window.open("protokol.html", "_blank");
-  protokolWindow.onload = () => {
-    protokolWindow.postMessage({ type:"openProtocol", row }, "*");
-  };
-}
-
-document.getElementById("search").addEventListener("input", e => {
-  const q = e.target.value.toLowerCase();
-  const rows = allData.filter(r => Object.values(r).join(" ").toLowerCase().includes(q));
-  renderTable(rows);
-});
-
-loadData();
-</script>
+  <div class="container">
+    <h1>WHITE GLOVE SERVICE – specializovaný autorizovaný servis Natuzzi</h1>
+    <p>Vítejte v systému pro správu a vyřizování reklamací.</p>
+    <button class="btn" onclick="location.href='seznam.html'">Otevřít seznam reklamací</button>
+  </div>
 </body>
 </html>
