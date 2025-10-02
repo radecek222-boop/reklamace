@@ -51,6 +51,8 @@
     tr:hover { background:#e9f0ff; cursor:pointer; }
     a { color:#0645ad; text-decoration:none; }
     a:hover { text-decoration:underline; }
+
+    /* Detaily – velký blok */
     .details {
       max-height: 0;
       overflow:hidden;
@@ -60,7 +62,12 @@
       padding:0 10px;
       transition:max-height 0.4s ease, padding 0.3s ease;
     }
-    .details.open { padding:10px; }
+    .details.open {
+      max-height:80vh;          /* skoro celá obrazovka */
+      padding:20px;
+      overflow-y:auto;
+      box-shadow:0 4px 10px rgba(0,0,0,0.2);
+    }
 
     /* zvýraznění stavů – pastelové barvy */
     tr.done {
@@ -183,12 +190,23 @@ function renderTable(rows){
 
 function toggleDetails(index){
   const detailsDiv = document.getElementById("details-"+index);
+  const tr = detailsDiv.closest("tr");
+
   if (detailsDiv.classList.contains("open")) {
+    // zavírání
     detailsDiv.style.maxHeight = null;
     detailsDiv.classList.remove("open");
   } else {
-    detailsDiv.style.maxHeight = detailsDiv.scrollHeight + "px";
+    // zavřít všechny ostatní
+    document.querySelectorAll(".details.open").forEach(el=>{
+      el.style.maxHeight = null;
+      el.classList.remove("open");
+    });
+    // otevřít tenhle
     detailsDiv.classList.add("open");
+    detailsDiv.style.maxHeight = "80vh";
+    // posunout stránku na řádek
+    tr.scrollIntoView({behavior:"smooth", block:"start"});
   }
 }
 
