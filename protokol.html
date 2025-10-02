@@ -179,9 +179,23 @@
     const wrapper = document.querySelector(".wrapper");
     wrapper.classList.add("force-desktop");
 
-    html2canvas(wrapper, { 
-      scale: window.devicePixelRatio * 2, // vyšší DPI na mobilech
-      useCORS: true 
+    // přepočítat podpisové pole před exportem
+    const canvasEl = document.getElementById("signature-pad");
+    const tempData = signaturePad.toData();
+    canvasEl.width = canvasEl.offsetWidth;
+    canvasEl.height = canvasEl.offsetHeight;
+    signaturePad.clear();
+    signaturePad.fromData(tempData);
+
+    // pevná velikost A4 v px
+    const a4WidthPx = 794;
+    const a4HeightPx = 1123;
+
+    html2canvas(wrapper, {
+      width: a4WidthPx,
+      height: a4HeightPx,
+      scale: 2,
+      useCORS: true
     }).then(canvas => {
       const imgData = canvas.toDataURL("image/png");
       const pageWidth = doc.internal.pageSize.getWidth();
@@ -192,7 +206,8 @@
 
       if (signaturePad && !signaturePad.isEmpty()) {
         const signData = signaturePad.toDataURL();
-        doc.addImage(signData, "PNG", 20, doc.internal.pageSize.getHeight() - 50, 100, 30);
+        const pdfHeight = doc.internal.pageSize.getHeight();
+        doc.addImage(signData, "PNG", 20, pdfHeight - 60, 120, 40);
       }
 
       doc.save("protokol.pdf");
@@ -230,42 +245,6 @@
         }
       });
   }
-</script>
-  <script>
-function downloadPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF("p", "mm", "a4");
-
-  const wrapper = document.querySelector(".wrapper");
-  wrapper.classList.add("force-desktop");
-
-  // pevná velikost A4 v px (při 96 DPI ≈ 794 x 1123)
-  const a4WidthPx = 794;
-  const a4HeightPx = 1123;
-
-  html2canvas(wrapper, {
-    width: a4WidthPx,
-    height: a4HeightPx,
-    scale: 2,         // ostré i na mobilu
-    useCORS: true
-  }).then(canvas => {
-    const imgData = canvas.toDataURL("image/png");
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const imgProps = doc.getImageProperties(imgData);
-    const imgHeight = (imgProps.height * pageWidth) / imgProps.width;
-
-    doc.addImage(imgData, "PNG", 0, 0, pageWidth, imgHeight);
-
-    // podpis vždy zvlášť navrch
-    if (signaturePad && !signaturePad.isEmpty()) {
-      const signData = signaturePad.toDataURL();
-      doc.addImage(signData, "PNG", 20, doc.internal.pageSize.getHeight() - 50, 100, 30);
-    }
-
-    doc.save("protokol.pdf");
-    wrapper.classList.remove("force-desktop");
-  });
-}
 </script>
 </body>
 </html>
