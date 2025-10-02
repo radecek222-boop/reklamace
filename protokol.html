@@ -43,6 +43,34 @@
       }
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      const canvas = document.getElementById("signature-pad");
+      if (canvas) {
+        const signaturePad = new SignaturePad(canvas);
+        window.signaturePad = signaturePad;
+      }
+    });
+
+    function downloadPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      doc.html(document.querySelector(".wrapper"), {
+        callback: function (pdf) {
+          if (window.signaturePad && !window.signaturePad.isEmpty()) {
+            const imgData = window.signaturePad.toDataURL();
+            pdf.addImage(imgData, 'PNG', 15, 270, 60, 20);
+          }
+          pdf.save("protokol.pdf");
+        },
+        margin: [10, 10, 10, 10],
+        autoPaging: true,
+        html2canvas: { scale: 0.8 }
+      });
+    }
+  </script>
 </head>
 <body>
   <div class="wrapper">
@@ -51,8 +79,15 @@
       <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
     </div>
 
-    <!-- zbytek HTML obsahu formuláře zůstává nezměněn -->
+    <!-- Ukázkové pole pro podpis a export tlačítko -->
+    <div class="section-title">Podpis zákazníka / Customer signature:</div>
+    <canvas id="signature-pad"></canvas>
+    <div class="signature-label">Podepište se prosím prstem nebo myší / Sign using finger or mouse</div>
 
+    <div class="btns">
+      <button onclick="window.close()">⬅️ Zpět na hlavní stránku</button>
+      <button onclick="downloadPDF()">📄 Exportovat do PDF</button>
+    </div>
   </div>
 </body>
 </html>
