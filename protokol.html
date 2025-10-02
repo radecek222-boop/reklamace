@@ -46,21 +46,58 @@
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
+    let signaturePad;
+
     window.addEventListener("DOMContentLoaded", () => {
       const canvas = document.getElementById("signature-pad");
       if (canvas) {
-        const signaturePad = new SignaturePad(canvas);
-        window.signaturePad = signaturePad;
+        signaturePad = new SignaturePad(canvas);
       }
+
+      // Přijímá data z openeru
+      window.addEventListener("message", (event) => {
+        if (event.data.type === "openProtocol") {
+          const d = event.data.row;
+          if (!d) return;
+          document.getElementById("order-number").value = d["Order number"] || "";
+          document.getElementById("claim-number").value = d["Label"] || "";
+          document.getElementById("customer").value = d["Customer"] || "";
+          document.getElementById("address").value = d["Address"] || "";
+          document.getElementById("brand").value = d["Label"] || "";
+          document.getElementById("model").value = d["Model"] || "";
+          document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
+          autoTranslate();
+        }
+      });
+
+      // Automatický překlad s prodlevou
+      let translateTimer;
+      document.getElementById("description-cz").addEventListener("input", () => {
+        clearTimeout(translateTimer);
+        translateTimer = setTimeout(autoTranslate, 800);
+      });
     });
+
+    function autoTranslate() {
+      const sourceText = document.getElementById("description-cz").value;
+      const targetEl = document.getElementById("description-en");
+      if (!sourceText.trim()) return targetEl.value = "";
+      fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=cs&tl=en&dt=t&q=${encodeURIComponent(sourceText)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data[0]) {
+            targetEl.value = data[0].map(pair => pair[0]).join("");
+          }
+        });
+    }
 
     function downloadPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       doc.html(document.querySelector(".wrapper"), {
         callback: function (pdf) {
-          if (window.signaturePad && !window.signaturePad.isEmpty()) {
-            const imgData = window.signaturePad.toDataURL();
+          if (signaturePad && !signaturePad.isEmpty()) {
+            const imgData = signaturePad.toDataURL();
             pdf.addImage(imgData, 'PNG', 15, 270, 60, 20);
           }
           pdf.save("protokol.pdf");
@@ -79,7 +116,30 @@
       <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
     </div>
 
-    <!-- Ukázkové pole pro podpis a export tlačítko -->
+    <div class="two-col-table">
+      <table>
+        <tr><td class="label">Číslo objednávky</td><td><input id="order-number"></td></tr>
+        <tr><td class="label">Číslo reklamace</td><td><input id="claim-number"></td></tr>
+        <tr><td class="label">Zákazník</td><td><input id="customer"></td></tr>
+        <tr><td class="label">Adresa zákazníka</td><td><input id="address"></td></tr>
+        <tr><td class="label">Značka / Contract</td><td><input id="brand"></td></tr>
+        <tr><td class="label">Model</td><td><input id="model"></td></tr>
+      </table>
+
+      <table>
+        <tr><td class="label">Technik</td><td><select><option>Milan Kolín</option><option>Radek Zikmund</option><option>Kolín/Zikmund</option></select></td></tr>
+        <tr><td class="label">Datum návštěvy</td><td><input value="" id="visit-date"></td></tr>
+        <tr><td class="label">Datum doručení</td><td><input></td></tr>
+        <tr><td class="label">Datum podání reklamace</td><td><input></td></tr>
+      </table>
+    </div>
+
+    <div class="section-title">Zákazník reklamuje / Customer complaint</div>
+    <div class="split-section">
+      <textarea id="description-cz" placeholder="Popis v češtině"></textarea>
+      <textarea id="description-en" placeholder="Translation" readonly></textarea>
+    </div>
+
     <div class="section-title">Podpis zákazníka / Customer signature:</div>
     <canvas id="signature-pad"></canvas>
     <div class="signature-label">Podepište se prosím prstem nebo myší / Sign using finger or mouse</div>
