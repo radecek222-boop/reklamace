@@ -162,8 +162,9 @@ function renderTable(rows){
     let details = "";
     Object.entries(row).forEach(([key,val])=>{
       if (!["Customer","Address","KONTAKT","STAV - termín návštěvy"].includes(key)) {
+        if (key.startsWith("_")) return; // ⬅ skryje sloupce bez názvu
         let displayKey = key;
-        if (key === "Label") displayKey = "Contract"; // ✅ přejmenování
+        if (key === "Label") displayKey = "Contract"; // přejmenování
         details += `<div><b>${displayKey}:</b> ${val||""}</div>`;
       }
     });
