@@ -138,9 +138,9 @@ let allData = [];
 
 const days = ["pondělí","úterý","středa","čtvrtek","pátek","sobota","neděle"];
 
-// dnešní datum zařízení
+// dnešní datum zařízení → jen den.měsíc (např. 2.10)
 const today = new Date();
-const todayStr = today.toLocaleDateString("cs-CZ");
+const todayStr = today.getDate() + "." + (today.getMonth()+1);
 
 // pomocná funkce pro „chytré“ vyhledávání (bez diakritiky, case-insensitive)
 function norm(s){
@@ -182,7 +182,7 @@ function renderTable(rows){
       rowClass = "scheduled";
     }
 
-    // pokud se v řádku nachází dnešní datum → blikání
+    // pokud se v řádku nachází dnešní den.měsíc → blikání
     if (Object.values(row).some(v => (v || "").includes(todayStr))) {
       rowClass = "today";
     }
