@@ -14,13 +14,16 @@
     .field input, .field textarea { width:100%; padding:8px; border:1px solid #ccc;
       border-radius:6px; font-size:14px; }
     .btn { background:#4CAF50; color:#fff; padding:10px 20px; border:none;
-      border-radius:6px; cursor:pointer; margin-top:15px; font-size:14px; }
+      border-radius:6px; cursor:pointer; font-size:14px; }
     .btn:hover { background:#43a047; }
     #signature-pad { border:2px dashed #aaa; border-radius:6px; width:100%; height:200px;
       touch-action:none; margin-top:10px; }
     .sig-controls { margin-top:8px; display:flex; gap:10px; }
     .sig-clear { background:#e53935; color:#fff; flex:1; padding:8px; border:none; border-radius:6px; cursor:pointer; }
     .sig-clear:hover { background:#c62828; }
+    .back-btn { background:#777; }
+    .back-btn:hover { background:#555; }
+    .actions { margin-top:20px; display:flex; gap:10px; justify-content:flex-start; flex-wrap:wrap; }
   </style>
 </head>
 <body>
@@ -40,7 +43,11 @@
       </div>
     </div>
 
-    <button class="btn" onclick="exportPDF()">Uložit do PDF</button>
+    <div class="actions">
+      <button class="btn" onclick="exportPDF()">Uložit do PDF</button>
+      <button class="btn back-btn" onclick="location.href='seznam.html'">Zpět na seznam reklamací</button>
+      <button class="btn back-btn" onclick="location.href='index.html'">Zpět na hlavní stránku</button>
+    </div>
   </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
