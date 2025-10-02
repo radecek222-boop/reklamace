@@ -11,11 +11,12 @@
     .header div:last-child { font-size:12px; margin-top:4px; font-weight:normal; }
     table { width:100%; border-collapse:collapse; margin:10px 0; font-size:12px; }
     td { padding:6px; vertical-align:top; }
-    .label { font-weight:600; width:25%; font-size:12px; }
-    input, select, textarea { width:100%; padding:4px; font-size:12px; }
+    .label { font-weight:600; width:25%; }
+    input, select, textarea { width:100%; padding:4px; font-size:1em; }
     .split-section { display:flex; gap:10px; margin:10px 0; }
     .split-box { flex:1; min-height:80px; border:1px solid #ccc; padding:8px; background:white; font-size:12px; }
-    .two-col-table { display:flex; gap:30px; flex-wrap:wrap; }
+    .split-box[contenteditable="false"] { background:#f0f0f0; color:#333; }
+    .two-col-table { display:flex; gap:30px; font-size:12px; }
     .two-col-table table { width:100%; }
     .section-title { font-weight:700; margin-top:20px; font-size:12px; }
     #signature-pad { border:2px dashed #888; width:100%; height:150px; background:white; }
@@ -31,75 +32,61 @@
   </div>
 
   <div id="protocol-form">
-    <div class="two-col-table">
-      <table>
-        <tr>
-          <td class="label">Číslo objednávky / Order number</td>
-          <td><input type="text" id="order-number"></td>
-        </tr>
-        <tr>
-          <td class="label">Číslo reklamace / Claim number</td>
-          <td><input type="text" id="claim-number"></td>
-        </tr>
-        <tr>
-          <td class="label">Zákazník / Customer</td>
-          <td><input type="text" id="customer"></td>
-        </tr>
-        <tr>
-          <td class="label">Značka / Label (Contract)</td>
-          <td><input type="text" id="contract"></td>
-        </tr>
-        <tr>
-          <td class="label">Datum doručení / Delivery date</td>
-          <td><input type="date"></td>
-        </tr>
-      </table>
-      <table>
-        <tr>
-          <td class="label">Technik / Worker</td>
-          <td>
-            <select id="worker">
-              <option value="Milan Kolín">Milan Kolín</option>
-              <option value="Radek Zikmund">Radek Zikmund</option>
-              <option value="Kolin/Zikmund">Kolin/Zikmund</option>
-            </select>
-          </td>
-        </tr>
-        <tr>
-          <td class="label">Datum návštěvy / Date of visit</td>
-          <td><span id="visit-date"></span></td>
-        </tr>
-        <tr>
-          <td class="label">Adresa zákazníka / Customer address</td>
-          <td><input type="text" id="address"></td>
-        </tr>
-        <tr>
-          <td class="label">Model</td>
-          <td><input type="text" id="model"></td>
-        </tr>
-        <tr>
-          <td class="label">Datum podání reklamace / Complaint date</td>
-          <td><input type="date"></td>
-        </tr>
-      </table>
-    </div>
+    <table>
+      <tr>
+        <td class="label">Číslo objednávky / Order number</td>
+        <td><input type="text" id="order-number"></td>
+        <td class="label">Technik / Worker</td>
+        <td>
+          <select id="worker">
+            <option value="Milan Kolín">Milan Kolín</option>
+            <option value="Radek Zikmund">Radek Zikmund</option>
+            <option value="Kolin/Zikmund">Kolin/Zikmund</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td class="label">Číslo reklamace / Claim number</td>
+        <td><input type="text" id="claim-number"></td>
+        <td class="label">Datum návštěvy / Date of visit</td>
+        <td><span id="visit-date"></span></td>
+      </tr>
+      <tr>
+        <td class="label">Zákazník / Customer</td>
+        <td><input type="text" id="customer"></td>
+        <td class="label">Adresa zákazníka / Customer address</td>
+        <td><input type="text" id="address"></td>
+      </tr>
+      <tr>
+        <td class="label">Značka / Label (Contract)</td>
+        <td><input type="text" id="contract"></td>
+        <td class="label">Model</td>
+        <td><input type="text" id="model"></td>
+      </tr>
+      <tr>
+        <td class="label">Datum doručení / Delivery date</td>
+        <td><input type="date"></td>
+        <td class="label">Datum podání reklamace / Complaint date</td>
+        <td><input type="date"></td>
+      </tr>
+    </table>
 
     <div class="section-title">Zákazník reklamuje / The customer complains:</div>
     <div class="split-section">
-      <div class="split-box" contenteditable="true" id="description-cz"></div>
-      <div class="split-box" contenteditable="true" id="description-en"></div>
+      <div class="split-box" contenteditable="true" id="complaint-cz"></div>
+      <div class="split-box" contenteditable="false" id="complaint-en"></div>
     </div>
 
     <div class="section-title">Problém zjištěný technikem / Problem detected on site by technician:</div>
     <div class="split-section">
-      <div class="split-box" contenteditable="true"></div>
-      <div class="split-box" contenteditable="true"></div>
+      <div class="split-box" contenteditable="true" id="problem-cz"></div>
+      <div class="split-box" contenteditable="false" id="problem-en"></div>
     </div>
 
     <div class="section-title">Návrh opravy / Repair:</div>
     <div class="split-section">
-      <div class="split-box" contenteditable="true"></div>
-      <div class="split-box" contenteditable="true"></div>
+      <div class="split-box" contenteditable="true" id="repair-cz"></div>
+      <div class="split-box" contenteditable="false" id="repair-en"></div>
     </div>
 
     <div class="two-col-table">
@@ -119,12 +106,101 @@
         <tr><td class="label">Cena celkem</td><td><input type="text" value="95 EUR"></td></tr>
       </table>
     </div>
+
+    <div class="section-title">Podpis zákazníka / Customer signature:</div>
+    <canvas id="signature-pad"></canvas>
+    <div class="signature-label">Podepište se prosím prstem nebo myší / Sign using finger or mouse</div>
+
+    <div class="btns">
+      <button onclick="goHome()">⬅️ Zpět na hlavní stránku</button>
+      <button onclick="downloadPDF()">📄 Exportovat do PDF</button>
+      <button onclick="clearSignature()">🧹 Smazat podpis</button>
+    </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    const today = new Date();
-    document.getElementById("visit-date").innerText = today.toLocaleDateString("cs-CZ");
-    document.getElementById("signature-date").innerText = today.toLocaleDateString("cs-CZ");
+    const now = new Date();
+    const format = now.toLocaleDateString("cs-CZ");
+    document.getElementById("visit-date").innerText = format;
+    document.getElementById("signature-date").innerText = format;
+
+    const canvas = document.getElementById("signature-pad");
+    const signaturePad = new SignaturePad(canvas);
+
+    function clearSignature() {
+      signaturePad.clear();
+    }
+
+    function goHome() {
+      if (window.opener) {
+        window.opener.location.href = "index.html";
+        window.close();
+      } else {
+        location.href = "index.html";
+      }
+    }
+
+    async function translateText(text, from = "cs", to = "en") {
+      const response = await fetch("https://libretranslate.de/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ q: text, source: from, target: to, format: "text" })
+      });
+      const data = await response.json();
+      return data.translatedText || "";
+    }
+
+    function setupLiveTranslation(sourceId, targetId) {
+      let timeout;
+      document.getElementById(sourceId).addEventListener("input", () => {
+        clearTimeout(timeout);
+        timeout = setTimeout(async () => {
+          const sourceText = document.getElementById(sourceId).innerText;
+          const translated = await translateText(sourceText);
+          document.getElementById(targetId).innerText = translated;
+        }, 500);
+      });
+    }
+
+    setupLiveTranslation("complaint-cz", "complaint-en");
+    setupLiveTranslation("problem-cz", "problem-en");
+    setupLiveTranslation("repair-cz", "repair-en");
+
+    window.addEventListener("message", function(event) {
+      if (event.data.type === "openProtocol") {
+        const d = event.data.row;
+        if (!d) return;
+        document.getElementById("order-number").value = d["Order number"] || "";
+        document.getElementById("claim-number").value = d["Label"] || "";
+        document.getElementById("worker").value = d["RADEK"] ? "Radek Zikmund" : d["MILAN"] ? "Milan Kolín" : "Kolin/Zikmund";
+        document.getElementById("customer").value = d["Customer"] || "";
+        document.getElementById("address").value = d["Address"] || "";
+        document.getElementById("contract").value = d["Label"] || "";
+        document.getElementById("model").value = d["Model"] || "";
+        document.getElementById("complaint-cz").innerText = d["POPIS REKLAMACE - OPRAVY"] || "";
+        document.getElementById("problem-cz").innerText = "";
+        document.getElementById("repair-cz").innerText = "";
+      }
+    });
+
+    async function downloadPDF() {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF();
+      pdf.html(document.getElementById("protocol-form"), {
+        callback: function (doc) {
+          if (!signaturePad.isEmpty()) {
+            const imgData = signaturePad.toDataURL();
+            doc.addImage(imgData, 'PNG', 15, 280, 180, 30);
+          }
+          doc.save("protokol.pdf");
+        },
+        margin: [10, 10, 10, 10],
+        autoPaging: true,
+        html2canvas: { scale: 0.5 }
+      });
+    }
   </script>
 </body>
 </html>
