@@ -3,131 +3,49 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Seznam reklamací</title>
+  <title>WHITE GLOVE SERVICE</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
-    body { 
-      font-family: Inter, sans-serif; 
-      margin:20px; 
-      background:#f6f7fb; 
-      font-size: 13px;
-    }
-    h2 { 
-      margin-top:0; 
-      text-align:center; 
-      font-size: 18px;
-    }
+    body { font-family: Inter, sans-serif; margin:20px; background:#f6f7fb; font-size: 13px; }
+    h2 { text-align:center; font-size:20px; font-weight:700; letter-spacing:1px; }
     input[type="text"] {
-      padding:6px; 
-      border-radius:6px; 
-      border:1px solid #ccc; 
-      width:100%; 
-      max-width:350px;
-      display:block; 
-      margin:0 auto;
-      font-size: 13px;
-      text-align:center;
+      padding:6px; border-radius:6px; border:1px solid #ccc;
+      width:100%; max-width:350px; display:block; margin:0 auto;
+      font-size:13px; text-align:center;
     }
-    .table-wrapper { 
-      overflow-x:auto; 
-      margin-top:15px; 
-    }
-    table {
-      width:100%; 
-      border-collapse:collapse; 
-      background:#fff;
-      border-radius:8px; 
-      box-shadow:0 2px 6px rgba(0,0,0,0.1);
-      font-size: 12px;
-      text-align:center;
-    }
-    th, td { 
-      padding:6px 8px; 
-      border:1px solid #ccc; 
-      font-size:0.85em; 
-      text-align:center;
-    }
-    th { 
-      background:#f0f0f0; 
-      font-weight:600;
-    }
+    .table-wrapper { overflow-x:auto; margin-top:15px; }
+    table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1); font-size:12px; text-align:center; }
+    th, td { padding:6px 8px; border:1px solid #ccc; font-size:0.85em; text-align:center; }
+    th { background:#f0f0f0; font-weight:600; }
     tr:nth-child(even) { background:#fafafa; }
     tr:hover { background:#e9f0ff; cursor:pointer; }
     a { color:#0645ad; text-decoration:none; }
     a:hover { text-decoration:underline; }
-    .btn {
-      background:#e0e0e0; 
-      color:#111; 
-      padding:8px 16px; 
-      margin:20px auto; 
-      display:block;
-      border:none; 
-      border-radius:8px; 
-      cursor:pointer; 
-      font-size:0.9em;
-      box-shadow:0 2px 5px rgba(0,0,0,0.15);
-    }
+    .btn { background:#e0e0e0; color:#111; padding:8px 16px; margin:20px auto;
+      display:block; border:none; border-radius:8px; cursor:pointer; font-size:0.9em;
+      box-shadow:0 2px 5px rgba(0,0,0,0.15); }
     .btn:hover { background:#d5d5d5; }
     .details {
-      max-height: 0;
-      overflow: hidden;
-      background:#f9f9f9;
-      font-size:0.8em;
-      text-align:left;
-      padding:0 10px;
-      transition: max-height 0.4s ease, padding 0.3s ease;
+      max-height: 0; overflow:hidden; background:#f9f9f9; font-size:0.8em;
+      text-align:left; padding:0 10px; transition:max-height 0.4s ease, padding 0.3s ease;
     }
-    .details.open {
-      max-height: 300px;
-      padding:10px;
-    }
-    .details td {
-      border:none !important;
-    }
-    .toggle-icon {
-      font-weight:bold;
-      cursor:pointer;
-      color:#fff;
-      background:#888;
-      border-radius:50%;
-      width:18px;
-      height:18px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      margin:0 auto;
-      font-size:12px;
-      line-height:1;
-      user-select:none;
-      transition: background 0.2s;
-    }
-    .toggle-icon:hover {
-      background:#555;
-    }
+    .details.open { max-height:300px; padding:10px; }
     .protocol-btn {
-      background:#4CAF50;
-      color:#fff;
-      padding:6px 12px;
-      border:none;
-      border-radius:6px;
-      cursor:pointer;
-      margin-top:10px;
-      font-size:0.8em;
+      background:#4CAF50; color:#fff; padding:6px 12px; border:none;
+      border-radius:6px; cursor:pointer; margin-top:10px; font-size:0.8em;
     }
-    .protocol-btn:hover {
-      background:#43a047;
-    }
+    .protocol-btn:hover { background:#43a047; }
   </style>
 </head>
 <body>
-  <h2>Seznam reklamací</h2>
+  <h2>WHITE GLOVE SERVICE</h2>
   <input type="text" id="search" placeholder="Hledat podle jména, adresy, telefonu nebo objednávky">
   <div id="results" class="table-wrapper">Načítám data...</div>
   <button class="btn" onclick="window.close()">Zpět na hlavní obrazovku</button>
 
 <script>
 const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQzpP83wIYZPcnb1NI9pPSPixzcEQuRVrTOyPD7SRbgYZSrQs7QdcLNwPJ5lQleGbVVK29nr2-bMo6Y/pub?gid=0&single=true&output=csv";
-
 let allData = [];
 
 async function loadData() {
@@ -147,18 +65,15 @@ function renderTable(rows){
     document.getElementById("results").innerHTML = "Žádná data"; 
     return; 
   }
-
   let html = "<table><thead><tr>";
-  ["Customer","Address","KONTAKT","STAV - termín návštěvy","Detail"].forEach(h => { html += "<th>"+h+"</th>"; });
+  ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(h => { html += "<th>"+h+"</th>"; });
   html += "</tr></thead><tbody>";
   
   rows.forEach((row,idx) => {
     html += `<tr onclick="toggleDetails(${idx})">`;
-
     ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(key => {
       let val = row[key] || "";
       let cellContent = val;
-
       if (key.toLowerCase().includes("kontakt")) {
         cellContent = `<a href="tel:${val}" onclick="event.stopPropagation()">${val}</a>`;
       }
@@ -166,15 +81,11 @@ function renderTable(rows){
         const encoded = encodeURIComponent(val);
         cellContent = `<a href="https://waze.com/ul?q=${encoded}" target="_blank" onclick="event.stopPropagation()">${val}</a>`;
       }
-
       html += "<td>"+cellContent+"</td>";
     });
-
-    // poslední sloupec s ikonou
-    html += `<td><div class="toggle-icon" id="icon-${idx}" onclick="toggleDetails(${idx}); event.stopPropagation();">+</div></td>`;
     html += "</tr>";
 
-    // detaily + tlačítko
+    // Detaily + tlačítko
     let details = "";
     Object.entries(row).forEach(([key,val])=>{
       if (!["Customer","Address","KONTAKT","STAV - termín návštěvy"].includes(key)) {
@@ -182,31 +93,27 @@ function renderTable(rows){
       }
     });
     details += `<button class="protocol-btn" onclick="createProtocol(${idx}, event)">Vytvořit protokol</button>`;
-    html += `<tr><td colspan="5"><div id="details-${idx}" class="details">${details}</div></td></tr>`;
+    html += `<tr><td colspan="4"><div id="details-${idx}" class="details">${details}</div></td></tr>`;
   });
-  
   html += "</tbody></table>";
   document.getElementById("results").innerHTML = html;
 }
 
 function toggleDetails(index){
   const detailsDiv = document.getElementById("details-"+index);
-  const icon = document.getElementById("icon-"+index);
-  if (detailsDiv.classList.contains("open")) {
-    detailsDiv.classList.remove("open");
-    icon.textContent = "+";
-  } else {
-    detailsDiv.classList.add("open");
-    icon.textContent = "–";
-  }
+  detailsDiv.classList.toggle("open");
 }
 
 function createProtocol(index, event){
   event.stopPropagation();
   const row = allData[index];
   if (!row) return;
-  window.opener.postMessage({ type:"openProtocol", row }, "*");
-  window.close();
+  // otevře nové okno s protokolem
+  const protokolWindow = window.open("protokol.html", "_blank");
+  // počká, až se nové okno načte, a pak mu pošle data
+  protokolWindow.onload = () => {
+    protokolWindow.postMessage({ type:"openProtocol", row }, "*");
+  };
 }
 
 document.getElementById("search").addEventListener("input", e => {
