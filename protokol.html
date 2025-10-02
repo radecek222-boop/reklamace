@@ -155,15 +155,10 @@
   let signaturePad;
   window.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("signature-pad");
-    // pevně nastavit velikost canvasu podle CSS
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
-    // inicializace podpisu s bílým pozadím (kvůli iOS)
-    signaturePad = new SignaturePad(canvas, {
-      backgroundColor: "white"
-    });
+    signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
 
-    // předvyplnit dnešní datum
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("visit-date").value = today;
     document.getElementById("sign-date").value = today;
@@ -178,17 +173,35 @@
 
     html2canvas(wrapper, { scale: 2 }).then(canvas => {
       const imgData = canvas.toDataURL("image/png");
-      const pageWidth = doc.internal.pageSize.getWidth();
+
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
       const imgProps = doc.getImageProperties(imgData);
-      const imgHeight = (imgProps.height * pageWidth) / imgProps.width;
+      const imgW = imgProps.width;
+      const imgH = imgProps.height;
 
-      doc.addImage(imgData, "PNG", 0, 0, pageWidth, imgHeight);
+      let drawW = pageW;
+      let drawH = (imgH * drawW) / imgW;
+      let x = 0;
+      let y = 0;
 
-      // podpis zvlášť a vždy celý
+      if (drawH > pageH) {
+        const scale = pageH / drawH;
+        drawW = drawW * scale;
+        drawH = pageH;
+        x = (pageW - drawW) / 2;
+      }
+
+      doc.addImage(imgData, "PNG", x, y, drawW, drawH);
+
       if (signaturePad && !signaturePad.isEmpty()) {
         const signData = signaturePad.toDataURL("image/png");
-        // pevný rozměr, aby se neukrojila půlka
-        doc.addImage(signData, "PNG", 20, doc.internal.pageSize.getHeight() - 40, 80, 30);
+        const signW = 80;
+        const signH = 30;
+        const pad = 15;
+        const signX = x + pad;
+        const signY = y + drawH - pad - signH;
+        doc.addImage(signData, "PNG", signX, signY, signW, signH);
       }
 
       doc.save("protokol.pdf");
@@ -196,7 +209,6 @@
     });
   }
 
-  // Přenos dat ze seznamu
   window.addEventListener("message", (event) => {
     if (event.data.type === "openProtocol") {
       const d = event.data.row;
