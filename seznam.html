@@ -3,19 +3,45 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>White Glove Service – seznam reklamací</title>
+  <title>WHITE GLOVE SERVICE – Seznam reklamací</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
     :root { font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:#111 }
     body { margin:0; padding:20px; background:#f6f7fb }
     h1 { text-align:center; font-size:2em; font-weight:900; margin:0 0 10px; }
     h2 { text-align:center; font-size:1.2em; font-weight:600; margin:0 0 20px; color:#555; }
+    
+    /* Šedá tlačítka */
     .btn {
-      background:#4CAF50; color:#fff; padding:10px 20px; margin:10px auto;
-      display:block; border:none; border-radius:8px; cursor:pointer; font-size:1em;
+      background:#6c757d;
+      color:#fff;
+      padding:10px 20px;
+      margin:10px auto;
+      display:block;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:1em;
       box-shadow:0 2px 5px rgba(0,0,0,0.15);
+      text-align:center;
     }
-    .btn:hover { background:#43a047; }
+    .btn:hover { background:#5a6268; }
+
+    /* Zelené tlačítko pro protokol */
+    .protocol-btn {
+      background:#28a745;
+      color:#fff;
+      padding:6px 14px;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;
+      margin-top:10px;
+      font-size:0.9em;
+      font-weight:600;
+      box-shadow:0 2px 4px rgba(0,0,0,0.2);
+    }
+    .protocol-btn:hover { background:#218838; }
+
     .table-wrapper { overflow-x:auto; margin-top:20px; }
     table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px;
       box-shadow:0 2px 6px rgba(0,0,0,0.1); font-size:13px; }
@@ -35,25 +61,27 @@
       transition:max-height 0.4s ease, padding 0.3s ease;
     }
     .details.open { padding:10px; }
-    .protocol-btn { background:#4CAF50; color:#fff; padding:6px 12px; border:none;
-      border-radius:6px; cursor:pointer; margin-top:10px; font-size:0.9em; }
-    .protocol-btn:hover { background:#43a047; }
 
-    /* zvýraznění stavů */
+    /* zvýraznění stavů – barevné řádky */
     tr.done {
-      background:#28a745 !important; /* výraznější zelená */
+      background:#28a745 !important;
       color:#fff;
       font-weight:600;
     }
     tr.waiting {
-      background:#ff9800 !important; /* výraznější oranžová */
+      background:#ff9800 !important;
       color:#fff;
       font-weight:600;
     }
     tr.scheduled {
-      background:#007bff !important; /* výrazná modrá */
+      background:#007bff !important;
       color:#fff;
-      font-weight:700; /* tučně jen modrá */
+      font-weight:700;
+    }
+
+    tr.done a, tr.waiting a, tr.scheduled a {
+      color:#fff !important;
+      font-weight:700;
     }
 
     @media(max-width:600px){
@@ -101,27 +129,48 @@ function renderTable(rows){
     const status = statusRaw.toLowerCase();
 
     let rowClass = "";
+    let isColored = false;
     if (status.includes("hotovo")) {
       rowClass = "done";
+      isColored = true;
     } else if (status.includes("čeká")) {
       rowClass = "waiting";
+      isColored = true;
     } else if (days.some(d => status.includes(d)) || /\d/.test(status)) {
       rowClass = "scheduled";
+      isColored = true;
     }
 
     html += `<tr class="${rowClass}" onclick="toggleDetails(${idx})">`;
-    ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(key => {
-      let val = row[key] || "";
-      let cellContent = val;
-      if (key.toLowerCase().includes("kontakt")) {
-        cellContent = `<a href="tel:${val}" onclick="event.stopPropagation()">${val}</a>`;
-      }
-      if (key.toLowerCase().includes("address") || key.toLowerCase().includes("adresa")) {
-        const encoded = encodeURIComponent(val);
-        cellContent = `<a href="https://waze.com/ul?q=${encoded}" target="_blank" onclick="event.stopPropagation()">${val}</a>`;
-      }
-      html += "<td>"+cellContent+"</td>";
-    });
+
+    if (isColored) {
+      ["Address","KONTAKT"].forEach(key => {
+        let val = row[key] || "";
+        let cellContent = val;
+        if (key.toLowerCase().includes("kontakt")) {
+          cellContent = `<a href="tel:${val}" onclick="event.stopPropagation()">${val}</a>`;
+        }
+        if (key.toLowerCase().includes("address") || key.toLowerCase().includes("adresa")) {
+          const encoded = encodeURIComponent(val);
+          cellContent = `<a href="https://waze.com/ul?q=${encoded}" target="_blank" onclick="event.stopPropagation()">${val}</a>`;
+        }
+        html += `<td colspan="2">${cellContent}</td>`;
+      });
+    } else {
+      ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(key => {
+        let val = row[key] || "";
+        let cellContent = val;
+        if (key.toLowerCase().includes("kontakt")) {
+          cellContent = `<a href="tel:${val}" onclick="event.stopPropagation()">${val}</a>`;
+        }
+        if (key.toLowerCase().includes("address") || key.toLowerCase().includes("adresa")) {
+          const encoded = encodeURIComponent(val);
+          cellContent = `<a href="https://waze.com/ul?q=${encoded}" target="_blank" onclick="event.stopPropagation()">${val}</a>`;
+        }
+        html += "<td>"+cellContent+"</td>";
+      });
+    }
+
     html += "</tr>";
 
     let details = "";
