@@ -39,19 +39,19 @@
     .btns button { padding:10px 20px; font-size:1em; border:none; background:#333; color:white; border-radius:6px; cursor:pointer; }
     @media (max-width: 768px) {
       .wrapper { padding: 10px; }
+      .two-col-table { flex-direction: column; }
+      .split-section { flex-direction: column; }
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
     let signaturePad;
-
     window.addEventListener("DOMContentLoaded", () => {
       const canvas = document.getElementById("signature-pad");
       if (canvas) {
         signaturePad = new SignaturePad(canvas);
       }
-
       window.addEventListener("message", (event) => {
         if (event.data.type === "openProtocol") {
           const d = event.data.row;
@@ -66,14 +66,12 @@
           autoTranslate();
         }
       });
-
       let translateTimer;
       document.getElementById("description-cz").addEventListener("input", () => {
         clearTimeout(translateTimer);
         translateTimer = setTimeout(autoTranslate, 800);
       });
     });
-
     function autoTranslate() {
       const sourceText = document.getElementById("description-cz").value;
       const targetEl = document.getElementById("description-en");
@@ -86,13 +84,14 @@
           }
         });
     }
-
-    function updateTotal() {
-      const values = ["work-price", "material-price", "second-tech-price", "transport-price"]
-        .map(id => parseFloat(document.getElementById(id).value) || 0);
-      document.getElementById("total-price").value = values.reduce((a,b)=>a+b,0).toFixed(2);
+    function calculateTotal() {
+      const work = parseFloat(document.getElementById("price-work").value) || 0;
+      const material = parseFloat(document.getElementById("price-material").value) || 0;
+      const second = parseFloat(document.getElementById("price-second").value) || 0;
+      const transport = parseFloat(document.getElementById("price-transport").value) || 0;
+      const total = work + material + second + transport;
+      document.getElementById("price-total").value = total.toFixed(2);
     }
-
     function downloadPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -130,7 +129,7 @@
 
       <table>
         <tr><td class="label">Technik</td><td><select><option>Milan Kolín</option><option>Radek Zikmund</option><option>Kolín/Zikmund</option></select></td></tr>
-        <tr><td class="label">Datum návštěvy</td><td><input id="visit-date"></td></tr>
+        <tr><td class="label">Datum návštěvy</td><td><input value="" id="visit-date"></td></tr>
         <tr><td class="label">Datum doručení</td><td><input></td></tr>
         <tr><td class="label">Datum podání reklamace</td><td><input></td></tr>
       </table>
@@ -142,29 +141,36 @@
       <textarea id="description-en" placeholder="Translation" readonly></textarea>
     </div>
 
-    <div class="section-title">Problém zjištěný technikem / Problem detected on site</div>
-    <textarea></textarea>
+    <div class="section-title">Problém zjištěný technikem / Detected problem</div>
+    <div class="split-section">
+      <textarea></textarea>
+      <textarea readonly></textarea>
+    </div>
+
     <div class="section-title">Návrh opravy / Repair proposal</div>
-    <textarea></textarea>
+    <div class="split-section">
+      <textarea></textarea>
+      <textarea readonly></textarea>
+    </div>
 
-    <div class="section-title">Ceny / Prices</div>
-    <table>
-      <tr><td class="label">Počet opravovaných dílů</td><td><input type="number"></td></tr>
-      <tr><td class="label">Cena za práci</td><td><input id="work-price" type="number" oninput="updateTotal()"></td></tr>
-      <tr><td class="label">Cena za materiál</td><td><input id="material-price" type="number" oninput="updateTotal()"></td></tr>
-      <tr><td class="label">Cena za druhého technika</td><td><input id="second-tech-price" type="number" oninput="updateTotal()"></td></tr>
-      <tr><td class="label">Cena za dopravu</td><td><input id="transport-price" type="number" oninput="updateTotal()"></td></tr>
-      <tr><td class="label">Cena celkem</td><td><input id="total-price" readonly></td></tr>
-    </table>
+    <div class="two-col-table">
+      <table>
+        <tr><td class="label">Počet opravovaných dílů</td><td><input></td></tr>
+        <tr><td class="label">Cena za práci</td><td><input id="price-work" oninput="calculateTotal()"></td></tr>
+        <tr><td class="label">Cena za materiál</td><td><input id="price-material" oninput="calculateTotal()"></td></tr>
+        <tr><td class="label">Cena za druhého technika</td><td><input id="price-second" oninput="calculateTotal()"></td></tr>
+        <tr><td class="label">Cena za dopravu</td><td><input id="price-transport" oninput="calculateTotal()"></td></tr>
+        <tr><td class="label">Cena celkem</td><td><input id="price-total" readonly></td></tr>
+      </table>
 
-    <div class="section-title">Stav reklamace / Complaint status</div>
-    <table>
-      <tr><td class="label">Reklamace vyřešena?</td><td><select><option>ANO</option><option>NE</option></select></td></tr>
-      <tr><td class="label">Čeká se na vyjádření prodejce?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
-      <tr><td class="label">Poškození technikem?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
-      <tr><td class="label">Úhradu provede zákazník?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
-      <tr><td class="label">Datum podpisu</td><td><input></td></tr>
-    </table>
+      <table>
+        <tr><td class="label">Reklamace vyřešena?</td><td><select><option>ANO</option><option>NE</option></select></td></tr>
+        <tr><td class="label">Čeká se na vyjádření prodejce?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Poškození technikem?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Úhradu provede zákazník?</td><td><select><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Datum podpisu</td><td><input></td></tr>
+      </table>
+    </div>
 
     <div class="section-title">Podpis zákazníka / Customer signature:</div>
     <canvas id="signature-pad"></canvas>
