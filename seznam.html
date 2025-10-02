@@ -77,21 +77,40 @@
   </table>
 
   <script>
-    // URL na Google Sheets (publish to web → JSON nebo Apps Script endpoint)
-    const sheetUrl = "PASTE-YOUR-SHEET-JSON-OR-API-URL"; 
+    // URL publikovaného Google Sheets
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/TVŮJ-ODKAZ/gviz/tq?tqx=out:json";
 
-    // Data globálně
     let dataRows = [];
 
-    // Načtení dat
+    // Načtení dat z Google Sheets
     fetch(sheetUrl)
-      .then(res => res.json())
-      .then(data => {
-        dataRows = data;
+      .then(res => res.text())
+      .then(rep => {
+        // Parsování odpovědi Google (odstraníme "/*O_o*/" obal)
+        const json = JSON.parse(rep.substr(47).slice(0,-2));
+        const rows = json.table.rows.map(r => {
+          return {
+            "Customer": r.c[0] ? r.c[0].v : "",
+            "Address": r.c[1] ? r.c[1].v : "",
+            "KONTAKT": r.c[2] ? r.c[2].v : "",
+            "STAV - termín návštěvy": r.c[3] ? r.c[3].v : "",
+            "Order number": r.c[4] ? r.c[4].v : "",
+            "Label": r.c[5] ? r.c[5].v : "",
+            "CENA": r.c[6] ? r.c[6].v : "",
+            "MILAN": r.c[7] ? r.c[7].v : "",
+            "RADEK": r.c[8] ? r.c[8].v : "",
+            "Model": r.c[9] ? r.c[9].v : "",
+            "POPIS REKLAMACE - OPRAVY": r.c[10] ? r.c[10].v : "",
+            "Complaint date": r.c[11] ? r.c[11].v : "",
+            "Delivery date": r.c[12] ? r.c[12].v : ""
+          };
+        });
+
+        dataRows = rows;
         renderTable(dataRows);
       });
 
-    // Funkce pro render tabulky
+    // vykreslení tabulky
     function renderTable(rows) {
       const tbody = document.querySelector("#reklamace-table tbody");
       tbody.innerHTML = "";
@@ -106,29 +125,29 @@
         const address = row["Address"] ? `<a href="https://waze.com/ul?q=${encodeURIComponent(row["Address"])}" target="_blank">${row["Address"]}</a>` : "";
 
         tr.innerHTML = `
-          <td>${row["Customer"] || ""}</td>
+          <td>${row["Customer"]}</td>
           <td>${address}</td>
           <td>${phone}</td>
-          <td>${row["STAV - termín návštěvy"] || ""}</td>
-          <td>${row["Order number"] || ""}</td>
-          <td>${row["Label"] || ""}</td>
-          <td>${row["CENA"] || ""}</td>
-          <td>${row["MILAN"] || ""}</td>
-          <td>${row["RADEK"] || ""}</td>
-          <td>${row["Model"] || ""}</td>
-          <td>${row["POPIS REKLAMACE - OPRAVY"] || ""}</td>
-          <td>${row["Complaint date"] || ""}</td>
-          <td>${row["Delivery date"] || ""}</td>
+          <td>${row["STAV - termín návštěvy"]}</td>
+          <td>${row["Order number"]}</td>
+          <td>${row["Label"]}</td>
+          <td>${row["CENA"]}</td>
+          <td>${row["MILAN"]}</td>
+          <td>${row["RADEK"]}</td>
+          <td>${row["Model"]}</td>
+          <td>${row["POPIS REKLAMACE - OPRAVY"]}</td>
+          <td>${row["Complaint date"]}</td>
+          <td>${row["Delivery date"]}</td>
         `;
 
-        // kliknutí = otevře protokol s daty
+        // Kliknutí = otevře protokol a pošle data
         tr.addEventListener("click", () => openProtocol(row));
 
         tbody.appendChild(tr);
       });
     }
 
-    // Vyhledávání v tabulce
+    // vyhledávání v tabulce
     document.getElementById("search").addEventListener("input", function() {
       const term = this.value.toLowerCase();
       const filtered = dataRows.filter(row =>
@@ -139,7 +158,7 @@
       renderTable(filtered);
     });
 
-    // Otevření protokolu a poslání dat
+    // otevření protokolu a poslání dat
     function openProtocol(row) {
       const win = window.open("protokol.html", "_blank");
       setTimeout(() => {
