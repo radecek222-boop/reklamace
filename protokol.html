@@ -33,7 +33,14 @@ textarea { min-height:60px; resize:vertical; }
 .btn-pdf { background: linear-gradient(145deg, #004080, #1e90ff, #003366); }
 .btn-email { background: linear-gradient(145deg, #006600, #28a745, #004d00); }
 @media (max-width:768px){ .wrapper{padding:10px;} .two-col-table{flex-direction:column;} .split-section{flex-direction:column;} .btns { grid-template-columns: 1fr; } }
+
+/* Force desktop pro PDF + mobilní optimalizace */
 .force-desktop { width:794px !important; max-width:794px !important; }
+@media screen and (max-width:768px) {
+  .force-desktop { width:794px !important; max-width:794px !important; display:block; }
+  .two-col-table, .split-section { display:flex !important; flex-direction:row !important; gap:30px; }
+  .two-col-table .col, .split-section textarea { min-width:370px; flex:1; }
+}
 </style>
 </head>
 <body>
@@ -43,7 +50,6 @@ textarea { min-height:60px; resize:vertical; }
     <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
   </div>
 
-  <!-- FORMULÁŘ -->
   <div class="two-col-table">
     <div class="col">
       <table>
@@ -235,7 +241,6 @@ window.addEventListener("message", (event) => {
     const d = event.data.row;
     if (!d) return;
 
-    // Základní údaje
     document.getElementById("order-number").value = d["Order number"] || "";
     document.getElementById("claim-number").value = d["Label"] || "";
     document.getElementById("customer").value = d["Customer"] || "";
@@ -245,7 +250,6 @@ window.addEventListener("message", (event) => {
     document.getElementById("brand").value = d["Contract"] || d["Label"] || "";
     document.getElementById("model").value = d["Model"] || "";
 
-    // Texty a překlad
     document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
     autoTranslate("description-cz", "description-en");
     document.getElementById("problem-cz").value = d["Problem detected"] || "";
@@ -253,13 +257,11 @@ window.addEventListener("message", (event) => {
     document.getElementById("repair-cz").value = d["Repair proposal"] || "";
     autoTranslate("repair-cz", "repair-en");
 
-    // Datumy
     document.getElementById("visit-date").value = d["Visit date"] || "";
     document.getElementById("delivery-date").value = d["Delivery date"] || "";
     document.getElementById("claim-date").value = d["Complaint date"] || "";
     document.getElementById("sign-date").value = d["Signature date"] || "";
 
-    // Ceny a počty
     document.getElementById("parts").value = d["Number of repaired parts"] || "";
     document.getElementById("price-work").value = d["Work cost"] || "";
     document.getElementById("price-material").value = d["Material cost"] || "";
@@ -267,7 +269,6 @@ window.addEventListener("message", (event) => {
     document.getElementById("price-transport").value = d["Transport cost"] || "";
     document.getElementById("price-total").value = d["Total cost"] || "";
 
-    // Stav reklamace
     document.getElementById("solved").value = d["Complaint solved?"] || "";
     document.getElementById("dealer").value = d["Waiting for dealer statement?"] || "";
     document.getElementById("damage").value = d["Damage by technician?"] || "";
@@ -282,9 +283,7 @@ function autoTranslate(srcId, tgtId) {
   if (!sourceText.trim()) return targetEl.value = "";
   fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=cs&tl=en&dt=t&q=${encodeURIComponent(sourceText)}`)
     .then(res => res.json())
-    .then(data => {
-      if (data && data[0]) targetEl.value = data[0].map(pair => pair[0]).join("");
-    });
+    .then(data => { if (data && data[0]) targetEl.value = data[0].map(pair => pair[0]).join(""); });
 }
 </script>
 </body>
