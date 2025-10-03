@@ -1,129 +1,118 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Protokol - White Glove Service</title>
-  <style>
-    body {
-      font-family: Inter, sans-serif;
-      background:#f6f7fb;
-      margin:0;
-      padding:20px;
-      font-size:12px;
-      display:flex;
-      justify-content:center;
-    }
-    .wrapper {
-      width:100%;
-      max-width:900px;
-      background:white;
-      padding:20px;
-      box-shadow:0 0 10px rgba(0,0,0,0.1);
-    }
-    .header { text-align:center; margin-bottom:20px; }
-    .header div:first-child { font-size:28px; font-weight:900; }
-    .header div:last-child { font-size:12px; margin-top:4px; font-weight:normal; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Protokol - White Glove Service</title>
+<style>
+body {
+  font-family: Inter, sans-serif;
+  background:#f6f7fb;
+  margin:0;
+  padding:20px;
+  font-size:12px;
+  display:flex;
+  justify-content:center;
+}
+.wrapper {
+  width:100%;
+  max-width:900px;
+  background:white;
+  padding:20px;
+  box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+.header { text-align:center; margin-bottom:20px; }
+.header div:first-child { font-size:28px; font-weight:900; }
+.header div:last-child { font-size:12px; margin-top:4px; font-weight:normal; }
 
-    table { width:100%; border-collapse:collapse; margin:10px 0; }
-    td { padding:6px; vertical-align:top; }
+table { width:100%; border-collapse:collapse; margin:10px 0; }
+td { padding:6px; vertical-align:top; }
 
-    .label { font-weight:600; display:block; }
-    .label .en-label {
-      display:block;
-      font-size:0.85em;
-      color:#666;
-      font-weight:normal;
-      margin:0;
-    }
+.label { font-weight:600; display:block; }
+.label .en-label { display:block; font-size:0.85em; color:#666; font-weight:normal; margin:0; }
 
-    .section-title {
-      font-weight:700;
-      margin-top:20px;
-      display:flex;
-      flex-direction:column;
-      align-items:flex-start;
-    }
-    .section-title .en-label {
-      font-size:0.9em;
-      color:#666;
-      font-weight:normal;
-      margin-top:2px;
-    }
+.section-title {
+  font-weight:700;
+  margin-top:20px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+}
+.section-title .en-label { font-size:0.9em; color:#666; font-weight:normal; margin-top:2px; }
 
-    input, select, textarea {
-      width:100%;
-      padding:4px 8px;
-      font-size:1em;
-      border:1px solid #ccc;
-      border-radius:4px;
-      box-sizing:border-box;
-      color:#111;
-      background:#fff;
-    }
-    input, select { height:36px; line-height:36px; background-color:white; }
-    textarea { min-height:60px; resize:vertical; }
+input, select, textarea {
+  width:100%;
+  padding:4px 8px;
+  font-size:1em;
+  border:1px solid #ccc;
+  border-radius:4px;
+  box-sizing:border-box;
+  color:#111;
+  background:#fff;
+}
+input, select { height:36px; line-height:36px; background-color:white; }
+textarea { min-height:60px; resize:vertical; }
 
-    .split-section { display:flex; gap:10px; margin:10px 0; }
-    .two-col-table { display:flex; gap:30px; flex-wrap:wrap; }
-    .two-col-table .col { flex:1; min-width:300px; }
+.split-section { display:flex; gap:10px; margin:10px 0; }
+.two-col-table { display:flex; gap:30px; flex-wrap:wrap; }
+.two-col-table .col { flex:1; min-width:300px; }
 
-    #signature-pad {
-      border:2px dashed #888;
-      width:100%;
-      height:200px;
-      background:white;
-      touch-action: none;
-    }
-    .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
+#signature-pad {
+  border:2px dashed #888;
+  width:100%;
+  height:200px;
+  background:white;
+  touch-action: none;
+}
+.signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
 
-    /* tlačítka */
-    .btns {
-      margin-top:20px;
-      display:grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap:12px;
-    }
-    .btns button {
-      height:42px;
-      font-size:0.9em;
-      border:none;
-      border-radius:8px;
-      cursor:pointer;
-      font-weight:600;
-      color:white;
-      box-shadow:0 2px 5px rgba(0,0,0,0.2);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      transition:transform 0.1s ease-in-out, box-shadow 0.2s;
-      width:100%;
-    }
-    .btns button:hover { transform:scale(1.02); box-shadow:0 4px 8px rgba(0,0,0,0.3); }
+/* tlačítka */
+.btns {
+  margin-top:20px;
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap:12px;
+}
+.btns button {
+  height:42px;
+  font-size:0.9em;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+  color:white;
+  box-shadow:0 2px 5px rgba(0,0,0,0.2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  transition:transform 0.1s ease-in-out, box-shadow 0.2s;
+  width:100%;
+}
+.btns button:hover { transform:scale(1.02); box-shadow:0 4px 8px rgba(0,0,0,0.3); }
 
-    .btn-clear { background: linear-gradient(145deg, #7a0f0f, #ff4d4d, #a83232); }
-    .btn-back { background: linear-gradient(145deg, #808080, #dcdcdc, #a9a9a9); color:#000; }
-    .btn-back svg { width:20px; height:20px; fill:#000; }
-    .btn-pdf { background: linear-gradient(145deg, #004080, #1e90ff, #003366); }
-    .btn-email { background: linear-gradient(145deg, #006600, #28a745, #004d00); }
+.btn-clear { background: linear-gradient(145deg, #7a0f0f, #ff4d4d, #a83232); }
+.btn-back { background: linear-gradient(145deg, #808080, #dcdcdc, #a9a9a9); color:#000; }
+.btn-back svg { width:20px; height:20px; fill:#000; }
+.btn-pdf { background: linear-gradient(145deg, #004080, #1e90ff, #003366); }
+.btn-email { background: linear-gradient(145deg, #006600, #28a745, #004d00); }
 
-    @media (max-width:768px){
-      .wrapper{padding:10px;}
-      .two-col-table{flex-direction:column;}
-      .split-section{flex-direction:column;}
-      .btns { grid-template-columns: 1fr; }
-    }
+@media (max-width:768px){
+  .wrapper{padding:10px;}
+  .two-col-table{flex-direction:column;}
+  .split-section{flex-direction:column;}
+  .btns { grid-template-columns: 1fr; }
+}
 
-    .force-desktop {
-      width:794px !important;
-      max-width:794px !important;
-    }
-  </style>
+.force-desktop {
+  width:794px !important;
+  max-width:794px !important;
+}
+</style>
 
-  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 <div class="wrapper">
@@ -132,8 +121,7 @@
     <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
   </div>
 
-  <!-- Vložení všech polí stejně jako ve tvém původním kódu -->
-  <!-- ... (sem vlož všechny inputy, textarea a selecty z tvého původního kódu) ... -->
+  <!-- vlož všechny inputy, textarea a selecty z původního kódu sem -->
 
   <div class="section-title">Podpis zákazníka<span class="en-label">Customer signature</span></div>
   <canvas id="signature-pad"></canvas>
@@ -151,95 +139,91 @@
 </div>
 
 <script>
-  let signaturePad;
-  let lastPdfName = "protokol.pdf";
+let signaturePad;
+let lastPdfName = "protokol.pdf";
 
-  window.addEventListener("DOMContentLoaded", () => {
-    const canvas = document.getElementById("signature-pad");
-    function resizeCanvas() {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
+window.addEventListener("DOMContentLoaded", () => {
+  const canvas = document.getElementById("signature-pad");
+  function resizeCanvas() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas, { passive: true });
+
+  signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
+
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("visit-date").value = today;
+  document.getElementById("sign-date").value = today;
+});
+
+function stripDiacritics(str) {
+  return (str || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "_").replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-");
+}
+
+function buildPdfFileName() {
+  const today = new Date().toISOString().split("T")[0];
+  const customer = stripDiacritics(document.getElementById("customer").value || "neznamy_zakaznik");
+  const claim = stripDiacritics(document.getElementById("claim-number").value || "bez_claimu");
+  const order = stripDiacritics(document.getElementById("order-number").value || "bez_objednavky");
+  return `${customer}_${claim}_${order}_${today}.pdf`;
+}
+
+function generatePdf(callback) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF("p", "mm", "a4");
+  const wrapper = document.querySelector(".wrapper");
+  wrapper.classList.add("force-desktop");
+
+  html2canvas(wrapper, { scale: 3 }).then(canvas => {
+    const imgData = canvas.toDataURL("image/png");
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const imgProps = doc.getImageProperties(imgData);
+    const imgW = imgProps.width;
+    const imgH = imgProps.height;
+
+    let drawW = pageW;
+    let drawH = (imgH * drawW) / imgW;
+    let x = 0, y = 0;
+    if (drawH > pageH - 20) {
+      const scale = (pageH - 20) / drawH;
+      drawW = drawW * scale;
+      drawH = drawH * scale;
+      x = (pageW - drawW) / 2;
     }
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas, { passive: true });
 
-    signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
+    doc.addImage(imgData, "PNG", x, y, drawW, drawH);
 
-    const today = new Date().toISOString().split("T")[0];
-    document.getElementById("visit-date").value = today;
-    document.getElementById("sign-date").value = today;
+    if (signaturePad && !signaturePad.isEmpty()) {
+      const signData = signaturePad.toDataURL("image/png");
+      const signWidth = 80;
+      const signHeight = 30;
+      const signX = 15;
+      const signY = pageH - signHeight - 15;
+      doc.addImage(signData, "PNG", signX, signY, signWidth, signHeight);
+    }
+
+    lastPdfName = buildPdfFileName();
+    doc.save(lastPdfName);
+    wrapper.classList.remove("force-desktop");
+    if (callback) callback();
   });
+}
 
-  function stripDiacritics(str) {
-    return (str || "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/\s+/g, "_")
-      .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-");
-  }
+function downloadPDF() { generatePdf(); }
+function saveAndMail() { openMailClient(); generatePdf(); }
 
-  function buildPdfFileName() {
-    const today = new Date().toISOString().split("T")[0];
-    const customer = stripDiacritics(document.getElementById("customer").value || "neznamy_zakaznik");
-    const claim = stripDiacritics(document.getElementById("claim-number").value || "bez_claimu");
-    const order = stripDiacritics(document.getElementById("order-number").value || "bez_objednavky");
-    return `${customer}_${claim}_${order}_${today}.pdf`;
-  }
+function openMailClient() {
+  const customer = document.getElementById("customer").value || "";
+  const order = document.getElementById("order-number").value || "";
+  const claim = document.getElementById("claim-number").value || "";
+  const visitDate = document.getElementById("visit-date").value || "";
+  const email = document.getElementById("email").value || "";
 
-  function generatePdf(callback) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF("p", "mm", "a4");
-    const wrapper = document.querySelector(".wrapper");
-    wrapper.classList.add("force-desktop");
-
-    html2canvas(wrapper, { scale: 3 }).then(canvas => {
-      const imgData = canvas.toDataURL("image/png");
-      const pageW = doc.internal.pageSize.getWidth();
-      const pageH = doc.internal.pageSize.getHeight();
-      const imgProps = doc.getImageProperties(imgData);
-      const imgW = imgProps.width;
-      const imgH = imgProps.height;
-
-      let drawW = pageW;
-      let drawH = (imgH * drawW) / imgW;
-      let x = 0, y = 0;
-      if (drawH > pageH - 20) {
-        const scale = (pageH - 20) / drawH;
-        drawW = drawW * scale;
-        drawH = drawH * scale;
-        x = (pageW - drawW) / 2;
-      }
-
-      doc.addImage(imgData, "PNG", x, y, drawW, drawH);
-
-      if (signaturePad && !signaturePad.isEmpty()) {
-        const signData = signaturePad.toDataURL("image/png");
-        const signWidth = 80;
-        const signHeight = 30;
-        const signX = 15;
-        const signY = pageH - signHeight - 15;
-        doc.addImage(signData, "PNG", signX, signY, signWidth, signHeight);
-      }
-
-      lastPdfName = buildPdfFileName();
-      doc.save(lastPdfName);
-      wrapper.classList.remove("force-desktop");
-      if (callback) callback();
-    });
-  }
-
-  function downloadPDF() { generatePdf(); }
-  function saveAndMail() { openMailClient(); generatePdf(); }
-
-  function openMailClient() {
-    const customer = document.getElementById("customer").value || "";
-    const order = document.getElementById("order-number").value || "";
-    const claim = document.getElementById("claim-number").value || "";
-    const visitDate = document.getElementById("visit-date").value || "";
-    const email = document.getElementById("email").value || "";
-
-    const subject = `Reklamace Natuzzi - ${customer} (${order})`;
-    const body = `Dobrý den ${customer},
+  const subject = `Reklamace Natuzzi - ${customer} (${order})`;
+  const body = `Dobrý den ${customer},
 
 zasíláme Vám protokol z návštěvy technika.
 
@@ -255,20 +239,19 @@ Do Dubče 364, Běchovice 190 11
 +420 725 965 826
 reklamace-wgs@email.cz`;
 
-    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  }
+  window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
 
-  // Auto translate
-  function autoTranslate(srcId, tgtId) {
-    const sourceText = document.getElementById(srcId).value;
-    const targetEl = document.getElementById(tgtId);
-    if (!sourceText.trim()) return targetEl.value = "";
-    fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=cs&tl=en&dt=t&q=${encodeURIComponent(sourceText)}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data && data[0]) targetEl.value = data[0].map(pair => pair[0]).join("");
-      });
-  }
+function autoTranslate(srcId, tgtId) {
+  const sourceText = document.getElementById(srcId).value;
+  const targetEl = document.getElementById(tgtId);
+  if (!sourceText.trim()) return targetEl.value = "";
+  fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=cs&tl=en&dt=t&q=${encodeURIComponent(sourceText)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data && data[0]) targetEl.value = data[0].map(pair => pair[0]).join("");
+    });
+}
 </script>
 </body>
 </html>
