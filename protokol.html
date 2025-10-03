@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Protokol - White Glove Service</title>
 <style>
-body { font-family: Inter, sans-serif; background:#f6f7fb; margin:0; padding:20px; font-size:12px; display:flex; justify-content:center; }
+body { font-family: Inter, sans-serif; background:#f6f7fb; margin:0; padding:20px; font-size:14px; display:flex; justify-content:center; }
 .wrapper { width:100%; max-width:900px; background:white; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
 .header { text-align:center; margin-bottom:20px; }
 .header div:first-child { font-size:28px; font-weight:900; }
@@ -17,18 +17,36 @@ td { padding:6px; vertical-align:top; }
 .section-title { font-weight:700; margin-top:20px; display:flex; flex-direction:column; align-items:flex-start; }
 .section-title .en-label { font-size:0.9em; color:#666; font-weight:normal; margin-top:2px; }
 
-input, select { width:100%; height:36px; line-height:36px; padding:4px 8px; font-size:1em; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; color:#111; background:#fff; }
-textarea { width:100%; min-height:80px; resize:vertical; padding:4px 8px; font-size:1em; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; color:#111; background:#fff; }
+input, select, textarea {
+  width:100%;
+  padding:8px 10px;
+  font-size:14px;
+  font-family: Inter, sans-serif;
+  color:#111;
+  border:1px solid #ccc;
+  border-radius:6px;
+  box-sizing:border-box;
+  background:#fff;
+  line-height:1.4em;
+}
+textarea { min-height:90px; resize:vertical; }
 
 .split-section { display:flex; gap:10px; margin:10px 0; }
 .two-col-table { display:flex; gap:30px; flex-wrap:wrap; }
 .two-col-table .col { flex:1; min-width:300px; }
 
-#signature-pad { border:2px dashed #888; width:100%; height:200px; background:white; touch-action: none; }
-.signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
+#signature-pad { border:2px dashed #888; width:100%; height:200px; background:white; touch-action:none; border-radius:6px; }
+.signature-label { font-size:0.9em; color:#444; margin:6px 0 20px; }
 
 .btns { margin-top:20px; display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; }
-.btns button { height:42px; font-size:0.9em; border:none; border-radius:8px; cursor:pointer; font-weight:600; color:white; box-shadow:0 2px 5px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; gap:8px; transition:transform 0.1s ease-in-out, box-shadow 0.2s; width:100%; }
+.btns button {
+  height:44px; font-size:0.95em;
+  border:none; border-radius:8px;
+  cursor:pointer; font-weight:600; color:white;
+  box-shadow:0 2px 5px rgba(0,0,0,0.2);
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  transition:transform 0.1s ease-in-out, box-shadow 0.2s; width:100%;
+}
 .btns button:hover { transform:scale(1.02); box-shadow:0 4px 8px rgba(0,0,0,0.3); }
 
 .btn-clear { background: linear-gradient(145deg, #7a0f0f, #ff4d4d, #a83232); }
@@ -38,10 +56,9 @@ textarea { width:100%; min-height:80px; resize:vertical; padding:4px 8px; font-s
 .btn-email { background: linear-gradient(145deg, #006600, #28a745, #004d00); }
 
 @media screen and (max-width:768px){
-  .two-col-table, .split-section { flex-direction: column !important; gap:10px; }
+  .two-col-table, .split-section { flex-direction:column !important; gap:12px; }
   .two-col-table .col, .split-section textarea { min-width:auto; width:100%; }
-  input, select, textarea { font-size:1em; height:36px; box-sizing:border-box; }
-  textarea { min-height:80px; }
+  input, select, textarea { font-size:15px; padding:10px; height:auto; }
   #signature-pad { height:180px; }
 }
 
@@ -55,6 +72,7 @@ textarea { width:100%; min-height:80px; resize:vertical; padding:4px 8px; font-s
     <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
   </div>
 
+  <!-- FORMULÁŘ -->
   <div class="two-col-table">
     <div class="col">
       <table>
@@ -84,6 +102,7 @@ textarea { width:100%; min-height:80px; resize:vertical; padding:4px 8px; font-s
     </div>
   </div>
 
+  <!-- POPISY -->
   <div class="section-title">Zákazník reklamuje<span class="en-label">Customer complaint</span></div>
   <div class="split-section">
     <textarea id="description-cz" placeholder="CZ" oninput="autoTranslate('description-cz','description-en')"></textarea>
@@ -102,6 +121,7 @@ textarea { width:100%; min-height:80px; resize:vertical; padding:4px 8px; font-s
     <textarea id="repair-en" placeholder="EN"></textarea>
   </div>
 
+  <!-- CENY -->
   <div class="two-col-table">
     <div class="col">
       <table>
@@ -124,10 +144,12 @@ textarea { width:100%; min-height:80px; resize:vertical; padding:4px 8px; font-s
     </div>
   </div>
 
+  <!-- PODPIS -->
   <div class="section-title">Podpis zákazníka<span class="en-label">Customer signature</span></div>
   <canvas id="signature-pad"></canvas>
   <div class="signature-label">Podepište se prstem nebo myší</div>
 
+  <!-- TLAČÍTKA -->
   <div class="btns">
     <button class="btn-clear" type="button" onclick="signaturePad.clear()">🗑️ Vymazat podpis</button>
     <button class="btn-back" type="button" onclick="window.location.href='index.html'">
@@ -139,6 +161,7 @@ textarea { width:100%; min-height:80px; resize:vertical; padding:4px 8px; font-s
   </div>
 </div>
 
+<!-- SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -156,7 +179,6 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("visit-date").value = today;
   document.getElementById("sign-date").value = today;
 
-  // ✅ přepočet ceny při načtení
   ["price-work","price-material","price-second","price-transport"].forEach(id=>{
     document.getElementById(id).addEventListener("input", updateTotal);
   });
@@ -180,20 +202,14 @@ function buildPdfFileName(){
   return `${customer}_${claim}_${order}_${today}.pdf`;
 }
 
-// ✅ export vždy 1 A4
 function generatePdf(callback){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF("p","mm","a4");
   const wrapper = document.querySelector(".wrapper");
   wrapper.classList.add("force-desktop");
 
-  html2canvas(wrapper,{ 
-      scale:2, 
-      scrollX:0, 
-      scrollY:0, 
-      windowWidth:794, 
-      windowHeight:wrapper.scrollHeight 
-  }).then(canvas => {
+  html2canvas(wrapper,{ scale:2, scrollX:0, scrollY:0, windowWidth:794, windowHeight:wrapper.scrollHeight })
+  .then(canvas => {
       const imgData = canvas.toDataURL("image/jpeg",0.95);
       const pageW = doc.internal.pageSize.getWidth();
       const pageH = doc.internal.pageSize.getHeight();
@@ -236,7 +252,7 @@ function openMailClient(){
   window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
-// ✅ PROPISOVÁNÍ DAT ZE SEZNAMU
+// ✅ PROPIS DAT ZE SEZNAMU
 window.addEventListener("message",(event)=>{
   if(event.data.type==="openProtocol"){
     const d=event.data.row; if(!d) return;
