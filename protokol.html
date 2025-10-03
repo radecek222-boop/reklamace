@@ -166,7 +166,7 @@ function buildPdfFileName(){
   return `${customer}_${claim}_${order}_${today}.pdf`;
 }
 
-// ✅ vždy jen 1 stránka A4
+// ✅ vždy jen 1 stránka A4, podpis jen jednou
 function generatePdf(callback){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF("p","mm","a4");
@@ -199,10 +199,6 @@ function generatePdf(callback){
       const y = (pageH - pdfHeight) / 2;
 
       doc.addImage(imgData,"JPEG",x,y,pdfWidth,pdfHeight);
-
-      if(signaturePad && !signaturePad.isEmpty()){
-        doc.addImage(signaturePad.toDataURL("image/png"),"PNG",15,pageH-45,80,30);
-      }
 
       lastPdfName = buildPdfFileName();
       doc.save(lastPdfName);
