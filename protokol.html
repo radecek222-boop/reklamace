@@ -38,7 +38,7 @@
     .btn-clear { background: linear-gradient(45deg, #ff4d4d, #b30000); }
     .btn-back { background: #e0e0e0; color:#111; border: 2px solid #999; font-size: 1.2em; font-weight: 700; }
     .btn-pdf { background: linear-gradient(45deg, #1e90ff, #0047ab); }
-    .btn-send { background: linear-gradient(45deg, #8e2de2, #4a00e0); }
+    .btn-send { background: linear-gradient(45deg, #ff69b4, #ff1493); } /* růžový gradient */
     .btn-test { background: linear-gradient(45deg, #00b09b, #96c93d); }
 
     #status-message {
@@ -67,8 +67,6 @@
       <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
     </div>
 
-    <!-- zkráceně, formulář nechávám podle tvého -->
-
     <div class="section-title">Podpis zákazníka</div>
     <canvas id="signature-pad"></canvas>
     <div class="signature-label">Podepište se prstem nebo myší</div>
@@ -93,7 +91,6 @@
       signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
     });
 
-    // Test spojení s novou URL
     function testPing() {
       fetch("https://script.google.com/macros/s/AKfycbzXwalMrVtm51Ruzr4nTZwVUirqNkM30nD8EVaWSGCQxC4r-cN4-_5PTspj6Vs0o-OmLQ/exec", {
         method: "POST",
@@ -113,7 +110,6 @@
       });
     }
 
-    // Export PDF
     function downloadPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF("p", "mm", "a4");
@@ -134,7 +130,6 @@
       });
     }
 
-    // Odeslat PDF zákazníkovi
     function sendToServer() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF("p", "mm", "a4");
