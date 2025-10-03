@@ -214,3 +214,92 @@ function generatePdf(callback){
   drawTextarea("Zákazník reklamuje", document.getElementById("description-cz").value);
   drawTextarea("Problém zjištěný technikem", document.getElementById("problem-cz").value);
   drawTextarea("Návrh opravy", document.getElementById("repair-cz").value);
+    // Dolní pole
+  drawField("Počet opravovaných dílů", document.getElementById("parts").value);
+  drawField("Cena za práci", document.getElementById("price-work").value);
+  drawField("Cena za materiál", document.getElementById("price-material").value);
+  drawField("Cena za druhého technika", document.getElementById("price-second").value);
+  drawField("Cena za dopravu", document.getElementById("price-transport").value);
+  drawField("Cena celkem", document.getElementById("price-total").value);
+
+  drawField("Reklamace vyřešena?", document.getElementById("solved").value);
+  drawField("Čeká se na vyjádření prodejce?", document.getElementById("dealer").value);
+  drawField("Poškození technikem?", document.getElementById("damage").value);
+  drawField("Úhradu provede zákazník?", document.getElementById("payment").value);
+  drawField("Datum podpisu", document.getElementById("sign-date").value);
+
+  // Podpis
+  if(signaturePad && !signaturePad.isEmpty()){
+    const sigData = signaturePad.toDataURL("image/png");
+    doc.addImage(sigData,"PNG",15,y,80,30);
+    y += 35;
+  }
+
+  lastPdfName = buildPdfFileName();
+  doc.save(lastPdfName);
+  if(callback) callback();
+}
+
+function downloadPDF(){ generatePdf(); }
+
+function saveAndMail(){
+  openMailClient();
+  generatePdf();
+}
+
+function openMailClient(){
+  const customer = document.getElementById("customer").value || "";
+  const order = document.getElementById("order-number").value || "";
+  const claim = document.getElementById("claim-number").value || "";
+  const visitDate = document.getElementById("visit-date").value || "";
+  const email = document.getElementById("email").value || "";
+  const subject = `Reklamace Natuzzi - ${customer} (${order})`;
+  const body = `Dobrý den ${customer},\n\nzasíláme Vám protokol z návštěvy technika.\n\nČíslo reklamace: ${claim}\nDatum návštěvy: ${visitDate}\n\nSoubor ${lastPdfName} byl uložen – prosím přiložte jej do e-mailu jako přílohu.\n\n=====================\nWHITE GLOVE SERVICE\n=====================\nDo Dubče 364, Běchovice 190 11\n+420 725 965 826\nreklamace-wgs@email.cz`;
+  window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+// PROPISOVÁNÍ DAT ZE SEZNAMU
+window.addEventListener("message",(event)=>{
+  if(event.data.type==="openProtocol"){
+    const d=event.data.row; if(!d) return;
+    document.getElementById("order-number").value = d["Order number"]||"";
+    document.getElementById("claim-number").value = d["Label"]||"";
+    document.getElementById("customer").value = d["Customer"]||"";
+    document.getElementById("address").value = d["Address"]||"";
+    document.getElementById("phone").value = d["KONTAKT"]||"";
+    document.getElementById("email").value = d["Email"]||d["EMAIL"]||d["E-mail"]||d["MAIL"]||d[15]||"";
+    document.getElementById("brand").value = d["Contract"]||d["Label"]||"";
+    document.getElementById("model").value = d["Model"]||"";
+    document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"]||"";
+    document.getElementById("problem-cz").value = d["Problem detected"]||"";
+    document.getElementById("repair-cz").value = d["Repair proposal"]||"";
+    document.getElementById("visit-date").value = d["Visit date"]||"";
+    document.getElementById("delivery-date").value = d["Delivery date"]||"";
+    document.getElementById("claim-date").value = d["Complaint date"]||"";
+    document.getElementById("sign-date").value = d["Signature date"]||"";
+    document.getElementById("parts").value = d["Number of repaired parts"]||"";
+    document.getElementById("price-work").value = d["Work cost"]||"";
+    document.getElementById("price-material").value = d["Material cost"]||"";
+    document.getElementById("price-second").value = d["Second technician cost"]||"";
+    document.getElementById("price-transport").value = d["Transport cost"]||"";
+    document.getElementById("price-total").value = d["Total cost"]||"";
+    document.getElementById("solved").value = d["Complaint solved?"]||"";
+    document.getElementById("dealer").value = d["Waiting for dealer statement?"]||"";
+    document.getElementById("damage").value = d["Damage by technician?"]||"";
+    document.getElementById("payment").value = d["Customer will pay?"]||"";
+  }
+});
+
+// AUTOMATICKÝ PŘEKLAD
+function autoTranslate(srcId, tgtId){
+  const sourceText=document.getElementById(srcId).value;
+  const targetEl=document.getElementById(tgtId);
+  if(!sourceText.trim()) return targetEl.value="";
+  fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=cs&tl=en&dt=t&q=${encodeURIComponent(sourceText)}`)
+    .then(res=>res.json())
+    .then(data=>{ if(data && data[0]) targetEl.value=data[0].map(pair=>pair[0]).join(""); });
+}
+</script>
+</body>
+</html>
+
