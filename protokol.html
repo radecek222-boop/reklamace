@@ -241,7 +241,10 @@
   function downloadPDF() { generatePdf(); }
 
   function saveAndMail() {
-    generatePdf(() => { openMailClient(); });
+    // nejprve okamžitě otevřeme poštovní klient
+    openMailClient();
+    // zároveň uložíme PDF
+    generatePdf();
   }
 
   function openMailClient() {
@@ -268,8 +271,7 @@ Do Dubče 364, Běchovice 190 11
 +420 725 965 826
 reklamace-wgs@email.cz`;
 
-    const mailtoLink = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailtoLink;
+    window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
   // propsání dat ze seznamu
