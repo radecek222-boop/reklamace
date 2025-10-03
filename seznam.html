@@ -1,3 +1,5 @@
+vycházej z tohoto kódu a nic neměn 
+
 <!doctype html>
 <html lang="cs">
 <head>
@@ -143,7 +145,7 @@ async function loadData() {
 function renderTable(rows){
   if (!rows.length){ document.getElementById("results").innerHTML = "Žádná data"; return; }
   let html = "<table><thead><tr>";
-  ["Customer","Address","KONTAKT","Email","STAV - termín návštěvy"].forEach(h => { html += "<th>"+h+"</th>"; });
+  ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(h => { html += "<th>"+h+"</th>"; });
   html += "</tr></thead><tbody>";
   rows.forEach((row,idx) => {
     const statusRaw = row["STAV - termín návštěvy"] || "";
@@ -162,7 +164,7 @@ function renderTable(rows){
 
     html += `<tr class="${rowClass}" onclick="toggleDetails(${idx})">`;
 
-    ["Customer","Address","KONTAKT","Email","STAV - termín návštěvy"].forEach(key => {
+    ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(key => {
       let val = row[key] || "";
       let cellContent = val;
       if (key.toLowerCase().includes("kontakt")) {
@@ -172,9 +174,6 @@ function renderTable(rows){
         const encoded = encodeURIComponent(val);
         cellContent = `<a href="https://waze.com/ul?q=${encoded}" target="_blank" onclick="event.stopPropagation()">${val}</a>`;
       }
-      if (key.toLowerCase().includes("email")) {
-        cellContent = `<a href="mailto:${val}" onclick="event.stopPropagation()">${val}</a>`;
-      }
       html += "<td>"+cellContent+"</td>";
     });
 
@@ -182,7 +181,7 @@ function renderTable(rows){
 
     let details = "";
     Object.entries(row).forEach(([key,val])=>{
-      if (!["Customer","Address","KONTAKT","Email","STAV - termín návštěvy"].includes(key)) {
+      if (!["Customer","Address","KONTAKT","STAV - termín návštěvy"].includes(key)) {
         if (key.startsWith("_")) return;
         let displayKey = key;
         if (key === "Label") displayKey = "Contract";
@@ -190,7 +189,7 @@ function renderTable(rows){
       }
     });
     details += `<button class="protocol-btn" onclick="openProtocol(${idx}, event)">Vytvořit protokol</button>`;
-    html += `<tr><td colspan="5"><div id="details-${idx}" class="details">${details}</div></td></tr>`;
+    html += `<tr><td colspan="4"><div id="details-${idx}" class="details">${details}</div></td></tr>`;
   });
   html += "</tbody></table>";
   document.getElementById("results").innerHTML = html;
