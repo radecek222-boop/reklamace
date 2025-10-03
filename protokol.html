@@ -1,274 +1,237 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Servisní protokol - White Glove Service</title>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     :root {
-      font-family: "Inter", Arial, sans-serif;
-      color: #111;
+      --text-color: #111;
+      --bg: #fff;
+      --border: #ccc;
+      --focus: #6a0dad;
     }
 
     body {
       margin: 0;
       padding: 20px;
+      font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text-color);
       background: #f6f7fb;
-      font-size: 16px;
     }
 
     h1 {
-      font-size: 20px;
       text-align: center;
       margin-bottom: 20px;
-      font-weight: bold;
+    }
+
+    form {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
 
     label {
       display: block;
+      margin: 12px 0 4px;
       font-weight: 500;
-      margin-bottom: 4px;
-      text-align: left;
+      color: var(--text-color);
     }
 
-    input[type="text"],
-    input[type="date"],
-    select,
-    textarea {
+    input, textarea, select {
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text-color);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
       width: 100%;
-      padding: 8px;
-      font-size: 16px;
-      font-family: "Inter", Arial, sans-serif;
-      color: #111;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      background-color: white;
-      text-align: left;
       box-sizing: border-box;
+      -webkit-text-fill-color: var(--text-color) !important;
       appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
     }
 
-    textarea {
-      resize: vertical;
-      min-height: 80px;
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--focus);
+      box-shadow: 0 0 0 2px rgba(106,13,173,0.2);
     }
 
-    .form-row {
+    select {
+      background-image: url("data:image/svg+xml;utf8,<svg fill='%23111' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 16px 16px;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+
+    .buttons {
+      margin-top: 20px;
       display: flex;
-      flex-direction: column;
-      margin-bottom: 15px;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-
-    @media (max-width: 768px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .button-row {
-      display: flex;
-      justify-content: center;
-      margin-top: 30px;
+      justify-content: space-between;
       gap: 10px;
     }
 
-    button {
-      padding: 10px 20px;
+    .btn-back {
+      background: #ddd;
+      color: #111;
+      padding: 10px 16px;
       border: none;
-      font-size: 16px;
+      border-radius: 8px;
       cursor: pointer;
-      border-radius: 6px;
-      font-family: "Inter", Arial, sans-serif;
     }
 
-    .export-button {
-      background: linear-gradient(45deg, #a64af9, #c07bfa);
-      color: white;
+    .btn-pdf {
+      background: linear-gradient(135deg,#a445b2,#6a0dad);
+      color: #fff;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
     }
 
-    .back-button {
-      background: #ccc;
-      color: black;
-    }
-
-    canvas {
+    /* Podpis */
+    #signature-pad {
       border: 1px solid #ccc;
-      border-radius: 4px;
+      border-radius: 6px;
+      height: 200px;
       width: 100%;
-      height: 150px;
     }
 
-    .signature-container {
-      text-align: left;
+    .signature-actions {
+      margin-top: 8px;
+      text-align: right;
     }
 
-    .lang-switch {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 10px;
-    }
-
-    .lang-switch button {
-      background: none;
+    .signature-actions button {
+      background: #eee;
       border: none;
-      color: #333;
-      font-size: 14px;
+      padding: 6px 10px;
+      margin-left: 6px;
+      border-radius: 6px;
       cursor: pointer;
-      margin-left: 10px;
-    }
-
-    .lang-switch button.active {
-      font-weight: bold;
-      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <h1>Servisní protokol - White Glove Service</h1>
+  <h1>Servisní protokol</h1>
 
-  <div class="lang-switch">
-    <button id="cz-btn" class="active" onclick="switchLang('cz')">Čeština</button>
-    <button id="en-btn" onclick="switchLang('en')">English</button>
-  </div>
+  <form id="protocolForm">
+    <label for="zakaznik">Zákazník</label>
+    <input type="text" id="zakaznik" name="zakaznik">
 
-  <form id="claimForm">
-    <div class="form-grid">
-      <div class="form-row">
-        <label for="zakaznik">Zákazník / Customer</label>
-        <input type="text" id="zakaznik" name="zakaznik" />
-      </div>
-      <div class="form-row">
-        <label for="adresa">Adresa / Address</label>
-        <input type="text" id="adresa" name="adresa" />
-      </div>
-      <div class="form-row">
-        <label for="kontakt">Kontakt / Phone</label>
-        <input type="text" id="kontakt" name="kontakt" />
-      </div>
-      <div class="form-row">
-        <label for="datum">Datum návštěvy / Visit date</label>
-        <input type="date" id="datum" name="datum" />
-      </div>
-      <div class="form-row">
-        <label for="vyrobek">Značka + model / Brand + Model</label>
-        <input type="text" id="vyrobek" name="vyrobek" />
-      </div>
-      <div class="form-row">
-        <label for="cislo">Číslo objednávky / Order number</label>
-        <input type="text" id="cislo" name="cislo" />
-      </div>
-      <div class="form-row">
-        <label for="technik">Technik / Technician</label>
-        <select id="technik" name="technik">
-          <option value="">– Vyber technika –</option>
-          <option value="Milan">Milan</option>
-          <option value="Radek">Radek</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label for="contract">CONTRACT</label>
-        <input type="text" id="contract" name="contract" />
-      </div>
+    <label for="adresa">Adresa</label>
+    <textarea id="adresa" name="adresa"></textarea>
+
+    <label for="stav">Stav</label>
+    <select id="stav" name="stav">
+      <option value="nova">Nová</option>
+      <option value="resena">Řešená</option>
+      <option value="hotovo">Hotovo</option>
+    </select>
+
+    <label for="popis">Problém zjištěný technikem</label>
+    <textarea id="popis" name="popis"></textarea>
+
+    <label for="navrh">Návrh opravy</label>
+    <textarea id="navrh" name="navrh"></textarea>
+
+    <label>Podpis zákazníka</label>
+    <canvas id="signature-pad"></canvas>
+    <div class="signature-actions">
+      <button type="button" onclick="clearSignature()">Smazat</button>
     </div>
 
-    <div class="form-row">
-      <label for="popis">Problém zjištěný technikem / Issue found by technician</label>
-      <textarea id="popis" name="popis"></textarea>
-    </div>
-
-    <div class="form-row">
-      <label for="navrh">Návrh opravy / Proposed solution</label>
-      <textarea id="navrh" name="navrh"></textarea>
-    </div>
-
-    <div class="form-row signature-container">
-      <label>Podpis zákazníka / Customer signature</label>
-      <canvas id="signature-pad"></canvas>
-      <button type="button" onclick="clearSignature()">Smazat podpis / Clear</button>
-    </div>
-
-    <div class="button-row">
-      <button type="button" class="back-button" onclick="goBack()">Zpět na hlavní stránku</button>
-      <button type="button" class="export-button" onclick="exportToPDF()">Export do PDF</button>
+    <div class="buttons">
+      <button type="button" class="btn-back" onclick="window.location.href='index.html'">Zpět na hlavní stránku</button>
+      <button type="button" class="btn-pdf" onclick="exportPDF()">Export do PDF</button>
     </div>
   </form>
 
   <script>
-    function goBack() {
-      window.location.href = 'index.html';
+    // Podpis
+    const canvas = document.getElementById('signature-pad');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('touchstart', startDraw);
+
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('touchmove', draw);
+
+    canvas.addEventListener('mouseup', endDraw);
+    canvas.addEventListener('mouseleave', endDraw);
+    canvas.addEventListener('touchend', endDraw);
+
+    function getPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      if (e.touches) {
+        return {
+          x: e.touches[0].clientX - rect.left,
+          y: e.touches[0].clientY - rect.top
+        };
+      } else {
+        return {
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top
+        };
+      }
+    }
+
+    function startDraw(e) {
+      e.preventDefault();
+      drawing = true;
+      ctx.beginPath();
+      const pos = getPos(e);
+      ctx.moveTo(pos.x, pos.y);
+    }
+
+    function draw(e) {
+      if (!drawing) return;
+      e.preventDefault();
+      const pos = getPos(e);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+    }
+
+    function endDraw(e) {
+      if (!drawing) return;
+      drawing = false;
+      ctx.closePath();
     }
 
     function clearSignature() {
-      const canvas = document.getElementById('signature-pad');
-      const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
-    function switchLang(lang) {
-      document.getElementById('cz-btn').classList.toggle('active', lang === 'cz');
-      document.getElementById('en-btn').classList.toggle('active', lang === 'en');
-      // Přepínač jazyků – sem můžeš přidat překlady podle potřeby
+    // Export PDF
+    async function exportPDF() {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF("p", "pt", "a4");
+
+      const form = document.getElementById("protocolForm");
+      const canvasSignature = document.getElementById("signature-pad");
+
+      await html2canvas(form).then(canvasHtml => {
+        const imgData = canvasHtml.toDataURL("image/png");
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = pageWidth - 40;
+        const imgHeight = canvasHtml.height * imgWidth / canvasHtml.width;
+        pdf.addImage(imgData, "PNG", 20, 20, imgWidth, imgHeight);
+        pdf.save("protokol.pdf");
+      });
     }
-
-    function exportToPDF() {
-      alert("Export do PDF ještě přidáme – nebo ti mohu poslat funkční kód pro JS + PDF.");
-    }
-
-    window.onload = function () {
-      const canvas = document.getElementById("signature-pad");
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-
-      const ctx = canvas.getContext("2d");
-      let drawing = false;
-
-      canvas.addEventListener("mousedown", (e) => {
-        drawing = true;
-        ctx.beginPath();
-        ctx.moveTo(e.offsetX, e.offsetY);
-      });
-
-      canvas.addEventListener("mousemove", (e) => {
-        if (drawing) {
-          ctx.lineTo(e.offsetX, e.offsetY);
-          ctx.stroke();
-        }
-      });
-
-      canvas.addEventListener("mouseup", () => {
-        drawing = false;
-      });
-
-      canvas.addEventListener("touchstart", (e) => {
-        e.preventDefault();
-        drawing = true;
-        const touch = e.touches[0];
-        const rect = canvas.getBoundingClientRect();
-        ctx.beginPath();
-        ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
-      });
-
-      canvas.addEventListener("touchmove", (e) => {
-        e.preventDefault();
-        if (drawing) {
-          const touch = e.touches[0];
-          const rect = canvas.getBoundingClientRect();
-          ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
-          ctx.stroke();
-        }
-      });
-
-      canvas.addEventListener("touchend", () => {
-        drawing = false;
-      });
-    };
   </script>
 </body>
 </html>
