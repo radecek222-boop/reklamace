@@ -1,274 +1,241 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Servisní protokol - White Glove Service</title>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Protokol - White Glove Service</title>
   <style>
-    :root {
-      font-family: "Inter", Arial, sans-serif;
-      color: #111;
-    }
-
     body {
-      margin: 0;
-      padding: 20px;
-      background: #f6f7fb;
-      font-size: 16px;
+      font-family: Inter, sans-serif;
+      background:#f6f7fb;
+      margin:0;
+      padding:20px;
+      font-size:12px;
+      display:flex;
+      justify-content:center;
     }
-
-    h1 {
-      font-size: 20px;
-      text-align: center;
-      margin-bottom: 20px;
-      font-weight: bold;
+    .wrapper {
+      width:100%;
+      max-width:900px;
+      background:white;
+      padding:20px;
+      box-shadow:0 0 10px rgba(0,0,0,0.1);
     }
-
-    label {
-      display: block;
-      font-weight: 500;
-      margin-bottom: 4px;
-      text-align: left;
+    .header { text-align:center; margin-bottom:20px; }
+    .header div:first-child { font-size:28px; font-weight:900; }
+    .header div:last-child { font-size:12px; margin-top:4px; font-weight:normal; }
+    table { width:100%; border-collapse:collapse; margin:10px 0; }
+    td { padding:6px; vertical-align:top; }
+    .label { font-weight:600; width:40%; }
+    input, select, textarea {
+      width:100%;
+      padding:4px 8px;
+      font-size:1em;
+      border:1px solid #ccc;
+      border-radius:4px;
+      box-sizing:border-box;
     }
-
-    input[type="text"],
-    input[type="date"],
-    select,
-    textarea {
-      width: 100%;
-      padding: 8px;
-      font-size: 16px;
-      font-family: "Inter", Arial, sans-serif;
-      color: #111;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      background-color: white;
-      text-align: left;
-      box-sizing: border-box;
-      appearance: none;
+    input, select {
+      height:36px;
+      line-height:36px;
+      -webkit-appearance:none;
+      appearance:none;
+      background-color:white;
     }
-
-    textarea {
-      resize: vertical;
-      min-height: 80px;
+    select { background-image:none !important; }
+    textarea { min-height:60px; resize:vertical; }
+    .split-section { display:flex; gap:10px; margin:10px 0; }
+    .two-col-table { display:flex; gap:30px; flex-wrap:wrap; }
+    .two-col-table .col { flex:1; min-width:300px; }
+    .section-title { font-weight:700; margin-top:20px; }
+    #signature-pad {
+      border:2px dashed #888;
+      width:100%;
+      height:150px;
+      background:white;
     }
-
-    .form-row {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 15px;
+    .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
+    .btns { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
+    .btns button { padding:10px 20px; font-size:1em; border:none; background:#333; color:white; border-radius:6px; cursor:pointer; }
+    @media (max-width:768px){
+      .wrapper{padding:10px;}
+      .two-col-table{flex-direction:column;}
+      .split-section{flex-direction:column;}
     }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
+    .force-desktop {
+      width:794px !important;
+      max-width:794px !important;
     }
-
-    @media (max-width: 768px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .button-row {
-      display: flex;
-      justify-content: center;
-      margin-top: 30px;
-      gap: 10px;
-    }
-
-    button {
-      padding: 10px 20px;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-      border-radius: 6px;
-      font-family: "Inter", Arial, sans-serif;
-    }
-
-    .export-button {
-      background: linear-gradient(45deg, #a64af9, #c07bfa);
-      color: white;
-    }
-
-    .back-button {
-      background: #ccc;
-      color: black;
-    }
-
-    canvas {
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      width: 100%;
-      height: 150px;
-    }
-
-    .signature-container {
-      text-align: left;
-    }
-
-    .lang-switch {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 10px;
-    }
-
-    .lang-switch button {
-      background: none;
-      border: none;
-      color: #333;
-      font-size: 14px;
-      cursor: pointer;
-      margin-left: 10px;
-    }
-
-    .lang-switch button.active {
-      font-weight: bold;
-      text-decoration: underline;
-    }
+    .force-desktop .two-col-table { flex-direction: row !important; }
+    .force-desktop .split-section { flex-direction: row !important; }
   </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
-  <h1>Servisní protokol - White Glove Service</h1>
-
-  <div class="lang-switch">
-    <button id="cz-btn" class="active" onclick="switchLang('cz')">Čeština</button>
-    <button id="en-btn" onclick="switchLang('en')">English</button>
+<div class="wrapper">
+  <div class="header">
+    <div>WHITE GLOVE SERVICE</div>
+    <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
   </div>
 
-  <form id="claimForm">
-    <div class="form-grid">
-      <div class="form-row">
-        <label for="zakaznik">Zákazník / Customer</label>
-        <input type="text" id="zakaznik" name="zakaznik" />
-      </div>
-      <div class="form-row">
-        <label for="adresa">Adresa / Address</label>
-        <input type="text" id="adresa" name="adresa" />
-      </div>
-      <div class="form-row">
-        <label for="kontakt">Kontakt / Phone</label>
-        <input type="text" id="kontakt" name="kontakt" />
-      </div>
-      <div class="form-row">
-        <label for="datum">Datum návštěvy / Visit date</label>
-        <input type="date" id="datum" name="datum" />
-      </div>
-      <div class="form-row">
-        <label for="vyrobek">Značka + model / Brand + Model</label>
-        <input type="text" id="vyrobek" name="vyrobek" />
-      </div>
-      <div class="form-row">
-        <label for="cislo">Číslo objednávky / Order number</label>
-        <input type="text" id="cislo" name="cislo" />
-      </div>
-      <div class="form-row">
-        <label for="technik">Technik / Technician</label>
-        <select id="technik" name="technik">
-          <option value="">– Vyber technika –</option>
-          <option value="Milan">Milan</option>
-          <option value="Radek">Radek</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label for="contract">CONTRACT</label>
-        <input type="text" id="contract" name="contract" />
-      </div>
+  <div class="two-col-table">
+    <div class="col">
+      <table>
+        <tr><td class="label">Číslo objednávky</td><td><input id="order-number"></td></tr>
+        <tr><td class="label">Číslo reklamace</td><td><input id="claim-number"></td></tr>
+        <tr><td class="label">Zákazník</td><td><input id="customer"></td></tr>
+        <tr><td class="label">Adresa zákazníka</td><td><input id="address"></td></tr>
+        <tr><td class="label">Značka / Contract</td><td><input id="brand"></td></tr>
+        <tr><td class="label">Model</td><td><input id="model"></td></tr>
+      </table>
     </div>
-
-    <div class="form-row">
-      <label for="popis">Problém zjištěný technikem / Issue found by technician</label>
-      <textarea id="popis" name="popis"></textarea>
+    <div class="col">
+      <table>
+        <tr><td class="label">Technik</td><td><select id="technician"><option>Milan Kolín</option><option>Radek Zikmund</option><option>Kolín/Zikmund</option></select></td></tr>
+        <tr><td class="label">Datum návštěvy</td><td><input id="visit-date" type="date"></td></tr>
+        <tr><td class="label">Datum doručení</td><td><input id="delivery-date" type="date"></td></tr>
+        <tr><td class="label">Datum podání reklamace</td><td><input id="claim-date" type="date"></td></tr>
+      </table>
     </div>
+  </div>
 
-    <div class="form-row">
-      <label for="navrh">Návrh opravy / Proposed solution</label>
-      <textarea id="navrh" name="navrh"></textarea>
+  <div class="section-title">Zákazník reklamuje / Customer complaint</div>
+  <div class="split-section">
+    <textarea id="description-cz" placeholder="CZ" oninput="autoTranslate('description-cz','description-en')"></textarea>
+    <textarea id="description-en" placeholder="EN"></textarea>
+  </div>
+  <div class="section-title">Problém zjištěný technikem / Detected problem</div>
+  <div class="split-section">
+    <textarea id="problem-cz" placeholder="CZ" oninput="autoTranslate('problem-cz','problem-en')"></textarea>
+    <textarea id="problem-en" placeholder="EN"></textarea>
+  </div>
+  <div class="section-title">Návrh opravy / Repair proposal</div>
+  <div class="split-section">
+    <textarea id="repair-cz" placeholder="CZ" oninput="autoTranslate('repair-cz','repair-en')"></textarea>
+    <textarea id="repair-en" placeholder="EN"></textarea>
+  </div>
+
+  <div class="two-col-table">
+    <div class="col">
+      <table>
+        <tr><td class="label">Počet opravovaných dílů</td><td><input id="parts"></td></tr>
+        <tr><td class="label">Cena za práci</td><td><input id="price-work"></td></tr>
+        <tr><td class="label">Cena za materiál</td><td><input id="price-material"></td></tr>
+        <tr><td class="label">Cena za druhého technika</td><td><input id="price-second"></td></tr>
+        <tr><td class="label">Cena za dopravu</td><td><input id="price-transport"></td></tr>
+        <tr><td class="label">Cena celkem</td><td><input id="price-total"></td></tr>
+      </table>
     </div>
-
-    <div class="form-row signature-container">
-      <label>Podpis zákazníka / Customer signature</label>
-      <canvas id="signature-pad"></canvas>
-      <button type="button" onclick="clearSignature()">Smazat podpis / Clear</button>
+    <div class="col">
+      <table>
+        <tr><td class="label">Reklamace vyřešena?</td><td><select id="solved"><option>ANO</option><option>NE</option></select></td></tr>
+        <tr><td class="label">Čeká se na vyjádření prodejce?</td><td><select id="dealer"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Poškození technikem?</td><td><select id="damage"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Úhradu provede zákazník?</td><td><select id="payment"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Datum podpisu</td><td><input id="sign-date" type="date"></td></tr>
+      </table>
     </div>
+  </div>
 
-    <div class="button-row">
-      <button type="button" class="back-button" onclick="goBack()">Zpět na hlavní stránku</button>
-      <button type="button" class="export-button" onclick="exportToPDF()">Export do PDF</button>
-    </div>
-  </form>
+  <div class="section-title">Podpis zákazníka</div>
+  <canvas id="signature-pad"></canvas>
+  <div class="signature-label">Podepište se prstem nebo myší</div>
 
-  <script>
-    function goBack() {
-      window.location.href = 'index.html';
+  <div class="btns">
+    <button type="button" onclick="signaturePad.clear()">🗑️ Vymazat podpis</button>
+    <button type="button" onclick="window.location.href='index.html'">⬅️ Zpět</button>
+    <button type="button" onclick="downloadPDF()">📄 Exportovat do PDF</button>
+  </div>
+</div>
+
+<script>
+  let signaturePad;
+  window.addEventListener("DOMContentLoaded", () => {
+    const canvas = document.getElementById("signature-pad");
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
+
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("visit-date").value = today;
+    document.getElementById("sign-date").value = today;
+  });
+
+  function downloadPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF("p", "mm", "a4");
+
+    const wrapper = document.querySelector(".wrapper");
+    wrapper.classList.add("force-desktop");
+
+    html2canvas(wrapper, { scale: 2 }).then(canvas => {
+      const imgData = canvas.toDataURL("image/png");
+
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const imgProps = doc.getImageProperties(imgData);
+      const imgW = imgProps.width;
+      const imgH = imgProps.height;
+
+      let drawW = pageW;
+      let drawH = (imgH * drawW) / imgW;
+      let x = 0;
+      let y = 0;
+
+      if (drawH > pageH) {
+        const scale = pageH / drawH;
+        drawW = drawW * scale;
+        drawH = pageH;
+        x = (pageW - drawW) / 2;
+      }
+
+      doc.addImage(imgData, "PNG", x, y, drawW, drawH);
+
+      if (signaturePad && !signaturePad.isEmpty()) {
+        const signData = signaturePad.toDataURL("image/png");
+        const signW = 80;
+        const signH = 30;
+        const pad = 15;
+        const signX = x + pad;
+        const signY = y + drawH - pad - signH;
+        doc.addImage(signData, "PNG", signX, signY, signW, signH);
+      }
+
+      doc.save("protokol.pdf");
+      wrapper.classList.remove("force-desktop");
+    });
+  }
+
+  window.addEventListener("message", (event) => {
+    if (event.data.type === "openProtocol") {
+      const d = event.data.row;
+      if (!d) return;
+      document.getElementById("order-number").value = d["Order number"] || "";
+      document.getElementById("claim-number").value = d["Label"] || "";
+      document.getElementById("customer").value = d["Customer"] || "";
+      document.getElementById("address").value = d["Address"] || "";
+      document.getElementById("brand").value = d["Contract"] || "";
+      document.getElementById("model").value = d["Model"] || "";
+      document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
+      autoTranslate("description-cz", "description-en");
     }
+  });
 
-    function clearSignature() {
-      const canvas = document.getElementById('signature-pad');
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-    function switchLang(lang) {
-      document.getElementById('cz-btn').classList.toggle('active', lang === 'cz');
-      document.getElementById('en-btn').classList.toggle('active', lang === 'en');
-      // Přepínač jazyků – sem můžeš přidat překlady podle potřeby
-    }
-
-    function exportToPDF() {
-      alert("Export do PDF ještě přidáme – nebo ti mohu poslat funkční kód pro JS + PDF.");
-    }
-
-    window.onload = function () {
-      const canvas = document.getElementById("signature-pad");
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-
-      const ctx = canvas.getContext("2d");
-      let drawing = false;
-
-      canvas.addEventListener("mousedown", (e) => {
-        drawing = true;
-        ctx.beginPath();
-        ctx.moveTo(e.offsetX, e.offsetY);
-      });
-
-      canvas.addEventListener("mousemove", (e) => {
-        if (drawing) {
-          ctx.lineTo(e.offsetX, e.offsetY);
-          ctx.stroke();
+  function autoTranslate(srcId, tgtId) {
+    const sourceText = document.getElementById(srcId).value;
+    const targetEl = document.getElementById(tgtId);
+    if (!sourceText.trim()) return targetEl.value = "";
+    fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=cs&tl=en&dt=t&q=${encodeURIComponent(sourceText)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data[0]) {
+          targetEl.value = data[0].map(pair => pair[0]).join("");
         }
       });
-
-      canvas.addEventListener("mouseup", () => {
-        drawing = false;
-      });
-
-      canvas.addEventListener("touchstart", (e) => {
-        e.preventDefault();
-        drawing = true;
-        const touch = e.touches[0];
-        const rect = canvas.getBoundingClientRect();
-        ctx.beginPath();
-        ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
-      });
-
-      canvas.addEventListener("touchmove", (e) => {
-        e.preventDefault();
-        if (drawing) {
-          const touch = e.touches[0];
-          const rect = canvas.getBoundingClientRect();
-          ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
-          ctx.stroke();
-        }
-      });
-
-      canvas.addEventListener("touchend", () => {
-        drawing = false;
-      });
-    };
-  </script>
+  }
+</script>
 </body>
 </html>
