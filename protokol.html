@@ -110,7 +110,7 @@ textarea { width:100%; min-height:80px; resize:vertical; padding:4px 8px; font-s
         <tr><td class="label">Cena za materiál<span class="en-label">Material cost</span></td><td><input id="price-material"></td></tr>
         <tr><td class="label">Cena za druhého technika<span class="en-label">Second technician cost</span></td><td><input id="price-second"></td></tr>
         <tr><td class="label">Cena za dopravu<span class="en-label">Transport cost</span></td><td><input id="price-transport"></td></tr>
-        <tr><td class="label">Cena celkem<span class="en-label">Total cost</span></td><td><input id="price-total"></td></tr>
+        <tr><td class="label">Cena celkem<span class="en-label">Total cost</span></td><td><input id="price-total" readonly></td></tr>
       </table>
     </div>
     <div class="col">
@@ -155,7 +155,21 @@ window.addEventListener("DOMContentLoaded", () => {
   const today = new Date().toISOString().split("T")[0];
   document.getElementById("visit-date").value = today;
   document.getElementById("sign-date").value = today;
+
+  // ✅ přepočet ceny při načtení
+  ["price-work","price-material","price-second","price-transport"].forEach(id=>{
+    document.getElementById(id).addEventListener("input", updateTotal);
+  });
 });
+
+function updateTotal() {
+  const work = parseFloat(document.getElementById("price-work").value) || 0;
+  const material = parseFloat(document.getElementById("price-material").value) || 0;
+  const second = parseFloat(document.getElementById("price-second").value) || 0;
+  const transport = parseFloat(document.getElementById("price-transport").value) || 0;
+  const total = work + material + second + transport;
+  document.getElementById("price-total").value = total.toFixed(2);
+}
 
 function stripDiacritics(str){ return (str||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g,"_").replace(/[<>:"/\\|?*\u0000-\u001F]/g,"-"); }
 function buildPdfFileName(){ 
@@ -166,7 +180,7 @@ function buildPdfFileName(){
   return `${customer}_${claim}_${order}_${today}.pdf`;
 }
 
-// ✅ export vždy 1 A4, podpis jen jednou
+// ✅ export vždy 1 A4
 function generatePdf(callback){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF("p","mm","a4");
@@ -251,6 +265,7 @@ window.addEventListener("message",(event)=>{
     document.getElementById("dealer").value = d["Waiting for dealer statement?"]||"";
     document.getElementById("damage").value = d["Damage by technician?"]||"";
     document.getElementById("payment").value = d["Customer will pay?"]||"";
+    updateTotal();
   }
 });
 
