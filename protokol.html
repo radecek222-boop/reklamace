@@ -49,6 +49,11 @@
     @media (max-width:768px) {
       .btns button { flex: 1 1 100%; }
     }
+
+    .force-desktop {
+      width: 794px !important;
+      max-width: 794px !important;
+    }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
@@ -62,7 +67,7 @@
       <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
     </div>
 
-    <!-- jen zkráceně, formulář tady nechávám tvůj -->
+    <!-- formulář zkrácený, nechávám tvůj původní -->
 
     <div class="section-title">Podpis zákazníka</div>
     <canvas id="signature-pad"></canvas>
@@ -76,7 +81,6 @@
       <button class="btn-test" type="button" onclick="testPing()">🔍 Otestovat spojení</button>
     </div>
 
-    <!-- Zpětná vazba -->
     <div id="status-message"></div>
   </div>
 
@@ -109,11 +113,75 @@
     }
 
     function downloadPDF() {
-      // nechávám původní funkci (zkráceno)
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF("p", "mm", "a4");
+      const wrapper = document.querySelector(".wrapper");
+      wrapper.classList.add("force-desktop");
+
+      html2canvas(wrapper, { scale: 2 }).then(canvas => {
+        const imgData = canvas.toDataURL("image/png");
+        doc.addImage(imgData, "PNG", 0, 0, 210, 297);
+
+        if (signaturePad && !signaturePad.isEmpty()) {
+          const signData = signaturePad.toDataURL("image/png");
+          doc.addImage(signData, "PNG", 15, 260, 80, 30);
+        }
+
+        doc.save("protokol.pdf");
+        wrapper.classList.remove("force-desktop");
+      });
     }
 
     function sendToServer() {
-      // nechávám původní funkci (odesílání PDF)
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF("p", "mm", "a4");
+      const wrapper = document.querySelector(".wrapper");
+      wrapper.classList.add("force-desktop");
+
+      html2canvas(wrapper, { scale: 2 }).then(canvas => {
+        const imgData = canvas.toDataURL("image/png");
+        doc.addImage(imgData, "PNG", 0, 0, 210, 297);
+
+        if (signaturePad && !signaturePad.isEmpty()) {
+          const signData = signaturePad.toDataURL("image/png");
+          doc.addImage(signData, "PNG", 15, 260, 80, 30);
+        }
+
+        const pdfBase64 = doc.output("datauristring").split(",")[1];
+        const customer = document.getElementById("customer")?.value || "";
+        const order = document.getElementById("order-number")?.value || "";
+        const email = document.getElementById("email")?.value || "";
+
+        fetch("https://script.google.com/macros/s/AKfycbxF6QAJuAg7CSkeA5b4vUGa03PDNenidThLMYSNLl9yFvS0RgvaxYul10MURbosuLOvTA/exec", {
+          method: "POST",
+          body: JSON.stringify({
+            to: email,
+            subject: `Reklamace Natuzzi - ${customer} (${order})`,
+            body: `Dobrý den ${customer},\n\nzasíláme vám protokol z návštěvy technika.\n\n=====================\nWHITE GLOVE SERVICE\n=====================\nDo Dubče 364, Běchovice 190 11\n+420 725 965 826\nreklamace-wgs@email.cz`,
+            filename: `Protokol_${order}.pdf`,
+            pdf: pdfBase64
+          }),
+          headers: { "Content-Type": "application/json" }
+        })
+        .then(res => res.text())
+        .then(msg => {
+          const statusEl = document.getElementById("status-message");
+          if (msg.includes("OK")) {
+            statusEl.style.color = "green";
+            statusEl.innerText = "✅ Email byl odeslán a PDF uložen do složky ODESLANÉ PROTOKOLY.";
+          } else {
+            statusEl.style.color = "red";
+            statusEl.innerText = "⚠️ Odpověď serveru: " + msg;
+          }
+        })
+        .catch(err => {
+          const statusEl = document.getElementById("status-message");
+          statusEl.style.color = "red";
+          statusEl.innerText = "❌ Chyba při odesílání: " + err;
+        });
+
+        wrapper.classList.remove("force-desktop");
+      });
     }
   </script>
 </body>
