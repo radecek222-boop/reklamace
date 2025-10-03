@@ -17,7 +17,6 @@ td { padding:6px; vertical-align:top; }
 .section-title { font-weight:700; margin-top:20px; display:flex; flex-direction:column; align-items:flex-start; }
 .section-title .en-label { font-size:0.9em; color:#666; font-weight:normal; margin-top:2px; }
 
-/* jednotná výška rámečků */
 input, select { width:100%; height:36px; line-height:36px; padding:4px 8px; font-size:1em; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; color:#111; background:#fff; }
 textarea { width:100%; min-height:80px; resize:vertical; padding:4px 8px; font-size:1em; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; color:#111; background:#fff; }
 
@@ -143,7 +142,6 @@ textarea { width:100%; min-height:80px; resize:vertical; padding:4px 8px; font-s
 
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 let signaturePad;
 let lastPdfName = "protokol.pdf";
@@ -171,82 +169,48 @@ function buildPdfFileName(){
 function generatePdf(callback){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF("p","mm","a4");
-  const wrapper = document.querySelector(".wrapper");
-  wrapper.classList.add("force-desktop");
+  const lineHeight = 7;
+  let y = 20;
 
-  html2canvas(wrapper,{ scale:0.9, scrollX:0, scrollY:0, windowWidth:794, windowHeight:wrapper.scrollHeight })
-    .then(canvas => {
-      const imgData = canvas.toDataURL("image/jpeg",0.6); // JPEG komprese 60%
-      const pageW = doc.internal.pageSize.getWidth();
-      const pageH = doc.internal.pageSize.getHeight();
-      const imgProps = doc.getImageProperties(imgData);
-      let drawW = pageW, drawH = (imgProps.height * drawW)/imgProps.width, x=0, y=0;
-      if(drawH > pageH-20){ const scale=(pageH-20)/drawH; drawW*=scale; drawH*=scale; x=(pageW-drawW)/2; }
-      doc.addImage(imgData,"JPEG",x,y,drawW,drawH);
-      if(signaturePad && !signaturePad.isEmpty()){ doc.addImage(signaturePad.toDataURL("image/png"),"PNG",15,pageH-45,80,30); }
-      lastPdfName = buildPdfFileName();
-      doc.save(lastPdfName);
-      wrapper.classList.remove("force-desktop");
-      if(callback) callback();
-    });
-}
+  // Horní hlavička
+  doc.setFontSize(18); doc.setFont("helvetica","bold");
+  doc.text("WHITE GLOVE SERVICE", 105, y, {align:"center"});
+  y += lineHeight*2;
+  doc.setFontSize(10); doc.setFont("helvetica","normal");
+  doc.text("Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684", 105, y, {align:"center"});
+  y += lineHeight*2;
 
-function downloadPDF(){ generatePdf(); }
+  doc.setFontSize(12);
 
-function saveAndMail(){ openMailClient(); generatePdf(); }
-
-function openMailClient(){
-  const customer = document.getElementById("customer").value || "";
-  const order = document.getElementById("order-number").value || "";
-  const claim = document.getElementById("claim-number").value || "";
-  const visitDate = document.getElementById("visit-date").value || "";
-  const email = document.getElementById("email").value || "";
-  const subject = `Reklamace Natuzzi - ${customer} (${order})`;
-  const body = `Dobrý den ${customer},\n\nzasíláme Vám protokol z návštěvy technika.\n\nČíslo reklamace: ${claim}\nDatum návštěvy: ${visitDate}\n\nSoubor ${lastPdfName} byl uložen – prosím přiložte jej do e-mailu jako přílohu.\n\n=====================\nWHITE GLOVE SERVICE\n=====================\nDo Dubče 364, Běchovice 190 11\n+420 725 965 826\nreklamace-wgs@email.cz`;
-  window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-}
-
-// PROPISOVÁNÍ DAT ZE SEZNAMU
-window.addEventListener("message",(event)=>{
-  if(event.data.type==="openProtocol"){
-    const d=event.data.row; if(!d) return;
-    document.getElementById("order-number").value = d["Order number"]||"";
-    document.getElementById("claim-number").value = d["Label"]||"";
-    document.getElementById("customer").value = d["Customer"]||"";
-    document.getElementById("address").value = d["Address"]||"";
-    document.getElementById("phone").value = d["KONTAKT"]||"";
-    document.getElementById("email").value = d["Email"]||d["EMAIL"]||d["E-mail"]||d["MAIL"]||d[15]||"";
-    document.getElementById("brand").value = d["Contract"]||d["Label"]||"";
-    document.getElementById("model").value = d["Model"]||"";
-    document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"]||"";
-    document.getElementById("problem-cz").value = d["Problem detected"]||"";
-    document.getElementById("repair-cz").value = d["Repair proposal"]||"";
-    document.getElementById("visit-date").value = d["Visit date"]||"";
-    document.getElementById("delivery-date").value = d["Delivery date"]||"";
-    document.getElementById("claim-date").value = d["Complaint date"]||"";
-    document.getElementById("sign-date").value = d["Signature date"]||"";
-    document.getElementById("parts").value = d["Number of repaired parts"]||"";
-    document.getElementById("price-work").value = d["Work cost"]||"";
-    document.getElementById("price-material").value = d["Material cost"]||"";
-    document.getElementById("price-second").value = d["Second technician cost"]||"";
-    document.getElementById("price-transport").value = d["Transport cost"]||"";
-    document.getElementById("price-total").value = d["Total cost"]||"";
-    document.getElementById("solved").value = d["Complaint solved?"]||"";
-    document.getElementById("dealer").value = d["Waiting for dealer statement?"]||"";
-    document.getElementById("damage").value = d["Damage by technician?"]||"";
-    document.getElementById("payment").value = d["Customer will pay?"]||"";
+  // Funkce pro kreslení text + label
+  function drawField(label, value){
+    doc.setFont("helvetica","bold"); doc.text(label+":", 10, y);
+    doc.setFont("helvetica","normal"); doc.text(value||"", 60, y);
+    y += lineHeight;
   }
-});
 
-// AUTOMATICKÝ PŘEKLAD
-function autoTranslate(srcId, tgtId){
-  const sourceText=document.getElementById(srcId).value;
-  const targetEl=document.getElementById(tgtId);
-  if(!sourceText.trim()) return targetEl.value="";
-  fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=cs&tl=en&dt=t&q=${encodeURIComponent(sourceText)}`)
-    .then(res=>res.json())
-    .then(data=>{ if(data && data[0]) targetEl.value=data[0].map(pair=>pair[0]).join(""); });
-}
-</script>
-</body>
-</html>
+  drawField("Číslo objednávky", document.getElementById("order-number").value);
+  drawField("Číslo reklamace", document.getElementById("claim-number").value);
+  drawField("Zákazník", document.getElementById("customer").value);
+  drawField("Adresa zákazníka", document.getElementById("address").value);
+  drawField("Telefon", document.getElementById("phone").value);
+  drawField("Email", document.getElementById("email").value);
+  drawField("Technik", document.getElementById("technician").value);
+  drawField("Datum návštěvy", document.getElementById("visit-date").value);
+  drawField("Datum doručení", document.getElementById("delivery-date").value);
+  drawField("Datum podání reklamace", document.getElementById("claim-date").value);
+  drawField("Značka / Contract", document.getElementById("brand").value);
+  drawField("Model", document.getElementById("model").value);
+
+  // Textová pole: description, problem, repair
+  function drawTextarea(label, value){
+    doc.setFont("helvetica","bold"); doc.text(label+":", 10, y);
+    doc.setFont("helvetica","normal");
+    const lines = doc.splitTextToSize(value||"", 180);
+    doc.text(lines, 10, y+lineHeight);
+    y += lines.length*lineHeight + lineHeight;
+  }
+
+  drawTextarea("Zákazník reklamuje", document.getElementById("description-cz").value);
+  drawTextarea("Problém zjištěný technikem", document.getElementById("problem-cz").value);
+  drawTextarea("Návrh opravy", document.getElementById("repair-cz").value);
