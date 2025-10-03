@@ -38,7 +38,7 @@
     .btn-clear { background: linear-gradient(45deg, #ff4d4d, #b30000); }
     .btn-back { background: #e0e0e0; color:#111; border: 2px solid #999; font-size: 1.2em; font-weight: 700; }
     .btn-pdf { background: linear-gradient(45deg, #1e90ff, #0047ab); }
-    .btn-send { background: linear-gradient(45deg, #ffa500, #ff4500); } /* ORANŽOVÝ GRADIENT */
+    .btn-send { background: linear-gradient(45deg, #28a745, #218838); } /* zelený gradient */
     .btn-test { background: linear-gradient(45deg, #00b09b, #96c93d); }
 
     #status-message {
@@ -67,6 +67,8 @@
       <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
     </div>
 
+    <!-- Tady by měl být tvůj formulář – nechávám ho stejný jako máš -->
+
     <div class="section-title">Podpis zákazníka</div>
     <canvas id="signature-pad"></canvas>
     <div class="signature-label">Podepište se prstem nebo myší</div>
@@ -91,9 +93,8 @@
       signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
     });
 
-    // 🔍 Test spojení – POST request
     function testPing() {
-      fetch("https://script.google.com/macros/s/AKfycbwZBEjLkW-mRjoCnkO6FLVIGtYbrizB_tsBqlUHntiuv0b2H94V4spnp4LcUiFXdZLs5g/exec", {
+      fetch("https://script.google.com/macros/s/AKfycbzwchQ0_T4eux0gTxBrn8olx7i1tCLPG6wMK8JUor-MJ8aqXmGOrVqmP0mmiqpjzKWmEQ/exec", {
         method: "POST",
         body: JSON.stringify({ test: true }),
         headers: { "Content-Type": "application/json" }
@@ -151,7 +152,7 @@
         const order = document.getElementById("order-number")?.value || "";
         const email = document.getElementById("email")?.value || "";
 
-        fetch("https://script.google.com/macros/s/AKfycbwZBEjLkW-mRjoCnkO6FLVIGtYbrizB_tsBqlUHntiuv0b2H94V4spnp4LcUiFXdZLs5g/exec", {
+        fetch("https://script.google.com/macros/s/AKfycbzwchQ0_T4eux0gTxBrn8olx7i1tCLPG6wMK8JUor-MJ8aqXmGOrVqmP0mmiqpjzKWmEQ/exec", {
           method: "POST",
           body: JSON.stringify({
             to: email,
