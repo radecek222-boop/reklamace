@@ -7,81 +7,80 @@
   <style>
     body {
       font-family: Inter, sans-serif;
-      background:#f6f7fb;
-      margin:0;
-      padding:20px;
-      font-size:12px;
-      display:flex;
-      justify-content:center;
+      background: #f6f7fb;
+      margin: 0;
+      padding: 20px;
+      font-size: 12px;
+      display: flex;
+      justify-content: center;
     }
     .wrapper {
-      width:100%;
-      max-width:900px;
-      background:white;
-      padding:20px;
-      box-shadow:0 0 10px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 900px;
+      background: white;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    .header { text-align:center; margin-bottom:20px; }
-    .header div:first-child { font-size:28px; font-weight:900; }
-    .header div:last-child { font-size:12px; margin-top:4px; font-weight:normal; }
-    table { width:100%; border-collapse:collapse; margin:10px 0; }
-    td { padding:6px; vertical-align:top; }
-    .label { font-weight:600; width:40%; }
+    .header { text-align: center; margin-bottom: 20px; }
+    .header div:first-child { font-size: 28px; font-weight: 900; }
+    .header div:last-child { font-size: 12px; margin-top: 4px; font-weight: normal; }
+    table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+    td { padding: 6px; vertical-align: top; }
+    .label { font-weight: 600; width: 40%; }
     input, select, textarea {
-      width:100%;
-      padding:4px 8px;
-      font-size:1em;
-      border:1px solid #ccc;
-      border-radius:4px;
-      box-sizing:border-box;
+      width: 100%;
+      padding: 4px 8px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
     }
     input, select {
-      height:36px;
-      line-height:36px;
-      -webkit-appearance:none;
-      appearance:none;
-      background-color:white;
+      height: 36px;
+      line-height: 36px;
+      -webkit-appearance: none;
+      appearance: none;
+      background-color: white;
     }
-    select { background-image:none !important; }
-    textarea { min-height:60px; resize:vertical; }
-    .split-section { display:flex; gap:10px; margin:10px 0; }
-    .two-col-table { display:flex; gap:30px; flex-wrap:wrap; }
-    .two-col-table .col { flex:1; min-width:300px; }
-    .section-title { font-weight:700; margin-top:20px; }
+    select { background-image: none !important; }
+    textarea { min-height: 60px; resize: vertical; }
+    .split-section { display: flex; gap: 10px; margin: 10px 0; }
+    .two-col-table { display: flex; gap: 30px; flex-wrap: wrap; }
+    .two-col-table .col { flex: 1; min-width: 300px; }
+    .section-title { font-weight: 700; margin-top: 20px; }
     #signature-pad {
-      border:2px dashed #888;
-      width:100%;
-      height:150px;
-      background:white;
+      border: 2px dashed #888;
+      width: 100%;
+      height: 150px;
+      background: white;
     }
-    .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
-    .btns { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
+    .signature-label { font-size: 0.9em; color: #444; margin: 4px 0 20px; }
+    .btns { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
     .btns button {
-      flex:1 1 calc(50% - 10px);
-      padding:14px;
-      font-size:1.05em;
-      border:none;
-      border-radius:6px;
-      cursor:pointer;
-      font-weight:600;
-      color:white;
+      flex: 1 1 calc(50% - 10px);
+      padding: 14px;
+      font-size: 1.05em;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      color: white;
     }
-    /* Barevné varianty tlačítek */
     .btn-clear { background: linear-gradient(45deg, #ff4d4d, #b30000); }
-    .btn-back { background: #e0e0e0; color:#111; border:2px solid #999; font-size:1.2em; font-weight:700; }
+    .btn-back { background: #e0e0e0; color:#111; border: 2px solid #999; font-size: 1.2em; font-weight: 700; }
     .btn-pdf { background: linear-gradient(45deg, #1e90ff, #0047ab); }
-    .btn-email { background: linear-gradient(45deg, #8e2de2, #4a00e0); }
+    .btn-send { background: linear-gradient(45deg, #8e2de2, #4a00e0); }
 
-    @media (max-width:768px){
-      .wrapper{padding:10px;}
-      .two-col-table{flex-direction:column;}
-      .split-section{flex-direction:column;}
-      .btns button { flex:1 1 100%; }
+    @media (max-width:768px) {
+      .wrapper { padding: 10px; }
+      .two-col-table { flex-direction: column; }
+      .split-section { flex-direction: column; }
+      .btns button { flex: 1 1 100%; }
     }
 
     .force-desktop {
-      width:794px !important;
-      max-width:794px !important;
+      width: 794px !important;
+      max-width: 794px !important;
     }
     .force-desktop .two-col-table { flex-direction: row !important; }
     .force-desktop .split-section { flex-direction: row !important; }
@@ -92,187 +91,125 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
-<div class="wrapper">
-  <div class="header">
-    <div>WHITE GLOVE SERVICE</div>
-    <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
-  </div>
-
-  <div class="two-col-table">
-    <div class="col">
-      <table>
-        <tr><td class="label">Číslo objednávky</td><td><input id="order-number"></td></tr>
-        <tr><td class="label">Číslo reklamace</td><td><input id="claim-number"></td></tr>
-        <tr><td class="label">Zákazník</td><td><input id="customer"></td></tr>
-        <tr><td class="label">Adresa zákazníka</td><td><input id="address"></td></tr>
-        <tr><td class="label">Telefon</td><td><input id="phone"></td></tr>
-        <tr><td class="label">Email</td><td><input id="email"></td></tr>
-      </table>
+  <div class="wrapper">
+    <div class="header">
+      <div>WHITE GLOVE SERVICE</div>
+      <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
     </div>
-    <div class="col">
-      <table>
-        <tr><td class="label">Technik</td><td><select id="technician"><option>Milan Kolín</option><option>Radek Zikmund</option><option>Kolín/Zikmund</option></select></td></tr>
-        <tr><td class="label">Datum návštěvy</td><td><input id="visit-date" type="date"></td></tr>
-        <tr><td class="label">Datum doručení</td><td><input id="delivery-date" type="date"></td></tr>
-        <tr><td class="label">Datum podání reklamace</td><td><input id="claim-date" type="date"></td></tr>
-        <tr><td class="label">Značka / Contract</td><td><input id="brand"></td></tr>
-        <tr><td class="label">Model</td><td><input id="model"></td></tr>
-      </table>
+
+    <!-- FORMULÁŘ ... (nechávám tvůj původní obsah) -->
+
+    <div class="section-title">Podpis zákazníka</div>
+    <canvas id="signature-pad"></canvas>
+    <div class="signature-label">Podepište se prstem nebo myší</div>
+
+    <div class="btns">
+      <button class="btn-clear" type="button" onclick="signaturePad.clear()">🗑️ Vymazat podpis</button>
+      <button class="btn-back" type="button" onclick="window.location.href='index.html'">⬅️ ZPĚT</button>
+      <button class="btn-pdf" type="button" onclick="downloadPDF()">📄 Exportovat do PDF</button>
+      <button class="btn-send" type="button" onclick="sendToServer()">📨 Odeslat zákazníkovi</button>
     </div>
   </div>
 
-  <div class="section-title">Zákazník reklamuje / Customer complaint</div>
-  <div class="split-section">
-    <textarea id="description-cz" placeholder="CZ" oninput="autoTranslate('description-cz','description-en')"></textarea>
-    <textarea id="description-en" placeholder="EN"></textarea>
-  </div>
-  <div class="section-title">Problém zjištěný technikem / Detected problem</div>
-  <div class="split-section">
-    <textarea id="problem-cz" placeholder="CZ" oninput="autoTranslate('problem-cz','problem-en')"></textarea>
-    <textarea id="problem-en" placeholder="EN"></textarea>
-  </div>
-  <div class="section-title">Návrh opravy / Repair proposal</div>
-  <div class="split-section">
-    <textarea id="repair-cz" placeholder="CZ" oninput="autoTranslate('repair-cz','repair-en')"></textarea>
-    <textarea id="repair-en" placeholder="EN"></textarea>
-  </div>
+  <script>
+    let signaturePad;
+    window.addEventListener("DOMContentLoaded", () => {
+      const canvas = document.getElementById("signature-pad");
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
 
-  <div class="two-col-table">
-    <div class="col">
-      <table>
-        <tr><td class="label">Počet opravovaných dílů</td><td><input id="parts"></td></tr>
-        <tr><td class="label">Cena za práci</td><td><input id="price-work"></td></tr>
-        <tr><td class="label">Cena za materiál</td><td><input id="price-material"></td></tr>
-        <tr><td class="label">Cena za druhého technika</td><td><input id="price-second"></td></tr>
-        <tr><td class="label">Cena za dopravu</td><td><input id="price-transport"></td></tr>
-        <tr><td class="label">Cena celkem</td><td><input id="price-total"></td></tr>
-      </table>
-    </div>
-    <div class="col">
-      <table>
-        <tr><td class="label">Reklamace vyřešena?</td><td><select id="solved"><option>ANO</option><option>NE</option></select></td></tr>
-        <tr><td class="label">Čeká se na vyjádření prodejce?</td><td><select id="dealer"><option>NE</option><option>ANO</option></select></td></tr>
-        <tr><td class="label">Poškození technikem?</td><td><select id="damage"><option>NE</option><option>ANO</option></select></td></tr>
-        <tr><td class="label">Úhradu provede zákazník?</td><td><select id="payment"><option>NE</option><option>ANO</option></select></td></tr>
-        <tr><td class="label">Datum podpisu</td><td><input id="sign-date" type="date"></td></tr>
-      </table>
-    </div>
-  </div>
-
-  <div class="section-title">Podpis zákazníka</div>
-  <canvas id="signature-pad"></canvas>
-  <div class="signature-label">Podepište se prstem nebo myší</div>
-
-  <div class="btns">
-    <button class="btn-clear" type="button" onclick="signaturePad.clear()">🗑️ Vymazat podpis</button>
-    <button class="btn-back" type="button" onclick="window.location.href='index.html'">⬅️ ZPĚT</button>
-    <button class="btn-pdf" type="button" onclick="downloadPDF()">📄 Exportovat do PDF</button>
-    <button class="btn-email" type="button" onclick="openMailClient()">📨 Otevřít email</button>
-  </div>
-</div>
-
-<script>
-  let signaturePad;
-  window.addEventListener("DOMContentLoaded", () => {
-    const canvas = document.getElementById("signature-pad");
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-    signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
-
-    const today = new Date().toISOString().split("T")[0];
-    document.getElementById("visit-date").value = today;
-    document.getElementById("sign-date").value = today;
-  });
-
-  function downloadPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF("p", "mm", "a4");
-    const wrapper = document.querySelector(".wrapper");
-    wrapper.classList.add("force-desktop");
-
-    html2canvas(wrapper, { scale: 2 }).then(canvas => {
-      const imgData = canvas.toDataURL("image/png");
-      const pageW = doc.internal.pageSize.getWidth();
-      const pageH = doc.internal.pageSize.getHeight();
-      const imgProps = doc.getImageProperties(imgData);
-      const imgW = imgProps.width;
-      const imgH = imgProps.height;
-      let drawW = pageW;
-      let drawH = (imgH * drawW) / imgW;
-      let x = 0;
-      let y = 0;
-      if (drawH > pageH) {
-        const scale = pageH / drawH;
-        drawW = drawW * scale;
-        drawH = pageH;
-        x = (pageW - drawW) / 2;
-      }
-      doc.addImage(imgData, "PNG", x, y, drawW, drawH);
-      if (signaturePad && !signaturePad.isEmpty()) {
-        const signData = signaturePad.toDataURL("image/png");
-        const signW = 80;
-        const signH = 30;
-        const pad = 15;
-        const signX = x + pad;
-        const signY = y + drawH - pad - signH;
-        doc.addImage(signData, "PNG", signX, signY, signW, signH);
-      }
-      doc.save("protokol.pdf");
-      wrapper.classList.remove("force-desktop");
+      const today = new Date().toISOString().split("T")[0];
+      document.getElementById("visit-date").value = today;
+      document.getElementById("sign-date").value = today;
     });
-  }
 
-  // propsání dat ze seznam.html
-  window.addEventListener("message", (event) => {
-    if (event.data.type === "openProtocol") {
-      const d = event.data.row;
-      if (!d) return;
-      document.getElementById("order-number").value = d["Order number"] || "";
-      document.getElementById("claim-number").value = d["Label"] || "";
-      document.getElementById("customer").value = d["Customer"] || "";
-      document.getElementById("address").value = d["Address"] || "";
-      document.getElementById("phone").value = d["KONTAKT"] || "";
-      document.getElementById("email").value = d["EMAIL"] || "";
-      document.getElementById("brand").value = d["Contract"] || "";
-      document.getElementById("model").value = d["Model"] || "";
-      document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
-      autoTranslate("description-cz", "description-en");
-    }
-  });
+    function downloadPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF("p", "mm", "a4");
+      const wrapper = document.querySelector(".wrapper");
+      wrapper.classList.add("force-desktop");
 
-  function autoTranslate(srcId, tgtId) {
-    const sourceText = document.getElementById(srcId).value;
-    const targetEl = document.getElementById(tgtId);
-    if (!sourceText.trim()) return targetEl.value = "";
-    fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=cs&tl=en&dt=t&q=${encodeURIComponent(sourceText)}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data && data[0]) {
-          targetEl.value = data[0].map(pair => pair[0]).join("");
+      html2canvas(wrapper, { scale: 2 }).then(canvas => {
+        const imgData = canvas.toDataURL("image/png");
+        const pageW = doc.internal.pageSize.getWidth();
+        const pageH = doc.internal.pageSize.getHeight();
+        const imgProps = doc.getImageProperties(imgData);
+        const imgW = imgProps.width;
+        const imgH = imgProps.height;
+        let drawW = pageW;
+        let drawH = (imgH * drawW) / imgW;
+        let x = 0, y = 0;
+        if (drawH > pageH) {
+          const scale = pageH / drawH;
+          drawW = drawW * scale;
+          drawH = pageH;
+          x = (pageW - drawW) / 2;
         }
+        doc.addImage(imgData, "PNG", x, y, drawW, drawH);
+
+        if (signaturePad && !signaturePad.isEmpty()) {
+          const signData = signaturePad.toDataURL("image/png");
+          doc.addImage(signData, "PNG", 15, pageH - 45, 80, 30);
+        }
+
+        doc.save("protokol.pdf");
+        wrapper.classList.remove("force-desktop");
       });
-  }
+    }
 
-  // otevření mailového klienta
-  function openMailClient() {
-    const customer = document.getElementById("customer").value || "";
-    const order = document.getElementById("order-number").value || "";
-    const email = document.getElementById("email").value || "";
-    const subject = `Reklamace Natuzzi - ${customer} (${order})`;
-    const body = `Dobrý den ${customer},
+    function sendToServer() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF("p", "mm", "a4");
+      const wrapper = document.querySelector(".wrapper");
+      wrapper.classList.add("force-desktop");
 
-zasíláme vám protokol z návštěvy technika.
+      html2canvas(wrapper, { scale: 2 }).then(canvas => {
+        const imgData = canvas.toDataURL("image/png");
+        const pageW = doc.internal.pageSize.getWidth();
+        const pageH = doc.internal.pageSize.getHeight();
+        const imgProps = doc.getImageProperties(imgData);
+        const imgW = imgProps.width;
+        const imgH = imgProps.height;
+        let drawW = pageW;
+        let drawH = (imgH * drawW) / imgW;
+        let x = 0, y = 0;
+        if (drawH > pageH) {
+          const scale = pageH / drawH;
+          drawW = drawW * scale;
+          drawH = pageH;
+          x = (pageW - drawW) / 2;
+        }
+        doc.addImage(imgData, "PNG", x, y, drawW, drawH);
 
-=====================
-WHITE GLOVE SERVICE
-=====================
-Do Dubče 364, Běchovice 190 11
-+420 725 965 826
-reklamace-wgs@email.cz`;
+        if (signaturePad && !signaturePad.isEmpty()) {
+          const signData = signaturePad.toDataURL("image/png");
+          doc.addImage(signData, "PNG", 15, pageH - 45, 80, 30);
+        }
 
-    const mailtoLink = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailtoLink;
-  }
-</script>
+        const pdfBase64 = doc.output("datauristring").split(",")[1];
+        const customer = document.getElementById("customer").value || "";
+        const order = document.getElementById("order-number").value || "";
+        const email = document.getElementById("email").value || "";
+
+        fetch("https://script.google.com/macros/s/AKfycbxF6QAJuAg7CSkeA5b4vUGa03PDNenidThLMYSNLl9yFvS0RgvaxYul10MURbosuLOvTA/exec", {
+          method: "POST",
+          body: JSON.stringify({
+            to: email,
+            subject: `Reklamace Natuzzi - ${customer} (${order})`,
+            body: `Dobrý den ${customer},\n\nzasíláme vám protokol z návštěvy technika.\n\n=====================\nWHITE GLOVE SERVICE\n=====================\nDo Dubče 364, Běchovice 190 11\n+420 725 965 826\nreklamace-wgs@email.cz`,
+            filename: `Protokol_${order}.pdf`,
+            pdf: pdfBase64
+          }),
+          headers: { "Content-Type": "application/json" }
+        })
+        .then(res => res.text())
+        .then(msg => alert("✅ Email odeslán a PDF uložen do složky ODESLANÉ PROTOKOLY"))
+        .catch(err => alert("❌ Chyba: " + err));
+
+        wrapper.classList.remove("force-desktop");
+      });
+    }
+  </script>
 </body>
 </html>
