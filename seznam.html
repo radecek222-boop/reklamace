@@ -110,8 +110,7 @@
   <div id="results" class="table-wrapper">Načítám data...</div>
 
 <script>
-// 🔴 Tady se změnila jen URL na Worker:
-const sheetUrl = "https://dark-darkness-d89a.72nvwf4pb2.workers.dev/";
+const sheetUrl = "https://docs.google.com/spreadsheets/d/1IlBI3Wqh_7J3JbJcxfD9W1Af3jFGbBkKeGXKs92oySU/pub?gid=0&single=true&output=csv";
 let allData = [];
 
 const days = ["pondělí","úterý","středa","čtvrtek","pátek","sobota","neděle"];
@@ -216,6 +215,15 @@ function openProtocol(index, event){
   event.stopPropagation();
   const row = allData[index];
   if (!row) return;
+
+  // univerzální zajištění emailu
+  let email = row["Email"] || row["EMAIL"] || row["E-mail"] || row["MAIL"] || Object.values(row)[15] || "";
+  if (!email) {
+    const found = Object.values(row).find(v => v && v.toString().includes("@"));
+    if (found) email = found;
+  }
+  row.Email = email;
+
   const protokolWindow = window.open("protokol.html", "_blank");
   protokolWindow.onload = () => {
     protokolWindow.postMessage({ type:"openProtocol", row }, "*");
