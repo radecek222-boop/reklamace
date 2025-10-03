@@ -65,11 +65,10 @@
       color:white;
     }
     /* Gradient tlačítka */
-    .btn-clear { background: linear-gradient(45deg, #ff4d4d, #b30000); color:#fff; }
+    .btn-clear { background: linear-gradient(45deg, #ff4d4d, #b30000); }
     .btn-back { background: linear-gradient(45deg, #d3d3d3, #808080); color:#000; display:flex; align-items:center; justify-content:center; gap:8px; }
     .btn-back svg { width:28px; height:28px; fill:#000; }
     .btn-pdf { background: linear-gradient(45deg, #1e90ff, #0047ab); }
-    .btn-copy { background: linear-gradient(45deg, #87cefa, #4682b4); color:#000; }
     .btn-email { background: linear-gradient(45deg, #28a745, #006400); }
 
     @media (max-width:768px){
@@ -170,14 +169,12 @@
       ZPĚT
     </button>
     <button class="btn-pdf" type="button" onclick="downloadPDF()">Exportovat do PDF</button>
-    <button class="btn-copy" type="button" onclick="copyPdf()">Kopírovat PDF</button>
-    <button class="btn-email" type="button" onclick="saveAndMail()">Otevřít email</button>
+    <button class="btn-email" type="button" onclick="saveAndMail()">Odeslat e-mail zákazníkovi</button>
   </div>
 </div>
 
 <script>
   let signaturePad;
-  let lastPdfBlob = null;
   let lastPdfName = "protokol.pdf";
 
   window.addEventListener("DOMContentLoaded", () => {
@@ -234,7 +231,6 @@
         const signData = signaturePad.toDataURL("image/png");
         doc.addImage(signData, "PNG", 15, pageH - 45, 80, 30);
       }
-      lastPdfBlob = doc.output("blob"); 
       lastPdfName = buildPdfFileName();
       doc.save(lastPdfName);
       wrapper.classList.remove("force-desktop");
@@ -243,11 +239,10 @@
   }
 
   function downloadPDF() { generatePdf(); }
-  function copyPdf() {
-    if (!lastPdfBlob) { alert("Nejdřív klikněte na 'Exportovat do PDF'."); return; }
-    alert("PDF je připravené: " + lastPdfName + ". Připojte ho ručně do e-mailu.");
+
+  function saveAndMail() {
+    generatePdf(() => { openMailClient(); });
   }
-  function saveAndMail() { generatePdf(() => { openMailClient(); }); }
 
   function openMailClient() {
     const customer = document.getElementById("customer").value || "";
@@ -263,6 +258,8 @@ zasíláme Vám protokol z návštěvy technika.
 
 Číslo reklamace: ${claim}
 Datum návštěvy: ${visitDate}
+
+Soubor ${lastPdfName} byl uložen – prosím přiložte jej do e-mailu jako přílohu.
 
 =====================
 WHITE GLOVE SERVICE
