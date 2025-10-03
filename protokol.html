@@ -38,7 +38,7 @@
     .btn-clear { background: linear-gradient(45deg, #ff4d4d, #b30000); }
     .btn-back { background: #e0e0e0; color:#111; border: 2px solid #999; font-size: 1.2em; font-weight: 700; }
     .btn-pdf { background: linear-gradient(45deg, #1e90ff, #0047ab); }
-    .btn-send { background: linear-gradient(45deg, #ff69b4, #ff1493); } /* růžový gradient */
+    .btn-send { background: linear-gradient(45deg, #ff69b4, #ff1493); } /* růžové tlačítko */
     .btn-test { background: linear-gradient(45deg, #00b09b, #96c93d); }
 
     #status-message {
@@ -76,7 +76,7 @@
       <button class="btn-back" type="button" onclick="window.location.href='index.html'">⬅️ ZPĚT</button>
       <button class="btn-pdf" type="button" onclick="downloadPDF()">📄 Exportovat do PDF</button>
       <button class="btn-send" type="button" onclick="sendToServer()">📨 Odeslat zákazníkovi</button>
-      <button class="btn-test" type="button" onclick="testPing()">🔍 Otestovat spojení</button>
+      <button class="btn-test" type="button" onclick="testPing()">🔍 Otestovat spojení (GET)</button>
     </div>
 
     <div id="status-message"></div>
@@ -91,23 +91,20 @@
       signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
     });
 
+    // 🔍 Test spojení – GET request
     function testPing() {
-      fetch("https://script.google.com/macros/s/AKfycbzXwalMrVtm51Ruzr4nTZwVUirqNkM30nD8EVaWSGCQxC4r-cN4-_5PTspj6Vs0o-OmLQ/exec", {
-        method: "POST",
-        body: JSON.stringify({ test: true }),
-        headers: { "Content-Type": "application/json" }
-      })
-      .then(res => res.text())
-      .then(txt => {
-        const statusEl = document.getElementById("status-message");
-        statusEl.style.color = "green";
-        statusEl.innerText = "✅ Spojení OK: " + txt;
-      })
-      .catch(err => {
-        const statusEl = document.getElementById("status-message");
-        statusEl.style.color = "red";
-        statusEl.innerText = "❌ Spojení selhalo: " + err;
-      });
+      fetch("https://script.google.com/macros/s/AKfycbzXwalMrVtm51Ruzr4nTZwVUirqNkM30nD8EVaWSGCQxC4r-cN4-_5PTspj6Vs0o-OmLQ/exec")
+        .then(res => res.text())
+        .then(txt => {
+          const statusEl = document.getElementById("status-message");
+          statusEl.style.color = "green";
+          statusEl.innerText = "✅ Spojení OK (GET): " + txt;
+        })
+        .catch(err => {
+          const statusEl = document.getElementById("status-message");
+          statusEl.style.color = "red";
+          statusEl.innerText = "❌ Spojení selhalo: " + err;
+        });
     }
 
     function downloadPDF() {
