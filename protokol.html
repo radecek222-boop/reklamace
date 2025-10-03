@@ -63,7 +63,7 @@
       cursor:pointer;
       font-weight:700;
     }
-    /* Barevné varianty tlačítek */
+    /* Barvy tlačítek */
     .btn-clear { background:#ff4d4d; color:#000; }
     .btn-back { background:#e0e0e0; color:#000; }
     .btn-pdf { background:#1e90ff; color:#fff; }
@@ -163,7 +163,7 @@
 
   <div class="btns">
     <button class="btn-clear" type="button" onclick="signaturePad.clear()">Vymazat podpis</button>
-    <button class="btn-back" type="button" onclick="window.location.href='index.html'">⬅ Černobílá šipka ZPĚT</button>
+    <button class="btn-back" type="button" onclick="window.location.href='index.html'">⬅ ZPĚT</button>
     <button class="btn-pdf" type="button" onclick="downloadPDF()">Exportovat do PDF</button>
     <button class="btn-copy" type="button" onclick="copyPdf()">Kopírovat PDF</button>
     <button class="btn-email" type="button" onclick="saveAndMail()">Otevřít email</button>
@@ -173,6 +173,7 @@
 <script>
   let signaturePad;
   let lastPdfBlob = null;
+  let lastPdfName = "protokol.pdf";
 
   window.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("signature-pad");
@@ -184,6 +185,22 @@
     document.getElementById("visit-date").value = today;
     document.getElementById("sign-date").value = today;
   });
+
+  function stripDiacritics(str) {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g,"");
+  }
+
+  function buildPdfFileName() {
+    const today = new Date().toISOString().split("T")[0];
+    const claim = document.getElementById("claim-number").value || "";
+    const order = document.getElementById("order-number").value || "";
+    const customer = stripDiacritics(document.getElementById("customer").value || "");
+    let name = `protokol_${today}`;
+    if (claim) name += `_${claim}`;
+    if (order) name += `_${order}`;
+    if (customer) name += `_${customer}`;
+    return name + ".pdf";
+  }
 
   function generatePdf(callback) {
     const { jsPDF } = window.jspdf;
@@ -212,8 +229,9 @@
         const signData = signaturePad.toDataURL("image/png");
         doc.addImage(signData, "PNG", 15, pageH - 45, 80, 30);
       }
-      lastPdfBlob = doc.output("blob"); // uložíme do paměti
-      doc.save("protokol.pdf");
+      lastPdfBlob = doc.output("blob"); 
+      lastPdfName = buildPdfFileName();
+      doc.save(lastPdfName);
       wrapper.classList.remove("force-desktop");
       if (callback) callback();
     });
@@ -228,7 +246,7 @@
       alert("Nejdřív klikněte na 'Exportovat do PDF'.");
       return;
     }
-    alert("PDF je připravené v paměti. Můžete ho nyní přiložit k e-mailu.");
+    alert("PDF je připravené v paměti: " + lastPdfName + ". Připojte ho ručně k e-mailu.");
   }
 
   function saveAndMail() {
@@ -245,7 +263,7 @@
     const body = `Dobrý den ${customer},
 
 zasíláme vám protokol z návštěvy technika.
-Soubor protokol.pdf je připravený a přiložte jej prosím do e-mailu.
+Soubor ${lastPdfName} je připravený a přiložte jej prosím do e-mailu.
 
 =====================
 WHITE GLOVE SERVICE
