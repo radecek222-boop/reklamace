@@ -5,55 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Protokol - White Glove Service</title>
   <style>
-    body {
-      font-family: Inter, sans-serif;
-      background: #f6f7fb;
-      margin: 0;
-      padding: 20px;
-      font-size: 12px;
-      display: flex;
-      justify-content: center;
-    }
-    .wrapper {
-      width: 100%;
-      max-width: 900px;
-      background: white;
-      padding: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .header { text-align: center; margin-bottom: 20px; }
-    .header div:first-child { font-size: 28px; font-weight: 900; }
-    .header div:last-child { font-size: 12px; margin-top: 4px; font-weight: normal; }
-    .btns { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
-    .btns button {
-      flex: 1 1 calc(50% - 10px);
-      padding: 14px;
-      font-size: 1.05em;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-      color: white;
-    }
-    .btn-clear { background: linear-gradient(45deg, #ff4d4d, #b30000); }
-    .btn-back { background: #e0e0e0; color:#111; border: 2px solid #999; font-size: 1.2em; font-weight: 700; }
-    .btn-pdf { background: linear-gradient(45deg, #1e90ff, #0047ab); }
-    .btn-send { background: linear-gradient(45deg, #8e2de2, #4a00e0); } /* fialový gradient */
-    .btn-test { background: linear-gradient(45deg, #00b09b, #96c93d); }
-
-    #status-message {
-      margin-top: 15px;
-      font-weight: 600;
-    }
-
-    @media (max-width:768px) {
-      .btns button { flex: 1 1 100%; }
-    }
-
-    .force-desktop {
-      width: 794px !important;
-      max-width: 794px !important;
-    }
+    body {font-family: Inter, sans-serif; background:#f6f7fb; margin:0; padding:20px; font-size:12px; display:flex; justify-content:center;}
+    .wrapper {width:100%; max-width:900px; background:white; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+    .header { text-align:center; margin-bottom:20px;}
+    .header div:first-child { font-size:28px; font-weight:900;}
+    .header div:last-child { font-size:12px; margin-top:4px; font-weight:normal;}
+    .btns {margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;}
+    .btns button {flex:1 1 calc(50% - 10px); padding:14px; font-size:1.05em; border:none; border-radius:6px; cursor:pointer; font-weight:600; color:white;}
+    .btn-clear { background: linear-gradient(45deg, #ff4d4d, #b30000);}
+    .btn-back { background: #e0e0e0; color:#111; border:2px solid #999; font-size:1.2em; font-weight:700;}
+    .btn-pdf { background: linear-gradient(45deg, #1e90ff, #0047ab);}
+    .btn-send { background: linear-gradient(45deg, #ff7f50, #ff4500);} /* oranžový gradient */
+    .btn-test { background: linear-gradient(45deg, #00b09b, #96c93d);}
+    #status-message {margin-top:15px; font-weight:600;}
+    @media (max-width:768px){.btns button{flex:1 1 100%;}}
+    .force-desktop {width:794px !important; max-width:794px !important;}
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
@@ -84,6 +50,8 @@
 
   <script>
     let signaturePad;
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx18MqxXx49hVLu0Hqbb7OKNhVD2SBIgot8dH70xMa9rcWguK_zY7iae1SZ3hSoLv6YvQ/exec"; // vlož sem novou URL po deployi
+
     window.addEventListener("DOMContentLoaded", () => {
       const canvas = document.getElementById("signature-pad");
       canvas.width = canvas.offsetWidth;
@@ -91,22 +59,23 @@
       signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
     });
 
-    // Testovací GET ping
+    // ✅ Test ping přes GET
     function testPing() {
-      fetch("https://script.google.com/macros/s/AKfycbx5e3nghYbpZwukzuoYcWoNCm4UGrwgVhER7PKxJNOUCYl31q5fjFwbYp8Lkl9bEOHluw/exec?test=true")
-      .then(res => res.text())
-      .then(txt => {
-        const statusEl = document.getElementById("status-message");
-        statusEl.style.color = "green";
-        statusEl.innerText = "✅ Spojení OK (GET): " + txt;
-      })
-      .catch(err => {
-        const statusEl = document.getElementById("status-message");
-        statusEl.style.color = "red";
-        statusEl.innerText = "❌ Spojení selhalo: " + err;
-      });
+      fetch(SCRIPT_URL + "?test=true")
+        .then(res => res.text())
+        .then(txt => {
+          const statusEl = document.getElementById("status-message");
+          statusEl.style.color = "green";
+          statusEl.innerText = "✅ Spojení OK (GET): " + txt;
+        })
+        .catch(err => {
+          const statusEl = document.getElementById("status-message");
+          statusEl.style.color = "red";
+          statusEl.innerText = "❌ Spojení selhalo: " + err;
+        });
     }
 
+    // ✅ Export PDF lokálně
     function downloadPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF("p", "mm", "a4");
@@ -127,6 +96,7 @@
       });
     }
 
+    // ✅ Odeslání PDF zákazníkovi přes POST
     function sendToServer() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF("p", "mm", "a4");
@@ -142,30 +112,38 @@
           doc.addImage(signData, "PNG", 15, 260, 80, 30);
         }
 
-        const pdfBase64 = encodeURIComponent(doc.output("datauristring").split(",")[1]);
-        const customer = encodeURIComponent(document.getElementById("customer")?.value || "");
-        const order = encodeURIComponent(document.getElementById("order-number")?.value || "");
-        const email = encodeURIComponent(document.getElementById("email")?.value || "");
+        const pdfBase64 = doc.output("datauristring").split(",")[1];
+        const customer = document.getElementById("customer")?.value || "";
+        const order = document.getElementById("order-number")?.value || "";
+        const email = document.getElementById("email")?.value || "";
 
-        const url = `https://script.google.com/macros/s/AKfycbx5e3nghYbpZwukzuoYcWoNCm4UGrwgVhER7PKxJNOUCYl31q5fjFwbYp8Lkl9bEOHluw/exec?to=${email}&subject=Reklamace%20Natuzzi%20-${customer}(${order})&body=Dobrý%20den%20${customer},%20zasíláme%20protokol&filename=Protokol_${order}.pdf&pdf=${pdfBase64}`;
-
-        fetch(url)
-          .then(res => res.text())
-          .then(msg => {
-            const statusEl = document.getElementById("status-message");
-            if (msg.includes("OK")) {
-              statusEl.style.color = "green";
-              statusEl.innerText = "✅ Email byl odeslán a PDF uložen do složky ODESLANÉ PROTOKOLY.";
-            } else {
-              statusEl.style.color = "red";
-              statusEl.innerText = "⚠️ Odpověď serveru: " + msg;
-            }
-          })
-          .catch(err => {
-            const statusEl = document.getElementById("status-message");
+        fetch(SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            to: email,
+            subject: `Reklamace Natuzzi - ${customer} (${order})`,
+            body: `Dobrý den ${customer},\n\nzasíláme vám protokol z návštěvy technika.\n\nWHITE GLOVE SERVICE\nDo Dubče 364, Běchovice 190 11\n+420 725 965 826\nreklamace-wgs@email.cz`,
+            filename: `Protokol_${order}.pdf`,
+            pdf: pdfBase64
+          }),
+          headers: { "Content-Type": "application/json" }
+        })
+        .then(res => res.text())
+        .then(msg => {
+          const statusEl = document.getElementById("status-message");
+          if (msg.includes("OK")) {
+            statusEl.style.color = "green";
+            statusEl.innerText = "✅ Email byl odeslán a PDF uložen do složky ODESLANÉ PROTOKOLY.";
+          } else {
             statusEl.style.color = "red";
-            statusEl.innerText = "❌ Chyba při odesílání: " + err;
-          });
+            statusEl.innerText = "⚠️ Odpověď serveru: " + msg;
+          }
+        })
+        .catch(err => {
+          const statusEl = document.getElementById("status-message");
+          statusEl.style.color = "red";
+          statusEl.innerText = "❌ Chyba při odesílání: " + err;
+        });
 
         wrapper.classList.remove("force-desktop");
       });
