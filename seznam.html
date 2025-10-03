@@ -4,7 +4,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WHITE GLOVE SERVICE – Seznam reklamací</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
     :root { font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:#111 }
     body { margin:0; padding:20px; background:#f6f7fb }
@@ -81,7 +80,6 @@
     tr.done { background:#c8e6c9 !important; color:#1b5e20; font-weight:600; }
     tr.waiting { background:#ffe0b2 !important; color:#e65100; font-weight:600; }
     tr.scheduled { background:#bbdefb !important; color:#0d47a1; font-weight:700; }
-    tr.newcase { background:#fff59d !important; color:#000; font-weight:600; }
 
     @keyframes blink {
       0%   { background-color:#ffcccc; color:#111; }
@@ -110,14 +108,14 @@
   <div id="results" class="table-wrapper">Načítám data...</div>
 
 <script>
-const sheetUrl = "https://docs.google.com/spreadsheets/d/1IlBI3Wqh_7J3JbJcxfD9W1Af3jFGbBkKeGXKs92oySU/pub?gid=0&single=true&output=csv";
+const apiUrl = "https://script.google.com/macros/s/AKfycbwCL5s2dLRygGE3OzOJm50IaSSLGOeCr0fwi70UKBI-73D-WvA0brcrNFXSCaObDVM-SA/exec";
 let allData = [];
 
 const days = ["pondělí","úterý","středa","čtvrtek","pátek","sobota","neděle"];
 const today = new Date();
 const day = today.getDate();
 const month = today.getMonth()+1;
-const todayStr1 = day + "." + month;        
+const todayStr1 = day + "." + month;
 const todayStr2 = (day<10?"0"+day:day) + "." + (month<10?"0"+month:month);
 
 function norm(s){
@@ -130,10 +128,9 @@ function norm(s){
 
 async function loadData() {
   try {
-    const res = await fetch(sheetUrl);
-    const text = await res.text();
-    const parsed = Papa.parse(text, { header:true, skipEmptyLines:true });
-    allData = parsed.data.slice(1); // vynecháme pracovní řádek
+    const res = await fetch(apiUrl);
+    const data = await res.json();
+    allData = data;
     renderTable(allData);
   } catch (err) {
     document.getElementById("results").innerHTML = "Chyba při načítání dat: " + err;
@@ -152,7 +149,6 @@ function renderTable(rows){
     let rowClass = "";
     if (status.includes("hotovo")) rowClass = "done";
     else if (status.includes("čeká")) rowClass = "waiting";
-    else if (status.includes("nová")) rowClass = "newcase";
     else if (days.some(d => status.includes(d)) || /\d/.test(status)) rowClass = "scheduled";
 
     if (Object.values(row).some(v => {
