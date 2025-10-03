@@ -71,6 +71,11 @@
     .btn-pdf { background: linear-gradient(45deg, #1e90ff, #0047ab); }
     .btn-send { background: linear-gradient(45deg, #8e2de2, #4a00e0); }
 
+    #status-message {
+      margin-top: 15px;
+      font-weight: 600;
+    }
+
     @media (max-width:768px) {
       .wrapper { padding: 10px; }
       .two-col-table { flex-direction: column; }
@@ -97,7 +102,7 @@
       <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
     </div>
 
-    <!-- FORMULÁŘ ... (nechávám tvůj původní obsah) -->
+    <!-- Tvůj formulář zde (ponechal jsem obsah, který už používáš) -->
 
     <div class="section-title">Podpis zákazníka</div>
     <canvas id="signature-pad"></canvas>
@@ -109,6 +114,9 @@
       <button class="btn-pdf" type="button" onclick="downloadPDF()">📄 Exportovat do PDF</button>
       <button class="btn-send" type="button" onclick="sendToServer()">📨 Odeslat zákazníkovi</button>
     </div>
+
+    <!-- Zpětná vazba -->
+    <div id="status-message"></div>
   </div>
 
   <script>
@@ -120,8 +128,10 @@
       signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
 
       const today = new Date().toISOString().split("T")[0];
-      document.getElementById("visit-date").value = today;
-      document.getElementById("sign-date").value = today;
+      const visitDate = document.getElementById("visit-date");
+      const signDate = document.getElementById("sign-date");
+      if (visitDate) visitDate.value = today;
+      if (signDate) signDate.value = today;
     });
 
     function downloadPDF() {
@@ -188,9 +198,9 @@
         }
 
         const pdfBase64 = doc.output("datauristring").split(",")[1];
-        const customer = document.getElementById("customer").value || "";
-        const order = document.getElementById("order-number").value || "";
-        const email = document.getElementById("email").value || "";
+        const customer = document.getElementById("customer")?.value || "";
+        const order = document.getElementById("order-number")?.value || "";
+        const email = document.getElementById("email")?.value || "";
 
         fetch("https://script.google.com/macros/s/AKfycbxF6QAJuAg7CSkeA5b4vUGa03PDNenidThLMYSNLl9yFvS0RgvaxYul10MURbosuLOvTA/exec", {
           method: "POST",
@@ -204,8 +214,16 @@
           headers: { "Content-Type": "application/json" }
         })
         .then(res => res.text())
-        .then(msg => alert("✅ Email odeslán a PDF uložen do složky ODESLANÉ PROTOKOLY"))
-        .catch(err => alert("❌ Chyba: " + err));
+        .then(msg => {
+          const statusEl = document.getElementById("status-message");
+          statusEl.style.color = "green";
+          statusEl.innerText = "✅ Email byl úspěšně odeslán a PDF uložen do složky ODESLANÉ PROTOKOLY.";
+        })
+        .catch(err => {
+          const statusEl = document.getElementById("status-message");
+          statusEl.style.color = "red";
+          statusEl.innerText = "❌ Chyba při odesílání: " + err;
+        });
 
         wrapper.classList.remove("force-desktop");
       });
