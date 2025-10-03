@@ -58,6 +58,8 @@
       border:1px solid #ccc;
       border-radius:4px;
       box-sizing:border-box;
+      color:#111;
+      background:#fff;
     }
     input, select { height:36px; line-height:36px; background-color:white; }
     textarea { min-height:60px; resize:vertical; }
@@ -71,6 +73,7 @@
       width:100%;
       height:150px;
       background:white;
+      touch-action: none;
     }
     .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
 
@@ -130,7 +133,71 @@
     <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
   </div>
 
-  <!-- ... celý formulář se všemi poli zůstává stejný (objednávka, reklamace, zákazník, adresa, telefony, emaily, technik, datumy, popisy, ceny, volby ANO/NE) ... -->
+  <div class="two-col-table">
+    <div class="col">
+      <table>
+        <tr><td class="label">Číslo objednávky<span class="en-label">Order number</span></td><td><input id="order-number"></td></tr>
+        <tr><td class="label">Číslo reklamace<span class="en-label">Claim number</span></td><td><input id="claim-number"></td></tr>
+        <tr><td class="label">Zákazník<span class="en-label">Customer</span></td><td><input id="customer"></td></tr>
+        <tr><td class="label">Adresa zákazníka<span class="en-label">Customer address</span></td><td><input id="address"></td></tr>
+        <tr><td class="label">Telefon<span class="en-label">Phone</span></td><td><input id="phone"></td></tr>
+        <tr><td class="label">Email<span class="en-label">Email</span></td><td><input id="email"></td></tr>
+      </table>
+    </div>
+    <div class="col">
+      <table>
+        <tr><td class="label">Technik<span class="en-label">Technician</span></td><td>
+          <select id="technician">
+            <option>Milan Kolín</option>
+            <option>Radek Zikmund</option>
+            <option>Kolín/Zikmund</option>
+          </select>
+        </td></tr>
+        <tr><td class="label">Datum návštěvy<span class="en-label">Visit date</span></td><td><input id="visit-date" type="date"></td></tr>
+        <tr><td class="label">Datum doručení<span class="en-label">Delivery date</span></td><td><input id="delivery-date" type="date"></td></tr>
+        <tr><td class="label">Datum podání reklamace<span class="en-label">Complaint date</span></td><td><input id="claim-date" type="date"></td></tr>
+        <tr><td class="label">Značka / Contract<span class="en-label">Brand / Contract</span></td><td><input id="brand"></td></tr>
+        <tr><td class="label">Model<span class="en-label">Model</span></td><td><input id="model"></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="section-title">Zákazník reklamuje<span class="en-label">Customer complaint</span></div>
+  <div class="split-section">
+    <textarea id="description-cz" placeholder="CZ" oninput="autoTranslate('description-cz','description-en')"></textarea>
+    <textarea id="description-en" placeholder="EN"></textarea>
+  </div>
+  <div class="section-title">Problém zjištěný technikem<span class="en-label">Detected problem</span></div>
+  <div class="split-section">
+    <textarea id="problem-cz" placeholder="CZ" oninput="autoTranslate('problem-cz','problem-en')"></textarea>
+    <textarea id="problem-en" placeholder="EN"></textarea>
+  </div>
+  <div class="section-title">Návrh opravy<span class="en-label">Repair proposal</span></div>
+  <div class="split-section">
+    <textarea id="repair-cz" placeholder="CZ" oninput="autoTranslate('repair-cz','repair-en')"></textarea>
+    <textarea id="repair-en" placeholder="EN"></textarea>
+  </div>
+  <div class="two-col-table">
+    <div class="col">
+      <table>
+        <tr><td class="label">Počet opravovaných dílů<span class="en-label">Number of repaired parts</span></td><td><input id="parts"></td></tr>
+        <tr><td class="label">Cena za práci<span class="en-label">Work cost</span></td><td><input id="price-work"></td></tr>
+        <tr><td class="label">Cena za materiál<span class="en-label">Material cost</span></td><td><input id="price-material"></td></tr>
+        <tr><td class="label">Cena za druhého technika<span class="en-label">Second technician cost</span></td><td><input id="price-second"></td></tr>
+        <tr><td class="label">Cena za dopravu<span class="en-label">Transport cost</span></td><td><input id="price-transport"></td></tr>
+        <tr><td class="label">Cena celkem<span class="en-label">Total cost</span></td><td><input id="price-total"></td></tr>
+      </table>
+    </div>
+    <div class="col">
+      <table>
+        <tr><td class="label">Reklamace vyřešena?<span class="en-label">Complaint solved?</span></td><td><select id="solved"><option>ANO</option><option>NE</option></select></td></tr>
+        <tr><td class="label">Čeká se na vyjádření prodejce?<span class="en-label">Waiting for dealer statement?</span></td><td><select id="dealer"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Poškození technikem?<span class="en-label">Damage by technician?</span></td><td><select id="damage"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Úhradu provede zákazník?<span class="en-label">Customer will pay?</span></td><td><select id="payment"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Datum podpisu<span class="en-label">Signature date</span></td><td><input id="sign-date" type="date"></td></tr>
+      </table>
+    </div>
+  </div>
 
   <div class="section-title">Podpis zákazníka<span class="en-label">Customer signature</span></div>
   <canvas id="signature-pad"></canvas>
@@ -153,8 +220,13 @@
 
   window.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("signature-pad");
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
+    function resizeCanvas() {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas, { passive: true });
+
     signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
 
     const today = new Date().toISOString().split("T")[0];
@@ -163,23 +235,19 @@
   });
 
   function stripDiacritics(str) {
-    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g,"");
+    return (str || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "_")
+      .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-");
   }
 
-  // správné pojmenování souboru
   function buildPdfFileName() {
     const today = new Date().toISOString().split("T")[0];
-    const customer = stripDiacritics(document.getElementById("customer").value || "");
-    const claim = document.getElementById("claim-number").value || "";
-    const order = document.getElementById("order-number").value || "";
-
-    let parts = [];
-    if (customer) parts.push(customer);
-    if (claim) parts.push(claim);
-    if (order) parts.push(order);
-    parts.push(today);
-
-    return parts.join("_") + ".pdf";
+    const customer = stripDiacritics(document.getElementById("customer").value || "neznamy_zakaznik");
+    const claim = stripDiacritics(document.getElementById("claim-number").value || "bez_claimu");
+    const order = stripDiacritics(document.getElementById("order-number").value || "bez_objednavky");
+    return `${customer}_${claim}_${order}_${today}.pdf`;
   }
 
   function generatePdf(callback) {
@@ -243,10 +311,10 @@ Do Dubče 364, Běchovice 190 11
 +420 725 965 826
 reklamace-wgs@email.cz`;
 
-    window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
-  // napojení na seznam
+  // propojení se seznamem
   window.addEventListener("message", (event) => {
     if (event.data.type === "openProtocol") {
       const d = event.data.row;
@@ -256,7 +324,7 @@ reklamace-wgs@email.cz`;
       document.getElementById("customer").value = d["Customer"] || "";
       document.getElementById("address").value = d["Address"] || "";
       document.getElementById("phone").value = d["KONTAKT"] || "";
-      document.getElementById("email").value = d["EMAIL"] || "";
+      document.getElementById("email").value = d["Email"] || "";   // ✅ opraveno
       document.getElementById("brand").value = d["Contract"] || d["Label"] || "";
       document.getElementById("model").value = d["Model"] || "";
       document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
