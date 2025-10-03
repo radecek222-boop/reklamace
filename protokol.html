@@ -211,6 +211,7 @@
     });
   }
 
+  // propsání dat ze seznam.html
   window.addEventListener("message", (event) => {
     if (event.data.type === "openProtocol") {
       const d = event.data.row;
@@ -219,8 +220,8 @@
       document.getElementById("claim-number").value = d["Label"] || "";
       document.getElementById("customer").value = d["Customer"] || "";
       document.getElementById("address").value = d["Address"] || "";
-      document.getElementById("phone").value = d["KONTAKT"] || "";
-      document.getElementById("email").value = d["EMAIL"] || "";
+      document.getElementById("phone").value = d["KONTAKT"] || "";   // 📞 telefon
+      document.getElementById("email").value = d["EMAIL"] || "";     // 📧 email
       document.getElementById("brand").value = d["Contract"] || "";
       document.getElementById("model").value = d["Model"] || "";
       document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
