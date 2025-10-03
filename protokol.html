@@ -53,10 +53,15 @@
     }
     .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
 
-    .btns { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
+    /* sjednocená tlačítka */
+    .btns {
+      margin-top:20px;
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap:12px;
+    }
     .btns button {
-      flex:1 1 calc(50% - 10px);
-      padding:14px;
+      height:55px;
       font-size:1.05em;
       border:none;
       border-radius:12px;
@@ -69,6 +74,7 @@
       justify-content:center;
       gap:8px;
       transition:transform 0.1s ease-in-out;
+      width:100%;
     }
     .btns button:hover { transform:scale(1.03); }
 
@@ -83,7 +89,7 @@
       .wrapper{padding:10px;}
       .two-col-table{flex-direction:column;}
       .split-section{flex-direction:column;}
-      .btns button { flex:1 1 100%; }
+      .btns { grid-template-columns: 1fr; }
     }
 
     .force-desktop {
