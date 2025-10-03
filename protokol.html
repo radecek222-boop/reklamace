@@ -67,7 +67,7 @@
       <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
     </div>
 
-    <!-- formulář zkrácený, nechávám tvůj původní -->
+    <!-- zkráceně, formulář nechávám podle tvého -->
 
     <div class="section-title">Podpis zákazníka</div>
     <canvas id="signature-pad"></canvas>
@@ -93,8 +93,9 @@
       signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
     });
 
+    // Test spojení s novou URL
     function testPing() {
-      fetch("https://script.google.com/macros/s/AKfycbxF6QAJuAg7CSkeA5b4vUGa03PDNenidThLMYSNLl9yFvS0RgvaxYul10MURbosuLOvTA/exec", {
+      fetch("https://script.google.com/macros/s/AKfycbzXwalMrVtm51Ruzr4nTZwVUirqNkM30nD8EVaWSGCQxC4r-cN4-_5PTspj6Vs0o-OmLQ/exec", {
         method: "POST",
         body: JSON.stringify({ test: true }),
         headers: { "Content-Type": "application/json" }
@@ -112,6 +113,7 @@
       });
     }
 
+    // Export PDF
     function downloadPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF("p", "mm", "a4");
@@ -132,6 +134,7 @@
       });
     }
 
+    // Odeslat PDF zákazníkovi
     function sendToServer() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF("p", "mm", "a4");
@@ -152,7 +155,7 @@
         const order = document.getElementById("order-number")?.value || "";
         const email = document.getElementById("email")?.value || "";
 
-        fetch("https://script.google.com/macros/s/AKfycbxF6QAJuAg7CSkeA5b4vUGa03PDNenidThLMYSNLl9yFvS0RgvaxYul10MURbosuLOvTA/exec", {
+        fetch("https://script.google.com/macros/s/AKfycbzXwalMrVtm51Ruzr4nTZwVUirqNkM30nD8EVaWSGCQxC4r-cN4-_5PTspj6Vs0o-OmLQ/exec", {
           method: "POST",
           body: JSON.stringify({
             to: email,
