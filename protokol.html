@@ -38,8 +38,6 @@
     input, select {
       height:36px;
       line-height:36px;
-      -webkit-appearance:none;
-      appearance:none;
       background-color:white;
     }
     textarea { min-height:60px; resize:vertical; }
@@ -54,6 +52,7 @@
       background:white;
     }
     .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
+
     .btns { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
     .btns button {
       flex:1 1 calc(50% - 10px);
@@ -62,14 +61,14 @@
       border:none;
       border-radius:6px;
       cursor:pointer;
-      font-weight:600;
-      color:white;
+      font-weight:700;
     }
-    /* Barvy tlačítek */
-    .btn-clear { background: linear-gradient(45deg, #ff4d4d, #b30000); }
-    .btn-back { background: #e0e0e0; color:#111; border:2px solid #999; font-size:1.2em; font-weight:700; }
-    .btn-pdf { background: linear-gradient(45deg, #8e2de2, #4a00e0); }  /* fialový gradient */
-    .btn-email { background: linear-gradient(45deg, #9e9e9e, #424242); } /* šedý gradient */
+    /* Barevné varianty tlačítek */
+    .btn-clear { background:#ff4d4d; color:#000; }
+    .btn-back { background:#e0e0e0; color:#000; }
+    .btn-pdf { background:#1e90ff; color:#fff; }
+    .btn-copy { background:#87cefa; color:#000; }
+    .btn-email { background:#28a745; color:#fff; }
 
     @media (max-width:768px){
       .wrapper{padding:10px;}
@@ -163,10 +162,11 @@
   <div class="signature-label">Podepište se prstem nebo myší</div>
 
   <div class="btns">
-    <button class="btn-clear" type="button" onclick="signaturePad.clear()">🗑️ Vymazat podpis</button>
-    <button class="btn-back" type="button" onclick="window.location.href='index.html'">⬅️ ZPĚT</button>
-    <button class="btn-pdf" type="button" onclick="downloadPDF()">📄 Exportovat do PDF</button>
-    <button class="btn-email" type="button" onclick="saveAndMail()">📨 Otevřít email</button>
+    <button class="btn-clear" type="button" onclick="signaturePad.clear()">Vymazat podpis</button>
+    <button class="btn-back" type="button" onclick="window.location.href='index.html'">⬅ Černobílá šipka ZPĚT</button>
+    <button class="btn-pdf" type="button" onclick="downloadPDF()">Exportovat do PDF</button>
+    <button class="btn-copy" type="button" onclick="copyPdf()">Kopírovat PDF</button>
+    <button class="btn-email" type="button" onclick="saveAndMail()">Otevřít email</button>
   </div>
 </div>
 
@@ -185,7 +185,6 @@
     document.getElementById("sign-date").value = today;
   });
 
-  // vytvoření PDF a uložení do blobu + souboru
   function generatePdf(callback) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF("p", "mm", "a4");
@@ -201,8 +200,7 @@
       const imgH = imgProps.height;
       let drawW = pageW;
       let drawH = (imgH * drawW) / imgW;
-      let x = 0;
-      let y = 0;
+      let x = 0, y = 0;
       if (drawH > pageH) {
         const scale = pageH / drawH;
         drawW = drawW * scale;
@@ -214,7 +212,7 @@
         const signData = signaturePad.toDataURL("image/png");
         doc.addImage(signData, "PNG", 15, pageH - 45, 80, 30);
       }
-      lastPdfBlob = doc.output("blob");
+      lastPdfBlob = doc.output("blob"); // uložíme do paměti
       doc.save("protokol.pdf");
       wrapper.classList.remove("force-desktop");
       if (callback) callback();
@@ -225,29 +223,40 @@
     generatePdf();
   }
 
+  function copyPdf() {
+    if (!lastPdfBlob) {
+      alert("Nejdřív klikněte na 'Exportovat do PDF'.");
+      return;
+    }
+    alert("PDF je připravené v paměti. Můžete ho nyní přiložit k e-mailu.");
+  }
+
   function saveAndMail() {
     generatePdf(() => {
-      // po vytvoření PDF otevřít mail
       openMailClient();
     });
   }
 
-  window.addEventListener("message", (event) => {
-    if (event.data.type === "openProtocol") {
-      const d = event.data.row;
-      if (!d) return;
-      document.getElementById("order-number").value = d["Order number"] || "";
-      document.getElementById("claim-number").value = d["Label"] || "";
-      document.getElementById("customer").value = d["Customer"] || "";
-      document.getElementById("address").value = d["Address"] || "";
-      document.getElementById("phone").value = d["KONTAKT"] || "";
-      document.getElementById("email").value = d["EMAIL"] || "";
-      document.getElementById("brand").value = d["Contract"] || "";
-      document.getElementById("model").value = d["Model"] || "";
-      document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
-      autoTranslate("description-cz", "description-en");
-    }
-  });
+  function openMailClient() {
+    const customer = document.getElementById("customer").value || "";
+    const order = document.getElementById("order-number").value || "";
+    const email = document.getElementById("email").value || "";
+    const subject = `Reklamace Natuzzi - ${customer} (${order})`;
+    const body = `Dobrý den ${customer},
+
+zasíláme vám protokol z návštěvy technika.
+Soubor protokol.pdf je připravený a přiložte jej prosím do e-mailu.
+
+=====================
+WHITE GLOVE SERVICE
+=====================
+Do Dubče 364, Běchovice 190 11
++420 725 965 826
+reklamace-wgs@email.cz`;
+
+    const mailtoLink = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoLink;
+  }
 
   function autoTranslate(srcId, tgtId) {
     const sourceText = document.getElementById(srcId).value;
@@ -260,27 +269,6 @@
           targetEl.value = data[0].map(pair => pair[0]).join("");
         }
       });
-  }
-
-  function openMailClient() {
-    const customer = document.getElementById("customer").value || "";
-    const order = document.getElementById("order-number").value || "";
-    const email = document.getElementById("email").value || "";
-    const subject = `Reklamace Natuzzi - ${customer} (${order})`;
-    const body = `Dobrý den ${customer},
-
-zasíláme vám protokol z návštěvy technika.
-Soubor protokol.pdf najdete ve Stažených a připojte jej prosím jako přílohu.
-
-=====================
-WHITE GLOVE SERVICE
-=====================
-Do Dubče 364, Běchovice 190 11
-+420 725 965 826
-reklamace-wgs@email.cz`;
-
-    const mailtoLink = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailtoLink;
   }
 </script>
 </body>
