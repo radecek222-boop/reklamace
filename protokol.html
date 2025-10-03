@@ -168,27 +168,46 @@ function buildPdfFileName(){
   return `${customer}_${claim}_${order}_${today}.pdf`;
 }
 
+// ✅ Opravená funkce pro ostrý PDF export
 function generatePdf(callback){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF("p","mm","a4");
   const wrapper = document.querySelector(".wrapper");
   wrapper.classList.add("force-desktop");
 
-  html2canvas(wrapper,{ scale:0.9, scrollX:0, scrollY:0, windowWidth:794, windowHeight:wrapper.scrollHeight })
-    .then(canvas => {
-      const imgData = canvas.toDataURL("image/jpeg",0.6); // JPEG komprese 60%
+  html2canvas(wrapper,{ 
+      scale:2, 
+      scrollX:0, 
+      scrollY:0, 
+      windowWidth:794, 
+      windowHeight:wrapper.scrollHeight 
+  }).then(canvas => {
+      const imgData = canvas.toDataURL("image/jpeg",0.95);
       const pageW = doc.internal.pageSize.getWidth();
       const pageH = doc.internal.pageSize.getHeight();
       const imgProps = doc.getImageProperties(imgData);
-      let drawW = pageW, drawH = (imgProps.height * drawW)/imgProps.width, x=0, y=0;
-      if(drawH > pageH-20){ const scale=(pageH-20)/drawH; drawW*=scale; drawH*=scale; x=(pageW-drawW)/2; }
-      doc.addImage(imgData,"JPEG",x,y,drawW,drawH);
-      if(signaturePad && !signaturePad.isEmpty()){ doc.addImage(signaturePad.toDataURL("image/png"),"PNG",15,pageH-45,80,30); }
+
+      const ratio = imgProps.width / imgProps.height;
+      let pdfWidth = pageW;
+      let pdfHeight = pdfWidth / ratio;
+
+      let position = 0;
+      while (position < pdfHeight) {
+        doc.addImage(imgData,"JPEG",0,-position,pdfWidth,pdfHeight);
+        position += pageH;
+        if (position < pdfHeight) doc.addPage();
+      }
+
+      if(signaturePad && !signaturePad.isEmpty()){
+        doc.addImage(signaturePad.toDataURL("image/png"),"PNG",15,pageH-45,80,30);
+      }
+
       lastPdfName = buildPdfFileName();
       doc.save(lastPdfName);
+
       wrapper.classList.remove("force-desktop");
       if(callback) callback();
-    });
+  });
 }
 
 function downloadPDF(){ generatePdf(); }
