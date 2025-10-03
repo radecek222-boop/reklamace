@@ -150,6 +150,7 @@
     <button type="button" onclick="signaturePad.clear()">🗑️ Vymazat podpis</button>
     <button type="button" onclick="window.location.href='index.html'">⬅️ Zpět</button>
     <button type="button" onclick="downloadPDF()">📄 Exportovat do PDF</button>
+    <button type="button" onclick="copyEmail()">📧 Kopírovat email</button>
   </div>
 </div>
 
@@ -169,33 +170,27 @@
   function downloadPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF("p", "mm", "a4");
-
     const wrapper = document.querySelector(".wrapper");
     wrapper.classList.add("force-desktop");
 
     html2canvas(wrapper, { scale: 2 }).then(canvas => {
       const imgData = canvas.toDataURL("image/png");
-
       const pageW = doc.internal.pageSize.getWidth();
       const pageH = doc.internal.pageSize.getHeight();
       const imgProps = doc.getImageProperties(imgData);
       const imgW = imgProps.width;
       const imgH = imgProps.height;
-
       let drawW = pageW;
       let drawH = (imgH * drawW) / imgW;
       let x = 0;
       let y = 0;
-
       if (drawH > pageH) {
         const scale = pageH / drawH;
         drawW = drawW * scale;
         drawH = pageH;
         x = (pageW - drawW) / 2;
       }
-
       doc.addImage(imgData, "PNG", x, y, drawW, drawH);
-
       if (signaturePad && !signaturePad.isEmpty()) {
         const signData = signaturePad.toDataURL("image/png");
         const signW = 80;
@@ -205,7 +200,6 @@
         const signY = y + drawH - pad - signH;
         doc.addImage(signData, "PNG", signX, signY, signW, signH);
       }
-
       doc.save("protokol.pdf");
       wrapper.classList.remove("force-desktop");
     });
@@ -220,8 +214,8 @@
       document.getElementById("claim-number").value = d["Label"] || "";
       document.getElementById("customer").value = d["Customer"] || "";
       document.getElementById("address").value = d["Address"] || "";
-      document.getElementById("phone").value = d["KONTAKT"] || "";   // 📞 telefon
-      document.getElementById("email").value = d["EMAIL"] || "";     // 📧 email
+      document.getElementById("phone").value = d["KONTAKT"] || "";
+      document.getElementById("email").value = d["EMAIL"] || "";
       document.getElementById("brand").value = d["Contract"] || "";
       document.getElementById("model").value = d["Model"] || "";
       document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
@@ -240,6 +234,31 @@
           targetEl.value = data[0].map(pair => pair[0]).join("");
         }
       });
+  }
+
+  // funkce pro kopírování emailu do schránky
+  function copyEmail() {
+    const customer = document.getElementById("customer").value || "";
+    const order = document.getElementById("order-number").value || "";
+    const email = document.getElementById("email").value || "";
+    const subject = `Reklamace Natuzzi - ${customer} (${order})`;
+    const body = `Dobrý den ${customer},
+
+zasíláme vám protokol z návštěvy technika.
+
+White Glove Service
+Do Dubče 364, Běchovice 190 11
++420 725 965 826
+reklamace-wgs@email.cz`;
+    const fullEmail = `Komu: ${email}
+Předmět: ${subject}
+
+${body}`;
+    navigator.clipboard.writeText(fullEmail).then(() => {
+      alert("📧 Text emailu byl zkopírován do schránky");
+    }).catch(err => {
+      alert("❌ Nepodařilo se zkopírovat: " + err);
+    });
   }
 </script>
 </body>
