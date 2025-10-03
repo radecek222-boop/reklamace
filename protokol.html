@@ -27,6 +27,13 @@
     table { width:100%; border-collapse:collapse; margin:10px 0; }
     td { padding:6px; vertical-align:top; }
     .label { font-weight:600; width:40%; }
+    .en-label {
+      display:block;
+      font-size:0.85em;
+      color:#666;
+      margin-top:2px;
+      font-weight:normal;
+    }
     input, select, textarea {
       width:100%;
       padding:4px 8px;
@@ -45,6 +52,8 @@
     .two-col-table { display:flex; gap:30px; flex-wrap:wrap; }
     .two-col-table .col { flex:1; min-width:300px; }
     .section-title { font-weight:700; margin-top:20px; }
+    .section-title .en-label { margin-left:4px; }
+
     #signature-pad {
       border:2px dashed #888;
       width:100%;
@@ -53,7 +62,7 @@
     }
     .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
 
-    /* sjednocená tlačítka */
+    /* tlačítka */
     .btns {
       margin-top:20px;
       display:grid;
@@ -78,7 +87,6 @@
     }
     .btns button:hover { transform:scale(1.03); }
 
-    /* Gradient tlačítka */
     .btn-clear { background: linear-gradient(45deg, #ff4d4d, #b30000); }
     .btn-back { background: linear-gradient(45deg, #d3d3d3, #808080); color:#000; }
     .btn-back svg { width:28px; height:28px; fill:#000; }
@@ -114,37 +122,37 @@
   <div class="two-col-table">
     <div class="col">
       <table>
-        <tr><td class="label">Číslo objednávky</td><td><input id="order-number"></td></tr>
-        <tr><td class="label">Číslo reklamace</td><td><input id="claim-number"></td></tr>
-        <tr><td class="label">Zákazník</td><td><input id="customer"></td></tr>
-        <tr><td class="label">Adresa zákazníka</td><td><input id="address"></td></tr>
-        <tr><td class="label">Telefon</td><td><input id="phone"></td></tr>
-        <tr><td class="label">Email</td><td><input id="email"></td></tr>
+        <tr><td class="label">Číslo objednávky<span class="en-label">Order number</span></td><td><input id="order-number"></td></tr>
+        <tr><td class="label">Číslo reklamace<span class="en-label">Claim number</span></td><td><input id="claim-number"></td></tr>
+        <tr><td class="label">Zákazník<span class="en-label">Customer</span></td><td><input id="customer"></td></tr>
+        <tr><td class="label">Adresa zákazníka<span class="en-label">Customer address</span></td><td><input id="address"></td></tr>
+        <tr><td class="label">Telefon<span class="en-label">Phone</span></td><td><input id="phone"></td></tr>
+        <tr><td class="label">Email<span class="en-label">Email</span></td><td><input id="email"></td></tr>
       </table>
     </div>
     <div class="col">
       <table>
-        <tr><td class="label">Technik</td><td><select id="technician"><option>Milan Kolín</option><option>Radek Zikmund</option><option>Kolín/Zikmund</option></select></td></tr>
-        <tr><td class="label">Datum návštěvy</td><td><input id="visit-date" type="date"></td></tr>
-        <tr><td class="label">Datum doručení</td><td><input id="delivery-date" type="date"></td></tr>
-        <tr><td class="label">Datum podání reklamace</td><td><input id="claim-date" type="date"></td></tr>
-        <tr><td class="label">Značka / Contract</td><td><input id="brand"></td></tr>
-        <tr><td class="label">Model</td><td><input id="model"></td></tr>
+        <tr><td class="label">Technik<span class="en-label">Technician</span></td><td><select id="technician"><option>Milan Kolín</option><option>Radek Zikmund</option><option>Kolín/Zikmund</option></select></td></tr>
+        <tr><td class="label">Datum návštěvy<span class="en-label">Visit date</span></td><td><input id="visit-date" type="date"></td></tr>
+        <tr><td class="label">Datum doručení<span class="en-label">Delivery date</span></td><td><input id="delivery-date" type="date"></td></tr>
+        <tr><td class="label">Datum podání reklamace<span class="en-label">Complaint date</span></td><td><input id="claim-date" type="date"></td></tr>
+        <tr><td class="label">Značka / Contract<span class="en-label">Brand / Contract</span></td><td><input id="brand"></td></tr>
+        <tr><td class="label">Model<span class="en-label">Model</span></td><td><input id="model"></td></tr>
       </table>
     </div>
   </div>
 
-  <div class="section-title">Zákazník reklamuje / Customer complaint</div>
+  <div class="section-title">Zákazník reklamuje<span class="en-label">Customer complaint</span></div>
   <div class="split-section">
     <textarea id="description-cz" placeholder="CZ" oninput="autoTranslate('description-cz','description-en')"></textarea>
     <textarea id="description-en" placeholder="EN"></textarea>
   </div>
-  <div class="section-title">Problém zjištěný technikem / Detected problem</div>
+  <div class="section-title">Problém zjištěný technikem<span class="en-label">Detected problem</span></div>
   <div class="split-section">
     <textarea id="problem-cz" placeholder="CZ" oninput="autoTranslate('problem-cz','problem-en')"></textarea>
     <textarea id="problem-en" placeholder="EN"></textarea>
   </div>
-  <div class="section-title">Návrh opravy / Repair proposal</div>
+  <div class="section-title">Návrh opravy<span class="en-label">Repair proposal</span></div>
   <div class="split-section">
     <textarea id="repair-cz" placeholder="CZ" oninput="autoTranslate('repair-cz','repair-en')"></textarea>
     <textarea id="repair-en" placeholder="EN"></textarea>
@@ -153,26 +161,26 @@
   <div class="two-col-table">
     <div class="col">
       <table>
-        <tr><td class="label">Počet opravovaných dílů</td><td><input id="parts"></td></tr>
-        <tr><td class="label">Cena za práci</td><td><input id="price-work"></td></tr>
-        <tr><td class="label">Cena za materiál</td><td><input id="price-material"></td></tr>
-        <tr><td class="label">Cena za druhého technika</td><td><input id="price-second"></td></tr>
-        <tr><td class="label">Cena za dopravu</td><td><input id="price-transport"></td></tr>
-        <tr><td class="label">Cena celkem</td><td><input id="price-total"></td></tr>
+        <tr><td class="label">Počet opravovaných dílů<span class="en-label">Number of repaired parts</span></td><td><input id="parts"></td></tr>
+        <tr><td class="label">Cena za práci<span class="en-label">Work cost</span></td><td><input id="price-work"></td></tr>
+        <tr><td class="label">Cena za materiál<span class="en-label">Material cost</span></td><td><input id="price-material"></td></tr>
+        <tr><td class="label">Cena za druhého technika<span class="en-label">Second technician cost</span></td><td><input id="price-second"></td></tr>
+        <tr><td class="label">Cena za dopravu<span class="en-label">Transport cost</span></td><td><input id="price-transport"></td></tr>
+        <tr><td class="label">Cena celkem<span class="en-label">Total cost</span></td><td><input id="price-total"></td></tr>
       </table>
     </div>
     <div class="col">
       <table>
-        <tr><td class="label">Reklamace vyřešena?</td><td><select id="solved"><option>ANO</option><option>NE</option></select></td></tr>
-        <tr><td class="label">Čeká se na vyjádření prodejce?</td><td><select id="dealer"><option>NE</option><option>ANO</option></select></td></tr>
-        <tr><td class="label">Poškození technikem?</td><td><select id="damage"><option>NE</option><option>ANO</option></select></td></tr>
-        <tr><td class="label">Úhradu provede zákazník?</td><td><select id="payment"><option>NE</option><option>ANO</option></select></td></tr>
-        <tr><td class="label">Datum podpisu</td><td><input id="sign-date" type="date"></td></tr>
+        <tr><td class="label">Reklamace vyřešena?<span class="en-label">Complaint solved?</span></td><td><select id="solved"><option>ANO</option><option>NE</option></select></td></tr>
+        <tr><td class="label">Čeká se na vyjádření prodejce?<span class="en-label">Waiting for dealer statement?</span></td><td><select id="dealer"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Poškození technikem?<span class="en-label">Damage by technician?</span></td><td><select id="damage"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Úhradu provede zákazník?<span class="en-label">Customer will pay?</span></td><td><select id="payment"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Datum podpisu<span class="en-label">Signature date</span></td><td><input id="sign-date" type="date"></td></tr>
       </table>
     </div>
   </div>
 
-  <div class="section-title">Podpis zákazníka</div>
+  <div class="section-title">Podpis zákazníka<span class="en-label">Customer signature</span></div>
   <canvas id="signature-pad"></canvas>
   <div class="signature-label">Podepište se prstem nebo myší</div>
 
@@ -286,7 +294,6 @@ reklamace-wgs@email.cz`;
     window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
-  // propsání dat ze seznamu
   window.addEventListener("message", (event) => {
     if (event.data.type === "openProtocol") {
       const d = event.data.row;
