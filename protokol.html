@@ -62,13 +62,15 @@
       border-radius:6px;
       cursor:pointer;
       font-weight:700;
+      color:white;
     }
-    /* Barvy tlačítek */
-    .btn-clear { background:#ff4d4d; color:#000; }
-    .btn-back { background:#e0e0e0; color:#000; }
-    .btn-pdf { background:#1e90ff; color:#fff; }
-    .btn-copy { background:#87cefa; color:#000; }
-    .btn-email { background:#28a745; color:#fff; }
+    /* Gradient tlačítka */
+    .btn-clear { background: linear-gradient(45deg, #ff4d4d, #b30000); color:#fff; }
+    .btn-back { background: linear-gradient(45deg, #d3d3d3, #808080); color:#000; display:flex; align-items:center; justify-content:center; gap:8px; }
+    .btn-back svg { width:28px; height:28px; fill:#000; }
+    .btn-pdf { background: linear-gradient(45deg, #1e90ff, #0047ab); }
+    .btn-copy { background: linear-gradient(45deg, #87cefa, #4682b4); color:#000; }
+    .btn-email { background: linear-gradient(45deg, #28a745, #006400); }
 
     @media (max-width:768px){
       .wrapper{padding:10px;}
@@ -163,7 +165,10 @@
 
   <div class="btns">
     <button class="btn-clear" type="button" onclick="signaturePad.clear()">Vymazat podpis</button>
-    <button class="btn-back" type="button" onclick="window.location.href='index.html'">⬅ ZPĚT</button>
+    <button class="btn-back" type="button" onclick="window.location.href='index.html'">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+      ZPĚT
+    </button>
     <button class="btn-pdf" type="button" onclick="downloadPDF()">Exportovat do PDF</button>
     <button class="btn-copy" type="button" onclick="copyPdf()">Kopírovat PDF</button>
     <button class="btn-email" type="button" onclick="saveAndMail()">Otevřít email</button>
@@ -237,33 +242,27 @@
     });
   }
 
-  function downloadPDF() {
-    generatePdf();
-  }
-
+  function downloadPDF() { generatePdf(); }
   function copyPdf() {
-    if (!lastPdfBlob) {
-      alert("Nejdřív klikněte na 'Exportovat do PDF'.");
-      return;
-    }
-    alert("PDF je připravené v paměti: " + lastPdfName + ". Připojte ho ručně k e-mailu.");
+    if (!lastPdfBlob) { alert("Nejdřív klikněte na 'Exportovat do PDF'."); return; }
+    alert("PDF je připravené: " + lastPdfName + ". Připojte ho ručně do e-mailu.");
   }
-
-  function saveAndMail() {
-    generatePdf(() => {
-      openMailClient();
-    });
-  }
+  function saveAndMail() { generatePdf(() => { openMailClient(); }); }
 
   function openMailClient() {
     const customer = document.getElementById("customer").value || "";
     const order = document.getElementById("order-number").value || "";
+    const claim = document.getElementById("claim-number").value || "";
+    const visitDate = document.getElementById("visit-date").value || "";
     const email = document.getElementById("email").value || "";
+
     const subject = `Reklamace Natuzzi - ${customer} (${order})`;
     const body = `Dobrý den ${customer},
 
-zasíláme vám protokol z návštěvy technika.
-Soubor ${lastPdfName} je připravený a přiložte jej prosím do e-mailu.
+zasíláme Vám protokol z návštěvy technika.
+
+Číslo reklamace: ${claim}
+Datum návštěvy: ${visitDate}
 
 =====================
 WHITE GLOVE SERVICE
@@ -276,17 +275,31 @@ reklamace-wgs@email.cz`;
     window.location.href = mailtoLink;
   }
 
+  // propsání dat ze seznamu
+  window.addEventListener("message", (event) => {
+    if (event.data.type === "openProtocol") {
+      const d = event.data.row;
+      if (!d) return;
+      document.getElementById("order-number").value = d["Order number"] || "";
+      document.getElementById("claim-number").value = d["Label"] || "";
+      document.getElementById("customer").value = d["Customer"] || "";
+      document.getElementById("address").value = d["Address"] || "";
+      document.getElementById("phone").value = d["KONTAKT"] || "";
+      document.getElementById("email").value = d["EMAIL"] || "";
+      document.getElementById("brand").value = d["Contract"] || d["Label"] || "";
+      document.getElementById("model").value = d["Model"] || "";
+      document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
+      autoTranslate("description-cz", "description-en");
+    }
+  });
+
   function autoTranslate(srcId, tgtId) {
     const sourceText = document.getElementById(srcId).value;
     const targetEl = document.getElementById(tgtId);
     if (!sourceText.trim()) return targetEl.value = "";
     fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=cs&tl=en&dt=t&q=${encodeURIComponent(sourceText)}`)
       .then(res => res.json())
-      .then(data => {
-        if (data && data[0]) {
-          targetEl.value = data[0].map(pair => pair[0]).join("");
-        }
-      });
+      .then(data => { if (data && data[0]) targetEl.value = data[0].map(pair => pair[0]).join(""); });
   }
 </script>
 </body>
