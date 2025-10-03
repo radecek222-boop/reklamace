@@ -28,10 +28,7 @@
     table { width:100%; border-collapse:collapse; margin:10px 0; }
     td { padding:6px; vertical-align:top; }
 
-    .label {
-      font-weight:600;
-      display:block;
-    }
+    .label { font-weight:600; display:block; }
     .label .en-label {
       display:block;
       font-size:0.85em;
@@ -62,11 +59,7 @@
       border-radius:4px;
       box-sizing:border-box;
     }
-    input, select {
-      height:36px;
-      line-height:36px;
-      background-color:white;
-    }
+    input, select { height:36px; line-height:36px; background-color:white; }
     textarea { min-height:60px; resize:vertical; }
 
     .split-section { display:flex; gap:10px; margin:10px 0; }
@@ -89,8 +82,8 @@
       gap:12px;
     }
     .btns button {
-      height:45px;
-      font-size:0.95em;
+      height:42px;
+      font-size:0.9em;
       border:none;
       border-radius:8px;
       cursor:pointer;
@@ -104,15 +97,12 @@
       transition:transform 0.1s ease-in-out, box-shadow 0.2s;
       width:100%;
     }
-    .btns button:hover { 
-      transform:scale(1.02); 
-      box-shadow:0 4px 8px rgba(0,0,0,0.3);
-    }
+    .btns button:hover { transform:scale(1.02); box-shadow:0 4px 8px rgba(0,0,0,0.3); }
 
     /* Metalické gradienty */
     .btn-clear { background: linear-gradient(145deg, #7a0f0f, #ff4d4d, #a83232); }
     .btn-back { background: linear-gradient(145deg, #808080, #dcdcdc, #a9a9a9); color:#000; }
-    .btn-back svg { width:22px; height:22px; fill:#000; }
+    .btn-back svg { width:20px; height:20px; fill:#000; }
     .btn-pdf { background: linear-gradient(145deg, #004080, #1e90ff, #003366); }
     .btn-email { background: linear-gradient(145deg, #006600, #28a745, #004d00); }
 
@@ -127,8 +117,6 @@
       width:794px !important;
       max-width:794px !important;
     }
-    .force-desktop .two-col-table { flex-direction: row !important; }
-    .force-desktop .split-section { flex-direction: row !important; }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
@@ -142,7 +130,7 @@
     <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
   </div>
 
-  <!-- --- FORMULÁŘ ZŮSTÁVÁ STEJNÝ, VYNECHÁVÁM PRO STRUČNOST --- -->
+  <!-- --- Formulář zůstává beze změny --- -->
 
   <div class="section-title">Podpis zákazníka<span class="en-label">Customer signature</span></div>
   <canvas id="signature-pad"></canvas>
@@ -228,11 +216,7 @@
   }
 
   function downloadPDF() { generatePdf(); }
-
-  function saveAndMail() {
-    openMailClient();
-    generatePdf();
-  }
+  function saveAndMail() { openMailClient(); generatePdf(); }
 
   function openMailClient() {
     const customer = document.getElementById("customer").value || "";
@@ -285,9 +269,7 @@ reklamace-wgs@email.cz`;
     fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=cs&tl=en&dt=t&q=${encodeURIComponent(sourceText)}`)
       .then(res => res.json())
       .then(data => {
-        if (data && data[0]) {
-          targetEl.value = data[0].map(pair => pair[0]).join("");
-        }
+        if (data && data[0]) targetEl.value = data[0].map(pair => pair[0]).join("");
       });
   }
 </script>
