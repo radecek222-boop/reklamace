@@ -38,16 +38,16 @@ textarea { width:100%; min-height:80px; resize:vertical; padding:4px 8px; font-s
 .btn-pdf { background: linear-gradient(145deg, #004080, #1e90ff, #003366); }
 .btn-email { background: linear-gradient(145deg, #006600, #28a745, #004d00); }
 
-/* Mobilní optimalizace */
-@media screen and (max-width:768px) {
-  .wrapper { overflow-x:auto; }
-  .two-col-table, .split-section { display:flex !important; flex-direction:row !important; gap:20px; }
-  .two-col-table .col, .split-section textarea { min-width:370px; flex:1; }
-  input, select, textarea { font-size:1em; min-width:100%; }
-  #signature-pad { height:200px; }
+/* Mobilní optimalizace pro vyplňování */
+@media screen and (max-width:768px){
+  .two-col-table, .split-section { flex-direction: column !important; gap:10px; }
+  .two-col-table .col, .split-section textarea { min-width:auto; width:100%; }
+  input, select, textarea { font-size:1em; height:36px; box-sizing:border-box; }
+  textarea { min-height:80px; }
+  #signature-pad { height:180px; }
 }
 
-/* Force desktop pro PDF */
+/* Force desktop pro PDF export */
 .force-desktop { width:794px !important; max-width:794px !important; }
 </style>
 </head>
@@ -58,6 +58,7 @@ textarea { width:100%; min-height:80px; resize:vertical; padding:4px 8px; font-s
     <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
   </div>
 
+  <!-- FORMULÁŘ -->
   <div class="two-col-table">
     <div class="col">
       <table>
@@ -143,7 +144,7 @@ textarea { width:100%; min-height:80px; resize:vertical; padding:4px 8px; font-s
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-// Kompletní JS kód: podpis, PDF, e-mail, propisování, překlad
+// JS: podpis, PDF, e-mail, propisování dat, překlad
 let signaturePad; let lastPdfName="protokol.pdf";
 
 window.addEventListener("DOMContentLoaded",()=>{
@@ -159,15 +160,54 @@ window.addEventListener("DOMContentLoaded",()=>{
 function stripDiacritics(str){return(str||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g,"_").replace(/[<>:"/\\|?*\u0000-\u001F]/g,"-");}
 function buildPdfFileName(){const today=new Date().toISOString().split("T")[0];const customer=stripDiacritics(document.getElementById("customer").value||"neznamy_zakaznik");const claim=stripDiacritics(document.getElementById("claim-number").value||"bez_claimu");const order=stripDiacritics(document.getElementById("order-number").value||"bez_objednavky");return`${customer}_${claim}_${order}_${today}.pdf`;}
 
-function generatePdf(callback){const{jsPDF}=window.jspdf;const doc=new jsPDF("p","mm","a4");const wrapper=document.querySelector(".wrapper");wrapper.classList.add("force-desktop");html2canvas(wrapper,{scale:3,scrollX:0,scrollY:0,windowWidth:794,windowHeight:wrapper.scrollHeight}).then(canvas=>{const imgData=canvas.toDataURL("image/png");const pageW=doc.internal.pageSize.getWidth();const pageH=doc.internal.pageSize.getHeight();const imgProps=doc.getImageProperties(imgData);let drawW=pageW,drawH=(imgProps.height*drawW)/imgProps.width,x=0,y=0;if(drawH>pageH-20){const scale=(pageH-20)/drawH;drawW*=scale;drawH*=scale;x=(pageW-drawW)/2;}doc.addImage(imgData,"PNG",x,y,drawW,drawH);if(signaturePad&&!signaturePad.isEmpty()){doc.addImage(signaturePad.toDataURL("image/png"),"PNG",15,pageH-45,80,30);}lastPdfName=buildPdfFileName();doc.save(lastPdfName);wrapper.classList.remove("force-desktop");if(callback)callback();});
-
+function generatePdf(callback){
+  const {jsPDF}=window.jspdf; const doc=new jsPDF("p","mm","a4");
+  const wrapper=document.querySelector(".wrapper"); wrapper.classList.add("force-desktop");
+  html2canvas(wrapper,{scale:3,scrollX:0,scrollY:0,windowWidth:794,windowHeight:wrapper.scrollHeight}).then(canvas=>{
+    const imgData=canvas.toDataURL("image/png");
+    const pageW=doc.internal.pageSize.getWidth();
+    const pageH=doc.internal.pageSize.getHeight();
+    const imgProps=doc.getImageProperties(imgData);
+    let drawW=pageW, drawH=(imgProps.height*drawW)/imgProps.width, x=0, y=0;
+    if(drawH>pageH-20){ const scale=(pageH-20)/drawH; drawW*=scale; drawH*=scale; x=(pageW-drawW)/2; }
+    doc.addImage(imgData,"PNG",x,y,drawW,drawH);
+    if(signaturePad&&!signaturePad.isEmpty()){doc.addImage(signaturePad.toDataURL("image/png"),"PNG",15,pageH-45,80,30);}
+    lastPdfName=buildPdfFileName(); doc.save(lastPdfName); wrapper.classList.remove("force-desktop"); if(callback)callback();
+  });
 }
-function downloadPDF(){generatePdf();}
-function saveAndMail(){openMailClient();generatePdf();}
-function openMailClient(){const customer=document.getElementById("customer").value||"";const order=document.getElementById("order-number").value||"";const claim=document.getElementById("claim-number").value||"";const visitDate=document.getElementById("visit-date").value||"";const email=document.getElementById("email").value||"";const subject=`Reklamace Natuzzi - ${customer} (${order})`;const body=`Dobrý den ${customer},\n\nzasíláme Vám protokol z návštěvy technika.\n\nČíslo reklamace: ${claim}\nDatum návštěvy: ${visitDate}\n\nSoubor ${lastPdfName} byl uložen – prosím přiložte jej do e-mailu jako přílohu.\n\n=====================\nWHITE GLOVE SERVICE\n=====================\nDo Dubče 364, Běchovice 190 11\n+420 725 965 826\nreklamace-wgs@email.cz`;window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;}
 
-window.addEventListener("message",(event)=>{if(event.data.type==="openProtocol"){const d=event.data.row;if(!d)return;document.getElementById("order-number").value=d["Order number"]||"";document.getElementById("claim-number").value=d["Label"]||"";document.getElementById("customer").value=d["Customer"]||"";document.getElementById("address").value=d["Address"]||"";document.getElementById("phone").value=d["KONTAKT"]||"";document.getElementById("email").value=d["Email"]||d["EMAIL"]||d["E-mail"]||d["MAIL"]||d[15]||"";document.getElementById("brand").value=d["Contract"]||d["Label"]||"";document.getElementById("model").value=d["Model"]||"";document.getElementById("description-cz").value=d["POPIS REKLAMACE - OPRAVY"]||"";autoTranslate("description-cz","description-en");document.getElementById("problem-cz").value=d["Problem detected"]||"";autoTranslate("problem-cz","problem-en");document.getElementById("repair-cz").value=d["Repair proposal"]||"";autoTranslate("repair-cz","repair-en");document.getElementById("visit-date").value=d["Visit date"]||"";document.getElementById("delivery-date").value=d["Delivery date"]||"";document.getElementById("claim-date").value=d["Complaint date"]||"";document.getElementById("sign-date").value=d["Signature date"]||"";document.getElementById("parts").value=d["Number of repaired parts"]||"";document.getElementById("price-work").value=d["Work cost"]||"";document.getElementById("price-material").value=d["Material cost"]||"";document.getElementById("price-second").value=d["Second technician cost"]||"";document.getElementById("price-transport").value=d["Transport cost"]||"";document.getElementById("price-total").value=d["Total cost"]||"";document.getElementById("solved").value=d["Complaint solved?"]||"";document.getElementById("dealer").value=d["Waiting for dealer statement?"]||"";document.getElementById("damage").value=d["Damage by technician?"]||"";document.getElementById("payment").value=d["Customer will pay?"]||"";}});
-function autoTranslate(srcId,tgtId){const sourceText=document.getElementById(srcId).value;const targetEl=document.getElementById(tgtId);if(!sourceText.trim())return targetEl.value="";fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=cs&tl=en&dt=t&q=${encodeURIComponent(sourceText)}`).then(res=>res.json()).then(data=>{if(data&&data[0])targetEl.value=data[0].map(pair=>pair[0]).join("");});}
-</script>
-</body>
-</html>
+function downloadPDF(){generatePdf();}
+function saveAndMail(){openMailClient(); generatePdf();}
+function openMailClient(){
+  const customer=document.getElementById("customer").value||"";
+  const order=document.getElementById("order-number").value||"";
+  const claim=document.getElementById("claim-number").value||"";
+  const visitDate=document.getElementById("visit-date").value||"";
+  const email=document.getElementById("email").value||"";
+  const subject=`Reklamace Natuzzi - ${customer} (${order})`;
+  const body=`Dobrý den ${customer},\n\nzasíláme Vám protokol z návštěvy technika.\n\nČíslo reklamace: ${claim}\nDatum návštěvy: ${visitDate}\n\nSoubor ${lastPdfName} byl uložen – prosím přiložte jej do e-mailu jako přílohu.\n\n=====================\nWHITE GLOVE SERVICE\n=====================\nDo Dubče 364, Běchovice 190 11\n+420 725 965 826\nreklamace-wgs@email.cz`;
+  window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+window.addEventListener("message",(event)=>{
+  if(event.data.type==="openProtocol"){
+    const d=event.data.row;if(!d)return;
+    document.getElementById("order-number").value=d["Order number"]||"";
+    document.getElementById("claim-number").value=d["Label"]||"";
+    document.getElementById("customer").value=d["Customer"]||"";
+    document.getElementById("address").value=d["Address"]||"";
+    document.getElementById("phone").value=d["KONTAKT"]||"";
+    document.getElementById("email").value=d["Email"]||d["EMAIL"]||d["E-mail"]||d["MAIL"]||d[15]||"";
+    document.getElementById("brand").value=d["Contract"]||d["Label"]||"";
+    document.getElementById("model").value=d["Model"]||"";
+    document.getElementById("description-cz").value=d["POPIS REKLAMACE - OPRAVY"]||"";
+    autoTranslate("description-cz","description-en");
+    document.getElementById("problem-cz").value=d["Problem detected"]||"";
+    autoTranslate("problem-cz","problem-en");
+    document.getElementById("repair-cz").value=d["Repair proposal"]||"";
+    autoTranslate("repair-cz","repair-en");
+    document.getElementById("visit-date").value=d["Visit date"]||"";
+    document.getElementById("delivery-date").value=d["Delivery date"]||"";
+    document.getElementById("claim-date").value=d["Complaint date"]||"";
+    document.getElementById("sign-date").value=d["Signature date"]||"";
+    document.getElementById("parts").value=d["
