@@ -59,14 +59,22 @@
       padding:14px;
       font-size:1.05em;
       border:none;
-      border-radius:6px;
+      border-radius:12px;
       cursor:pointer;
       font-weight:700;
       color:white;
+      box-shadow:0 3px 6px rgba(0,0,0,0.15);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      transition:transform 0.1s ease-in-out;
     }
+    .btns button:hover { transform:scale(1.03); }
+
     /* Gradient tlačítka */
     .btn-clear { background: linear-gradient(45deg, #ff4d4d, #b30000); }
-    .btn-back { background: linear-gradient(45deg, #d3d3d3, #808080); color:#000; display:flex; align-items:center; justify-content:center; gap:8px; }
+    .btn-back { background: linear-gradient(45deg, #d3d3d3, #808080); color:#000; }
     .btn-back svg { width:28px; height:28px; fill:#000; }
     .btn-pdf { background: linear-gradient(45deg, #1e90ff, #0047ab); }
     .btn-email { background: linear-gradient(45deg, #28a745, #006400); }
@@ -163,13 +171,13 @@
   <div class="signature-label">Podepište se prstem nebo myší</div>
 
   <div class="btns">
-    <button class="btn-clear" type="button" onclick="signaturePad.clear()">Vymazat podpis</button>
+    <button class="btn-clear" type="button" onclick="signaturePad.clear()">🗑️ Vymazat podpis</button>
     <button class="btn-back" type="button" onclick="window.location.href='index.html'">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
       ZPĚT
     </button>
-    <button class="btn-pdf" type="button" onclick="downloadPDF()">Exportovat do PDF</button>
-    <button class="btn-email" type="button" onclick="saveAndMail()">Odeslat e-mail zákazníkovi</button>
+    <button class="btn-pdf" type="button" onclick="downloadPDF()">📄 Exportovat do PDF</button>
+    <button class="btn-email" type="button" onclick="saveAndMail()">✉️ Odeslat e-mail zákazníkovi</button>
   </div>
 </div>
 
@@ -241,9 +249,7 @@
   function downloadPDF() { generatePdf(); }
 
   function saveAndMail() {
-    // nejprve okamžitě otevřeme poštovní klient
     openMailClient();
-    // zároveň uložíme PDF
     generatePdf();
   }
 
