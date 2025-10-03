@@ -32,9 +32,17 @@ textarea { min-height:60px; resize:vertical; }
 .btn-back svg { width:20px; height:20px; fill:#000; }
 .btn-pdf { background: linear-gradient(145deg, #004080, #1e90ff, #003366); }
 .btn-email { background: linear-gradient(145deg, #006600, #28a745, #004d00); }
-@media (max-width:768px){ .wrapper{padding:10px;} .two-col-table{flex-direction:column;} .split-section{flex-direction:column;} .btns { grid-template-columns: 1fr; } }
 
-/* Force desktop pro PDF + mobilní optimalizace */
+/* Mobilní optimalizace vzhledu */
+@media screen and (max-width:768px) {
+  .wrapper { overflow-x: auto; }
+  .two-col-table, .split-section { display:flex !important; flex-direction:row !important; gap:20px; }
+  .two-col-table .col, .split-section textarea { min-width:370px; flex:1; }
+  input, select, textarea { font-size:1em; min-width:100%; }
+  #signature-pad { height:200px; }
+}
+
+/* Force desktop pro PDF */
 .force-desktop { width:794px !important; max-width:794px !important; }
 @media screen and (max-width:768px) {
   .force-desktop { width:794px !important; max-width:794px !important; display:block; }
@@ -130,6 +138,10 @@ textarea { min-height:60px; resize:vertical; }
     <button class="btn-email" type="button" onclick="saveAndMail()">✉️ Odeslat e-mail zákazníkovi</button>
   </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 <script>
 let signaturePad;
 let lastPdfName = "protokol.pdf";
@@ -137,12 +149,14 @@ let lastPdfName = "protokol.pdf";
 // Inicializace podpisu a datumů
 window.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById("signature-pad");
+
   function resizeCanvas() {
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
   }
   resizeCanvas();
   window.addEventListener("resize", resizeCanvas, { passive: true });
+
   signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
 
   const today = new Date().toISOString().split("T")[0];
@@ -158,6 +172,7 @@ function stripDiacritics(str) {
     .replace(/\s+/g, "_")
     .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-");
 }
+
 function buildPdfFileName() {
   const today = new Date().toISOString().split("T")[0];
   const customer = stripDiacritics(document.getElementById("customer").value || "neznamy_zakaznik");
@@ -194,9 +209,11 @@ function generatePdf(callback) {
       x = (pageW - drawW) / 2;
     }
     doc.addImage(imgData, "PNG", x, y, drawW, drawH);
+
     if (signaturePad && !signaturePad.isEmpty()) {
       doc.addImage(signaturePad.toDataURL("image/png"), "PNG", 15, pageH - 45, 80, 30);
     }
+
     lastPdfName = buildPdfFileName();
     doc.save(lastPdfName);
     wrapper.classList.remove("force-desktop");
