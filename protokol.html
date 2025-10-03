@@ -38,7 +38,7 @@
     .btn-clear { background: linear-gradient(45deg, #ff4d4d, #b30000); }
     .btn-back { background: #e0e0e0; color:#111; border: 2px solid #999; font-size: 1.2em; font-weight: 700; }
     .btn-pdf { background: linear-gradient(45deg, #1e90ff, #0047ab); }
-    .btn-send { background: linear-gradient(45deg, #ff7f50, #ff4500); } /* oranžový gradient */
+    .btn-send { background: linear-gradient(45deg, #8e2de2, #4a00e0); } /* fialový gradient */
     .btn-test { background: linear-gradient(45deg, #00b09b, #96c93d); }
 
     #status-message {
@@ -76,7 +76,7 @@
       <button class="btn-back" type="button" onclick="window.location.href='index.html'">⬅️ ZPĚT</button>
       <button class="btn-pdf" type="button" onclick="downloadPDF()">📄 Exportovat do PDF</button>
       <button class="btn-send" type="button" onclick="sendToServer()">📨 Odeslat zákazníkovi</button>
-      <button class="btn-test" type="button" onclick="testPing()">🔍 Otestovat spojení (POST)</button>
+      <button class="btn-test" type="button" onclick="testPing()">🔍 Otestovat spojení (GET)</button>
     </div>
 
     <div id="status-message"></div>
@@ -91,18 +91,14 @@
       signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
     });
 
-    // Testovací POST ping
+    // Testovací GET ping
     function testPing() {
-      fetch("https://script.google.com/macros/s/AKfycbyLM5YQPJISe9QkoxSz55Jsgqrg9hjBcCrYzUK9J59u8lrvsH38XL3Za5er-Nn1XcU2bw/exec", {
-        method: "POST",
-        body: JSON.stringify({ test: true }),
-        headers: { "Content-Type": "application/json" }
-      })
+      fetch("https://script.google.com/macros/s/AKfycbx5e3nghYbpZwukzuoYcWoNCm4UGrwgVhER7PKxJNOUCYl31q5fjFwbYp8Lkl9bEOHluw/exec?test=true")
       .then(res => res.text())
       .then(txt => {
         const statusEl = document.getElementById("status-message");
         statusEl.style.color = "green";
-        statusEl.innerText = "✅ Spojení OK (POST): " + txt;
+        statusEl.innerText = "✅ Spojení OK (GET): " + txt;
       })
       .catch(err => {
         const statusEl = document.getElementById("status-message");
@@ -146,38 +142,30 @@
           doc.addImage(signData, "PNG", 15, 260, 80, 30);
         }
 
-        const pdfBase64 = doc.output("datauristring").split(",")[1];
-        const customer = document.getElementById("customer")?.value || "";
-        const order = document.getElementById("order-number")?.value || "";
-        const email = document.getElementById("email")?.value || "";
+        const pdfBase64 = encodeURIComponent(doc.output("datauristring").split(",")[1]);
+        const customer = encodeURIComponent(document.getElementById("customer")?.value || "");
+        const order = encodeURIComponent(document.getElementById("order-number")?.value || "");
+        const email = encodeURIComponent(document.getElementById("email")?.value || "");
 
-        fetch("https://script.google.com/macros/s/AKfycbyLM5YQPJISe9QkoxSz55Jsgqrg9hjBcCrYzUK9J59u8lrvsH38XL3Za5er-Nn1XcU2bw/exec", {
-          method: "POST",
-          body: JSON.stringify({
-            to: email,
-            subject: `Reklamace Natuzzi - ${customer} (${order})`,
-            body: `Dobrý den ${customer},\n\nzasíláme vám protokol z návštěvy technika.\n\n=====================\nWHITE GLOVE SERVICE\n=====================\nDo Dubče 364, Běchovice 190 11\n+420 725 965 826\nreklamace-wgs@email.cz`,
-            filename: `Protokol_${order}.pdf`,
-            pdf: pdfBase64
-          }),
-          headers: { "Content-Type": "application/json" }
-        })
-        .then(res => res.text())
-        .then(msg => {
-          const statusEl = document.getElementById("status-message");
-          if (msg.includes("OK")) {
-            statusEl.style.color = "green";
-            statusEl.innerText = "✅ Email byl odeslán a PDF uložen do složky ODESLANÉ PROTOKOLY.";
-          } else {
+        const url = `https://script.google.com/macros/s/AKfycbx5e3nghYbpZwukzuoYcWoNCm4UGrwgVhER7PKxJNOUCYl31q5fjFwbYp8Lkl9bEOHluw/exec?to=${email}&subject=Reklamace%20Natuzzi%20-${customer}(${order})&body=Dobrý%20den%20${customer},%20zasíláme%20protokol&filename=Protokol_${order}.pdf&pdf=${pdfBase64}`;
+
+        fetch(url)
+          .then(res => res.text())
+          .then(msg => {
+            const statusEl = document.getElementById("status-message");
+            if (msg.includes("OK")) {
+              statusEl.style.color = "green";
+              statusEl.innerText = "✅ Email byl odeslán a PDF uložen do složky ODESLANÉ PROTOKOLY.";
+            } else {
+              statusEl.style.color = "red";
+              statusEl.innerText = "⚠️ Odpověď serveru: " + msg;
+            }
+          })
+          .catch(err => {
+            const statusEl = document.getElementById("status-message");
             statusEl.style.color = "red";
-            statusEl.innerText = "⚠️ Odpověď serveru: " + msg;
-          }
-        })
-        .catch(err => {
-          const statusEl = document.getElementById("status-message");
-          statusEl.style.color = "red";
-          statusEl.innerText = "❌ Chyba při odesílání: " + err;
-        });
+            statusEl.innerText = "❌ Chyba při odesílání: " + err;
+          });
 
         wrapper.classList.remove("force-desktop");
       });
