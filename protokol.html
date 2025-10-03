@@ -58,7 +58,6 @@ textarea { width:100%; min-height:80px; resize:vertical; padding:4px 8px; font-s
     <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
   </div>
 
-  <!-- FORMULÁŘ: horní část -->
   <div class="two-col-table">
     <div class="col">
       <table>
@@ -90,22 +89,21 @@ textarea { width:100%; min-height:80px; resize:vertical; padding:4px 8px; font-s
 
   <div class="section-title">Zákazník reklamuje<span class="en-label">Customer complaint</span></div>
   <div class="split-section">
-    <textarea id="description-cz" placeholder="CZ"></textarea>
+    <textarea id="description-cz" placeholder="CZ" oninput="autoTranslate('description-cz','description-en')"></textarea>
     <textarea id="description-en" placeholder="EN"></textarea>
   </div>
 
   <div class="section-title">Problém zjištěný technikem<span class="en-label">Detected problem</span></div>
   <div class="split-section">
-    <textarea id="problem-cz" placeholder="CZ"></textarea>
+    <textarea id="problem-cz" placeholder="CZ" oninput="autoTranslate('problem-cz','problem-en')"></textarea>
     <textarea id="problem-en" placeholder="EN"></textarea>
   </div>
 
   <div class="section-title">Návrh opravy<span class="en-label">Repair proposal</span></div>
   <div class="split-section">
-    <textarea id="repair-cz" placeholder="CZ"></textarea>
+    <textarea id="repair-cz" placeholder="CZ" oninput="autoTranslate('repair-cz','repair-en')"></textarea>
     <textarea id="repair-en" placeholder="EN"></textarea>
   </div>
-
   <div class="two-col-table">
     <div class="col">
       <table>
@@ -152,25 +150,17 @@ let lastPdfName = "protokol.pdf";
 
 window.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById("signature-pad");
-  function resizeCanvas() {
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-  }
+  function resizeCanvas() { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas, { passive: true });
-
   signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
-
   const today = new Date().toISOString().split("T")[0];
   document.getElementById("visit-date").value = today;
   document.getElementById("sign-date").value = today;
 });
 
-function stripDiacritics(str) {
-  return (str || "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g,"_").replace(/[<>:"/\\|?*\u0000-\u001F]/g,"-");
-}
-
-function buildPdfFileName() {
+function stripDiacritics(str){ return (str||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g,"_").replace(/[<>:"/\\|?*\u0000-\u001F]/g,"-"); }
+function buildPdfFileName(){ 
   const today = new Date().toISOString().split("T")[0];
   const customer = stripDiacritics(document.getElementById("customer").value || "neznamy_zakaznik");
   const claim = stripDiacritics(document.getElementById("claim-number").value || "bez_claimu");
@@ -178,13 +168,13 @@ function buildPdfFileName() {
   return `${customer}_${claim}_${order}_${today}.pdf`;
 }
 
-function generatePdf(callback) {
+function generatePdf(callback){
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF("p", "mm", "a4");
+  const doc = new jsPDF("p","mm","a4");
   const wrapper = document.querySelector(".wrapper");
   wrapper.classList.add("force-desktop");
 
-  html2canvas(wrapper, { scale:3, scrollX:0, scrollY:0, windowWidth:794, windowHeight:wrapper.scrollHeight })
+  html2canvas(wrapper,{ scale:1, scrollX:0, scrollY:0, windowWidth:794, windowHeight:wrapper.scrollHeight })
     .then(canvas => {
       const imgData = canvas.toDataURL("image/png");
       const pageW = doc.internal.pageSize.getWidth();
@@ -192,10 +182,8 @@ function generatePdf(callback) {
       const imgProps = doc.getImageProperties(imgData);
       let drawW = pageW, drawH = (imgProps.height * drawW)/imgProps.width, x=0, y=0;
       if(drawH > pageH-20){ const scale=(pageH-20)/drawH; drawW*=scale; drawH*=scale; x=(pageW-drawW)/2; }
-      doc.addImage(imgData, "PNG", x, y, drawW, drawH);
-      if(signaturePad && !signaturePad.isEmpty()) {
-        doc.addImage(signaturePad.toDataURL("image/png"), "PNG", 15, pageH-45, 80, 30);
-      }
+      doc.addImage(imgData,"PNG",x,y,drawW,drawH);
+      if(signaturePad && !signaturePad.isEmpty()){ doc.addImage(signaturePad.toDataURL("image/png"),"PNG",15,pageH-45,80,30); }
       lastPdfName = buildPdfFileName();
       doc.save(lastPdfName);
       wrapper.classList.remove("force-desktop");
@@ -203,63 +191,61 @@ function generatePdf(callback) {
     });
 }
 
-function downloadPDF() { generatePdf(); }
-function saveAndMail() { openMailClient(); generatePdf(); }
+function downloadPDF(){ generatePdf(); }
 
-function openMailClient() {
+function saveAndMail(){ openMailClient(); generatePdf(); }
+
+function openMailClient(){
   const customer = document.getElementById("customer").value || "";
   const order = document.getElementById("order-number").value || "";
   const claim = document.getElementById("claim-number").value || "";
   const visitDate = document.getElementById("visit-date").value || "";
   const email = document.getElementById("email").value || "";
-
   const subject = `Reklamace Natuzzi - ${customer} (${order})`;
   const body = `Dobrý den ${customer},\n\nzasíláme Vám protokol z návštěvy technika.\n\nČíslo reklamace: ${claim}\nDatum návštěvy: ${visitDate}\n\nSoubor ${lastPdfName} byl uložen – prosím přiložte jej do e-mailu jako přílohu.\n\n=====================\nWHITE GLOVE SERVICE\n=====================\nDo Dubče 364, Běchovice 190 11\n+420 725 965 826\nreklamace-wgs@email.cz`;
-
-  window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
-// PROPOJENÍ SE SEZNAMEM
-window.addEventListener("message", (event) => {
-  if(event.data.type === "openProtocol") {
-    const d = event.data.row;
-    if(!d) return;
-    document.getElementById("order-number").value = d["Order number"] || "";
-    document.getElementById("claim-number").value = d["Label"] || "";
-    document.getElementById("customer").value = d["Customer"] || "";
-    document.getElementById("address").value = d["Address"] || "";
-    document.getElementById("phone").value = d["KONTAKT"] || "";
-    document.getElementById("email").value = d["Email"] || d["EMAIL"] || d["E-mail"] || d["MAIL"] || d[15] || "";
-    document.getElementById("brand").value = d["Contract"] || d["Label"] || "";
-    document.getElementById("model").value = d["Model"] || "";
-    document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"] || "";
-    document.getElementById("problem-cz").value = d["Problem detected"] || "";
-    document.getElementById("repair-cz").value = d["Repair proposal"] || "";
-    document.getElementById("visit-date").value = d["Visit date"] || "";
-    document.getElementById("delivery-date").value = d["Delivery date"] || "";
-    document.getElementById("claim-date").value = d["Complaint date"] || "";
-    document.getElementById("sign-date").value = d["Signature date"] || "";
-    document.getElementById("parts").value = d["Number of repaired parts"] || "";
-    document.getElementById("price-work").value = d["Work cost"] || "";
-    document.getElementById("price-material").value = d["Material cost"] || "";
-    document.getElementById("price-second").value = d["Second technician cost"] || "";
-    document.getElementById("price-transport").value = d["Transport cost"] || "";
-    document.getElementById("price-total").value = d["Total cost"] || "";
-    document.getElementById("solved").value = d["Complaint solved?"] || "";
-    document.getElementById("dealer").value = d["Waiting for dealer statement?"] || "";
-    document.getElementById("damage").value = d["Damage by technician?"] || "";
-    document.getElementById("payment").value = d["Customer will pay?"] || "";
+// PROPISOVÁNÍ DAT ZE SEZNAMU
+window.addEventListener("message",(event)=>{
+  if(event.data.type==="openProtocol"){
+    const d=event.data.row; if(!d) return;
+    document.getElementById("order-number").value = d["Order number"]||"";
+    document.getElementById("claim-number").value = d["Label"]||"";
+    document.getElementById("customer").value = d["Customer"]||"";
+    document.getElementById("address").value = d["Address"]||"";
+    document.getElementById("phone").value = d["KONTAKT"]||"";
+    document.getElementById("email").value = d["Email"]||d["EMAIL"]||d["E-mail"]||d["MAIL"]||d[15]||"";
+    document.getElementById("brand").value = d["Contract"]||d["Label"]||"";
+    document.getElementById("model").value = d["Model"]||"";
+    document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"]||"";
+    document.getElementById("problem-cz").value = d["Problem detected"]||"";
+    document.getElementById("repair-cz").value = d["Repair proposal"]||"";
+    document.getElementById("visit-date").value = d["Visit date"]||"";
+    document.getElementById("delivery-date").value = d["Delivery date"]||"";
+    document.getElementById("claim-date").value = d["Complaint date"]||"";
+    document.getElementById("sign-date").value = d["Signature date"]||"";
+    document.getElementById("parts").value = d["Number of repaired parts"]||"";
+    document.getElementById("price-work").value = d["Work cost"]||"";
+    document.getElementById("price-material").value = d["Material cost"]||"";
+    document.getElementById("price-second").value = d["Second technician cost"]||"";
+    document.getElementById("price-transport").value = d["Transport cost"]||"";
+    document.getElementById("price-total").value = d["Total cost"]||"";
+    document.getElementById("solved").value = d["Complaint solved?"]||"";
+    document.getElementById("dealer").value = d["Waiting for dealer statement?"]||"";
+    document.getElementById("damage").value = d["Damage by technician?"]||"";
+    document.getElementById("payment").value = d["Customer will pay?"]||"";
   }
 });
 
 // AUTOMATICKÝ PŘEKLAD
-function autoTranslate(srcId, tgtId) {
-  const sourceText = document.getElementById(srcId).value;
-  const targetEl = document.getElementById(tgtId);
-  if(!sourceText.trim()) return targetEl.value = "";
+function autoTranslate(srcId, tgtId){
+  const sourceText=document.getElementById(srcId).value;
+  const targetEl=document.getElementById(tgtId);
+  if(!sourceText.trim()) return targetEl.value="";
   fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=cs&tl=en&dt=t&q=${encodeURIComponent(sourceText)}`)
-    .then(res => res.json())
-    .then(data => { if(data && data[0]) targetEl.value = data[0].map(pair => pair[0]).join(""); });
+    .then(res=>res.json())
+    .then(data=>{ if(data && data[0]) targetEl.value=data[0].map(pair=>pair[0]).join(""); });
 }
 </script>
 </body>
