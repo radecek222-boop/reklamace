@@ -2,237 +2,76 @@
 <html lang="cs">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>WHITE GLOVE SERVICE – Seznam reklamací</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
-    :root { font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:#111 }
-    body { margin:0; padding:20px; background:#f6f7fb }
-    h1 { text-align:center; font-size:2em; font-weight:900; margin:0 0 10px; }
-    h2 { text-align:center; font-size:1.2em; font-weight:600; margin:0 0 20px; color:#555; }
-    
-    .btn {
-      background:#6c757d;
-      color:#fff;
-      padding:10px 20px;
-      margin:10px auto;
-      display:block;
-      border:none;
-      border-radius:8px;
-      cursor:pointer;
-      font-size:1em;
-      box-shadow:0 2px 5px rgba(0,0,0,0.15);
-      text-align:center;
-    }
-    .btn:hover { background:#5a6268; }
-
-    .protocol-btn {
-      background:#28a745;
-      color:#fff;
-      padding:6px 14px;
-      border:none;
-      border-radius:6px;
-      cursor:pointer;
-      margin-top:10px;
-      font-size:0.9em;
-      font-weight:600;
-      box-shadow:0 2px 4px rgba(0,0,0,0.2);
-    }
-    .protocol-btn:hover { background:#218838; }
-
-    #search {
-      width:90%;
-      max-width:400px;
-      display:block;
-      margin:0 auto 20px auto;
-      padding:10px 14px;
-      font-size:1em;
-      border:1px solid #ccc;
-      border-radius:8px;
-      box-shadow:0 1px 3px rgba(0,0,0,0.1) inset;
-    }
-
-    .table-wrapper { overflow-x:auto; margin-top:20px; }
-    table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px;
-      box-shadow:0 2px 6px rgba(0,0,0,0.1); font-size:13px; table-layout:fixed; }
-    th, td { padding:8px 10px; border:1px solid #ccc; text-align:center; word-wrap:break-word; white-space:normal; }
-    th { background:#f0f0f0; font-weight:600; }
-    tr:nth-child(even) { background:#fafafa; }
-    tr:hover { background:#e9f0ff; cursor:pointer; }
-    a { color:#0645ad; text-decoration:none; }
-    a:hover { text-decoration:underline; }
-
-    .details {
-      max-height: 0;
-      overflow:hidden;
-      background:#f9f9f9;
-      font-size:1em;
-      text-align:left;
-      padding:0 10px;
-      transition:max-height 0.4s ease, padding 0.3s ease;
-    }
-    .details.open {
-      max-height:80vh;
-      padding:20px;
-      overflow-y:auto;
-      box-shadow:0 4px 10px rgba(0,0,0,0.2);
-    }
-
-    tr.done { background:#c8e6c9 !important; color:#1b5e20; font-weight:600; }
-    tr.new { background:#fff59d !important; color:#e65100; font-weight:600; } /* jen NOVÁ = žlutá */
-    tr.scheduled { background:#bbdefb !important; color:#0d47a1; font-weight:700; }
-
-    @keyframes blink {
-      0%   { background-color:#ffcccc; color:#111; }
-      50%  { background-color:#ff0000; color:#fff; }
-      100% { background-color:#ffcccc; color:#111; }
-    }
-    tr.today td {
-      animation: blink 1s infinite;
-      font-weight:900;
-    }
-
-    @media(max-width:600px){
-      h1 { font-size:1.5em; }
-      h2 { font-size:1em; }
-      table { font-size:11px; }
+    body { font-family: Arial, sans-serif; margin:20px; background:#f6f7fb; }
+    h1 { text-align:center; font-size:22px; margin-bottom:20px; }
+    table { width:100%; border-collapse:collapse; background:white; box-shadow:0 0 8px rgba(0,0,0,0.1); }
+    th, td { padding:8px; border:1px solid #ddd; text-align:left; font-size:14px; }
+    th { background:#333; color:white; }
+    tr:nth-child(even){ background:#f9f9f9; }
+    tr:hover { background:#f1f1f1; }
+    .btn { padding:4px 8px; background:#333; color:white; border:none; cursor:pointer; border-radius:4px; }
+    .btn:hover { background:#555; }
+    @media(max-width:768px){
+      table, thead, tbody, th, td, tr { display:block; }
+      th { position:sticky; top:0; background:#333; color:#fff; }
+      td { border:none; border-bottom:1px solid #eee; }
     }
   </style>
 </head>
 <body>
-  <h1>WHITE GLOVE SERVICE</h1>
-  <h2>Seznam reklamací</h2>
+  <h1>Seznam reklamací</h1>
+  <table id="claimsTable">
+    <thead>
+      <tr>
+        <th>Číslo objednávky</th>
+        <th>Číslo reklamace</th>
+        <th>Zákazník</th>
+        <th>Adresa</th>
+        <th>Telefon</th>
+        <th>Email</th>
+        <th>Stav / termín</th>
+        <th>Otevřít</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-  <button class="btn" onclick="goHome()">Zpět na hlavní stránku</button>
+  <script>
+    const sheetURL = "PASTE-YOUR-APPSCRIPT-URL-HERE"; // zde máš svůj Apps Script JSON feed
 
-  <input type="text" id="search" placeholder="Hledat podle jména, adresy, telefonu nebo objednávky">
-  <div id="results" class="table-wrapper">Načítám data...</div>
+    fetch(sheetURL)
+      .then(res => res.json())
+      .then(data => {
+        const tbody = document.querySelector("#claimsTable tbody");
+        tbody.innerHTML = "";
+        data.forEach(row => {
+          const tr = document.createElement("tr");
 
-<script>
-const apiUrl = "https://script.google.com/macros/s/AKfycbwCL5s2dLRygGE3OzOJm50IaSSLGOeCr0fwi70UKBI-73D-WvA0brcrNFXSCaObDVM-SA/exec";
-let allData = [];
+          tr.innerHTML = `
+            <td>${row["Order number"] || ""}</td>
+            <td>${row["Label"] || ""}</td>
+            <td>${row["Customer"] || ""}</td>
+            <td><a href="https://waze.com/ul?q=${encodeURIComponent(row["Address"]||"")}" target="_blank">${row["Address"] || ""}</a></td>
+            <td><a href="tel:${row["KONTAKT"]||""}">${row["KONTAKT"] || ""}</a></td>
+            <td><a href="mailto:${row["Email"]||""}">${row["Email"] || ""}</a></td>
+            <td>${row["STAV - termín návštěvy"] || ""}</td>
+            <td><button class="btn" onclick='openProtocol(${JSON.stringify(row)})'>Otevřít protokol</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
 
-const days = ["pondělí","úterý","středa","čtvrtek","pátek","sobota","neděle"];
-const today = new Date();
-const day = today.getDate();
-const month = today.getMonth()+1;
-const todayStr1 = day + "." + month;
-const todayStr2 = (day<10?"0"+day:day) + "." + (month<10?"0"+month:month);
-
-function norm(s){
-  return (s || "")
-    .toString()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-}
-
-async function loadData() {
-  try {
-    const res = await fetch(apiUrl);
-    const data = await res.json();
-    allData = data;
-    renderTable(allData);
-  } catch (err) {
-    document.getElementById("results").innerHTML = "Chyba při načítání dat: " + err;
-  }
-}
-
-function renderTable(rows){
-  if (!rows.length){ document.getElementById("results").innerHTML = "Žádná data"; return; }
-  let html = "<table><thead><tr>";
-  ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(h => { html += "<th>"+h+"</th>"; });
-  html += "</tr></thead><tbody>";
-  rows.forEach((row,idx) => {
-    const statusRaw = row["STAV - termín návštěvy"] || "";
-    const status = statusRaw.toLowerCase();
-
-    let rowClass = "";
-    if (status.includes("hotovo")) rowClass = "done";
-    else if (status.includes("nová")) rowClass = "new";     // NOVÁ = žlutá
-    else if (days.some(d => status.includes(d)) || /\d/.test(status)) rowClass = "scheduled";
-
-    if (Object.values(row).some(v => {
-      const val = (v || "").toString();
-      return val.includes(todayStr1) || val.includes(todayStr2);
-    })) rowClass = "today";
-
-    html += `<tr class="${rowClass}" onclick="toggleDetails(${idx})">`;
-
-    ["Customer","Address","KONTAKT","STAV - termín návštěvy"].forEach(key => {
-      let val = row[key] || "";
-      let cellContent = val;
-      if (key.toLowerCase().includes("kontakt")) {
-        cellContent = `<a href="tel:${val}" onclick="event.stopPropagation()">${val}</a>`;
-      }
-      if (key.toLowerCase().includes("address") || key.toLowerCase().includes("adresa")) {
-        const encoded = encodeURIComponent(val);
-        cellContent = `<a href="https://waze.com/ul?q=${encoded}" target="_blank" onclick="event.stopPropagation()">${val}</a>`;
-      }
-      html += "<td>"+cellContent+"</td>";
-    });
-
-    html += "</tr>";
-
-    let details = "";
-    Object.entries(row).forEach(([key,val])=>{
-      if (!["Customer","Address","KONTAKT","STAV - termín návštěvy"].includes(key)) {
-        if (key.startsWith("_")) return;
-        let displayKey = key;
-        if (key === "Label") displayKey = "Contract";
-        details += `<div><b>${displayKey}:</b> ${val||""}</div>`;
-      }
-    });
-    details += `<button class="protocol-btn" onclick="openProtocol(${idx}, event)">Vytvořit protokol</button>`;
-    html += `<tr><td colspan="4"><div id="details-${idx}" class="details">${details}</div></td></tr>`;
-  });
-  html += "</tbody></table>";
-  document.getElementById("results").innerHTML = html;
-}
-
-function toggleDetails(index){
-  const detailsDiv = document.getElementById("details-"+index);
-  const tr = detailsDiv.closest("tr");
-
-  if (detailsDiv.classList.contains("open")) {
-    detailsDiv.style.maxHeight = null;
-    detailsDiv.classList.remove("open");
-  } else {
-    document.querySelectorAll(".details.open").forEach(el=>{
-      el.style.maxHeight = null;
-      el.classList.remove("open");
-    });
-    detailsDiv.classList.add("open");
-    detailsDiv.style.maxHeight = "80vh";
-    tr.scrollIntoView({behavior:"smooth", block:"start"});
-  }
-}
-
-function openProtocol(index, event){
-  event.stopPropagation();
-  const row = allData[index];
-  if (!row) return;
-  const protokolWindow = window.open("protokol.html", "_blank");
-  protokolWindow.onload = () => {
-    protokolWindow.postMessage({ type:"openProtocol", row }, "*");
-  };
-}
-
-document.getElementById("search").addEventListener("input", e => {
-  const q = norm(e.target.value);
-  const rows = allData.filter(r => norm(Object.values(r).join(" ")).includes(q));
-  renderTable(rows);
-});
-
-loadData();
-
-function goHome(){
-  if (window.opener) {
-    window.opener.location.href = "index.html";
-    window.close();
-  } else {
-    location.href = "index.html";
-  }
-}
-</script>
+    function openProtocol(row){
+      // otevře protokol a předá data
+      const win = window.open("protokol.html","_blank");
+      setTimeout(() => {
+        win.postMessage({ type:"openProtocol", row }, "*");
+      }, 500);
+    }
+  </script>
 </body>
 </html>
