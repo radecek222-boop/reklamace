@@ -5,129 +5,145 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Protokol - White Glove Service</title>
 <style>
-body { font-family: Inter, sans-serif; background:#f6f7fb; margin:0; padding:20px; display:flex; justify-content:center; }
+body { font-family: Inter, sans-serif; background:#f6f7fb; margin:0; padding:20px; font-size:12px; display:flex; justify-content:center; }
 .wrapper { width:100%; max-width:900px; background:white; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
-
 .header { text-align:center; margin-bottom:20px; }
 .header div:first-child { font-size:28px; font-weight:900; }
 .header div:last-child { font-size:12px; margin-top:4px; font-weight:normal; }
+table { width:100%; border-collapse:collapse; margin:10px 0; }
+td { padding:6px; vertical-align:top; }
+.label { font-weight:600; display:block; }
+.label .en-label { display:block; font-size:0.85em; color:#666; font-weight:normal; margin:0; }
+.section-title { font-weight:700; margin-top:20px; display:flex; flex-direction:column; align-items:flex-start; }
+.section-title .en-label { font-size:0.9em; color:#666; font-weight:normal; margin-top:2px; }
 
-.fieldset { border:1px solid #ccc; padding:10px; margin-bottom:15px; border-radius:6px; }
-.legend { font-weight:700; font-size:14px; margin-bottom:6px; }
-.label { font-weight:600; margin-top:6px; display:block; }
-input, select { width:100%; height:36px; font-size:1em; padding:4px 8px; border:1px solid #aaa; border-radius:4px; }
-textarea { width:100%; min-height:80px; resize:vertical; padding:4px 8px; font-size:1em; border:1px solid #aaa; border-radius:4px; }
+/* jednotná výška rámečků */
+input, select { width:100%; height:36px; line-height:36px; padding:4px 8px; font-size:1em; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; color:#111; background:#fff; }
+textarea { width:100%; min-height:80px; resize:vertical; padding:4px 8px; font-size:1em; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; color:#111; background:#fff; }
 
-#signature-pad { border:2px dashed #888; width:100%; height:180px; background:white; margin-top:6px; }
+.split-section { display:flex; gap:10px; margin:10px 0; }
+.two-col-table { display:flex; gap:30px; flex-wrap:wrap; }
+.two-col-table .col { flex:1; min-width:300px; }
 
-.btns { display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
-.btns button { flex:1 1 45%; height:42px; font-weight:600; color:white; border:none; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; }
+#signature-pad { border:2px dashed #888; width:100%; height:200px; background:white; touch-action: none; }
+.signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
 
-.btn-clear { background: linear-gradient(145deg,#7a0f0f,#ff4d4d,#a83232); }
-.btn-back { background: linear-gradient(145deg,#808080,#dcdcdc,#a9a9a9); color:#000; }
-.btn-pdf { background: linear-gradient(145deg,#004080,#1e90ff,#003366); }
-.btn-email { background: linear-gradient(145deg,#006600,#28a745,#004d00); }
+.btns { margin-top:20px; display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; }
+.btns button { height:42px; font-size:0.9em; border:none; border-radius:8px; cursor:pointer; font-weight:600; color:white; box-shadow:0 2px 5px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; gap:8px; transition:transform 0.1s ease-in-out, box-shadow 0.2s; width:100%; }
+.btns button:hover { transform:scale(1.02); box-shadow:0 4px 8px rgba(0,0,0,0.3); }
+
+.btn-clear { background: linear-gradient(145deg, #7a0f0f, #ff4d4d, #a83232); }
+.btn-back { background: linear-gradient(145deg, #808080, #dcdcdc, #a9a9a9); color:#000; }
+.btn-back svg { width:20px; height:20px; fill:#000; }
+.btn-pdf { background: linear-gradient(145deg, #004080, #1e90ff, #003366); }
+.btn-email { background: linear-gradient(145deg, #006600, #28a745, #004d00); }
 
 /* Mobilní přizpůsobení */
 @media screen and (max-width:768px){
-  .fieldset { padding:8px; }
-  textarea, input, select { font-size:1em; height:36px; }
-  .btns { flex-direction:column; }
+  .two-col-table, .split-section { flex-direction: column !important; gap:10px; }
+  .two-col-table .col, .split-section textarea { min-width:auto; width:100%; }
+  input, select, textarea { font-size:1em; height:36px; box-sizing:border-box; }
+  textarea { min-height:80px; }
+  #signature-pad { height:180px; }
 }
+
+/* Force desktop pro PDF export */
+.force-desktop { width:794px !important; max-width:794px !important; }
 </style>
 </head>
 <body>
 <div class="wrapper">
+  <div class="header">
+    <div>WHITE GLOVE SERVICE</div>
+    <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
+  </div>
 
-<div class="header">
-  <div>WHITE GLOVE SERVICE</div>
-  <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
-</div>
+  <div class="two-col-table">
+    <div class="col">
+      <table>
+        <tr><td class="label">Číslo objednávky<span class="en-label">Order number</span></td><td><input id="order-number"></td></tr>
+        <tr><td class="label">Číslo reklamace<span class="en-label">Claim number</span></td><td><input id="claim-number"></td></tr>
+        <tr><td class="label">Zákazník<span class="en-label">Customer</span></td><td><input id="customer"></td></tr>
+        <tr><td class="label">Adresa zákazníka<span class="en-label">Customer address</span></td><td><input id="address"></td></tr>
+        <tr><td class="label">Telefon<span class="en-label">Phone</span></td><td><input id="phone"></td></tr>
+        <tr><td class="label">Email<span class="en-label">Email</span></td><td><input id="email"></td></tr>
+      </table>
+    </div>
+    <div class="col">
+      <table>
+        <tr><td class="label">Technik<span class="en-label">Technician</span></td><td>
+          <select id="technician">
+            <option>Milan Kolín</option>
+            <option>Radek Zikmund</option>
+            <option>Kolín/Zikmund</option>
+          </select>
+        </td></tr>
+        <tr><td class="label">Datum návštěvy<span class="en-label">Visit date</span></td><td><input id="visit-date" type="date"></td></tr>
+        <tr><td class="label">Datum doručení<span class="en-label">Delivery date</span></td><td><input id="delivery-date" type="date"></td></tr>
+        <tr><td class="label">Datum podání reklamace<span class="en-label">Complaint date</span></td><td><input id="claim-date" type="date"></td></tr>
+        <tr><td class="label">Značka / Contract<span class="en-label">Brand / Contract</span></td><td><input id="brand"></td></tr>
+        <tr><td class="label">Model<span class="en-label">Model</span></td><td><input id="model"></td></tr>
+      </table>
+    </div>
+  </div>
 
-<!-- Objednávka a zákazník -->
-<div class="fieldset">
-  <div class="legend">Objednávka a zákazník</div>
-  <label class="label">Číslo objednávky</label><input id="order-number">
-  <label class="label">Číslo reklamace</label><input id="claim-number">
-  <label class="label">Zákazník</label><input id="customer">
-  <label class="label">Adresa zákazníka</label><input id="address">
-  <label class="label">Telefon</label><input id="phone">
-  <label class="label">Email</label><input id="email">
-</div>
+  <div class="section-title">Zákazník reklamuje<span class="en-label">Customer complaint</span></div>
+  <div class="split-section">
+    <textarea id="description-cz" placeholder="CZ" oninput="autoTranslate('description-cz','description-en')"></textarea>
+    <textarea id="description-en" placeholder="EN"></textarea>
+  </div>
 
-<!-- Technik a data -->
-<div class="fieldset">
-  <div class="legend">Technik a data</div>
-  <label class="label">Technik</label>
-  <select id="technician">
-    <option>Milan Kolín</option>
-    <option>Radek Zikmund</option>
-    <option>Kolín/Zikmund</option>
-  </select>
-  <label class="label">Datum návštěvy</label><input id="visit-date" type="date">
-  <label class="label">Datum doručení</label><input id="delivery-date" type="date">
-  <label class="label">Datum podání reklamace</label><input id="claim-date" type="date">
-  <label class="label">Značka / Contract</label><input id="brand">
-  <label class="label">Model</label><input id="model">
-</div>
+  <div class="section-title">Problém zjištěný technikem<span class="en-label">Detected problem</span></div>
+  <div class="split-section">
+    <textarea id="problem-cz" placeholder="CZ" oninput="autoTranslate('problem-cz','problem-en')"></textarea>
+    <textarea id="problem-en" placeholder="EN"></textarea>
+  </div>
 
-<!-- Textová pole CZ/EN -->
-<div class="fieldset">
-  <div class="legend">Zákazník reklamuje</div>
-  <textarea id="description-cz" placeholder="CZ"></textarea>
-  <textarea id="description-en" placeholder="EN"></textarea>
-</div>
+  <div class="section-title">Návrh opravy<span class="en-label">Repair proposal</span></div>
+  <div class="split-section">
+    <textarea id="repair-cz" placeholder="CZ" oninput="autoTranslate('repair-cz','repair-en')"></textarea>
+    <textarea id="repair-en" placeholder="EN"></textarea>
+  </div>
+  <div class="two-col-table">
+    <div class="col">
+      <table>
+        <tr><td class="label">Počet opravovaných dílů<span class="en-label">Number of repaired parts</span></td><td><input id="parts"></td></tr>
+        <tr><td class="label">Cena za práci<span class="en-label">Work cost</span></td><td><input id="price-work"></td></tr>
+        <tr><td class="label">Cena za materiál<span class="en-label">Material cost</span></td><td><input id="price-material"></td></tr>
+        <tr><td class="label">Cena za druhého technika<span class="en-label">Second technician cost</span></td><td><input id="price-second"></td></tr>
+        <tr><td class="label">Cena za dopravu<span class="en-label">Transport cost</span></td><td><input id="price-transport"></td></tr>
+        <tr><td class="label">Cena celkem<span class="en-label">Total cost</span></td><td><input id="price-total"></td></tr>
+      </table>
+    </div>
+    <div class="col">
+      <table>
+        <tr><td class="label">Reklamace vyřešena?<span class="en-label">Complaint solved?</span></td><td><select id="solved"><option>ANO</option><option>NE</option></select></td></tr>
+        <tr><td class="label">Čeká se na vyjádření prodejce?<span class="en-label">Waiting for dealer statement?</span></td><td><select id="dealer"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Poškození technikem?<span class="en-label">Damage by technician?</span></td><td><select id="damage"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Úhradu provede zákazník?<span class="en-label">Customer will pay?</span></td><td><select id="payment"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Datum podpisu<span class="en-label">Signature date</span></td><td><input id="sign-date" type="date"></td></tr>
+      </table>
+    </div>
+  </div>
 
-<div class="fieldset">
-  <div class="legend">Problém zjištěný technikem</div>
-  <textarea id="problem-cz" placeholder="CZ"></textarea>
-  <textarea id="problem-en" placeholder="EN"></textarea>
-</div>
-
-<div class="fieldset">
-  <div class="legend">Návrh opravy</div>
-  <textarea id="repair-cz" placeholder="CZ"></textarea>
-  <textarea id="repair-en" placeholder="EN"></textarea>
-</div>
-<!-- Dolní pole: ceny a stav -->
-<div class="fieldset">
-  <div class="legend">Ceny a stav reklamace</div>
-  <label class="label">Počet opravovaných dílů</label><input id="parts">
-  <label class="label">Cena za práci</label><input id="price-work">
-  <label class="label">Cena za materiál</label><input id="price-material">
-  <label class="label">Cena za druhého technika</label><input id="price-second">
-  <label class="label">Cena za dopravu</label><input id="price-transport">
-  <label class="label">Cena celkem</label><input id="price-total">
-  <label class="label">Reklamace vyřešena?</label>
-  <select id="solved"><option>ANO</option><option>NE</option></select>
-  <label class="label">Čeká se na vyjádření prodejce?</label>
-  <select id="dealer"><option>NE</option><option>ANO</option></select>
-  <label class="label">Poškození technikem?</label>
-  <select id="damage"><option>NE</option><option>ANO</option></select>
-  <label class="label">Úhradu provede zákazník?</label>
-  <select id="payment"><option>NE</option><option>ANO</option></select>
-  <label class="label">Datum podpisu</label><input id="sign-date" type="date">
-</div>
-
-<!-- Podpis -->
-<div class="fieldset">
-  <div class="legend">Podpis zákazníka</div>
+  <div class="section-title">Podpis zákazníka<span class="en-label">Customer signature</span></div>
   <canvas id="signature-pad"></canvas>
   <div class="signature-label">Podepište se prstem nebo myší</div>
-</div>
 
-<!-- Tlačítka -->
-<div class="btns">
-  <button class="btn-clear" type="button" onclick="signaturePad.clear()">🗑️ Vymazat podpis</button>
-  <button class="btn-back" type="button" onclick="window.location.href='index.html'">⮪ ZPĚT</button>
-  <button class="btn-pdf" type="button" onclick="downloadPDF()">📄 Exportovat do PDF</button>
-  <button class="btn-email" type="button" onclick="saveAndMail()">✉️ Odeslat e-mail zákazníkovi</button>
+  <div class="btns">
+    <button class="btn-clear" type="button" onclick="signaturePad.clear()">🗑️ Vymazat podpis</button>
+    <button class="btn-back" type="button" onclick="window.location.href='index.html'">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+      ZPĚT
+    </button>
+    <button class="btn-pdf" type="button" onclick="downloadPDF()">📄 Exportovat do PDF</button>
+    <button class="btn-email" type="button" onclick="saveAndMail()">✉️ Odeslat e-mail zákazníkovi</button>
+  </div>
 </div>
-
-</div> <!-- wrapper -->
 
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 let signaturePad;
 let lastPdfName = "protokol.pdf";
@@ -138,7 +154,6 @@ window.addEventListener("DOMContentLoaded", () => {
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas, { passive: true });
   signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
-
   const today = new Date().toISOString().split("T")[0];
   document.getElementById("visit-date").value = today;
   document.getElementById("sign-date").value = today;
@@ -156,68 +171,30 @@ function buildPdfFileName(){
 function generatePdf(callback){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF("p","mm","a4");
-  let y = 20;
-  const lineHeight = 7;
+  const wrapper = document.querySelector(".wrapper");
+  wrapper.classList.add("force-desktop");
 
-  // Hlavička
-  doc.setFontSize(18); doc.setFont("helvetica","bold");
-  doc.text("WHITE GLOVE SERVICE", 105, y, {align:"center"});
-  y += lineHeight*2;
-  doc.setFontSize(10); doc.setFont("helvetica","normal");
-  doc.text("Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684", 105, y, {align:"center"});
-  y += lineHeight*2;
-
-  doc.setFontSize(12);
-
-  function drawField(label,value){ doc.setFont("helvetica","bold"); doc.text(label+":",10,y); doc.setFont("helvetica","normal"); doc.text(value||"",60,y); y+=lineHeight; }
-  function drawTextarea(label,value){ doc.setFont("helvetica","bold"); doc.text(label+":",10,y); doc.setFont("helvetica","normal"); const lines=doc.splitTextToSize(value||"",180); doc.text(lines,10,y+lineHeight); y+=lines.length*lineHeight+lineHeight; }
-
-  // Horní pole
-  drawField("Číslo objednávky", document.getElementById("order-number").value);
-  drawField("Číslo reklamace", document.getElementById("claim-number").value);
-  drawField("Zákazník", document.getElementById("customer").value);
-  drawField("Adresa zákazníka", document.getElementById("address").value);
-  drawField("Telefon", document.getElementById("phone").value);
-  drawField("Email", document.getElementById("email").value);
-  drawField("Technik", document.getElementById("technician").value);
-  drawField("Datum návštěvy", document.getElementById("visit-date").value);
-  drawField("Datum doručení", document.getElementById("delivery-date").value);
-  drawField("Datum podání reklamace", document.getElementById("claim-date").value);
-  drawField("Značka / Contract", document.getElementById("brand").value);
-  drawField("Model", document.getElementById("model").value);
-
-  // Textová pole
-  drawTextarea("Zákazník reklamuje", document.getElementById("description-cz").value);
-  drawTextarea("Problém zjištěný technikem", document.getElementById("problem-cz").value);
-  drawTextarea("Návrh opravy", document.getElementById("repair-cz").value);
-
-  // Dolní pole
-  drawField("Počet opravovaných dílů", document.getElementById("parts").value);
-  drawField("Cena za práci", document.getElementById("price-work").value);
-  drawField("Cena za materiál", document.getElementById("price-material").value);
-  drawField("Cena za druhého technika", document.getElementById("price-second").value);
-  drawField("Cena za dopravu", document.getElementById("price-transport").value);
-  drawField("Cena celkem", document.getElementById("price-total").value);
-  drawField("Reklamace vyřešena?", document.getElementById("solved").value);
-  drawField("Čeká se na vyjádření prodejce?", document.getElementById("dealer").value);
-  drawField("Poškození technikem?", document.getElementById("damage").value);
-  drawField("Úhradu provede zákazník?", document.getElementById("payment").value);
-  drawField("Datum podpisu", document.getElementById("sign-date").value);
-
-  // Podpis
-  if(signaturePad && !signaturePad.isEmpty()){
-    const sigData = signaturePad.toDataURL("image/png");
-    doc.addImage(sigData,"PNG",15,y,80,30);
-    y+=35;
-  }
-
-  lastPdfName = buildPdfFileName();
-  doc.save(lastPdfName);
-  if(callback) callback();
+  html2canvas(wrapper,{ scale:0.9, scrollX:0, scrollY:0, windowWidth:794, windowHeight:wrapper.scrollHeight })
+    .then(canvas => {
+      const imgData = canvas.toDataURL("image/jpeg",0.6); // JPEG komprese 60%
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const imgProps = doc.getImageProperties(imgData);
+      let drawW = pageW, drawH = (imgProps.height * drawW)/imgProps.width, x=0, y=0;
+      if(drawH > pageH-20){ const scale=(pageH-20)/drawH; drawW*=scale; drawH*=scale; x=(pageW-drawW)/2; }
+      doc.addImage(imgData,"JPEG",x,y,drawW,drawH);
+      if(signaturePad && !signaturePad.isEmpty()){ doc.addImage(signaturePad.toDataURL("image/png"),"PNG",15,pageH-45,80,30); }
+      lastPdfName = buildPdfFileName();
+      doc.save(lastPdfName);
+      wrapper.classList.remove("force-desktop");
+      if(callback) callback();
+    });
 }
 
 function downloadPDF(){ generatePdf(); }
+
 function saveAndMail(){ openMailClient(); generatePdf(); }
+
 function openMailClient(){
   const customer = document.getElementById("customer").value || "";
   const order = document.getElementById("order-number").value || "";
