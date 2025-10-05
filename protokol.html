@@ -10,6 +10,7 @@ body { font-family: Inter, sans-serif; background:#f6f7fb; margin:0; padding:20p
 .header { text-align:center; margin-bottom:20px; }
 .header div:first-child { font-size:28px; font-weight:900; }
 .header div:last-child { font-size:12px; margin-top:4px; font-weight:normal; }
+
 table { width:100%; border-collapse:collapse; margin:10px 0; }
 td { padding:6px; vertical-align:top; }
 .label { font-weight:600; display:block; }
@@ -86,19 +87,19 @@ textarea { width:100%; min-height:80px; resize:vertical; padding:4px 8px; font-s
 
   <div class="section-title">Zákazník reklamuje<span class="en-label">Customer complaint</span></div>
   <div class="split-section">
-    <textarea id="description-cz" placeholder="CZ" oninput="autoTranslate('description-cz','description-en')"></textarea>
+    <textarea id="description-cz" placeholder="CZ"></textarea>
     <textarea id="description-en" placeholder="EN"></textarea>
   </div>
 
   <div class="section-title">Problém zjištěný technikem<span class="en-label">Detected problem</span></div>
   <div class="split-section">
-    <textarea id="problem-cz" placeholder="CZ" oninput="autoTranslate('problem-cz','problem-en')"></textarea>
+    <textarea id="problem-cz" placeholder="CZ"></textarea>
     <textarea id="problem-en" placeholder="EN"></textarea>
   </div>
 
   <div class="section-title">Návrh opravy<span class="en-label">Repair proposal</span></div>
   <div class="split-section">
-    <textarea id="repair-cz" placeholder="CZ" oninput="autoTranslate('repair-cz','repair-en')"></textarea>
+    <textarea id="repair-cz" placeholder="CZ"></textarea>
     <textarea id="repair-en" placeholder="EN"></textarea>
   </div>
 
@@ -130,7 +131,7 @@ textarea { width:100%; min-height:80px; resize:vertical; padding:4px 8px; font-s
 
   <div class="btns">
     <button class="btn-clear" type="button" onclick="signaturePad.clear()">🗑️ Vymazat podpis</button>
-    <button class="btn-back" type="button" onclick="window.location.href='index.html'">
+    <button class="btn-back" type="button" onclick="goBack()">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
       ZPĚT
     </button>
@@ -138,26 +139,54 @@ textarea { width:100%; min-height:80px; resize:vertical; padding:4px 8px; font-s
     <button class="btn-email" type="button" onclick="saveAndMail()">✉️ Odeslat e-mail zákazníkovi</button>
   </div>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 <script>
 let signaturePad;
 let lastPdfName = "protokol.pdf";
 
+// === Inicializace plátna pro podpis ===
 window.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById("signature-pad");
-  function resizeCanvas() { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }
+  function resizeCanvas() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
   resizeCanvas();
-  window.addEventListener('resize', resizeCanvas, { passive: true });
+  window.addEventListener("resize", resizeCanvas, { passive: true });
   signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
+
   const today = new Date().toISOString().split("T")[0];
   document.getElementById("visit-date").value = today;
   document.getElementById("sign-date").value = today;
+
+  // ✅ Automatické načtení dat ze seznamu (localStorage)
+  const storedData = localStorage.getItem("selectedCustomer");
+  if (storedData) {
+    try {
+      const data = JSON.parse(storedData);
+      Object.keys(data).forEach(key => {
+        const field = document.getElementById(key);
+        if (field) field.value = data[key];
+      });
+      localStorage.removeItem("selectedCustomer");
+    } catch (e) {
+      console.warn("Chyba při načítání dat ze seznamu:", e);
+    }
+  }
 });
 
-function stripDiacritics(str){ return (str||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g,"_").replace(/[<>:"/\\|?*\u0000-\u001F]/g,"-"); }
+// === Pomocné funkce ===
+function stripDiacritics(str){
+  return (str||"")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .replace(/\s+/g,"_")
+    .replace(/[<>:"/\\|?*\u0000-\u001F]/g,"-");
+}
+
 function buildPdfFileName(){ 
   const today = new Date().toISOString().split("T")[0];
   const customer = stripDiacritics(document.getElementById("customer").value || "neznamy_zakaznik");
@@ -165,20 +194,19 @@ function buildPdfFileName(){
   const order = stripDiacritics(document.getElementById("order-number").value || "bez_objednavky");
   return `${customer}_${claim}_${order}_${today}.pdf`;
 }
-
-// ✅ vždy jen 1 stránka A4, podpis jen jednou
+// === Generování PDF ===
 function generatePdf(callback){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF("p","mm","a4");
   const wrapper = document.querySelector(".wrapper");
   wrapper.classList.add("force-desktop");
 
-  html2canvas(wrapper,{ 
-      scale:2, 
-      scrollX:0, 
-      scrollY:0, 
-      windowWidth:794, 
-      windowHeight:wrapper.scrollHeight 
+  html2canvas(wrapper,{
+      scale:2,
+      scrollX:0,
+      scrollY:0,
+      windowWidth:794,
+      windowHeight:wrapper.scrollHeight
   }).then(canvas => {
       const imgData = canvas.toDataURL("image/jpeg",0.95);
       const pageW = doc.internal.pageSize.getWidth();
@@ -209,7 +237,12 @@ function generatePdf(callback){
 }
 
 function downloadPDF(){ generatePdf(); }
-function saveAndMail(){ openMailClient(); generatePdf(); }
+
+// === Odeslání e-mailu ===
+function saveAndMail(){ 
+  openMailClient(); 
+  generatePdf(); 
+}
 
 function openMailClient(){
   const customer = document.getElementById("customer").value || "";
@@ -220,6 +253,14 @@ function openMailClient(){
   const subject = `Reklamace Natuzzi - ${customer} (${order})`;
   const body = `Dobrý den ${customer},\n\nzasíláme Vám protokol z návštěvy technika.\n\nČíslo reklamace: ${claim}\nDatum návštěvy: ${visitDate}\n\nSoubor ${lastPdfName} byl uložen – prosím přiložte jej do e-mailu jako přílohu.\n\n=====================\nWHITE GLOVE SERVICE\n=====================\nDo Dubče 364, Běchovice 190 11\n+420 725 965 826\nreklamace-wgs@email.cz`;
   window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+// === Návrat zpět (ZPĚT) ===
+function goBack(){
+  const ref = document.referrer;
+  if(ref.includes("hotove.html")) window.location.href = "hotove.html";
+  else if(ref.includes("aftersales.html")) window.location.href = "aftersales.html";
+  else window.location.href = "seznam.html";
 }
 </script>
 </body>
