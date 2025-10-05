@@ -24,19 +24,9 @@
       width: 100%;
       max-width: 700px;
     }
-    h1 {
+    h1, h2 {
       text-align: center;
-      font-size: 1.8em;
-      font-weight: 800;
-      margin-bottom: 10px;
-    }
-    h2 {
-      text-align: center;
-      font-size: 1em;
-      font-weight: 500;
-      color: #555;
-      margin-top: 0;
-      margin-bottom: 30px;
+      margin: 0 0 20px;
     }
     label {
       display: block;
@@ -44,12 +34,7 @@
       margin-top: 15px;
       margin-bottom: 5px;
     }
-    input[type="text"],
-    input[type="email"],
-    input[type="tel"],
-    input[type="date"],
-    textarea,
-    select {
+    input, textarea, select {
       width: 100%;
       padding: 10px;
       font-size: 1em;
@@ -57,13 +42,8 @@
       border-radius: 6px;
       box-sizing: border-box;
     }
-    textarea {
-      height: 100px;
-      resize: vertical;
-    }
-    input[type="file"] {
-      margin-top: 5px;
-    }
+    textarea { height: 100px; resize: vertical; }
+    input[type="file"] { margin-top: 5px; }
     .btn {
       display: inline-block;
       background: #6c757d;
@@ -78,20 +58,12 @@
       border: none;
       cursor: pointer;
     }
-    .btn:hover {
-      background: #5a6268;
-    }
-    .actions {
-      text-align: center;
-      margin-top: 25px;
-    }
-    .hidden {
-      display: none;
-    }
+    .btn:hover { background: #5a6268; }
+    .actions { text-align: center; margin-top: 25px; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
-
   <div class="wrapper">
     <h1>WHITE GLOVE SERVICE</h1>
     <h2>Nová reklamace</h2>
@@ -108,26 +80,21 @@
 
       <label>Telefon:</label>
       <input type="tel" name="telefon">
-
       <label>E-mail:</label>
       <input type="email" name="email">
-
       <p style="height: 20px;"></p>
 
       <label>Model / Název produktu:</label>
       <input type="text" name="produkt">
-
       <label>Datum prodeje:</label>
       <input type="date" name="datum_prodeje">
-
       <label>Datum reklamace:</label>
       <input type="date" name="datum_reklamace">
-
       <label>Popis závady:</label>
-      <textarea name="popis" placeholder="Popište závadu..."></textarea>
+      <textarea name="popis"></textarea>
 
       <label>Přiložit fotografie (max. 3):</label>
-      <input type="file" name="fotky" id="fotky" accept="image/*" multiple>
+      <input type="file" id="fotky" accept="image/*" multiple>
 
       <label>Objednávku zpracoval:</label>
       <select id="zpracoval" name="zpracoval" required>
@@ -147,17 +114,15 @@
       <div id="jinaSekce" class="hidden">
         <label>Zadej nový zápis zadavatele:</label>
         <input type="text" id="jinaJmeno" name="jinaJmeno">
-
         <label>E-mail zadavatele:</label>
         <input type="email" id="jinaEmail" name="jinaEmail">
-
         <label>Telefon zadavatele:</label>
         <input type="tel" id="jinaTelefon" name="jinaTelefon">
       </div>
 
       <div class="actions">
-        <a href="index.html" class="btn">Zpět na hlavní stránku</a>
-        <button type="submit" class="btn">Odeslat reklamaci</button>
+        <a href="index.html" class="btn">Zpět</a>
+        <button type="submit" class="btn">Odeslat</button>
       </div>
     </form>
   </div>
@@ -177,41 +142,73 @@
       }
     });
 
-    document.getElementById("reklamaceForm").addEventListener("submit", function(e) {
-      e.preventDefault();
+    async function submitToGitHub(dataObj, owner, repo, path, message, token) {
+      const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+      const getResp = await fetch(getUrl, {
+        headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json" }
+      });
 
-      const files = document.getElementById("fotky").files;
-      if (files.length === 0) {
-        const potvrdit = confirm("Opravdu odeslat bez přiložených fotografií?");
-        if (!potvrdit) return;
+      let existingContent = "[]", sha = null;
+      if (getResp.ok) {
+        const existing = await getResp.json();
+        existingContent = atob(existing.content.replace(/\n/g, ""));
+        sha = existing.sha;
       }
 
-      const form = e.target;
+      const arr = JSON.parse(existingContent);
+      arr.push(dataObj);
+      const newContent = JSON.stringify(arr, null, 2);
+      const base64 = btoa(unescape(encodeURIComponent(newContent)));
+
+      const body = { message, content: base64, branch: "main" };
+      if (sha) body.sha = sha;
+
+      const putResp = await fetch(getUrl, {
+        method: "PUT",
+        headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json", "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      if (!putResp.ok) throw new Error(await putResp.text());
+    }
+
+    document.getElementById("reklamaceForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      const files = document.getElementById("fotky").files;
+      if (files.length === 0 && !confirm("Odeslat bez fotografií?")) return;
+
+      const f = e.target;
       const dataObj = {
-        cislo: form.cislo.value,
-        zakaznik: form.zakaznik.value,
-        adresa: form.adresa.value,
-        telefon: form.telefon.value,
-        email: form.email.value,
-        produkt: form.produkt.value,
-        datum_prodeje: form.datum_prodeje.value,
-        datum_reklamace: form.datum_reklamace.value,
-        popis: form.popis.value,
-        zpracoval: form.zpracoval.value,
-        jinaZadavatel: form.zpracoval.value === "Jiná" ? {
-          jmeno: form.jinaJmeno.value,
-          email: form.jinaEmail.value,
-          telefon: form.jinaTelefon.value
-        } : null,
-        fotky: Array.from(files).map(f => f.name)
+        typ: "reklamace",
+        contract: f.zpracoval.value, // 🔥 uloží jméno z dropdownu
+        cislo: f.cislo.value,
+        zakaznik: f.zakaznik.value,
+        adresa: f.adresa.value,
+        telefon: f.telefon.value,
+        email: f.email.value,
+        produkt: f.produkt.value,
+        datum_prodeje: f.datum_prodeje.value,
+        datum_reklamace: f.datum_reklamace.value,
+        popis: f.popis.value,
+        fotky: Array.from(files).map(f => f.name),
+        jinaZadavatel: f.zpracoval.value === "Jiná" ? {
+          jmeno: f.jinaJmeno.value,
+          email: f.jinaEmail.value,
+          telefon: f.jinaTelefon.value
+        } : null
       };
 
-      console.log("Nová reklamace:", dataObj);
-      alert("Reklamace byla úspěšně odeslána (zatím testovací režim).");
-      form.reset();
-      jinaSekce.classList.add("hidden");
+      try {
+        const owner = "radecek222-boop", repo = "reklamace", path = "orders.json";
+        const message = `Nová reklamace ${dataObj.cislo}`;
+        const token = prompt("Zadej GitHub token:");
+        await submitToGitHub(dataObj, owner, repo, path, message, token);
+        alert("Reklamace uložena.");
+        f.reset();
+      } catch (err) {
+        alert("Chyba: " + err.message);
+      }
     });
   </script>
-
 </body>
 </html>
