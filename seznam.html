@@ -1,7 +1,8 @@
 <!doctype html>
 <html lang="cs">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WHITE GLOVE SERVICE – Seznam reklamací</title>
   <style>
@@ -10,23 +11,13 @@
     h1 { text-align:center; font-size:2em; font-weight:900; margin:0 0 10px; }
     h2 { text-align:center; font-size:1.1em; font-weight:600; margin:0 0 20px; color:#555; }
 
-    /* 🔹 jednotné gradientní tlačítka */
     .btn-gradient {
-      display:inline-block;
-      text-decoration:none;
-      padding:10px 22px;
-      border-radius:8px;
-      font-weight:600;
-      font-size:1em;
-      color:#fff;
-      border:none;
-      cursor:pointer;
+      display:inline-block; text-decoration:none; padding:10px 22px; border-radius:8px;
+      font-weight:600; font-size:1em; color:#fff; border:none; cursor:pointer;
       box-shadow:0 2px 8px rgba(0,0,0,0.15);
-      transition:transform 0.15s ease-in-out, opacity 0.2s;
-      margin:4px;
+      transition:transform 0.15s ease-in-out, opacity 0.2s; margin:4px;
     }
     .btn-gradient:hover { transform:scale(1.04); opacity:0.9; }
-
     .btn-green { background:linear-gradient(135deg,#00b36b,#3cd67a); }
     .btn-gray { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
     .btn-blue { background:linear-gradient(135deg,#0046ff,#357aff); }
@@ -35,21 +26,10 @@
       .btn-gradient{display:block;width:100%;text-align:center;padding:14px 0;font-size:1.05em;margin:8px 0;}
     }
 
-    .top-actions {
-      text-align:center;
-      margin-bottom:20px;
-    }
-
+    .top-actions { text-align:center; margin-bottom:20px; }
     .searchbox {
-      width:100%;
-      max-width:400px;
-      margin:0 auto 20px;
-      display:block;
-      padding:10px;
-      border:1px solid #ccc;
-      border-radius:8px;
-      font-size:1em;
-      background:#fff;
+      width:100%; max-width:400px; margin:0 auto 20px; display:block;
+      padding:10px; border:1px solid #ccc; border-radius:8px; font-size:1em; background:#fff;
     }
 
     table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; }
@@ -59,28 +39,20 @@
 
     .contract-poz { color:#7b1fa2; font-weight:700; }
 
-    /* 📱 mobil: jen 4 sloupce */
     @media (max-width: 768px) {
       th:nth-child(n+5), td:nth-child(n+5) { display:none; }
       th:nth-child(1), td:nth-child(1) { display:none; }
     }
 
-    /* 🔍 modal detail */
     #detailModal {
-      position:fixed;
-      top:0; left:0; width:100%; height:100%;
+      position:fixed; top:0; left:0; width:100%; height:100%;
       background:rgba(0,0,0,0.5);
       display:none; justify-content:center; align-items:center;
       padding:20px; z-index:1000;
     }
     #detailContent {
-      background:white;
-      border-radius:10px;
-      padding:20px;
-      max-width:600px;
-      width:100%;
-      max-height:85vh;
-      overflow-y:auto;
+      background:white; border-radius:10px; padding:20px;
+      max-width:600px; width:100%; max-height:85vh; overflow-y:auto;
       box-shadow:0 4px 15px rgba(0,0,0,0.2);
     }
     #detailButtons { text-align:center; margin-top:20px; }
@@ -93,15 +65,10 @@
     .btn-close { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
     .btn-protocol { background:linear-gradient(135deg,#0046ff,#357aff); }
 
-    .photo-gallery {
-      display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:10px;
-    }
-    .photo-gallery img {
-      max-width:100px; border-radius:6px; cursor:pointer; transition:transform 0.2s ease;
-    }
+    .photo-gallery { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:10px; }
+    .photo-gallery img { max-width:100px; border-radius:6px; cursor:pointer; transition:transform 0.2s ease; }
     .photo-gallery img:hover { transform:scale(1.1); }
 
-    /* Fullscreen fotka */
     #photoView {
       display:none; position:fixed; top:0; left:0; width:100%; height:100%;
       background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:1100;
@@ -160,17 +127,7 @@
       try {
         const response = await fetch("https://raw.githubusercontent.com/radecek222-boop/reklamace/main/orders.json?" + Date.now());
         if (!response.ok) throw new Error("Nepodařilo se načíst data.");
-        const text = await response.text();
-
-        // 🔧 Oprava kódování – převod nejběžnějších rozbitých sekvencí na správné znaky
-        const fixedText = text
-          .replace(/Ã¡/g,"á").replace(/Ã©/g,"é").replace(/Ã¨/g,"ě").replace(/Ã­/g,"í")
-          .replace(/Ã³/g,"ó").replace(/Ãº/g,"ú").replace(/Ã±/g,"ň").replace(/Ã½/g,"ý")
-          .replace(/Ã¯/g,"ř").replace(/Ã¨/g,"ě").replace(/Ã§/g,"č").replace(/Ã°/g,"ď")
-          .replace(/Ã²/g,"ů").replace(/Ã´/g,"ô").replace(/Ã/g,"Ď").replace(/Ã¡/g,"á")
-          .replace(/Ã©/g,"é").replace(/Ãº/g,"ú").replace(/Ã¼/g,"ü").replace(/Ã‰/g,"É");
-
-        const data = JSON.parse(fixedText);
+        const data = await response.json();
         renderTable(data);
       } catch (e) {
         document.getElementById("tableBody").innerHTML =
@@ -185,7 +142,6 @@
       data.forEach((item, index) => {
         const tr = document.createElement("tr");
         const contractClass = item.contract === "POZ" ? "contract-poz" : "";
-
         tr.innerHTML = `
           <td>${index + 1}</td>
           <td class="${contractClass}">${item.contract || ""}</td>
@@ -214,7 +170,6 @@
         <p><b>Contract:</b> ${item.contract || ""}</p>
         <p><b>Datum vytvoření:</b> ${item.datum_vytvoreni || "-"}</p>
       `;
-
       const gallery = document.getElementById("photoGallery");
       gallery.innerHTML = "";
       if (item.fotky && item.fotky.length > 0) {
@@ -255,7 +210,7 @@
       });
     });
 
-    window.addEventListener("pageshow", () => { loadOrders(); });
+    window.addEventListener("pageshow", loadOrders);
     loadOrders();
   </script>
 </body>
