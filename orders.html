@@ -27,45 +27,66 @@
     h1, h2 { text-align: center; margin: 0 0 20px; }
     label { display: block; font-weight: 600; margin-top: 15px; margin-bottom: 5px; }
     input, textarea, select {
-      width: 100%; padding: 10px; font-size: 1em;
-      border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
     }
     textarea { height: 100px; resize: vertical; }
     input[type="file"] { margin-top: 5px; }
 
+    /* Tlačítka */
     .btn {
-      display: inline-block; text-decoration: none; padding: 12px 28px;
-      border-radius: 8px; font-weight: 600; font-size: 1em;
-      border: none; cursor: pointer; transition: transform 0.15s ease, opacity 0.2s;
-      color: #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-      margin: 10px 5px 0 0;
+      display: inline-block;
+      text-decoration: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1em;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s ease-in-out, opacity 0.2s;
+      color: white;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+      min-width: 140px;
     }
-    .btn:hover { transform: scale(1.03); opacity: 0.9; }
+    .btn:hover { transform: scale(1.04); opacity: 0.9; }
     .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
     .btn-send { background: linear-gradient(135deg, #0046ff, #357aff); }
-    .actions { text-align: center; margin-top: 25px; }
 
-    #progressWrapper { margin-top: 15px; display: none; }
+    .actions {
+      text-align: center;
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    /* progress bar */
+    #progressContainer {
+      margin-top: 20px;
+      background: #eee;
+      border-radius: 6px;
+      overflow: hidden;
+      height: 18px;
+      display: none;
+    }
     #progressBar {
-      height: 10px; width: 100%; background: #eee;
-      border-radius: 6px; overflow: hidden;
+      height: 100%;
+      background: linear-gradient(135deg,#0046ff,#357aff);
+      width: 0%;
+      transition: width 0.3s;
     }
-    #progressFill {
-      height: 100%; width: 0%; background: linear-gradient(135deg,#0046ff,#357aff);
-      transition: width 0.2s ease;
+    #progressText {
+      text-align: center;
+      font-size: 0.9em;
+      margin-top: 8px;
+      color: #555;
     }
-    #progressText { text-align: center; font-size: 0.9em; margin-top: 5px; color: #333; }
 
-    #suggestions {
-      list-style:none; margin:0; padding:0;
-      position:absolute; background:white;
-      border:1px solid #ccc; border-radius:6px;
-      width:100%; max-height:180px; overflow-y:auto;
-      z-index:1000; display:none;
-    }
-    #suggestions li { padding:8px 10px; cursor:pointer; }
-    #suggestions li:hover { background:#f1f3f5; }
-    .hidden { display:none; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -77,8 +98,32 @@
       <label>Číslo reklamace / objednávky:</label>
       <input type="text" name="cislo" required>
 
-      <label>Zadavatel (prodejna):</label>
-      <select id="zpracoval" name="contract" required>
+      <label>Zákazník:</label>
+      <input type="text" name="zakaznik" required>
+
+      <label>Adresa:</label>
+      <input type="text" name="adresa" required>
+
+      <label>Telefon:</label>
+      <input type="tel" name="telefon">
+      <label>E-mail:</label>
+      <input type="email" name="email">
+
+      <label>Model / Název produktu:</label>
+      <input type="text" name="produkt">
+
+      <label>Datum prodeje:</label>
+      <input type="date" name="datum_prodeje">
+      <label>Datum reklamace:</label>
+      <input type="date" name="datum_reklamace">
+      <label>Popis závady:</label>
+      <textarea name="popis"></textarea>
+
+      <label>Přiložit fotografie (max. 3, automaticky zmenšeno):</label>
+      <input type="file" id="fotky" accept="image/*" multiple>
+
+      <label>Objednávku zpracoval:</label>
+      <select id="zpracoval" name="zpracoval" required>
         <option value="">Vyber...</option>
         <option value="Natuzzi Editions - Strejcek">Natuzzi Editions - Strejcek</option>
         <option value="Natuzzi Editions - Vimrova">Natuzzi Editions - Vimrova</option>
@@ -93,212 +138,201 @@
       </select>
 
       <div id="jinaSekce" class="hidden">
-        <label>Název zadavatele:</label>
+        <label>Zadej nový zápis zadavatele:</label>
         <input type="text" id="jinaJmeno" name="jinaJmeno">
-
         <label>E-mail zadavatele:</label>
         <input type="email" id="jinaEmail" name="jinaEmail">
-
         <label>Telefon zadavatele:</label>
         <input type="tel" id="jinaTelefon" name="jinaTelefon">
-      </div>
-
-      <label>Zákazník:</label>
-      <input type="text" name="zakaznik" required>
-
-      <label>Adresa:</label>
-      <div style="position:relative;">
-        <input type="text" name="adresa" id="adresa" placeholder="Zadejte ulici..." autocomplete="off" required>
-        <ul id="suggestions"></ul>
-      </div>
-
-      <label>Telefon:</label>
-      <input type="tel" name="telefon">
-      <label>E-mail:</label>
-      <input type="email" name="email">
-
-      <label>Model / Název produktu:</label>
-      <input type="text" name="produkt">
-
-      <label>Datum prodeje:</label>
-      <input type="date" name="datum_prodeje">
-      <label>Datum reklamace:</label>
-      <input type="date" name="datum_reklamace">
-
-      <label>Popis závady:</label>
-      <textarea name="popis"></textarea>
-
-      <label>Přiložit fotografie (max. 3):</label>
-      <input type="file" id="fotky" accept="image/*" multiple>
-
-      <div id="progressWrapper">
-        <div id="progressBar"><div id="progressFill"></div></div>
-        <div id="progressText">Nahrávání...</div>
       </div>
 
       <div class="actions">
         <a href="index.html" class="btn btn-back">Zpět</a>
         <button type="submit" class="btn btn-send">Odeslat</button>
       </div>
+
+      <div id="progressContainer"><div id="progressBar"></div></div>
+      <div id="progressText"></div>
     </form>
   </div>
 
-  <script>
-    const selectZpracoval = document.getElementById("zpracoval");
-    const jinaSekce = document.getElementById("jinaSekce");
-    const jinaInputs = jinaSekce.querySelectorAll("input");
+<script>
+const selectZpracoval = document.getElementById("zpracoval");
+const jinaSekce = document.getElementById("jinaSekce");
+const jinaInputs = jinaSekce.querySelectorAll("input");
+selectZpracoval.addEventListener("change", () => {
+  if (selectZpracoval.value === "Jiná") {
+    jinaSekce.classList.remove("hidden");
+    jinaInputs.forEach(inp => inp.required = true);
+  } else {
+    jinaSekce.classList.add("hidden");
+    jinaInputs.forEach(inp => inp.required = false);
+  }
+});
 
-    selectZpracoval.addEventListener("change", () => {
-      if (selectZpracoval.value === "Jiná") {
-        jinaSekce.classList.remove("hidden");
-        jinaInputs.forEach(inp => inp.required = true);
-      } else {
-        jinaSekce.classList.add("hidden");
-        jinaInputs.forEach(inp => inp.required = false);
-      }
-    });
-
-    const adresaInput = document.getElementById("adresa");
-    const suggestions = document.getElementById("suggestions");
-    const progressWrapper = document.getElementById("progressWrapper");
-    const progressFill = document.getElementById("progressFill");
-    const progressText = document.getElementById("progressText");
-    let timer = null;
-
-    // 🔍 Našeptávač adres
-    adresaInput.addEventListener("input", () => {
-      adresaInput.dataset.selected = "false";
-      clearTimeout(timer);
-      const query = adresaInput.value.trim();
-      if (query.length < 3) { suggestions.style.display = "none"; return; }
-      timer = setTimeout(() => searchAddress(query), 400);
-    });
-
-    async function searchAddress(query) {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=cz&q=${encodeURIComponent(query)}`);
-      const data = await res.json();
-      showSuggestions(data);
-    }
-
-    function showSuggestions(results) {
-      suggestions.innerHTML = "";
-      if (!results.length) { suggestions.style.display = "none"; return; }
-      results.slice(0,8).forEach(r => {
-        const li = document.createElement("li");
-        li.textContent = r.display_name;
-        li.onclick = () => selectAddress(r.display_name);
-        suggestions.appendChild(li);
-      });
-      suggestions.style.display = "block";
-    }
-
-    function selectAddress(address) {
-      adresaInput.value = address;
-      adresaInput.dataset.selected = "true";
-      suggestions.style.display = "none";
-    }
-
-    async function resizeImage(file) {
-      return new Promise(resolve => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          const max = 800;
-          let w = img.width, h = img.height;
-          if (w > h && w > max) { h *= max / w; w = max; }
-          else if (h > w && h > max) { w *= max / h; h = max; }
-          canvas.width = w; canvas.height = h;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, w, h);
-          canvas.toBlob(b => resolve(b), "image/jpeg", 0.8);
-        };
-        img.src = URL.createObjectURL(file);
-      });
-    }
-
-    async function uploadToGitHub(fileBlob, fileName, token) {
-      const arrayBuffer = await fileBlob.arrayBuffer();
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-      const path = `uploads/${fileName}`;
-      const url = `https://api.github.com/repos/radecek222-boop/reklamace/contents/${path}`;
-      const body = { message: `Upload ${fileName}`, content: base64, branch: "main" };
-      const res = await fetch(url, {
-        method: "PUT",
-        headers: { Authorization: `token ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
-      if (!res.ok) throw new Error(await res.text());
-      return `https://raw.githubusercontent.com/radecek222-boop/reklamace/main/${path}`;
-    }
-
-    async function updateOrders(dataObj, token) {
-      const url = `https://api.github.com/repos/radecek222-boop/reklamace/contents/orders.json`;
-      const get = await fetch(url, { headers: { Authorization: `token ${token}` } });
-      let existing = "[]", sha = null;
-      if (get.ok) {
-        const j = await get.json();
-        existing = atob(j.content.replace(/\n/g, ""));
-        sha = j.sha;
-      }
-      const arr = JSON.parse(existing);
-      arr.push(dataObj);
-      const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(arr, null, 2))));
-      const body = { message: `Nová reklamace ${dataObj.cislo}`, content: newContent, branch: "main" };
-      if (sha) body.sha = sha;
-      const put = await fetch(url, {
-        method: "PUT",
-        headers: { Authorization: `token ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
-      if (!put.ok) throw new Error(await put.text());
-    }
-
-    document.getElementById("reklamaceForm").addEventListener("submit", async e => {
-      e.preventDefault();
-      if (adresaInput.dataset.selected !== "true") {
-        alert("Vyberte adresu z nabídky."); adresaInput.focus(); return;
-      }
-
-      const token = prompt("Zadej GitHub token:");
-      if (!token) return alert("Token je nutný.");
-
-      const f = e.target;
-      const files = [...document.getElementById("fotky").files].slice(0,3);
-      const uploadedUrls = [];
-      progressWrapper.style.display = "block";
-
-      for (let i=0; i<files.length; i++) {
-        progressText.textContent = `Zpracovávám ${i+1}/${files.length}`;
-        const blob = await resizeImage(files[i]);
-        const url = await uploadToGitHub(blob, Date.now() + "_" + files[i].name, token);
-        uploadedUrls.push(url);
-        progressFill.style.width = `${((i+1)/files.length)*100}%`;
-      }
-
-      const dataObj = {
-        typ: "reklamace",
-        contract: f.contract.value,
-        cislo: f.cislo.value,
-        zakaznik: f.zakaznik.value,
-        adresa: f.adresa.value,
-        telefon: f.telefon.value,
-        email: f.email.value,
-        produkt: f.produkt.value,
-        datum_prodeje: f.datum_prodeje.value,
-        datum_reklamace: f.datum_reklamace.value,
-        popis: f.popis.value,
-        fotky: uploadedUrls,
-        jinaZadavatel: f.contract.value === "Jiná" ? {
-          jmeno: f.jinaJmeno.value,
-          email: f.jinaEmail.value,
-          telefon: f.jinaTelefon.value
-        } : null
+async function resizeImage(file) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxSize = 800;
+        let width = img.width;
+        let height = img.height;
+        if (width > height && width > maxSize) {
+          height *= maxSize / width;
+          width = maxSize;
+        } else if (height > maxSize) {
+          width *= maxSize / height;
+          height = maxSize;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(blob => resolve(blob), "image/jpeg", 0.8);
       };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
-      await updateOrders(dataObj, token);
-      alert("✅ Reklamace byla úspěšně odeslána!");
-      window.location.href = "index.html";
-    });
-  </script>
+async function uploadToGitHub(fileBlob, fileName, token) {
+  const base64 = await new Promise(r => {
+    const reader = new FileReader();
+    reader.onload = () => r(reader.result.split(",")[1]);
+    reader.readAsDataURL(fileBlob);
+  });
+
+  const url = `https://api.github.com/repos/radecek222-boop/reklamace/contents/uploads/${fileName}`;
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: {
+      "Authorization": `token ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      message: `Nahrána fotka ${fileName}`,
+      content: base64,
+      branch: "main"
+    })
+  });
+
+  console.log("⬆️ Uploading:", fileName, "→", res.status, res.statusText);
+  if (!res.ok) throw new Error(await res.text());
+  const data = await res.json();
+  return data.content.download_url;
+}
+document.getElementById("reklamaceForm").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const files = document.getElementById("fotky").files;
+  const progressContainer = document.getElementById("progressContainer");
+  const progressBar = document.getElementById("progressBar");
+  const progressText = document.getElementById("progressText");
+
+  const f = e.target;
+  const token = prompt("Zadej GitHub token:");
+  if (!token) return alert("Token je nutný pro nahrání dat.");
+
+  let uploadedUrls = [];
+
+  try {
+    if (files.length > 0) {
+      progressContainer.style.display = "block";
+
+      for (let i = 0; i < files.length; i++) {
+        progressText.textContent = `Zpracovávám ${i + 1}/${files.length}...`;
+        const resized = await resizeImage(files[i]);
+        console.log(`📸 ${files[i].name}: původně ${(files[i].size/1024).toFixed(1)} kB`);
+
+        const newName = Date.now() + "_" + files[i].name.replace(/\s+/g,"_");
+        try {
+          const url = await uploadToGitHub(resized, newName, token);
+          uploadedUrls.push(url);
+          console.log(`✅ Nahráno ${newName}`);
+        } catch (err) {
+          console.error(`❌ Chyba při uploadu ${files[i].name}:`, err);
+          alert("Chyba při nahrávání fotky: " + err.message);
+        }
+        progressBar.style.width = `${((i + 1) / files.length) * 100}%`;
+      }
+
+      progressText.textContent = "✅ Nahrávání dokončeno";
+    } else {
+      if (!confirm("Odeslat bez fotografií?")) return;
+    }
+
+    // Vytvoření objektu pro zápis
+    const dataObj = {
+      typ: "reklamace",
+      contract: f.zpracoval.value,
+      cislo: f.cislo.value,
+      zakaznik: f.zakaznik.value,
+      adresa: f.adresa.value,
+      telefon: f.telefon.value,
+      email: f.email.value,
+      produkt: f.produkt.value,
+      datum_prodeje: f.datum_prodeje.value,
+      datum_reklamace: f.datum_reklamace.value,
+      popis: f.popis.value,
+      fotky: uploadedUrls,
+      jinaZadavatel: f.zpracoval.value === "Jiná" ? {
+        jmeno: f.jinaJmeno.value,
+        email: f.jinaEmail.value,
+        telefon: f.jinaTelefon.value
+      } : null
+    };
+
+    await submitToGitHub(dataObj, "radecek222-boop", "reklamace", "orders.json", `Nová reklamace ${dataObj.cislo}`, token);
+    alert("✅ Reklamace byla úspěšně uložena.");
+    f.reset();
+    progressBar.style.width = "0%";
+    progressContainer.style.display = "none";
+    progressText.textContent = "";
+    window.location.href = "index.html";
+  } catch (err) {
+    alert("❌ Chyba: " + err.message);
+    console.error("Chyba detailně:", err);
+  }
+});
+
+async function submitToGitHub(dataObj, owner, repo, path, message, token) {
+  const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+  const getResp = await fetch(getUrl, {
+    headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json" }
+  });
+
+  let existingContent = "[]", sha = null;
+  if (getResp.ok) {
+    const existing = await getResp.json();
+    existingContent = atob(existing.content.replace(/\n/g, ""));
+    sha = existing.sha;
+  }
+
+  const arr = JSON.parse(existingContent);
+  arr.push(dataObj);
+  const newContent = JSON.stringify(arr, null, 2);
+  const base64 = btoa(unescape(encodeURIComponent(newContent)));
+
+  const body = { message, content: base64, branch: "main" };
+  if (sha) body.sha = sha;
+
+  const putResp = await fetch(getUrl, {
+    method: "PUT",
+    headers: {
+      "Authorization": `token ${token}`,
+      "Accept": "application/vnd.github.v3+json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  console.log("💾 Zápis do orders.json:", putResp.status, putResp.statusText);
+  if (!putResp.ok) throw new Error(await putResp.text());
+}
+</script>
 </body>
 </html>
