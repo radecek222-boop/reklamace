@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -6,89 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pozáruční servis – White Glove Service</title>
   <style>
-    body {
-      font-family: "Inter", system-ui, sans-serif;
-      background: #f6f7fb;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-    }
-    .wrapper {
-      background: #fff;
-      padding: 30px;
-      margin-top: 40px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 700px;
-    }
-    h1 {
-      text-align: center;
-      font-size: 1.8em;
-      font-weight: 800;
-      margin-bottom: 10px;
-    }
-    h2 {
-      text-align: center;
-      font-size: 1em;
-      font-weight: 500;
-      color: #555;
-      margin-top: 0;
-      margin-bottom: 30px;
-    }
-    label {
-      display: block;
-      font-weight: 600;
-      margin-top: 15px;
-      margin-bottom: 5px;
-    }
-    input[type="text"],
-    input[type="email"],
-    input[type="tel"],
-    input[type="date"],
-    textarea {
-      width: 100%;
-      padding: 10px;
-      font-size: 1em;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-    }
-    textarea {
-      height: 100px;
-      resize: vertical;
-    }
-    input[type="file"] {
-      margin-top: 5px;
-    }
-    .btn {
-      display: inline-block;
-      background: #6c757d;
-      color: #fff;
-      text-decoration: none;
-      padding: 12px 28px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1em;
-      transition: background 0.2s;
-      margin: 10px 5px 0 0;
-      border: none;
-      cursor: pointer;
-    }
-    .btn:hover {
-      background: #5a6268;
-    }
-    .actions {
-      text-align: center;
-      margin-top: 25px;
-    }
+    body { font-family: "Inter", system-ui, sans-serif; background:#f6f7fb; margin:0; padding:0;
+           display:flex; justify-content:center; align-items:flex-start; min-height:100vh; }
+    .wrapper { background:#fff; padding:30px; margin-top:40px; border-radius:10px;
+               box-shadow:0 2px 8px rgba(0,0,0,0.1); width:100%; max-width:700px; }
+    h1, h2 { text-align:center; margin:0 0 20px; }
+    label { display:block; font-weight:600; margin-top:15px; margin-bottom:5px; }
+    input, textarea { width:100%; padding:10px; font-size:1em; border:1px solid #ccc;
+                      border-radius:6px; box-sizing:border-box; }
+    textarea { height:100px; resize:vertical; }
+    .btn { display:inline-block; background:#6c757d; color:#fff; text-decoration:none;
+           padding:12px 28px; border-radius:8px; font-weight:600; font-size:1em;
+           transition:background 0.2s; margin:10px 5px 0 0; border:none; cursor:pointer; }
+    .btn:hover { background:#5a6268; }
+    .actions { text-align:center; margin-top:25px; }
   </style>
 </head>
 <body>
-
   <div class="wrapper">
     <h1>WHITE GLOVE SERVICE</h1>
     <h2>Pozáruční servis</h2>
@@ -96,242 +29,75 @@
     <form id="servisForm">
       <label>Jméno a příjmení:</label>
       <input type="text" name="zakaznik">
-
       <label>Adresa:</label>
       <input type="text" name="adresa">
-
       <label>Telefon:</label>
       <input type="tel" name="telefon">
-
       <label>E-mail:</label>
       <input type="email" name="email">
-
-      <p style="height: 20px;"></p>
-
       <label>Model / Název produktu:</label>
       <input type="text" name="produkt">
-
       <label>Datum nákupu (pokud je známo):</label>
       <input type="date" name="datum_nakupu">
-
       <label>Popis požadované opravy / závady:</label>
-      <textarea name="popis" placeholder="Popište prosím požadavek..."></textarea>
-
+      <textarea name="popis"></textarea>
       <label>Přiložit fotografie (max. 3):</label>
-      <input type="file" name="fotky" id="fotky" accept="image/*" multiple>
-
-      <label>Zadavatel požadavku:</label>
-      <input type="text" name="zadavatel_jmeno" placeholder="Vaše jméno">
+      <input type="file" id="fotky" accept="image/*" multiple>
+      <label>Jméno zadavatele:</label>
+      <input type="text" name="zadavatel_jmeno">
       <label>E-mail zadavatele:</label>
-      <input type="email" name="zadavatel_email" placeholder="např. jan@novak.cz">
+      <input type="email" name="zadavatel_email">
       <label>Telefon zadavatele:</label>
-      <input type="tel" name="zadavatel_telefon" placeholder="+420 ...">
+      <input type="tel" name="zadavatel_telefon">
 
       <div class="actions">
-        <a href="index.html" class="btn">Zpět na hlavní stránku</a>
-        <button type="submit" class="btn">Odeslat požadavek</button>
+        <a href="index.html" class="btn">Zpět</a>
+        <button type="submit" class="btn">Odeslat</button>
       </div>
     </form>
   </div>
 
   <script>
-    document.getElementById("servisForm").addEventListener("submit", function(e) {
+    async function submitToGitHub(dataObj, owner, repo, path, message, token) {
+      const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+      const resp = await fetch(url, { headers:{ "Authorization":`token ${token}`,"Accept":"application/vnd.github.v3+json"}});
+      let existing="[]", sha=null;
+      if(resp.ok){const j=await resp.json();existing=atob(j.content.replace(/\n/g,""));sha=j.sha;}
+      const arr=JSON.parse(existing);arr.push(dataObj);
+      const base64=btoa(unescape(encodeURIComponent(JSON.stringify(arr,null,2))));
+      const body={message,content:base64,branch:"main"};if(sha)body.sha=sha;
+      const put=await fetch(url,{method:"PUT",headers:{"Authorization":`token ${token}`,"Accept":"application/vnd.github.v3+json","Content-Type":"application/json"},body:JSON.stringify(body)});
+      if(!put.ok)throw new Error(await put.text());
+    }
+
+    document.getElementById("servisForm").addEventListener("submit", async e=>{
       e.preventDefault();
-
-      const files = document.getElementById("fotky").files;
-      const potvrdit = confirm("Opravdu odeslat požadavek?");
-      if (!potvrdit) return;
-
-      const form = e.target;
-      const dataObj = {
-        zakaznik: form.zakaznik.value,
-        adresa: form.adresa.value,
-        telefon: form.telefon.value,
-        email: form.email.value,
-        produkt: form.produkt.value,
-        datum_nakupu: form.datum_nakupu.value,
-        popis: form.popis.value,
-        fotky: Array.from(files).map(f => f.name),
-        zadavatel: {
-          jmeno: form.zadavatel_jmeno.value,
-          email: form.zadavatel_email.value,
-          telefon: form.zadavatel_telefon.value
-        }
+      const files=document.getElementById("fotky").files;
+      if(!confirm("Opravdu odeslat požadavek?"))return;
+      const f=e.target;
+      const dataObj={
+        typ:"pozáruční",
+        contract:"POZ", // 🔥 zkratka pro pozáruční servis
+        zakaznik:f.zakaznik.value,
+        adresa:f.adresa.value,
+        telefon:f.telefon.value,
+        email:f.email.value,
+        produkt:f.produkt.value,
+        datum_nakupu:f.datum_nakupu.value,
+        popis:f.popis.value,
+        fotky:Array.from(files).map(x=>x.name),
+        zadavatel:{jmeno:f.zadavatel_jmeno.value,email:f.zadavatel_email.value,telefon:f.zadavatel_telefon.value}
       };
 
-      console.log("Nový pozáruční servisní požadavek:", dataObj);
-      alert("Děkujeme, požadavek byl odeslán. (zatím testovací režim)");
-      form.reset();
+      try{
+        const owner="radecek222-boop",repo="reklamace",path="orders.json";
+        const message=`Nový pozáruční servis od ${dataObj.zadavatel.jmeno}`;
+        const token=prompt("Zadej GitHub token:");
+        await submitToGitHub(dataObj,owner,repo,path,message,token);
+        alert("Děkujeme, požadavek byl odeslán.");
+        f.reset();
+      }catch(err){alert("Chyba: "+err.message);}
     });
   </script>
-
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="cs">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pozáruční servis – White Glove Service</title>
-  <style>
-    body {
-      font-family: "Inter", system-ui, sans-serif;
-      background: #f6f7fb;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-    }
-    .wrapper {
-      background: #fff;
-      padding: 30px;
-      margin-top: 40px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 700px;
-    }
-    h1 {
-      text-align: center;
-      font-size: 1.8em;
-      font-weight: 800;
-      margin-bottom: 10px;
-    }
-    h2 {
-      text-align: center;
-      font-size: 1em;
-      font-weight: 500;
-      color: #555;
-      margin-top: 0;
-      margin-bottom: 30px;
-    }
-    label {
-      display: block;
-      font-weight: 600;
-      margin-top: 15px;
-      margin-bottom: 5px;
-    }
-    input[type="text"],
-    input[type="email"],
-    input[type="tel"],
-    input[type="date"],
-    textarea {
-      width: 100%;
-      padding: 10px;
-      font-size: 1em;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-    }
-    textarea {
-      height: 100px;
-      resize: vertical;
-    }
-    input[type="file"] {
-      margin-top: 5px;
-    }
-    .btn {
-      display: inline-block;
-      background: #6c757d;
-      color: #fff;
-      text-decoration: none;
-      padding: 12px 28px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1em;
-      transition: background 0.2s;
-      margin: 10px 5px 0 0;
-      border: none;
-      cursor: pointer;
-    }
-    .btn:hover {
-      background: #5a6268;
-    }
-    .actions {
-      text-align: center;
-      margin-top: 25px;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="wrapper">
-    <h1>WHITE GLOVE SERVICE</h1>
-    <h2>Pozáruční servis</h2>
-
-    <form id="servisForm">
-      <label>Jméno a příjmení:</label>
-      <input type="text" name="zakaznik">
-
-      <label>Adresa:</label>
-      <input type="text" name="adresa">
-
-      <label>Telefon:</label>
-      <input type="tel" name="telefon">
-
-      <label>E-mail:</label>
-      <input type="email" name="email">
-
-      <p style="height: 20px;"></p>
-
-      <label>Model / Název produktu:</label>
-      <input type="text" name="produkt">
-
-      <label>Datum nákupu (pokud je známo):</label>
-      <input type="date" name="datum_nakupu">
-
-      <label>Popis požadované opravy / závady:</label>
-      <textarea name="popis" placeholder="Popište prosím požadavek..."></textarea>
-
-      <label>Přiložit fotografie (max. 3):</label>
-      <input type="file" name="fotky" id="fotky" accept="image/*" multiple>
-
-      <label>Zadavatel požadavku:</label>
-      <input type="text" name="zadavatel_jmeno" placeholder="Vaše jméno">
-      <label>E-mail zadavatele:</label>
-      <input type="email" name="zadavatel_email" placeholder="např. jan@novak.cz">
-      <label>Telefon zadavatele:</label>
-      <input type="tel" name="zadavatel_telefon" placeholder="+420 ...">
-
-      <div class="actions">
-        <a href="index.html" class="btn">Zpět na hlavní stránku</a>
-        <button type="submit" class="btn">Odeslat požadavek</button>
-      </div>
-    </form>
-  </div>
-
-  <script>
-    document.getElementById("servisForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-
-      const files = document.getElementById("fotky").files;
-      const potvrdit = confirm("Opravdu odeslat požadavek?");
-      if (!potvrdit) return;
-
-      const form = e.target;
-      const dataObj = {
-        zakaznik: form.zakaznik.value,
-        adresa: form.adresa.value,
-        telefon: form.telefon.value,
-        email: form.email.value,
-        produkt: form.produkt.value,
-        datum_nakupu: form.datum_nakupu.value,
-        popis: form.popis.value,
-        fotky: Array.from(files).map(f => f.name),
-        zadavatel: {
-          jmeno: form.zadavatel_jmeno.value,
-          email: form.zadavatel_email.value,
-          telefon: form.zadavatel_telefon.value
-        }
-      };
-
-      console.log("Nový pozáruční servisní požadavek:", dataObj);
-      alert("Děkujeme, požadavek byl odeslán. (zatím testovací režim)");
-      form.reset();
-    });
-  </script>
-
 </body>
 </html>
