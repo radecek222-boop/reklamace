@@ -90,11 +90,9 @@
   </div>
 
   <script>
-    // 🔒 Bezpečný zápis do GitHubu – token se zadává ručně při odeslání
     async function submitToGitHub(dataObj, owner, repo, path, message, token) {
       const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
 
-      // 1️⃣ Načteme existující obsah
       const getResp = await fetch(getUrl, {
         headers: {
           "Authorization": `token ${token}`,
@@ -111,19 +109,15 @@
         sha = existing.sha;
       }
 
-      // 2️⃣ Přidáme nový záznam
       const arr = JSON.parse(existingContent);
       arr.push(dataObj);
 
-      // 3️⃣ Převedeme zpět do Base64
       const newContent = JSON.stringify(arr, null, 2);
       const base64 = btoa(unescape(encodeURIComponent(newContent)));
 
-      // 4️⃣ Vytvoříme tělo požadavku
       const body = { message, content: base64, branch: "main" };
       if (sha) body.sha = sha;
 
-      // 5️⃣ Zapíšeme změnu
       const putResp = await fetch(getUrl, {
         method: "PUT",
         headers: {
@@ -144,8 +138,8 @@
 
     document.getElementById("servisForm").addEventListener("submit", async function(e) {
       e.preventDefault();
-      const potvrdit = confirm("Opravdu odeslat požadavek?");
-      if (!potvrdit) return;
+
+      if (!confirm("Opravdu odeslat požadavek?")) return;
 
       const f = e.target;
       const files = document.getElementById("fotky").files;
@@ -180,11 +174,10 @@
 
         await submitToGitHub(dataObj, owner, repo, path, message, token);
 
-        alert("Děkujeme, požadavek byl uložen.");
+        alert("✅ Děkujeme, požadavek byl uložen.");
         f.reset();
       } catch (err) {
-        console.error(err);
-        alert("Chyba při odesílání: " + err.message);
+        alert("❌ Chyba při odesílání: " + err.message);
       }
     });
   </script>
