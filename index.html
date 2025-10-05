@@ -27,31 +27,67 @@
       font-size: 1.2em;
       font-weight: 500;
       margin-top: 0;
-      margin-bottom: 40px;
+      margin-bottom: 50px;
       color: #555;
     }
+
     .btn {
       display: inline-block;
-      background: #6c757d;
-      color: white;
       text-decoration: none;
-      padding: 12px 28px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1em;
-      transition: background 0.2s;
-      margin: 8px;
+      color: white;
+      font-weight: 700;
+      font-size: 1.1em;
+      border-radius: 10px;
+      padding: 14px 32px;
+      margin: 12px;
+      min-width: 240px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
+
     .btn:hover {
-      background: #5a6268;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    /* Zelený metalický gradient */
+    .btn-green {
+      background: linear-gradient(135deg, #28a745, #4dd06d, #28a745);
+      background-size: 200% 200%;
+      animation: shineGreen 3s ease infinite;
+    }
+    @keyframes shineGreen {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Šedý metalický gradient */
+    .btn-grey {
+      background: linear-gradient(135deg, #6c757d, #b1b1b1, #6c757d);
+      background-size: 200% 200%;
+      animation: shineGrey 3s ease infinite;
+    }
+    @keyframes shineGrey {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+      box-shadow: none;
     }
   </style>
 </head>
 <body>
   <h1>WHITE GLOVE SERVICE</h1>
   <h2>specializovaný autorizovaný servis Natuzzi</h2>
-  
-  <a href="seznam.html" class="btn">Seznam reklamací</a>
-  <a href="orders.html" class="btn">New Orders</a>
+
+  <a href="orders.html" class="btn btn-green">OBJEDNÁNÍ REKLAMACE</a>
+  <a href="seznam.html" class="btn btn-grey">ADMIN</a>
+
+  <p style="font-size:0.9em; color:#888; margin-top:40px;">Verze startovací | Přístup pro interní použití</p>
 </body>
 </html>
