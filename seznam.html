@@ -110,7 +110,6 @@
     <div id="detailContent">
       <h3 id="detailName" style="margin-top:0;"></h3>
       <div id="detailInfo"></div>
-      <div class="photo-gallery" id="photoGallery"></div>
       <div id="detailButtons">
         <button id="markDone" class="btn-green">Označit jako hotové</button>
         <button id="createProtocol" class="btn-protocol">Otevřít protokol</button>
@@ -130,17 +129,25 @@
 
     async function loadOrders() {
       try {
-        const response = await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${ORDERS_FILE}?${Date.now()}`);
-        const data = await response.json();
+        const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${ORDERS_FILE}?${Date.now()}`);
+        if (!res.ok) throw new Error("Nepodařilo se načíst data.");
+        const data = await res.json();
         renderTable(data);
       } catch (e) {
-        document.getElementById("tableBody").innerHTML = `<tr><td colspan="8" style="color:red;">Chyba: ${e.message}</td></tr>`;
+        document.getElementById("tableBody").innerHTML =
+          `<tr><td colspan="8" style="text-align:center;color:red;">Chyba: ${e.message}</td></tr>`;
       }
     }
 
     function renderTable(data) {
       const tbody = document.getElementById("tableBody");
       tbody.innerHTML = "";
+
+      if (!data || data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#555;">Žádné záznamy.</td></tr>`;
+        return;
+      }
+
       data.forEach((item, i) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -148,12 +155,12 @@
           <td>${item["Číslo objednávky"] || ""}</td>
           <td>${item["Zákazník"] || ""}</td>
           <td>${item["Adresa"] || ""}</td>
-          <td><a href="tel:${item["Telefon"]}">${item["Telefon"]}</a></td>
-          <td><a href="mailto:${item["Email"]}">${item["Email"]}</a></td>
+          <td><a href="tel:${item["Telefon"] || ""}">${item["Telefon"] || ""}</a></td>
+          <td><a href="mailto:${item["Email"] || ""}">${item["Email"] || ""}</a></td>
           <td>${item["Popis CZ"] || ""}</td>
           <td>${item["Stav"] || ""}</td>
         `;
-        tr.onclick = () => openDetail(item);
+        tr.addEventListener("click", () => openDetail(item));
         tbody.appendChild(tr);
       });
     }
@@ -161,42 +168,46 @@
     function openDetail(item) {
       const modal = document.getElementById("detailModal");
       modal.style.display = "flex";
-      document.getElementById("detailName").textContent = item["Zákazník"];
+      document.getElementById("detailName").textContent = item["Zákazník"] || "Neznámý zákazník";
       document.getElementById("detailInfo").innerHTML = `
-        <p><b>Adresa:</b> ${item["Adresa"]}</p>
-        <p><b>Telefon:</b> ${item["Telefon"]}</p>
-        <p><b>Email:</b> ${item["Email"]}</p>
-        <p><b>Popis závady:</b><br>${item["Popis CZ"]}</p>
-        <p><b>Model:</b> ${item["Model"]}</p>
-        <p><b>Stav:</b> ${item["Stav"]}</p>
+        <p><b>Adresa:</b> ${item["Adresa"] || ""}</p>
+        <p><b>Telefon:</b> ${item["Telefon"] || ""}</p>
+        <p><b>Email:</b> ${item["Email"] || ""}</p>
+        <p><b>Popis závady:</b><br>${item["Popis CZ"] || ""}</p>
+        <p><b>Model:</b> ${item["Model"] || ""}</p>
+        <p><b>Contract:</b> ${item["Contract"] || ""}</p>
+        <p><b>Stav:</b> ${item["Stav"] || ""}</p>
       `;
-      document.getElementById("markDone").onclick = () => markAsDone(item);
       document.getElementById("createProtocol").onclick = () => createProtocol(item);
+      document.getElementById("markDone").onclick = () => markAsDone(item);
     }
 
     async function markAsDone(item) {
       if (!confirm("Označit tuto reklamaci jako hotovou?")) return;
-
-      const [ordersRes, hotoveRes] = await Promise.all([
-        fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${ORDERS_FILE}?${Date.now()}`),
-        fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${HOTOVE_FILE}?${Date.now()}`)
-      ]);
-      const [orders, hotove] = await Promise.all([ordersRes.json(), hotoveRes.json()]);
-      item["Stav"] = "Hotovo";
-      hotove.push(item);
-      const updatedOrders = orders.filter(o => o["Číslo reklamace"] !== item["Číslo reklamace"]);
-      await updateFile(ORDERS_FILE, JSON.stringify(updatedOrders, null, 2));
-      await updateFile(HOTOVE_FILE, JSON.stringify(hotove, null, 2));
-      alert("Reklamace přesunuta mezi hotové.");
-      document.getElementById("detailModal").style.display = "none";
-      loadOrders();
+      try {
+        const [ordersRes, hotoveRes] = await Promise.all([
+          fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${ORDERS_FILE}?${Date.now()}`),
+          fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${HOTOVE_FILE}?${Date.now()}`)
+        ]);
+        const [orders, hotove] = await Promise.all([ordersRes.json(), hotoveRes.json().catch(()=>[])]);
+        item["Stav"] = "Hotovo";
+        hotove.push(item);
+        const updatedOrders = orders.filter(o => o["Číslo reklamace"] !== item["Číslo reklamace"]);
+        await updateFile(ORDERS_FILE, JSON.stringify(updatedOrders, null, 2));
+        await updateFile(HOTOVE_FILE, JSON.stringify(hotove, null, 2));
+        alert("Reklamace přesunuta mezi hotové.");
+        document.getElementById("detailModal").style.display = "none";
+        loadOrders();
+      } catch (e) {
+        alert("Chyba při ukládání: " + e.message);
+      }
     }
 
     async function updateFile(filename, content) {
-      const getRes = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`, {
+      const metaRes = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`, {
         headers: { Authorization: `token ${TOKEN}` }
       });
-      const fileData = await getRes.json();
+      const meta = await metaRes.json();
       await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`, {
         method: "PUT",
         headers: {
@@ -204,9 +215,9 @@
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          message: `Update ${filename}`,
+          message: `Aktualizace ${filename}`,
           content: btoa(unescape(encodeURIComponent(content))),
-          sha: fileData.sha
+          sha: meta.sha
         })
       });
     }
