@@ -34,13 +34,18 @@
       margin-top: 15px;
       margin-bottom: 5px;
     }
-    input, textarea, select {
+    input, textarea {
       width: 100%;
       padding: 10px;
       font-size: 1em;
       border: 1px solid #ccc;
       border-radius: 6px;
       box-sizing: border-box;
+    }
+    input[readonly] {
+      background: #eee;
+      color: #555;
+      font-weight: 600;
     }
     textarea { height: 100px; resize: vertical; }
     input[type="file"] { margin-top: 5px; }
@@ -61,7 +66,6 @@
     .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
     .btn-submit { background: linear-gradient(135deg, #0046ff, #357aff); }
     .actions { text-align: center; margin-top: 25px; }
-    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -70,55 +74,29 @@
     <h2>Pozáruční servis</h2>
 
     <form id="servisForm">
-      <label>Číslo zakázky / objednávky:</label>
-      <input type="text" name="cislo" required>
+      <label>Číslo objednávky:</label>
+      <input type="text" name="cislo" value="Pozáruční servis" readonly>
 
-      <label>Zákazník:</label>
-      <input type="text" name="zakaznik" required>
+      <label>Jméno zadavatele:</label>
+      <input type="text" name="zadavatel" required>
 
-      <label>Adresa:</label>
+      <label>E-mail zadavatele:</label>
+      <input type="email" name="email" required>
+
+      <label>Telefon zadavatele:</label>
+      <input type="tel" name="telefon" required>
+
+      <label>Adresa servisu:</label>
       <input type="text" name="adresa" required>
-
-      <label>Telefon:</label>
-      <input type="tel" name="telefon">
-      <label>E-mail:</label>
-      <input type="email" name="email">
-
-      <p style="height: 20px;"></p>
 
       <label>Model / Název produktu:</label>
       <input type="text" name="produkt">
-      <label>Datum objednávky:</label>
-      <input type="date" name="datum_objednavky">
+
       <label>Popis požadavku:</label>
-      <textarea name="popis"></textarea>
+      <textarea name="popis" placeholder="Popište požadavek na opravu..."></textarea>
 
       <label>Přiložit fotografie (max. 3):</label>
       <input type="file" id="fotky" accept="image/*" multiple>
-
-      <label>Zadavatel / prodejce:</label>
-      <select id="zpracoval" name="zpracoval" required>
-        <option value="">Vyber...</option>
-        <option value="Natuzzi Editions - Strejcek">Natuzzi Editions - Strejcek</option>
-        <option value="Natuzzi Editions - Vimrova">Natuzzi Editions - Vimrova</option>
-        <option value="Natuzzi Italia - Bratislava">Natuzzi Italia - Bratislava</option>
-        <option value="Natuzzi Italia - Jama">Natuzzi Italia - Jama</option>
-        <option value="Natuzzi Italia - River">Natuzzi Italia - River</option>
-        <option value="Natuzzi Italia - SOHO">Natuzzi Italia - SOHO</option>
-        <option value="Softaly - SOHO">Softaly - SOHO</option>
-        <option value="Phase - Klucarova">Phase - Klucarova</option>
-        <option value="Phase - Jancova">Phase - Jancova</option>
-        <option value="Jiná">Jiná</option>
-      </select>
-
-      <div id="jinaSekce" class="hidden">
-        <label>Zadej nový zápis zadavatele:</label>
-        <input type="text" id="jinaJmeno" name="jinaJmeno">
-        <label>E-mail zadavatele:</label>
-        <input type="email" id="jinaEmail" name="jinaEmail">
-        <label>Telefon zadavatele:</label>
-        <input type="tel" id="jinaTelefon" name="jinaTelefon">
-      </div>
 
       <div class="actions">
         <a href="index.html" class="btn btn-back">Zpět</a>
@@ -128,20 +106,6 @@
   </div>
 
   <script>
-    const selectZpracoval = document.getElementById("zpracoval");
-    const jinaSekce = document.getElementById("jinaSekce");
-    const jinaInputs = jinaSekce.querySelectorAll("input");
-
-    selectZpracoval.addEventListener("change", () => {
-      if (selectZpracoval.value === "Jiná") {
-        jinaSekce.classList.remove("hidden");
-        jinaInputs.forEach(inp => inp.required = true);
-      } else {
-        jinaSekce.classList.add("hidden");
-        jinaInputs.forEach(inp => inp.required = false);
-      }
-    });
-
     async function submitToGitHub(dataObj, owner, repo, path, message, token) {
       const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
       const getResp = await fetch(getUrl, {
@@ -179,30 +143,23 @@
 
       const f = e.target;
       const dataObj = {
-        typ: "aftersales",
-        contract: f.zpracoval.value,
+        typ: "Pozáruční servis",
         cislo: f.cislo.value,
-        zakaznik: f.zakaznik.value,
+        zakaznik: f.zadavatel.value,
         adresa: f.adresa.value,
         telefon: f.telefon.value,
         email: f.email.value,
         produkt: f.produkt.value,
-        datum_objednavky: f.datum_objednavky.value,
         popis: f.popis.value,
-        fotky: Array.from(files).map(f => f.name),
-        jinaZadavatel: f.zpracoval.value === "Jiná" ? {
-          jmeno: f.jinaJmeno.value,
-          email: f.jinaEmail.value,
-          telefon: f.jinaTelefon.value
-        } : null
+        fotky: Array.from(files).map(f => f.name)
       };
 
       try {
         const owner = "radecek222-boop", repo = "reklamace", path = "orders.json";
-        const message = `Nový pozáruční servis ${dataObj.cislo}`;
+        const message = `Nový pozáruční servis`;
         const token = prompt("Zadej GitHub token:");
         await submitToGitHub(dataObj, owner, repo, path, message, token);
-        alert("Pozáruční servis uložen do seznamu.");
+        alert("Pozáruční servis byl uložen do seznamu.");
         f.reset();
         window.location.href = "index.html";
       } catch (err) {
