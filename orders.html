@@ -3,23 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WHITE GLOVE SERVICE – Založení nového požadavku</title>
+  <title>WHITE GLOVE SERVICE – Nová reklamace</title>
   <style>
-    :root {
-      font-family: "Inter", system-ui, sans-serif;
-      color: #111;
-    }
-    body {
-      margin: 0;
-      padding: 20px;
-      background: #f6f7fb;
-    }
+    :root { font-family: "Inter", system-ui, sans-serif; color: #111; }
+    body { margin: 0; padding: 20px; background: #f6f7fb; }
     .wrapper {
-      max-width: 900px;
-      margin: auto;
-      background: #fff;
-      border-radius: 16px;
-      padding: 25px 30px;
+      max-width: 900px; margin: auto; background: #fff;
+      border-radius: 16px; padding: 25px 30px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.08);
     }
     h1 { text-align: center; font-size: 1.8em; font-weight: 900; margin: 0; }
@@ -27,30 +17,40 @@
     label { display: block; margin-top: 12px; font-weight: 600; color: #333; }
     input, textarea {
       width: 100%; padding: 10px; margin-top: 6px;
-      border: 1px solid #ccc; border-radius: 8px; font-family: inherit;
-      font-size: 15px; box-sizing: border-box;
+      border: 1px solid #ccc; border-radius: 8px;
+      font-family: inherit; font-size: 15px; box-sizing: border-box;
     }
     textarea { resize: vertical; min-height: 80px; }
     input:invalid, textarea:invalid { border-color: #d9534f; background: #fff6f6; }
-    .buttons { margin-top: 25px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    input[type="file"] { border: none; }
+    .buttons {
+      margin-top: 25px; display: flex; flex-wrap: wrap;
+      gap: 10px; justify-content: center;
+    }
     .btn {
-      border: none; color: white; padding: 10px 25px; border-radius: 12px;
-      font-size: 15px; cursor: pointer; font-weight: 600; transition: 0.2s;
+      border: none; color: white; padding: 10px 25px;
+      border-radius: 12px; font-size: 15px;
+      cursor: pointer; font-weight: 600; transition: 0.2s;
     }
     .btn-submit { background: linear-gradient(135deg, #5a8dee, #7b42f6); }
     .btn-back { background: linear-gradient(135deg, #9e9e9e, #6c757d); }
     .message { margin-top: 20px; font-weight: 600; text-align: center; color: #28a745; display: none; }
+    .preview { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px; }
+    .preview img {
+      width: 120px; height: 120px; object-fit: cover;
+      border-radius: 8px; border: 1px solid #ccc;
+    }
   </style>
 </head>
 <body>
 
 <div class="wrapper">
-  <h1>Založení nového požadavku</h1>
+  <h1>Nová reklamace</h1>
   <h2>Formulář pro zadání nového případu</h2>
 
   <form id="orderForm" novalidate>
-    <label>Číslo objednávky:</label>
-    <input type="text" name="cislo_objednavky" required>
+    <label>Číslo reklamace / číslo objednávky:</label>
+    <input type="text" name="cislo_reklamace" required placeholder="např. R2025-001 / NBU26-000145">
 
     <label>Zákazník:</label>
     <input type="text" name="zakaznik" required>
@@ -74,61 +74,87 @@
     <input type="date" name="datum_nakupu" required>
 
     <label>Popis závady:</label>
-    <textarea name="popis" required></textarea>
+    <textarea name="popis" placeholder="Popište závadu nebo problém" required></textarea>
+
+    <label>Přiložit fotografie (max. 3):</label>
+    <input type="file" id="photos" name="photos" accept="image/*" multiple>
+
+    <div class="preview" id="preview"></div>
 
     <div class="buttons">
       <button type="button" class="btn btn-back" onclick="window.location.href='index.html'">Zpět na hlavní stránku</button>
-      <button type="submit" class="btn btn-submit">Odeslat požadavek</button>
+      <button type="submit" class="btn btn-submit">Odeslat reklamaci</button>
     </div>
   </form>
 
-  <div class="message" id="message">Požadavek byl úspěšně odeslán ✅</div>
+  <div class="message" id="message">Reklamace byla úspěšně odeslána ✅</div>
 </div>
 
 <script>
   /*******************************************************
    🔑 SEM VLOŽ NOVÝ TOKEN (mezi uvozovky níže)
-   ⚠️ Tento token nikdy nesmíš nahrát do veřejného repozitáře!
+   ⚠️ Pouze pro interní testování – nikdy veřejně!
   *******************************************************/
-  const GITHUB_TOKEN = "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;
+  const GITHUB_TOKEN = "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";
 
-  const REPO = "radecek222-boop"; // název repozitáře
-  const FILE_PATH = "orders.json"; // soubor, kam se zapisuje
-  const USERNAME = "radecek222"; // tvé GitHub uživatelské jméno
+  const USERNAME = "radecek222";
+  const REPO = "radecek222-boop";
+  const FILE_PATH = "orders.json";
 
   const form = document.getElementById("orderForm");
+  const preview = document.getElementById("preview");
   const message = document.getElementById("message");
+  const photosInput = document.getElementById("photos");
+
+  let photoFiles = [];
+
+  photosInput.addEventListener("change", () => {
+    preview.innerHTML = "";
+    photoFiles = Array.from(photosInput.files).slice(0, 3);
+    photoFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.createElement("img");
+        img.src = e.target.result;
+        preview.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    });
+  });
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-
-    // validace polí
     const data = Object.fromEntries(new FormData(form).entries());
     if (Object.values(data).some(v => !v.trim())) {
-      alert("Vyplň prosím všechna pole.");
+      alert("Vyplň prosím všechna povinná pole.");
       return;
     }
 
-    // přidání metadat
-    data.datum_zalozeni = new Date().toISOString();
-    data.id = "REQ-" + Date.now();
+    // Přidání ID a dat
+    const now = new Date();
+    data.id = "REQ-" + now.getTime();
+    data.datum_podani_reklamace = now.toLocaleDateString("cs-CZ");
+    data.fotky = [];
 
-    // načtení aktuálního obsahu orders.json
+    // Převod fotek na Base64 (uložení do GitHubu)
+    for (const file of photoFiles) {
+      const base64 = await toBase64(file);
+      const path = `uploads/${data.id}/${file.name}`;
+      await uploadFileToGitHub(path, base64, file.name);
+      data.fotky.push(path);
+    }
+
+    // Načtení původního orders.json
     const apiUrl = `https://api.github.com/repos/${USERNAME}/${REPO}/contents/${FILE_PATH}`;
-
-    const response = await fetch(apiUrl, {
+    const res = await fetch(apiUrl, {
       headers: { Authorization: `token ${GITHUB_TOKEN}` }
     });
-    const file = await response.json();
-    const existingData = file.content ? JSON.parse(atob(file.content)) : [];
+    const file = await res.json();
+    const oldData = file.content ? JSON.parse(atob(file.content)) : [];
 
-    // přidání nového záznamu
-    existingData.push(data);
+    oldData.push(data);
+    const newContent = btoa(JSON.stringify(oldData, null, 2));
 
-    // nový obsah jako base64
-    const newContent = btoa(JSON.stringify(existingData, null, 2));
-
-    // zápis do GitHubu
     const update = await fetch(apiUrl, {
       method: "PUT",
       headers: {
@@ -136,7 +162,7 @@
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        message: `Nový požadavek od ${data.zakaznik}`,
+        message: `Nová reklamace od ${data.zakaznik}`,
         content: newContent,
         sha: file.sha
       })
@@ -145,11 +171,37 @@
     if (update.ok) {
       message.style.display = "block";
       form.reset();
+      preview.innerHTML = "";
       setTimeout(() => message.style.display = "none", 4000);
     } else {
-      alert("Chyba při zápisu do GitHubu. Zkontroluj token nebo oprávnění.");
+      alert("Chyba při odeslání na GitHub. Zkontroluj token nebo oprávnění.");
     }
   });
+
+  function toBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result.split(",")[1]);
+      reader.onerror = reject;
+    });
+  }
+
+  async function uploadFileToGitHub(path, base64, name) {
+    const url = `https://api.github.com/repos/${USERNAME}/${REPO}/contents/${path}`;
+    const upload = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Authorization": `token ${GITHUB_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: `Upload fotografie ${name}`,
+        content: base64
+      })
+    });
+    if (!upload.ok) console.error("Chyba při nahrávání obrázku:", name);
+  }
 </script>
 
 </body>
