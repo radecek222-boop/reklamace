@@ -1,241 +1,292 @@
 <!doctype html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WHITE GLOVE SERVICE – Seznam reklamací</title>
-  <style>
-    :root { font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:#111; }
-    body { margin:0; padding:20px; background:#f6f7fb; }
-    h1 { text-align:center; font-size:2em; font-weight:900; margin:0 0 10px; }
-    h2 { text-align:center; font-size:1.1em; font-weight:600; margin:0 0 20px; color:#555; }
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WHITE GLOVE SERVICE – Seznam reklamací</title>
+<style>
+:root { font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:#111; }
+body { margin:0; padding:20px; background:#f6f7fb; }
+h1 { text-align:center; font-size:2em; font-weight:900; margin:0 0 10px; }
+h2 { text-align:center; font-size:1.1em; font-weight:600; margin:0 0 20px; color:#555; }
 
-    .btn-gradient {
-      display:inline-block; text-decoration:none; padding:10px 22px; border-radius:8px;
-      font-weight:600; font-size:1em; color:#fff; border:none; cursor:pointer;
-      box-shadow:0 2px 8px rgba(0,0,0,0.15);
-      transition:transform 0.15s ease-in-out, opacity 0.2s; margin:4px;
-    }
-    .btn-gradient:hover { transform:scale(1.04); opacity:0.9; }
-    .btn-green { background:linear-gradient(135deg,#00b36b,#3cd67a); }
-    .btn-gray { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
-    .btn-blue { background:linear-gradient(135deg,#0046ff,#357aff); }
-    .btn-red { background:linear-gradient(135deg,#ff3b30,#ff6b60); }
+.btn-gradient {
+  display:inline-block; text-decoration:none; padding:10px 22px; border-radius:8px;
+  font-weight:600; font-size:1em; color:#fff; border:none; cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,0.15);
+  transition:transform 0.15s ease-in-out, opacity 0.2s; margin:4px;
+}
+.btn-gradient:hover { transform:scale(1.04); opacity:0.9; }
+.btn-green { background:linear-gradient(135deg,#00b36b,#3cd67a); }
+.btn-gray { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
+.btn-blue { background:linear-gradient(135deg,#0046ff,#357aff); }
+.btn-red { background:linear-gradient(135deg,#ff3b30,#ff6b60); }
 
-    @media(max-width:768px){
-      .btn-gradient{display:block;width:100%;text-align:center;padding:14px 0;font-size:1.05em;margin:8px 0;}
-    }
+@media(max-width:768px){
+  .btn-gradient{display:block;width:100%;text-align:center;padding:14px 0;font-size:1.05em;margin:8px 0;}
+}
 
-    .top-actions { text-align:center; margin-bottom:20px; }
-    .searchbox {
-      width:100%; max-width:400px; margin:0 auto 20px; display:block;
-      padding:10px; border:1px solid #ccc; border-radius:8px; font-size:1em; background:#fff;
-    }
+.top-actions { text-align:center; margin-bottom:20px; }
+.searchbox {
+  width:100%; max-width:400px; margin:0 auto 20px; display:block;
+  padding:10px; border:1px solid #ccc; border-radius:8px; font-size:1em; background:#fff;
+}
 
-    table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; }
-    th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #ddd; font-size:0.95em; }
-    th { background:#eee; font-weight:700; }
-    tr:hover { background:#f1f3f5; cursor:pointer; }
+table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; }
+th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #ddd; font-size:0.95em; }
+th { background:#eee; font-weight:700; }
+tr:hover { background:#f1f3f5; cursor:pointer; }
 
-    @media (max-width: 768px) {
-      th:nth-child(n+5), td:nth-child(n+5) { display:none; }
-      th:nth-child(1), td:nth-child(1) { display:none; }
-    }
+@media (max-width: 768px) {
+  th:nth-child(n+5), td:nth-child(n+5) { display:none; }
+  th:nth-child(1), td:nth-child(1) { display:none; }
+}
 
-    #detailModal {
-      position:fixed; top:0; left:0; width:100%; height:100%;
-      background:rgba(0,0,0,0.5);
-      display:none; justify-content:center; align-items:center;
-      padding:20px; z-index:1000;
-    }
-    #detailContent {
-      background:white; border-radius:10px; padding:20px;
-      max-width:600px; width:100%; max-height:85vh; overflow-y:auto;
-      box-shadow:0 4px 15px rgba(0,0,0,0.2);
-    }
-    #detailButtons { text-align:center; margin-top:20px; }
-    #detailButtons button {
-      margin:5px; padding:10px 16px; border:none; border-radius:8px;
-      cursor:pointer; color:#fff; font-weight:600;
-      transition:transform 0.15s ease, opacity 0.2s;
-    }
-    #detailButtons button:hover { transform:scale(1.05); opacity:0.9; }
-    .btn-close { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
-    .btn-protocol { background:linear-gradient(135deg,#0046ff,#357aff); }
+#detailModal {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.5);
+  display:none; justify-content:center; align-items:center;
+  padding:20px; z-index:1000;
+}
+#detailContent {
+  background:white; border-radius:10px; padding:20px;
+  max-width:600px; width:100%; max-height:85vh; overflow-y:auto;
+  box-shadow:0 4px 15px rgba(0,0,0,0.2);
+}
+#detailButtons { text-align:center; margin-top:20px; }
+#detailButtons button {
+  margin:5px; padding:10px 16px; border:none; border-radius:8px;
+  cursor:pointer; color:#fff; font-weight:600;
+  transition:transform 0.15s ease, opacity 0.2s;
+}
+#detailButtons button:hover { transform:scale(1.05); opacity:0.9; }
+.btn-close { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
+.btn-protocol { background:linear-gradient(135deg,#0046ff,#357aff); }
 
-    .photo-gallery { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:10px; }
-    .photo-gallery img { max-width:100px; border-radius:6px; cursor:pointer; transition:transform 0.2s ease; }
-    .photo-gallery img:hover { transform:scale(1.1); }
+.photo-gallery { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:10px; }
+.photo-gallery img { max-width:100px; border-radius:6px; cursor:pointer; transition:transform 0.2s ease; }
+.photo-gallery img:hover { transform:scale(1.1); }
 
-    #photoView {
-      display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-      background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:1100;
-    }
-    #photoView img { max-width:90%; max-height:90%; border-radius:10px; }
-  </style>
+#photoView {
+  display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:1100;
+}
+#photoView img { max-width:90%; max-height:90%; border-radius:10px; }
+</style>
 </head>
 <body>
-  <h1>WHITE GLOVE SERVICE</h1>
-  <h2>Seznam reklamací a servisních požadavků</h2>
+<h1>WHITE GLOVE SERVICE</h1>
+<h2>Seznam reklamací a servisních požadavků</h2>
 
-  <div class="top-actions">
-    <a href="hotove.html" class="btn-gradient btn-green">Hotové reklamace</a>
-    <button onclick="window.history.back()" class="btn-gradient btn-gray">Zpět</button>
-    <button onclick="loadOrders()" class="btn-gradient btn-blue">Načíst znovu</button>
-  </div>
+<div class="top-actions">
+  <a href="hotove.html" class="btn-gradient btn-green">Hotové reklamace</a>
+  <button onclick="window.history.back()" class="btn-gradient btn-gray">Zpět</button>
+  <button onclick="loadOrders()" class="btn-gradient btn-blue">Načíst znovu</button>
+</div>
 
-  <input type="text" id="searchInput" class="searchbox" placeholder="Hledat podle jména, adresy nebo telefonu...">
+<input type="text" id="searchInput" class="searchbox" placeholder="Hledat podle jména, adresy nebo telefonu...">
 
-  <table id="dataTable">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>OBJEDNÁVKA</th>
-        <th>JMÉNO</th>
-        <th>ADRESA</th>
-        <th>TELEFON</th>
-        <th>E-MAIL</th>
-        <th>POPIS</th>
-        <th>STAV</th>
-      </tr>
-    </thead>
-    <tbody id="tableBody">
-      <tr><td colspan="8" style="text-align:center; padding:20px;">Načítání dat...</td></tr>
-    </tbody>
-  </table>
+<table id="dataTable">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>OBJEDNÁVKA</th>
+      <th>JMÉNO</th>
+      <th>ADRESA</th>
+      <th>TELEFON</th>
+      <th>E-MAIL</th>
+      <th>POPIS</th>
+      <th>STAV</th>
+    </tr>
+  </thead>
+  <tbody id="tableBody">
+    <tr><td colspan="8" style="text-align:center; padding:20px;">Načítání dat...</td></tr>
+  </tbody>
+</table>
 
-  <!-- Modal detail -->
-  <div id="detailModal">
-    <div id="detailContent">
-      <h3 id="detailName" style="margin-top:0;"></h3>
-      <div id="detailInfo"></div>
-      <div id="detailButtons">
-        <button id="markDone" class="btn-green">Označit jako hotové</button>
-        <button id="createProtocol" class="btn-protocol">Otevřít protokol</button>
-        <button id="closeDetail" class="btn-close">Zavřít detail</button>
-      </div>
+<!-- Modal detail -->
+<div id="detailModal">
+  <div id="detailContent">
+    <h3 id="detailName" style="margin-top:0;"></h3>
+    <div id="detailInfo"></div>
+    <div class="photo-gallery" id="photoGallery"></div>
+    <div id="detailButtons">
+      <button id="markDone" class="btn-green">Označit jako hotové</button>
+      <button id="createProtocol" class="btn-protocol">Otevřít protokol</button>
+      <button id="closeDetail" class="btn-close">Zavřít detail</button>
     </div>
   </div>
+</div>
 
-  <div id="photoView"><img id="photoLarge" src=""></div>
+<div id="photoView"><img id="photoLarge" src=""></div>
 
-  <script>
-    const GITHUB_USER = "radecek222-boop";
-    const REPO = "reklamace";
-    const TOKEN = "TVŮJ_TOKEN";
-    const ORDERS_FILE = "orders.json";
-    const HOTOVE_FILE = "hotove.json";
+<script>
+const GITHUB_USER = "radecek222-boop";
+const REPO = "reklamace";
+const TOKEN = "TVŮJ_TOKEN"; // ⚠️ vlož svůj GitHub token
+const ORDERS_FILE = "orders.json";
+const HOTOVE_FILE = "hotove.json";
 
-    async function loadOrders() {
-      try {
-        const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${ORDERS_FILE}?${Date.now()}`);
-        if (!res.ok) throw new Error("Nepodařilo se načíst data.");
-        const data = await res.json();
-        renderTable(data);
-      } catch (e) {
-        document.getElementById("tableBody").innerHTML =
-          `<tr><td colspan="8" style="text-align:center;color:red;">Chyba: ${e.message}</td></tr>`;
-      }
+async function loadOrders() {
+  try {
+    const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${ORDERS_FILE}?${Date.now()}`);
+    if (!res.ok) throw new Error("Nepodařilo se načíst data.");
+    const data = await res.json();
+    renderTable(data);
+  } catch (e) {
+    document.getElementById("tableBody").innerHTML =
+      `<tr><td colspan="8" style="text-align:center;color:red;">Chyba: ${e.message}</td></tr>`;
+  }
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById("tableBody");
+  tbody.innerHTML = "";
+  if (!data || data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#555;">Žádné záznamy.</td></tr>`;
+    return;
+  }
+  data.forEach((item, i) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td>${item["Číslo objednávky"] || ""}</td>
+      <td>${item["Zákazník"] || ""}</td>
+      <td>${item["Adresa"] || ""}</td>
+      <td><a href="tel:${item["Telefon"] || ""}">${item["Telefon"] || ""}</a></td>
+      <td><a href="mailto:${item["Email"] || ""}">${item["Email"] || ""}</a></td>
+      <td>${item["Popis CZ"] || ""}</td>
+      <td>${item["Stav"] || ""}</td>
+    `;
+    tr.addEventListener("click", () => openDetail(item));
+    tbody.appendChild(tr);
+  });
+}
+
+function openDetail(item) {
+  const modal = document.getElementById("detailModal");
+  modal.style.display = "flex";
+  document.getElementById("detailName").textContent = item["Zákazník"] || "Neznámý zákazník";
+  document.getElementById("detailInfo").innerHTML = `
+    <p><b>Adresa:</b> ${item["Adresa"] || ""}</p>
+    <p><b>Telefon:</b> ${item["Telefon"] || ""}</p>
+    <p><b>E-mail:</b> ${item["Email"] || ""}</p>
+    <p><b>Popis závady:</b><br>${item["Popis CZ"] || ""}</p>
+    <p><b>Model:</b> ${item["Model"] || ""}</p>
+    <p><b>Stav:</b> ${item["Stav"] || ""}</p>
+  `;
+  const gallery = document.getElementById("photoGallery");
+  gallery.innerHTML = "";
+  ["Foto1", "Foto2", "Foto3"].forEach(key => {
+    if (item[key]) {
+      const img = document.createElement("img");
+      img.src = item[key];
+      img.addEventListener("click", () => openPhoto(img.src));
+      gallery.appendChild(img);
+    }
+  });
+  document.getElementById("createProtocol").onclick = () => createProtocol(item);
+  document.getElementById("markDone").onclick = () => markAsDone(item);
+}
+
+function openPhoto(src) {
+  const view = document.getElementById("photoView");
+  const img = document.getElementById("photoLarge");
+  img.src = src;
+  view.style.display = "flex";
+  view.onclick = () => { view.style.display = "none"; };
+}
+
+// ✅ přenos do protokolu
+function createProtocol(item) {
+  localStorage.setItem("selectedOrder", JSON.stringify(item));
+  window.location.href = "protokol.html";
+}
+
+// ✅ označení jako hotové + mazání fotek
+async function markAsDone(item) {
+  if (!confirm("Označit tuto reklamaci jako hotovou?")) return;
+  try {
+    const [ordersRes, hotoveRes] = await Promise.all([
+      fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${ORDERS_FILE}?${Date.now()}`),
+      fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${HOTOVE_FILE}?${Date.now()}`)
+    ]);
+    const [orders, hotove] = await Promise.all([
+      ordersRes.json().catch(()=>[]),
+      hotoveRes.json().catch(()=>[])
+    ]);
+    item["Stav"] = "Hotovo";
+    hotove.push(item);
+    const updatedOrders = orders.filter(o => o["Číslo reklamace"] !== item["Číslo reklamace"]);
+
+    // 🔥 smazání fotek
+    const fotos = [item["Foto1"], item["Foto2"], item["Foto3"]].filter(f => f && f.includes("uploads/"));
+    for (const url of fotos) {
+      const path = url.split("/main/")[1];
+      await deleteFile(path);
+      console.log("🗑️ Smazáno:", path);
     }
 
-    function renderTable(data) {
-      const tbody = document.getElementById("tableBody");
-      tbody.innerHTML = "";
+    await updateFile(ORDERS_FILE, JSON.stringify(updatedOrders, null, 2));
+    await updateFile(HOTOVE_FILE, JSON.stringify(hotove, null, 2));
 
-      if (!data || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#555;">Žádné záznamy.</td></tr>`;
-        return;
-      }
-
-      data.forEach((item, i) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${i + 1}</td>
-          <td>${item["Číslo objednávky"] || ""}</td>
-          <td>${item["Zákazník"] || ""}</td>
-          <td>${item["Adresa"] || ""}</td>
-          <td><a href="tel:${item["Telefon"] || ""}">${item["Telefon"] || ""}</a></td>
-          <td><a href="mailto:${item["Email"] || ""}">${item["Email"] || ""}</a></td>
-          <td>${item["Popis CZ"] || ""}</td>
-          <td>${item["Stav"] || ""}</td>
-        `;
-        tr.addEventListener("click", () => openDetail(item));
-        tbody.appendChild(tr);
-      });
-    }
-
-    function openDetail(item) {
-      const modal = document.getElementById("detailModal");
-      modal.style.display = "flex";
-      document.getElementById("detailName").textContent = item["Zákazník"] || "Neznámý zákazník";
-      document.getElementById("detailInfo").innerHTML = `
-        <p><b>Adresa:</b> ${item["Adresa"] || ""}</p>
-        <p><b>Telefon:</b> ${item["Telefon"] || ""}</p>
-        <p><b>Email:</b> ${item["Email"] || ""}</p>
-        <p><b>Popis závady:</b><br>${item["Popis CZ"] || ""}</p>
-        <p><b>Model:</b> ${item["Model"] || ""}</p>
-        <p><b>Contract:</b> ${item["Contract"] || ""}</p>
-        <p><b>Stav:</b> ${item["Stav"] || ""}</p>
-      `;
-      document.getElementById("createProtocol").onclick = () => createProtocol(item);
-      document.getElementById("markDone").onclick = () => markAsDone(item);
-    }
-
-    async function markAsDone(item) {
-      if (!confirm("Označit tuto reklamaci jako hotovou?")) return;
-      try {
-        const [ordersRes, hotoveRes] = await Promise.all([
-          fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${ORDERS_FILE}?${Date.now()}`),
-          fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${HOTOVE_FILE}?${Date.now()}`)
-        ]);
-        const [orders, hotove] = await Promise.all([ordersRes.json(), hotoveRes.json().catch(()=>[])]);
-        item["Stav"] = "Hotovo";
-        hotove.push(item);
-        const updatedOrders = orders.filter(o => o["Číslo reklamace"] !== item["Číslo reklamace"]);
-        await updateFile(ORDERS_FILE, JSON.stringify(updatedOrders, null, 2));
-        await updateFile(HOTOVE_FILE, JSON.stringify(hotove, null, 2));
-        alert("Reklamace přesunuta mezi hotové.");
-        document.getElementById("detailModal").style.display = "none";
-        loadOrders();
-      } catch (e) {
-        alert("Chyba při ukládání: " + e.message);
-      }
-    }
-
-    async function updateFile(filename, content) {
-      const metaRes = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`, {
-        headers: { Authorization: `token ${TOKEN}` }
-      });
-      const meta = await metaRes.json();
-      await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `token ${TOKEN}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          message: `Aktualizace ${filename}`,
-          content: btoa(unescape(encodeURIComponent(content))),
-          sha: meta.sha
-        })
-      });
-    }
-
-    function createProtocol(item) {
-      localStorage.setItem("selectedOrder", JSON.stringify(item));
-      window.location.href = "protokol.html";
-    }
-
-    document.getElementById("closeDetail").onclick = () => document.getElementById("detailModal").style.display = "none";
-    document.getElementById("searchInput").oninput = e => {
-      const filter = e.target.value.toLowerCase();
-      document.querySelectorAll("#dataTable tbody tr").forEach(row => {
-        row.style.display = row.textContent.toLowerCase().includes(filter) ? "" : "none";
-      });
-    };
-    window.addEventListener("pageshow", loadOrders);
+    alert("Reklamace přesunuta mezi hotové a fotky byly smazány.");
+    document.getElementById("detailModal").style.display = "none";
     loadOrders();
-  </script>
+  } catch (e) {
+    alert("Chyba při přesunu: " + e.message);
+  }
+}
+
+async function deleteFile(path) {
+  try {
+    const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${path}`, {
+      headers: { Authorization: `token ${TOKEN}` }
+    });
+    const meta = await res.json();
+    if (!meta.sha) return;
+    await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${path}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `token ${TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ message: `Smazána fotka ${path}`, sha: meta.sha })
+    });
+  } catch (err) {
+    console.warn("⚠️ Nepodařilo se smazat soubor:", path, err);
+  }
+}
+
+async function updateFile(filename, content) {
+  const metaRes = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`, {
+    headers: { Authorization: `token ${TOKEN}` }
+  });
+  const meta = await metaRes.json();
+  await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `token ${TOKEN}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      message: `Aktualizace ${filename}`,
+      content: btoa(unescape(encodeURIComponent(content))),
+      sha: meta.sha
+    })
+  });
+}
+
+document.getElementById("closeDetail").onclick = () => document.getElementById("detailModal").style.display = "none";
+document.getElementById("searchInput").oninput = e => {
+  const filter = e.target.value.toLowerCase();
+  document.querySelectorAll("#dataTable tbody tr").forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(filter) ? "" : "none";
+  });
+};
+window.addEventListener("pageshow", loadOrders);
+loadOrders();
+</script>
 </body>
 </html>
