@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nová reklamace – White Glove Service</title>
+
   <style>
     body {
       font-family: "Inter", system-ui, sans-serif;
@@ -15,6 +16,7 @@
       align-items: flex-start;
       min-height: 100vh;
     }
+
     .wrapper {
       background: #fff;
       padding: 30px;
@@ -24,8 +26,18 @@
       width: 100%;
       max-width: 700px;
     }
-    h1, h2 { text-align: center; margin: 0 0 20px; }
-    label { display: block; font-weight: 600; margin-top: 15px; margin-bottom: 5px; }
+
+    h1, h2 {
+      text-align: center;
+      margin: 0 0 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-top: 15px;
+      margin-bottom: 5px;
+    }
 
     input, textarea, select {
       width: 100%;
@@ -36,20 +48,28 @@
       box-sizing: border-box;
       transition: border 0.2s;
     }
-    input:invalid, textarea:invalid, select:invalid {
+
+    input:invalid,
+    textarea:invalid,
+    select:invalid {
       border: 2px solid;
       border-image: linear-gradient(45deg, #ff4d4d, #ff7b7b) 1;
     }
 
-    textarea { height: 100px; resize: vertical; }
-    input[type="file"] { margin-top: 5px; }
+    textarea {
+      height: 100px;
+      resize: vertical;
+    }
+
+    input[type="file"] {
+      margin-top: 5px;
+    }
 
     small {
       font-size: 0.8em;
       color: #666;
     }
 
-    /* ✅ jednotné tlačítka */
     .btn {
       display: inline-block;
       text-decoration: none;
@@ -64,9 +84,19 @@
       box-shadow: 0 3px 8px rgba(0,0,0,0.15);
       min-width: 140px;
     }
-    .btn:hover { transform: scale(1.04); opacity: 0.9; }
-    .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
-    .btn-send { background: linear-gradient(135deg, #0046ff, #357aff); }
+
+    .btn:hover {
+      transform: scale(1.04);
+      opacity: 0.9;
+    }
+
+    .btn-back {
+      background: linear-gradient(135deg, #6c757d, #a0a4a7);
+    }
+
+    .btn-send {
+      background: linear-gradient(135deg, #0046ff, #357aff);
+    }
 
     .actions {
       text-align: center;
@@ -76,15 +106,18 @@
       gap: 20px;
     }
 
-    .hidden { display: none; }
+    .hidden {
+      display: none;
+    }
 
-    /* ✅ náhledy obrázků */
+    /* Náhled obrázků */
     .preview {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
       margin-top: 10px;
     }
+
     .preview-item {
       width: 80px;
       height: 80px;
@@ -93,11 +126,13 @@
       overflow: hidden;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
+
     .preview-item img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
+
     .progress-bar {
       position: absolute;
       bottom: 0;
@@ -108,14 +143,14 @@
       transition: width 0.3s;
     }
 
-    /* ✅ validace červený gradient */
+    /* Nevalidní červený gradient */
     .invalid {
       border: 2px solid;
       border-image: linear-gradient(45deg, #ff4d4d, #ff7b7b) 1;
     }
-
   </style>
 </head>
+
 <body>
   <div class="wrapper">
     <h1>WHITE GLOVE SERVICE</h1>
@@ -198,54 +233,62 @@
       </div>
     </form>
   </div>
+
   <script>
-    // --- Našeptávač adresy (OpenStreetMap Nominatim API) ---
+    // --- Našeptávač adres (OpenStreetMap) ---
     const uliceInput = document.getElementById("ulice");
     const mestoInput = document.getElementById("mesto");
     const pscInput = document.getElementById("psc");
-
     let adresaPlatna = false;
 
     uliceInput.addEventListener("input", async () => {
       const query = uliceInput.value.trim();
       adresaPlatna = false;
+
       if (query.length < 4) return;
 
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}&countrycodes=cz,sk&limit=5`
       );
-      const data = await res.json();
 
-      // vytvoří dropdown s návrhy
+      const data = await res.json();
       let list = document.getElementById("suggestions");
       if (list) list.remove();
+
       if (data.length === 0) return;
 
       list = document.createElement("ul");
+      Object.assign(list.style, {
+        listStyle: "none",
+        padding: "6px",
+        margin: "0",
+        position: "absolute",
+        background: "#fff",
+        border: "1px solid #ccc",
+        borderRadius: "6px",
+        width: uliceInput.offsetWidth + "px",
+        zIndex: 1000
+      });
+
       list.id = "suggestions";
-      list.style.listStyle = "none";
-      list.style.padding = "6px";
-      list.style.margin = "0";
-      list.style.position = "absolute";
-      list.style.background = "#fff";
-      list.style.border = "1px solid #ccc";
-      list.style.borderRadius = "6px";
-      list.style.width = uliceInput.offsetWidth + "px";
-      list.style.zIndex = 1000;
+
       data.forEach(item => {
         const li = document.createElement("li");
         li.textContent = item.display_name;
         li.style.padding = "6px";
         li.style.cursor = "pointer";
-        li.addEventListener("click", () => {
+
+        li.onclick = () => {
           uliceInput.value = (item.address.road || "") + " " + (item.address.house_number || "");
           mestoInput.value = item.address.city || item.address.town || item.address.village || "";
           pscInput.value = item.address.postcode || "";
           adresaPlatna = true;
           list.remove();
-        });
+        };
+
         list.appendChild(li);
       });
+
       uliceInput.parentNode.appendChild(list);
     });
 
@@ -254,73 +297,107 @@
       if (list && !list.contains(e.target) && e.target !== uliceInput) list.remove();
     });
 
-    // --- Validace telefonu a emailu ---
+    // --- Validace telefonu a e-mailu ---
     const telefonInput = document.getElementById("telefon");
     const predvolba = document.getElementById("predvolba");
     const emailInput = document.getElementById("email");
 
     function validateTelefon() {
-      const val = telefonInput.value.trim();
-      return /^[0-9]{8,12}$/.test(val);
-    }
-    function validateEmail() {
-      const val = emailInput.value.trim();
-      return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val);
+      return /^[0-9]{8,12}$/.test(telefonInput.value.trim());
     }
 
-    // --- Náhled a zmenšení fotek ---
+    function validateEmail() {
+      return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailInput.value.trim());
+    }
+
+    // --- Komprese fotek ---
+    async function compressImage(file, maxSizeMB = 1, maxDim = 1280) {
+      const img = await createImageBitmap(file);
+      const canvas = document.createElement("canvas");
+      let [w, h] = [img.width, img.height];
+
+      if (w > h && w > maxDim) {
+        h *= maxDim / w;
+        w = maxDim;
+      } else if (h > w && h > maxDim) {
+        w *= maxDim / h;
+        h = maxDim;
+      }
+
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, w, h);
+
+      let quality = 0.9;
+      let blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
+
+      while (blob.size / 1024 / 1024 > maxSizeMB && quality > 0.4) {
+        quality -= 0.1;
+        blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
+      }
+
+      return blob;
+    }
+
     const fotkyInput = document.getElementById("fotky");
     const preview = document.getElementById("preview");
+    let compressedFiles = [];
 
-    fotkyInput.addEventListener("change", () => {
+    fotkyInput.addEventListener("change", async () => {
       preview.innerHTML = "";
+      compressedFiles = [];
+
       const files = Array.from(fotkyInput.files).slice(0, 5);
 
-      files.forEach(file => {
-        if (!file.type.startsWith("image/")) return;
+      for (const file of files) {
+        if (!file.type.startsWith("image/")) continue;
 
         const item = document.createElement("div");
         item.classList.add("preview-item");
 
         const img = document.createElement("img");
-        const reader = new FileReader();
-
         const progress = document.createElement("div");
         progress.classList.add("progress-bar");
-        item.appendChild(progress);
 
+        item.appendChild(progress);
+        preview.appendChild(item);
+
+        const reader = new FileReader();
         reader.onload = e => {
           img.src = e.target.result;
           item.appendChild(img);
-          preview.appendChild(item);
-
-          // simulace progress baru
-          let w = 0;
-          const int = setInterval(() => {
-            w += 10;
-            progress.style.width = w + "%";
-            if (w >= 100) clearInterval(int);
-          }, 50);
         };
         reader.readAsDataURL(file);
-      });
-    });
 
-    // --- Jiná sekce zpracovatele ---
-    const selectZpracoval = document.getElementById("zpracoval");
-    const jinaSekce = document.getElementById("jinaSekce");
-    const jinaInputs = jinaSekce.querySelectorAll("input");
-    selectZpracoval.addEventListener("change", () => {
-      if (selectZpracoval.value === "Jiná") {
-        jinaSekce.classList.remove("hidden");
-        jinaInputs.forEach(inp => inp.required = true);
-      } else {
-        jinaSekce.classList.add("hidden");
-        jinaInputs.forEach(inp => inp.required = false);
+        const blob = await compressImage(file);
+        compressedFiles.push({ name: file.name, blob });
+
+        let w = 0;
+        const int = setInterval(() => {
+          w += 10;
+          progress.style.width = w + "%";
+          if (w >= 100) clearInterval(int);
+        }, 40);
       }
     });
 
-    // --- Odeslání na GitHub (stejné jako dřív) ---
+    // --- Sekce Jiná ---
+    const selectZpracoval = document.getElementById("zpracoval");
+    const jinaSekce = document.getElementById("jinaSekce");
+    const jinaInputs = jinaSekce.querySelectorAll("input");
+
+    selectZpracoval.onchange = () => {
+      if (selectZpracoval.value === "Jiná") {
+        jinaSekce.classList.remove("hidden");
+        jinaInputs.forEach(i => i.required = true);
+      } else {
+        jinaSekce.classList.add("hidden");
+        jinaInputs.forEach(i => i.required = false);
+      }
+    };
+
+    // --- Zápis na GitHub ---
     async function submitToGitHub(dataObj, owner, repo, path, message, token) {
       const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
       const getResp = await fetch(getUrl, {
@@ -344,14 +421,18 @@
 
       const putResp = await fetch(getUrl, {
         method: "PUT",
-        headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json", "Content-Type": "application/json" },
+        headers: {
+          "Authorization": `token ${token}`,
+          "Accept": "application/vnd.github.v3+json",
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify(body)
       });
 
       if (!putResp.ok) throw new Error(await putResp.text());
     }
 
-    // --- Validace + odeslání formuláře ---
+    // --- Odeslání formuláře ---
     document.getElementById("reklamaceForm").addEventListener("submit", async e => {
       e.preventDefault();
 
@@ -371,15 +452,19 @@
       if (!validateTelefon()) {
         telefonInput.classList.add("invalid");
         valid = false;
-      } else telefonInput.classList.remove("invalid");
+      } else {
+        telefonInput.classList.remove("invalid");
+      }
 
       if (!validateEmail()) {
         emailInput.classList.add("invalid");
         valid = false;
-      } else emailInput.classList.remove("invalid");
+      } else {
+        emailInput.classList.remove("invalid");
+      }
 
       if (!adresaPlatna) {
-        alert("Vyber prosím adresu z našeptávače (musí být potvrzena).");
+        alert("Vyber prosím adresu z našeptávače.");
         uliceInput.classList.add("invalid");
         valid = false;
       }
@@ -389,8 +474,7 @@
         return;
       }
 
-      const files = Array.from(fotkyInput.files).slice(0, 5);
-      if (files.length === 0 && !confirm("Odeslat bez fotografií?")) return;
+      if (compressedFiles.length === 0 && !confirm("Odeslat bez fotografií?")) return;
 
       const dataObj = {
         typ: "reklamace",
@@ -404,20 +488,26 @@
         datum_prodeje: form.datum_prodeje.value,
         datum_reklamace: form.datum_reklamace.value,
         popis: form.popis.value,
-        fotky: files.map(f => f.name),
-        jinaZadavatel: form.zpracoval.value === "Jiná" ? {
-          jmeno: form.jinaJmeno.value,
-          email: form.jinaEmail.value,
-          telefon: form.jinaTelefon.value
-        } : null
+        fotky: compressedFiles.map(f => f.name),
+        jinaZadavatel: form.zpracoval.value === "Jiná"
+          ? {
+              jmeno: form.jinaJmeno.value,
+              email: form.jinaEmail.value,
+              telefon: form.jinaTelefon.value
+            }
+          : null
       };
 
       try {
-        const owner = "radecek222-boop", repo = "reklamace", path = "orders.json";
+        const owner = "radecek222-boop";
+        const repo = "reklamace";
+        const path = "orders.json";
         const message = `Nová reklamace ${dataObj.cislo}`;
         const token = prompt("Zadej GitHub token:");
+
         await submitToGitHub(dataObj, owner, repo, path, message, token);
-        alert("Reklamace úspěšně uložena.");
+        alert("Reklamace uložena (fotky komprimovány pod 1 MB).");
+
         form.reset();
         window.location.href = "index.html";
       } catch (err) {
