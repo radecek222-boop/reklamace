@@ -288,7 +288,13 @@
       <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   </div>
-  <script>
+  <script>   
+    // === Automaticky převádí číslo objednávky na VELKÁ písmena při psaní ===
+    const cisloInput = document.querySelector('input[name="cislo"]');
+    cisloInput.addEventListener("input", () => {
+      cisloInput.value = cisloInput.value.toUpperCase();
+    });
+
     // === Našeptávač adresy (OpenStreetMap) ===
     const uliceInput = document.getElementById("ulice");
     const mestoInput = document.getElementById("mesto");
