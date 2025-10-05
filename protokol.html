@@ -315,5 +315,37 @@
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
   </script>
+  <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const data = localStorage.getItem("selectedOrder");
+  if (!data) return;
+
+  const order = JSON.parse(data);
+
+  // Předvyplnění polí podle názvů ve formuláři
+  const mapping = {
+    "zakaznik": "zakaznik",
+    "adresa": "adresa",
+    "telefon": "telefon",
+    "email": "email",
+    "produkt": "produkt",
+    "popis": "popis",
+    "contract": "contract",
+    "datum_vytvoreni": "datum"
+  };
+
+  for (const key in mapping) {
+    const el = document.querySelector(`[name="${mapping[key]}"]`);
+    if (el) el.value = order[key] || "";
+  }
+
+  // přenést i do pole "popis závady" pokud existuje
+  const desc = document.querySelector("#popisZavady");
+  if (desc && order.popis) desc.value = order.popis;
+
+  console.log("Protokol načetl data:", order);
+});
+</script>
+
 </body>
 </html>
