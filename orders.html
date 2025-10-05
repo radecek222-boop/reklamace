@@ -29,7 +29,7 @@
       <input type="text" id="mesto" name="mesto" required>
 
       <label>PSČ:</label>
-      <input type="text" id="psc" name="psc" required pattern="\\d{3}\\s?\\d{2}">
+      <input type="text" id="psc" name="psc" required pattern="^\d{3}\s?\d{2}$" title="Zadej PSČ ve formátu 12345 nebo 123 45">
 
       <label>Telefon:</label>
       <div style="display:flex; gap:8px;">
@@ -107,7 +107,7 @@
   </div>
 
   <script>
-    // === Automaticky převádí číslo objednávky na VELKÁ písmena při psaní ===
+    // Automatické velké písmena
     const cisloInput = document.querySelector('input[name="cislo"]');
     cisloInput.addEventListener("input", () => {
       cisloInput.value = cisloInput.value.toUpperCase();
@@ -152,7 +152,7 @@
       }
     });
 
-    // === Validace telefonu a e-mailu ===
+    // === Validace ===
     const telefonInput = document.getElementById("telefon");
     const predvolba = document.getElementById("predvolba");
     const emailInput = document.getElementById("email");
@@ -160,7 +160,6 @@
     function validateTelefon() {
       return /^[0-9]{8,12}$/.test(telefonInput.value.trim());
     }
-
     function validateEmail() {
       return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailInput.value.trim());
     }
@@ -170,14 +169,11 @@
       const img = await createImageBitmap(file);
       const canvas = document.createElement("canvas");
       let [w, h] = [img.width, img.height];
-
       if (w > h && w > maxDim) { h *= maxDim / w; w = maxDim; }
       else if (h > w && h > maxDim) { w *= maxDim / h; h = maxDim; }
-
       canvas.width = w; canvas.height = h;
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0, w, h);
-
       let quality = 0.9;
       let blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
       while (blob.size / 1024 / 1024 > maxSizeMB && quality > 0.4) {
@@ -221,7 +217,6 @@
     const selectZpracoval = document.getElementById("zpracoval");
     const jinaSekce = document.getElementById("jinaSekce");
     const jinaInputs = jinaSekce.querySelectorAll("input");
-
     selectZpracoval.onchange = () => {
       if (selectZpracoval.value === "Jiná") {
         jinaSekce.classList.remove("hidden");
@@ -232,7 +227,7 @@
       }
     };
 
-    // === Upload a uložení ===
+    // === GitHub upload + zvuk + fajfka ===
     async function uploadToGitHub(owner, repo, path, fileBlob, message, token) {
       const base64Data = await new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -240,10 +235,8 @@
         reader.onerror = reject;
         reader.readAsDataURL(fileBlob);
       });
-
       const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
       const body = { message, content: base64Data, branch: "main" };
-
       const response = await fetch(url, {
         method: "PUT",
         headers: {
@@ -253,11 +246,7 @@
         },
         body: JSON.stringify(body)
       });
-
-      if (!response.ok) {
-        const errText = await response.text();
-        throw new Error("Chyba při nahrávání souboru: " + errText);
-      }
+      if (!response.ok) throw new Error(await response.text());
     }
 
     async function submitToGitHub(dataObj, owner, repo, path, message, token) {
@@ -279,13 +268,16 @@
       if (sha) body.sha = sha;
       const putResp = await fetch(getUrl, {
         method: "PUT",
-        headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json", "Content-Type": "application/json" },
+        headers: {
+          "Authorization": `token ${token}`,
+          "Accept": "application/vnd.github.v3+json",
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify(body)
       });
       if (!putResp.ok) throw new Error(await putResp.text());
     }
 
-    // === Zvuk + animace ===
     function playSuccessSound() {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
