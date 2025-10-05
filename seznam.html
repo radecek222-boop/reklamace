@@ -215,5 +215,77 @@
 
     loadOrders();
   </script>
+
+<script>
+  async function loadOrders() {
+    try {
+      const response = await fetch("https://raw.githubusercontent.com/radecek222-boop/reklamace/main/orders.json");
+      if (!response.ok) throw new Error("Nepodařilo se načíst data.");
+      const data = await response.json();
+      renderTable(data);
+    } catch (e) {
+      document.getElementById("tableBody").innerHTML =
+        `<tr><td colspan="8" style="text-align:center; color:red;">Chyba při načítání dat: ${e.message}</td></tr>`;
+    }
+  }
+
+  function renderTable(data) {
+    const tbody = document.getElementById("tableBody");
+    tbody.innerHTML = "";
+
+    data.forEach((item, index) => {
+      const tr = document.createElement("tr");
+      const contractClass = item.contract === "POZ" ? "contract-poz" : "";
+
+      tr.innerHTML = `
+        <td>${index + 1}</td>
+        <td class="${contractClass}">${item.contract || ""}</td>
+        <td>${item.zakaznik || ""}</td>
+        <td>${item.adresa || ""}</td>
+        <td><a href="tel:${item.telefon || ""}">${item.telefon || ""}</a></td>
+        <td><a href="mailto:${item.email || ""}">${item.email || ""}</a></td>
+        <td>${item.popis || ""}</td>
+        <td>${item.typ || ""}</td>
+      `;
+
+      tr.addEventListener("click", () => openDetail(item));
+      tbody.appendChild(tr);
+    });
+  }
+
+  function openDetail(item) {
+    const modal = document.getElementById("detailModal");
+    modal.style.display = "flex";
+    document.getElementById("detailName").textContent = item.zakaznik || "Neznámý zákazník";
+    document.getElementById("detailInfo").innerHTML = `
+      <p><b>Adresa:</b> ${item.adresa || ""}</p>
+      <p><b>Telefon:</b> ${item.telefon || ""}</p>
+      <p><b>E-mail:</b> ${item.email || ""}</p>
+      <p><b>Popis závady:</b><br>${item.popis || ""}</p>
+      <p><b>Model:</b> ${item.produkt || ""}</p>
+      <p><b>Contract:</b> ${item.contract || ""}</p>
+      <p><b>Datum vytvoření:</b> ${item.datum_vytvoreni || "-"}</p>
+    `;
+    document.getElementById("createProtocol").onclick = () => createProtocol(item);
+  }
+
+  function createProtocol(item) {
+    localStorage.setItem("selectedOrder", JSON.stringify(item));
+    window.location.href = "protokol.html";
+  }
+
+  document.getElementById("closeDetail").addEventListener("click", () => {
+    document.getElementById("detailModal").style.display = "none";
+  });
+
+  document.getElementById("searchInput").addEventListener("input", e => {
+    const filter = e.target.value.toLowerCase();
+    document.querySelectorAll("#dataTable tbody tr").forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(filter) ? "" : "none";
+    });
+  });
+
+  loadOrders();
+</script>
 </body>
 </html>
