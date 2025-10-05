@@ -50,7 +50,6 @@
     textarea { height: 100px; resize: vertical; }
     input[type="file"] { margin-top: 5px; }
 
-    /* 🔹 jednotné tlačítka */
     .btn {
       display: inline-block;
       text-decoration: none;
@@ -69,6 +68,17 @@
     .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
     .btn-submit { background: linear-gradient(135deg, #0046ff, #357aff); }
     .actions { text-align: center; margin-top: 25px; }
+
+    #progressWrapper { margin-top: 15px; display: none; }
+    #progressBar {
+      height: 10px; width: 100%; background: #eee;
+      border-radius: 6px; overflow: hidden;
+    }
+    #progressFill {
+      height: 100%; width: 0%; background: linear-gradient(135deg,#0046ff,#357aff);
+      transition: width 0.2s ease;
+    }
+    #progressText { text-align: center; font-size: 0.9em; margin-top: 5px; color: #333; }
 
     /* 🔍 našeptávač */
     #suggestions {
@@ -122,6 +132,11 @@
       <label>Přiložit fotografie (max. 3):</label>
       <input type="file" id="fotky" accept="image/*" multiple>
 
+      <div id="progressWrapper">
+        <div id="progressBar"><div id="progressFill"></div></div>
+        <div id="progressText">Nahrávání...</div>
+      </div>
+
       <div class="actions">
         <a href="index.html" class="btn btn-back">Zpět</a>
         <button type="submit" class="btn btn-submit">Odeslat</button>
@@ -132,6 +147,9 @@
   <script>
     const adresaInput = document.getElementById("adresa");
     const suggestions = document.getElementById("suggestions");
+    const progressWrapper = document.getElementById("progressWrapper");
+    const progressFill = document.getElementById("progressFill");
+    const progressText = document.getElementById("progressText");
     let timer = null;
 
     // 🧠 Našeptávač adres
@@ -167,34 +185,55 @@
       suggestions.style.display = "none";
     }
 
+    // 🧠 Zmenšení obrázku na max. 800 px
+    async function resizeImage(file) {
+      return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const max = 800;
+          let w = img.width;
+          let h = img.height;
+          if (w > h && w > max) { h *= max / w; w = max; }
+          else if (h > w && h > max) { w *= max / h; h = max; }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, w, h);
+          canvas.toBlob(b => resolve(b), "image/jpeg", 0.8);
+        };
+        img.src = URL.createObjectURL(file);
+      });
+    }
+
     // 🧾 Odeslání formuláře
     document.getElementById("servisForm").addEventListener("submit", async e => {
       e.preventDefault();
 
-      // ✅ Ověření výběru adresy
       if (!adresaInput.dataset.selected || adresaInput.dataset.selected !== "true") {
         alert("Vyberte adresu z nabídky (našeptávače).");
-        adresaInput.focus();
-        return;
+        adresaInput.focus(); return;
       }
 
-      const f = e.target;
-      const files = document.getElementById("fotky").files;
-      if (files.length === 0 && !confirm("Odeslat bez fotografií?")) return;
+      const files = [...document.getElementById("fotky").files].slice(0,3);
+      if (!files.length && !confirm("Odeslat bez fotografií?")) return;
 
-      const dataObj = {
-        typ: "Pozáruční servis",
-        cislo: f.cislo.value,
-        zakaznik: f.zadavatel.value,
-        adresa: f.adresa.value,
-        telefon: f.telefon.value,
-        email: f.email.value,
-        produkt: f.produkt.value,
-        popis: f.popis.value,
-        fotky: Array.from(files).map(f => f.name)
-      };
+      progressWrapper.style.display = "block";
+      progressText.textContent = "Zpracovávám fotografie...";
+      progressFill.style.width = "0%";
 
-      alert("✅ Formulář prošel validací. Tady proběhne odeslání na GitHub.");
+      for (let i=0; i<files.length; i++) {
+        const blob = await resizeImage(files[i]);
+        const percent = Math.round(((i+1)/files.length)*100);
+        progressFill.style.width = `${percent}%`;
+        progressText.textContent = `Nahráno ${i+1}/${files.length}`;
+        await new Promise(r => setTimeout(r, 200));
+      }
+
+      progressFill.style.width = "100%";
+      progressText.textContent = "✅ Nahrávání dokončeno";
+
+      alert("✅ Formulář validní. Tady proběhne nahrání na GitHub.");
     });
   </script>
 </body>
