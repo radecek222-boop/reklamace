@@ -52,6 +52,7 @@
     tr:hover {
       background: #f1f3f5;
     }
+
     .detail {
       display: none;
       position: fixed;
@@ -81,6 +82,7 @@
       color: #444;
       word-break: break-word;
     }
+
     .photos {
       display: flex;
       flex-wrap: wrap;
@@ -94,6 +96,7 @@
       border-radius: 8px;
       border: 1px solid #ccc;
     }
+
     .buttons {
       display: flex;
       justify-content: center;
@@ -147,7 +150,6 @@
   <div class="detail" id="detailView">
     <div class="detail-content" id="detailContent"></div>
   </div>
-
 <script>
   const USERNAME = "radecek222";
   const REPO = "radecek222-boop";
@@ -158,6 +160,7 @@
   const detailView = document.getElementById("detailView");
   const detailContent = document.getElementById("detailContent");
 
+  // Načtení dat z GitHubu
   async function loadOrders() {
     try {
       const res = await fetch(apiUrl);
@@ -165,7 +168,7 @@
       const data = JSON.parse(atob(file.content));
 
       tableBody.innerHTML = "";
-      data.forEach((order, index) => {
+      data.reverse().forEach(order => {
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${order.cislo_reklamace || "-"}</td>
@@ -179,10 +182,11 @@
       });
     } catch (err) {
       console.error("Chyba při načítání:", err);
-      tableBody.innerHTML = `<tr><td colspan="5">Chyba při načítání dat.</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="5">Chyba při načítání dat z GitHubu.</td></tr>`;
     }
   }
 
+  // Otevření detailu reklamace
   function openDetail(order) {
     const photosHTML = (order.fotky || [])
       .map(p => `<img src="https://raw.githubusercontent.com/${USERNAME}/${REPO}/main/${p}" alt="foto">`)
@@ -217,17 +221,19 @@
     window.scrollTo(0, 0);
   }
 
+  // Zavření detailu
   function closeDetail() {
     detailView.style.display = "none";
   }
 
+  // Uložení dat do localStorage a přesměrování do protokolu
   function createProtokol(order) {
-    // uloží data do localStorage
     localStorage.setItem("selectedOrder", JSON.stringify(order));
     window.location.href = "protokol.html";
   }
 
   loadOrders();
 </script>
+
 </body>
 </html>
