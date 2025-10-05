@@ -48,7 +48,8 @@
     input[type="email"],
     input[type="tel"],
     input[type="date"],
-    textarea {
+    textarea,
+    select {
       width: 100%;
       padding: 10px;
       font-size: 1em;
@@ -83,6 +84,9 @@
     .actions {
       text-align: center;
       margin-top: 25px;
+    }
+    .hidden {
+      display: none;
     }
   </style>
 </head>
@@ -125,6 +129,32 @@
       <label>Přiložit fotografie (max. 3):</label>
       <input type="file" name="fotky" id="fotky" accept="image/*" multiple>
 
+      <label>Objednávku zpracoval:</label>
+      <select id="zpracoval" name="zpracoval" required>
+        <option value="">Vyber...</option>
+        <option value="Natuzzi Editions - Strejcek">Natuzzi Editions - Strejcek</option>
+        <option value="Natuzzi Editions - Vimrova">Natuzzi Editions - Vimrova</option>
+        <option value="Natuzzi Italia - Bratislava">Natuzzi Italia - Bratislava</option>
+        <option value="Natuzzi Italia - Jama">Natuzzi Italia - Jama</option>
+        <option value="Natuzzi Italia - River">Natuzzi Italia - River</option>
+        <option value="Natuzzi Italia - SOHO">Natuzzi Italia - SOHO</option>
+        <option value="Softaly - SOHO">Softaly - SOHO</option>
+        <option value="Phase - Klucarova">Phase - Klucarova</option>
+        <option value="Phase - Jancova">Phase - Jancova</option>
+        <option value="Jiná">Jiná</option>
+      </select>
+
+      <div id="jinaSekce" class="hidden">
+        <label>Zadej nový zápis zadavatele:</label>
+        <input type="text" id="jinaJmeno" name="jinaJmeno">
+
+        <label>E-mail zadavatele:</label>
+        <input type="email" id="jinaEmail" name="jinaEmail">
+
+        <label>Telefon zadavatele:</label>
+        <input type="tel" id="jinaTelefon" name="jinaTelefon">
+      </div>
+
       <div class="actions">
         <a href="index.html" class="btn">Zpět na hlavní stránku</a>
         <button type="submit" class="btn">Odeslat reklamaci</button>
@@ -133,58 +163,21 @@
   </div>
 
   <script>
-    async function submitToGitHub(dataObj, owner, repo, path, message, token) {
-      // načti aktuální obsah souboru orders.json
-      const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-      const getResp = await fetch(getUrl, {
-        headers: {
-          "Authorization": `token ${token}`,
-          "Accept": "application/vnd.github.v3+json"
-        }
-      });
+    const selectZpracoval = document.getElementById("zpracoval");
+    const jinaSekce = document.getElementById("jinaSekce");
+    const jinaInputs = jinaSekce.querySelectorAll("input");
 
-      let existingContent = "[]";
-      let sha = null;
-
-      if (getResp.ok) {
-        const existing = await getResp.json();
-        existingContent = atob(existing.content.replace(/\n/g, ""));
-        sha = existing.sha;
+    selectZpracoval.addEventListener("change", () => {
+      if (selectZpracoval.value === "Jiná") {
+        jinaSekce.classList.remove("hidden");
+        jinaInputs.forEach(inp => inp.required = true);
+      } else {
+        jinaSekce.classList.add("hidden");
+        jinaInputs.forEach(inp => inp.required = false);
       }
+    });
 
-      const arr = JSON.parse(existingContent);
-      arr.push(dataObj);
-
-      const newContent = JSON.stringify(arr, null, 2);
-      const base64 = btoa(unescape(encodeURIComponent(newContent)));
-
-      const body = {
-        message,
-        content: base64,
-        branch: "main"
-      };
-      if (sha) body.sha = sha;
-
-      const putUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-      const putResp = await fetch(putUrl, {
-        method: "PUT",
-        headers: {
-          "Authorization": `token ${token}`,
-          "Accept": "application/vnd.github.v3+json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-      });
-
-      if (!putResp.ok) {
-        const err = await putResp.text();
-        throw new Error("Chyba při zápisu: " + err);
-      }
-
-      return await putResp.json();
-    }
-
-    document.getElementById("reklamaceForm").addEventListener("submit", async function(e) {
+    document.getElementById("reklamaceForm").addEventListener("submit", function(e) {
       e.preventDefault();
 
       const files = document.getElementById("fotky").files;
@@ -204,23 +197,19 @@
         datum_prodeje: form.datum_prodeje.value,
         datum_reklamace: form.datum_reklamace.value,
         popis: form.popis.value,
+        zpracoval: form.zpracoval.value,
+        jinaZadavatel: form.zpracoval.value === "Jiná" ? {
+          jmeno: form.jinaJmeno.value,
+          email: form.jinaEmail.value,
+          telefon: form.jinaTelefon.value
+        } : null,
         fotky: Array.from(files).map(f => f.name)
       };
 
-      try {
-        const owner = "radecek222-boop";
-        const repo = "reklamace";
-        const path = "orders.json";
-        const message = `Nová reklamace ${dataObj.cislo}`;
-        const token = "SEM_VLOŽ_TVŮJ_TOKEN"; // ← sem vlož svůj skutečný token
-
-        await submitToGitHub(dataObj, owner, repo, path, message, token);
-        alert("Reklamace byla úspěšně uložena do GitHubu!");
-        form.reset();
-      } catch (err) {
-        console.error(err);
-        alert("Chyba při odesílání: " + err.message);
-      }
+      console.log("Nová reklamace:", dataObj);
+      alert("Reklamace byla úspěšně odeslána (zatím testovací režim).");
+      form.reset();
+      jinaSekce.classList.add("hidden");
     });
   </script>
 
