@@ -1,9 +1,8 @@
-/* === WHITE GLOVE SERVICE – jednotný styl === */
+/* === WHITE GLOVE SERVICE – jednotný styl (vzhled shodný s index.html) === */
 
 body {
   font-family: "Inter", system-ui, sans-serif;
   background: #f6f7fb;
-  color: #111;
   margin: 0;
   padding: 0;
   display: flex;
@@ -11,26 +10,27 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  color: #111;
 }
 
-/* OBSAHOVÝ BLOK */
+/* --- Hlavní box --- */
 .wrapper {
   background: #fff;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 40px 50px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.1);
   width: 100%;
-  max-width: 700px;
+  max-width: 720px;
   box-sizing: border-box;
-  margin-top: 40px;
+  text-align: left;
 }
 
-/* NADPISY */
+/* --- Nadpisy --- */
 h1 {
   font-size: 2.8em;
   font-weight: 900;
-  text-align: center;
   margin-bottom: 10px;
+  text-align: center;
   color: #111;
 }
 
@@ -42,24 +42,29 @@ h2 {
   margin-bottom: 30px;
 }
 
-/* FORMULÁŘ */
+/* --- Formulářové prvky --- */
 label {
   display: block;
   font-weight: 600;
   margin-top: 15px;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
 }
 
 input, textarea, select {
   width: 100%;
-  padding: 10px;
+  padding: 10px 12px;
   font-size: 1em;
   border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 8px;
   box-sizing: border-box;
-  font-family: "Inter", system-ui, sans-serif;
-  transition: border 0.2s;
-  font-weight: 400;
+  font-family: "Inter", sans-serif;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: #0046ff;
+  box-shadow: 0 0 0 3px rgba(0,70,255,0.1);
+  outline: none;
 }
 
 textarea {
@@ -67,19 +72,64 @@ textarea {
   resize: vertical;
 }
 
-input:invalid,
-textarea:invalid,
-select:invalid {
-  border: 2px solid;
-  border-image: linear-gradient(45deg, #ff4d4d, #ff7b7b) 1;
-}
-
+/* --- Chybová pole --- */
 .invalid {
   border: 2px solid;
-  border-image: linear-gradient(45deg, #ff4d4d, #ff7b7b) 1;
+  border-image: linear-gradient(135deg, #ff4d4d, #ff7b7b) 1;
 }
 
-/* NÁHLEDY FOTEK */
+/* --- Našeptávač --- */
+.address-wrapper {
+  position: relative;
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+  z-index: 10;
+  overflow-y: auto;
+  max-height: 200px;
+}
+
+.suggestions div {
+  padding: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.suggestions div:hover {
+  background: #f2f4f8;
+}
+
+/* --- Mapa náhledu (vylepšený design s animací) --- */
+.map-preview {
+  width: 100%;
+  height: 250px;
+  margin-top: 14px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #f9f9fb, #e8eaef);
+  border: 1px solid #d2d4da;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.6s ease, transform 0.4s ease;
+}
+
+.map-preview.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hidden { display: none; }
+
+/* --- Náhledy fotek --- */
 .preview {
   display: flex;
   flex-wrap: wrap;
@@ -91,7 +141,7 @@ select:invalid {
   width: 80px;
   height: 80px;
   position: relative;
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
@@ -106,27 +156,26 @@ select:invalid {
   position: absolute;
   bottom: 0;
   left: 0;
-  height: 5px;
-  background: linear-gradient(90deg, #4caf50, #8bc34a);
+  height: 6px;
+  background: linear-gradient(90deg, #00d084, #00a86b);
   width: 0%;
-  transition: width 0.3s;
+  transition: width 0.4s ease;
 }
 
-/* TLAČÍTKA */
+/* --- Tlačítka --- */
 .btn {
   display: inline-block;
-  text-decoration: none;
   padding: 12px 28px;
   border-radius: 8px;
   font-weight: 600;
   font-size: 1em;
   border: none;
   cursor: pointer;
-  transition: transform 0.15s ease-in-out, opacity 0.2s;
-  color: white;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-  min-width: 140px;
-  font-family: "Inter", system-ui, sans-serif;
+  text-decoration: none;
+  color: #fff;
+  transition: transform 0.15s ease-in-out, opacity 0.25s;
+  min-width: 150px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
 .btn:hover {
@@ -134,45 +183,23 @@ select:invalid {
   opacity: 0.9;
 }
 
-.btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
-.btn-send { background: linear-gradient(135deg, #0046ff, #357aff); }
+.btn-back {
+  background: linear-gradient(135deg, #6c757d, #a0a4a7);
+}
 
+.btn-send {
+  background: linear-gradient(135deg, #0046ff, #357aff);
+}
+
+/* --- Ovládací sekce --- */
 .actions {
-  text-align: center;
-  margin-top: 25px;
+  margin-top: 35px;
   display: flex;
   justify-content: center;
   gap: 20px;
 }
 
-/* NAŠEPTÁVAČ */
-.address-wrapper { position: relative; }
-
-.suggestions {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  max-height: 180px;
-  overflow-y: auto;
-  z-index: 1000;
-}
-
-.suggestions div {
-  padding: 8px;
-  cursor: pointer;
-  font-size: 0.95em;
-}
-
-.suggestions div:hover {
-  background: #f0f0f0;
-}
-
-/* ANIMACE FAJFKA */
+/* --- Animace fajfky --- */
 .success-check {
   position: fixed;
   top: 0;
@@ -203,15 +230,15 @@ select:invalid {
   stroke: url(#grad1);
   stroke-miterlimit: 10;
   margin: 10% auto;
-  box-shadow: inset 0px 0px 0px #7ac142;
-  animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+  box-shadow: inset 0 0 0 #7ac142;
+  animation: fill 0.4s ease-in-out 0.4s forwards, scale 0.3s ease-in-out 0.9s both;
 }
 
 @keyframes fill {
-  100% { box-shadow: inset 0px 0px 0px 60px #00d084; }
+  100% { box-shadow: inset 0 0 0 60px #00d084; }
 }
 
 @keyframes scale {
-  0%, 100% { transform: none; }
-  50% { transform: scale3d(1.1, 1.1, 1); }
+  0%,100% { transform: none; }
+  50% { transform: scale3d(1.1,1.1,1); }
 }
