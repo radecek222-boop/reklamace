@@ -1,174 +1,222 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Protokol – White Glove Service</title>
-  <style>
-    body { font-family: Inter, sans-serif; background:#f6f7fb; margin:0; padding:20px; display:flex; justify-content:center; }
-    .wrapper { width:100%; max-width:900px; background:white; padding:20px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1); }
-    h1 { text-align:center; font-weight:900; margin-bottom:20px; }
-    label { display:block; font-weight:600; margin-top:12px; margin-bottom:5px; }
-    input[type="text"], input[type="date"], textarea {
-      width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:14px;
-    }
-    textarea { resize:vertical; height:80px; }
-    .btn { padding:10px 20px; border:none; border-radius:8px; color:#fff; cursor:pointer; font-weight:600; margin:5px; }
-    .btn-grey { background:#6c757d; }
-    .btn-grey:hover { background:#5a6268; }
-    .btn-purple { background:linear-gradient(135deg,#8e44ad,#9b59b6,#c471ed); background-size:200% 200%; animation:shine 3s ease infinite; }
-    @keyframes shine { 0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%} }
-    .actions { text-align:center; margin-top:25px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Protokol - White Glove Service</title>
+<style>
+  body {
+    font-family: "Inter", system-ui, sans-serif;
+    background: #f6f7fb;
+    margin: 0;
+    padding: 20px;
+    font-size: 14px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .wrapper {
+    width: 100%;
+    max-width: 900px;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 20px;
+  }
+
+  label {
+    font-weight: 600;
+    margin-top: 12px;
+    display: block;
+  }
+
+  input, textarea, select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-family: inherit;
+    box-sizing: border-box;
+  }
+
+  textarea {
+    height: 90px;
+    resize: vertical;
+  }
+
+  .signature-container {
+    margin-top: 20px;
+  }
+
+  canvas {
+    width: 100%;
+    height: 150px;
+    border: 1px solid #aaa;
+    border-radius: 6px;
+    background: #fff;
+  }
+
+  .buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 25px;
+    justify-content: center;
+  }
+
+  .btn {
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    cursor: pointer;
+    transition: transform .15s ease;
+  }
+
+  .btn:hover {
+    transform: scale(1.04);
+  }
+
+  .btn-grey {
+    background: #ccc;
+    color: #111;
+  }
+
+  .btn-red {
+    background: linear-gradient(135deg, #ff4d4d, #c0392b, #ff4d4d);
+  }
+
+  .btn-purple {
+    background: linear-gradient(135deg, #8e44ad, #9b59b6, #c471ed);
+  }
+
+  .btn-blue {
+    background: linear-gradient(135deg, #3498db, #2980b9, #3498db);
+  }
+
+  .btn-green {
+    background: linear-gradient(135deg, #27ae60, #2ecc71, #27ae60);
+  }
+
+  @media(max-width:768px){
+    body { padding: 10px; }
+    h1 { font-size: 18px; }
+    .btn { width: 100%; text-align: center; }
+  }
+</style>
 </head>
 <body>
+  <div class="wrapper">
+    <h1>Servisní protokol – White Glove Service</h1>
 
-<div class="wrapper">
-  <h1>Servisní protokol – White Glove Service</h1>
+    <form id="protocolForm">
+      <label>Zákazník / Customer:</label>
+      <input type="text" id="zakaznik" readonly>
 
-  <form id="protokolForm">
-    <label>Jméno a příjmení zákazníka:</label>
-    <input type="text" name="zakaznik">
+      <label>Adresa / Address:</label>
+      <input type="text" id="adresa" readonly>
 
-    <label>Adresa:</label>
-    <input type="text" name="adresa">
+      <label>Telefon / Phone:</label>
+      <input type="text" id="telefon" readonly>
 
-    <label>Telefon:</label>
-    <input type="text" name="telefon">
+      <label>E-mail:</label>
+      <input type="text" id="email" readonly>
 
-    <label>E-mail:</label>
-    <input type="text" name="email">
+      <label>Model / Product:</label>
+      <input type="text" id="produkt" readonly>
 
-    <label>Model / produkt:</label>
-    <input type="text" name="produkt">
+      <label>Popis závady / Description of issue:</label>
+      <textarea id="popis"></textarea>
 
-    <label>Popis závady:</label>
-    <textarea name="popis" id="popisZavady"></textarea>
+      <label>Technik / Technician:</label>
+      <select id="technik">
+        <option value="">-- Vyber technika --</option>
+        <option value="Radek Zikmund">Radek Zikmund</option>
+        <option value="Milan Kolín">Milan Kolín</option>
+        <option value="jiný">Jiný...</option>
+      </select>
 
-    <label>Číslo reklamace / Contract:</label>
-    <input type="text" name="contract">
+      <label>Datum návštěvy / Visit date:</label>
+      <input type="date" id="datum">
 
-    <label>Datum vytvoření:</label>
-    <input type="text" name="datum">
+      <div class="signature-container">
+        <label>Podpis zákazníka / Customer signature:</label>
+        <canvas id="signature"></canvas>
+      </div>
 
-    <!-- Tady je místo pro podpis, překlad atd., zůstává beze změn -->
-    <div class="actions">
-      <button type="button" id="backBtn" class="btn btn-grey">Zpět na seznam</button>
-      <button type="button" id="exportBtn" class="btn btn-purple">Exportovat PDF</button>
-      <button type="button" id="doneBtn" class="btn" style="background:linear-gradient(135deg,#2ecc71,#58d68d,#27ae60);">Označit jako hotové</button>
-    </div>
-  </form>
-</div>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const data = localStorage.getItem("selectedOrder");
-  if (data) {
-    const order = JSON.parse(data);
-    // Automatické předvyplnění polí
-    const mapping = {
-      zakaznik: "zakaznik",
-      adresa: "adresa",
-      telefon: "telefon",
-      email: "email",
-      produkt: "produkt",
-      popis: "popis",
-      contract: "contract",
-      datum_vytvoreni: "datum"
-    };
-    for (const key in mapping) {
-      const el = document.querySelector(`[name="${mapping[key]}"]`);
-      if (el) el.value = order[key] || "";
+      <div class="buttons">
+        <button type="button" id="backBtn" class="btn btn-grey">⬅ Zpět</button>
+        <button type="button" id="clearBtn" class="btn btn-red">🧹 Smazat podpis</button>
+        <button type="button" id="exportBtn" class="btn btn-purple">📄 Export do PDF</button>
+        <button type="button" id="emailBtn" class="btn btn-green">✉️ Odeslat e-mail</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+
+  <script>
+    const canvas = document.getElementById('signature');
+    const signaturePad = new SignaturePad(canvas);
+
+    // přizpůsobení velikosti podpisového pole při změně orientace (mobil)
+    function resizeCanvas() {
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      canvas.width = canvas.offsetWidth * ratio;
+      canvas.height = 150 * ratio;
+      canvas.getContext("2d").scale(ratio, ratio);
+      signaturePad.clear();
     }
-    console.log("✅ Data načtena z localStorage:", order);
-  }
-});
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
 
-document.getElementById("backBtn").addEventListener("click", () => {
-  window.location.href = "seznam.html";
-});
+    // načti data ze seznamu
+    const selected = JSON.parse(localStorage.getItem("selectedOrder"));
+    if (selected) {
+      document.getElementById("zakaznik").value = selected.zakaznik || "";
+      document.getElementById("adresa").value = selected.adresa || "";
+      document.getElementById("telefon").value = selected.telefon || "";
+      document.getElementById("email").value = selected.email || "";
+      document.getElementById("produkt").value = selected.produkt || "";
+      document.getElementById("popis").value = selected.popis || "";
+    }
 
-async function updateGitHubFiles(order) {
-  const token = prompt("Zadejte GitHub token pro zápis:");
-  if (!token) throw new Error("Nebyl zadán token.");
+    document.getElementById("clearBtn").addEventListener("click", () => signaturePad.clear());
+    document.getElementById("backBtn").addEventListener("click", () => window.location.href = "seznam.html");
 
-  const owner = "radecek222-boop";
-  const repo = "reklamace";
-  const ordersPath = "orders.json";
-  const donePath = "hotove.json";
+    document.getElementById("exportBtn").addEventListener("click", async () => {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF("p", "pt", "a4");
+      const wrapper = document.querySelector(".wrapper");
 
-  // Načteme původní data
-  const getFile = async (path) => {
-    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
-      headers: { "Authorization": `token ${token}` }
+      const canvasImg = await html2canvas(wrapper, { scale: 2 });
+      const imgData = canvasImg.toDataURL("image/png");
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvasImg.height * pdfWidth) / canvasImg.width;
+
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`${selected.zakaznik || "protokol"}_${new Date().toISOString().split('T')[0]}.pdf`);
     });
-    if (!res.ok) throw new Error(`Nelze načíst ${path}`);
-    const json = await res.json();
-    return { content: JSON.parse(atob(json.content.replace(/\n/g, ""))), sha: json.sha };
-  };
 
-  const putFile = async (path, content, sha, message) => {
-    const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2))));
-    const body = { message, content: newContent, branch: "main" };
-    if (sha) body.sha = sha;
-    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
-      method: "PUT",
-      headers: {
-        "Authorization": `token ${token}`,
-        "Accept": "application/vnd.github.v3+json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(body)
+    document.getElementById("emailBtn").addEventListener("click", () => {
+      const zakaznik = document.getElementById("zakaznik").value;
+      const email = document.getElementById("email").value;
+      const subject = `Servisní protokol – ${zakaznik}`;
+      const body = `Dobrý den,\n\nv příloze zasíláme servisní protokol.\n\nWhite Glove Service`;
+      window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
-    if (!res.ok) throw new Error(`Chyba při zápisu ${path}: ${await res.text()}`);
-  };
-
-  // načteme oba soubory
-  const ordersData = await getFile(ordersPath);
-  const doneData = await getFile(donePath);
-
-  // najdeme záznam podle zákazníka + contractu
-  const idx = ordersData.content.findIndex(
-    i => i.zakaznik === order.zakaznik && i.contract === order.contract
-  );
-
-  if (idx !== -1) {
-    // Označíme jako hotové
-    const finished = { ...ordersData.content[idx], popis: "HOTOVO" };
-    doneData.content.push(finished);
-    ordersData.content.splice(idx, 1);
-
-    // zapíšeme nové verze obou souborů
-    await putFile(ordersPath, ordersData.content, ordersData.sha, `Označeno HOTOVO – ${order.zakaznik}`);
-    await putFile(donePath, doneData.content, doneData.sha, `Přesun do hotových – ${order.zakaznik}`);
-
-    alert("✅ Reklamace označena jako hotová a přesunuta.");
-    localStorage.removeItem("selectedOrder");
-    window.location.href = "seznam.html";
-  } else {
-    alert("⚠️ Záznam nebyl nalezen v orders.json.");
-  }
-}
-
-document.getElementById("doneBtn").addEventListener("click", async () => {
-  const confirmDone = confirm("Opravdu označit reklamaci jako HOTOVO a přesunout?");
-  if (!confirmDone) return;
-
-  const f = document.getElementById("protokolForm");
-  const order = {
-    zakaznik: f.zakaznik.value,
-    adresa: f.adresa.value,
-    telefon: f.telefon.value,
-    email: f.email.value,
-    produkt: f.produkt.value,
-    popis: f.popis.value,
-    contract: f.contract.value,
-    datum_vytvoreni: f.datum.value
-  };
-
-  try {
-    await updateGitHubFiles(order);
-  } catch (err) {
-    alert("❌ Chyba při přesunu: " + err.message);
-  }
-});
-</script>
+  </script>
+</body>
+</html>
