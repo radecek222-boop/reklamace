@@ -21,6 +21,7 @@
     .btn-green { background:linear-gradient(135deg,#00b36b,#3cd67a); }
     .btn-gray { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
     .btn-blue { background:linear-gradient(135deg,#0046ff,#357aff); }
+    .btn-red { background:linear-gradient(135deg,#ff3b30,#ff6b60); }
 
     @media(max-width:768px){
       .btn-gradient{display:block;width:100%;text-align:center;padding:14px 0;font-size:1.05em;margin:8px 0;}
@@ -110,6 +111,7 @@
       <div id="detailInfo"></div>
       <div class="photo-gallery" id="photoGallery"></div>
       <div id="detailButtons">
+        <button id="reopenCase" class="btn-red">Vrátit zpět mezi nové</button>
         <button id="createProtocol" class="btn-protocol">Otevřít protokol</button>
         <button id="closeDetail" class="btn-close">Zavřít detail</button>
       </div>
@@ -122,6 +124,8 @@
   <script>
     const GITHUB_USER = "radecek222-boop";
     const REPO = "reklamace";
+    const TOKEN = "TVŮJ_TOKEN"; // ⚠️ Vlož sem svůj GitHub token
+    const ORDERS_FILE = "orders.json";
     const HOTOVE_FILE = "hotove.json";
 
     async function loadHotove() {
@@ -173,6 +177,57 @@
         <p><b>Stav:</b> ${item["Stav"]}</p>
       `;
       document.getElementById("createProtocol").onclick = () => createProtocol(item);
+      document.getElementById("reopenCase").onclick = () => reopenCase(item);
+    }
+
+    async function reopenCase(item) {
+      if (!confirm("Vrátit tuto reklamaci zpět mezi nové?")) return;
+
+      try {
+        const [ordersRes, hotoveRes] = await Promise.all([
+          fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${ORDERS_FILE}?${Date.now()}`),
+          fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${HOTOVE_FILE}?${Date.now()}`)
+        ]);
+        const [orders, hotove] = await Promise.all([ordersRes.json(), hotoveRes.json()]);
+
+        // Přidáme zpět mezi nové
+        item["Stav"] = "Nová reklamace";
+        orders.push(item);
+
+        // Odstraníme z hotových
+        const updatedHotove = hotove.filter(o => o["Číslo reklamace"] !== item["Číslo reklamace"]);
+
+        // Zapíšeme změny
+        await updateFile(ORDERS_FILE, JSON.stringify(orders, null, 2));
+        await updateFile(HOTOVE_FILE, JSON.stringify(updatedHotove, null, 2));
+
+        alert("Reklamace byla vrácena mezi nové.");
+        document.getElementById("detailModal").style.display = "none";
+        loadHotove();
+      } catch (e) {
+        alert("Chyba při ukládání: " + e.message);
+      }
+    }
+
+    async function updateFile(filename, content) {
+      const getRes = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`, {
+        headers: { Authorization: `token ${TOKEN}` }
+      });
+      const fileData = await getRes.json();
+      const sha = fileData.sha;
+
+      await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `token ${TOKEN}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: `Aktualizace ${filename} – reklamace vrácena mezi nové`,
+          content: btoa(unescape(encodeURIComponent(content))),
+          sha
+        })
+      });
     }
 
     function createProtocol(item) {
