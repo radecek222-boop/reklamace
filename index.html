@@ -17,12 +17,14 @@
       flex-direction: column;
       text-align: center;
     }
+
     h1 {
       font-size: 2.8em;
       font-weight: 900;
       margin-bottom: 10px;
       color: #111;
     }
+
     h2 {
       font-size: 1.2em;
       font-weight: 500;
@@ -35,15 +37,14 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 8px;
       text-decoration: none;
       color: white;
       font-weight: 700;
-      font-size: 1.1em;
+      font-size: 1.05em;
       border-radius: 10px;
-      padding: 14px 32px;
-      margin: 12px;
-      min-width: 260px;
+      padding: 14px 28px;
+      min-width: 240px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -54,25 +55,40 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
 
-    /* Zelený metalický gradient */
+    /* Šedý metalický gradient (ADMIN) */
+    .btn-grey {
+      background: linear-gradient(135deg, #6c757d, #b1b1b1, #6c757d);
+      background-size: 200% 200%;
+      animation: shineGrey 3s ease infinite;
+    }
+
+    @keyframes shineGrey {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Zelený metalický gradient (objednání) */
     .btn-green {
       background: linear-gradient(135deg, #2ecc71, #58d68d, #28a745);
       background-size: 200% 200%;
       animation: shineGreen 3s ease infinite;
     }
+
     @keyframes shineGreen {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
 
-    /* Šedý metalický gradient */
-    .btn-grey {
-      background: linear-gradient(135deg, #6c757d, #b1b1b1, #6c757d);
+    /* Oranžovo-měděný gradient (pozáruční servis) */
+    .btn-orange {
+      background: linear-gradient(135deg, #ff9800, #ffc107, #ff9800);
       background-size: 200% 200%;
-      animation: shineGrey 3s ease infinite;
+      animation: shineOrange 3s ease infinite;
     }
-    @keyframes shineGrey {
+
+    @keyframes shineOrange {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
@@ -87,16 +103,42 @@
       font-size: 1.1em;
       opacity: 0.9;
     }
+
+    .button-row {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .top-buttons {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 25px;
+    }
+
+    .btn-small {
+      min-width: 140px;
+      padding: 10px 18px;
+      font-size: 0.9em;
+    }
   </style>
 </head>
 <body>
+
   <h1>WHITE GLOVE SERVICE</h1>
   <h2>specializovaný autorizovaný servis Natuzzi</h2>
 
-  <a href="orders.html" class="btn btn-green">OBJEDNÁNÍ REKLAMACE</a>
-  <button id="adminBtn" class="btn btn-grey">
-    <span class="icon">🔒</span> ADMIN
-  </button>
+  <!-- ADMIN -->
+  <div class="top-buttons">
+    <button id="adminBtn" class="btn btn-grey btn-small"><span class="icon">🔒</span> ADMIN</button>
+  </div>
+
+  <!-- HLAVNÍ DVĚ TLAČÍTKA -->
+  <div class="button-row">
+    <a href="orders.html" class="btn btn-green">OBJEDNÁNÍ REKLAMACE</a>
+    <a href="service.html" class="btn btn-orange">POZÁRUČNÍ SERVIS</a>
+  </div>
 
   <p style="font-size:0.9em; color:#888; margin-top:40px;">Verze startovací | Přístup pro interní použití</p>
 
@@ -110,120 +152,6 @@
       }
     });
   </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="cs">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WHITE GLOVE SERVICE – Startovací verze</title>
-  <style>
-    body {
-      font-family: "Inter", system-ui, sans-serif;
-      background: #f6f7fb;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      flex-direction: column;
-      text-align: center;
-    }
-    h1 {
-      font-size: 2.8em;
-      font-weight: 900;
-      margin-bottom: 10px;
-      color: #111;
-    }
-    h2 {
-      font-size: 1.2em;
-      font-weight: 500;
-      margin-top: 0;
-      margin-bottom: 50px;
-      color: #555;
-    }
 
-    .btn {
-      display: inline-block;
-      text-decoration: none;
-      color: white;
-      font-weight: 700;
-      font-size: 1.1em;
-      border-radius: 10px;
-      padding: 14px 32px;
-      margin: 12px;
-      min-width: 240px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-
-    /* Zelený metalický gradient */
-    .btn-green {
-      background: linear-gradient(135deg, #2ecc71, #58d68d, #28a745);
-      background-size: 200% 200%;
-      animation: shineGreen 3s ease infinite;
-    }
-    @keyframes shineGreen {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    /* Šedý metalický gradient */
-    .btn-grey {
-      background: linear-gradient(135deg, #6c757d, #b1b1b1, #6c757d);
-      background-size: 200% 200%;
-      animation: shineGrey 3s ease infinite;
-    }
-    @keyframes shineGrey {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    .btn:active {
-      transform: scale(0.98);
-      box-shadow: none;
-    }
-
-    #adminBtn {
-      display: none;
-    }
-  </style>
-</head>
-<body>
-  <h1>WHITE GLOVE SERVICE</h1>
-  <h2>specializovaný autorizovaný servis Natuzzi</h2>
-
-  <a href="orders.html" class="btn btn-green">OBJEDNÁNÍ REKLAMACE</a>
-  <a href="seznam.html" class="btn btn-grey" id="adminBtn">ADMIN</a>
-
-  <p style="font-size:0.9em; color:#888; margin-top:40px;">Verze startovací | Přístup pro interní použití</p>
-
-  <script>
-    let enteredCode = "";
-
-    document.addEventListener("keydown", (e) => {
-      enteredCode += e.key;
-
-      // ořízneme, aby se ukládaly jen poslední 4 znaky
-      if (enteredCode.length > 4) {
-        enteredCode = enteredCode.slice(-4);
-      }
-
-      if (enteredCode === "7890") {
-        document.getElementById("adminBtn").style.display = "inline-block";
-        enteredCode = ""; // reset kódu
-      }
-    });
-  </script>
 </body>
 </html>
