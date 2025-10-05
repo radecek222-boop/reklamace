@@ -10,6 +10,23 @@ body { margin:0; padding:20px; background:#f6f7fb; }
 h1 { text-align:center; font-size:2em; font-weight:900; margin:0 0 10px; }
 h2 { text-align:center; font-size:1.1em; font-weight:600; margin:0 0 20px; color:#555; }
 
+.top-actions { text-align:center; margin-bottom:20px; }
+
+.btn-gradient {
+  display:inline-block; text-decoration:none; padding:10px 22px; border-radius:8px;
+  font-weight:600; font-size:1em; color:#fff; border:none; cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,0.15);
+  transition:transform 0.15s ease-in-out, opacity 0.2s; margin:4px;
+}
+.btn-gradient:hover { transform:scale(1.04); opacity:0.9; }
+.btn-gray { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
+.btn-blue { background:linear-gradient(135deg,#0046ff,#357aff); }
+.btn-green { background:linear-gradient(135deg,#00b36b,#3cd67a); }
+
+@media(max-width:768px){
+  .btn-gradient{display:block;width:100%;text-align:center;padding:14px 0;font-size:1.05em;margin:8px 0;}
+}
+
 form { max-width:700px; margin:0 auto; background:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
 label { display:block; margin-top:12px; font-weight:600; }
 input, textarea, select {
@@ -17,15 +34,6 @@ input, textarea, select {
   font-size:1em; font-family:inherit;
 }
 textarea { resize:vertical; min-height:80px; }
-
-.btn {
-  display:inline-block; padding:10px 22px; border:none; border-radius:8px;
-  font-weight:600; color:white; cursor:pointer; margin:10px 5px 0 0;
-  background:linear-gradient(135deg,#0046ff,#357aff);
-  transition:transform 0.15s ease-in-out, opacity 0.2s;
-}
-.btn:hover { transform:scale(1.04); opacity:0.9; }
-.btn-gray { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
 
 #suggestions {
   list-style:none; margin:0; padding:0;
@@ -40,12 +48,16 @@ textarea { resize:vertical; min-height:80px; }
 
 .photo-preview { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
 .photo-preview img { width:90px; border-radius:6px; border:1px solid #ccc; object-fit:cover; }
-
 </style>
 </head>
 <body>
 <h1>WHITE GLOVE SERVICE</h1>
 <h2>Nový servisní požadavek / reklamace</h2>
+
+<div class="top-actions">
+  <a href="index.html" class="btn-gradient btn-gray">Zpět na hlavní stránku</a>
+  <button onclick="window.location.reload()" class="btn-gradient btn-blue">Načíst znovu</button>
+</div>
 
 <form id="reklamaceForm">
   <label>Zákazník</label>
@@ -83,18 +95,18 @@ textarea { resize:vertical; min-height:80px; }
   <div class="photo-preview" id="preview"></div>
 
   <div style="text-align:center;margin-top:20px;">
-    <button type="submit" class="btn">Uložit reklamaci</button>
-    <button type="button" class="btn btn-gray" onclick="window.history.back()">Zpět</button>
+    <button type="submit" class="btn-gradient btn-green">Uložit reklamaci</button>
+    <button type="button" class="btn-gradient btn-gray" onclick="window.history.back()">Zpět</button>
   </div>
 </form>
 
 <script>
 const GITHUB_USER = "radecek222-boop";
 const REPO = "reklamace";
-const TOKEN = "TVŮJ_TOKEN";
+const TOKEN = "TVŮJ_TOKEN"; // ⚠️ vlož svůj GitHub token
 const ORDERS_FILE = "orders.json";
 
-// 🧠 Adresní našeptávač
+// 🧠 Adresní našeptávač (OpenStreetMap)
 const adresaInput = document.getElementById("adresa");
 const suggestions = document.getElementById("suggestions");
 let timer = null;
@@ -150,7 +162,7 @@ document.getElementById("fotky").addEventListener("change", e => {
   });
 });
 
-// 💾 Uložení reklamace do GitHubu
+// 💾 Uložení reklamace
 document.getElementById("reklamaceForm").addEventListener("submit", async e => {
   e.preventDefault();
   try {
@@ -169,14 +181,12 @@ document.getElementById("reklamaceForm").addEventListener("submit", async e => {
       "Vyřešeno": "NE"
     };
 
-    // Upload fotek
     const files = [...document.getElementById("fotky").files].slice(0,3);
     for (let i=0;i<files.length;i++) {
       const url = await uploadFile(files[i]);
       newOrder[`Foto${i+1}`] = url;
     }
 
-    // Získat existující data a přidat nový záznam
     const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${ORDERS_FILE}?${Date.now()}`);
     const data = await res.json().catch(()=>[]);
     data.push(newOrder);
@@ -190,7 +200,6 @@ document.getElementById("reklamaceForm").addEventListener("submit", async e => {
   }
 });
 
-// 🧩 Upload fotek
 async function uploadFile(file){
   const reader = new FileReader();
   return new Promise((resolve,reject)=>{
@@ -203,13 +212,12 @@ async function uploadFile(file){
         body:JSON.stringify({message:`Nahrána fotka ${file.name}`,content:base64})
       });
       if(res.ok) resolve(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${path}`);
-      else reject("Chyba nahrávání fotky");
+      else reject("Chyba při nahrávání fotky");
     };
     reader.readAsDataURL(file);
   });
 }
 
-// 📄 Update JSON souboru
 async function updateFile(filename,content){
   const metaRes=await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`,{headers:{Authorization:`token ${TOKEN}`}});
   const meta=await metaRes.json();
