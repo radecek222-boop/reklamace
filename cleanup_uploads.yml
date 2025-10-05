@@ -1,9 +1,9 @@
-name: 🔥 Cleanup old uploads (48h)
+name: 🧹 Cleanup old and unused uploads
 
 on:
   schedule:
-    - cron: "0 3 * * *"   # každý den ve 3:00 ráno
-  workflow_dispatch:       # možnost ručního spuštění z GitHubu
+    - cron: "0 3 * * *"   # každý den ve 3:00 ráno UTC (5:00 našeho času)
+  workflow_dispatch:       # možnost ručního spuštění
 
 permissions:
   contents: write
@@ -11,19 +11,52 @@ permissions:
 jobs:
   cleanup:
     runs-on: ubuntu-latest
+
     steps:
-      - name: 🧭 Checkout repo
+      - name: 🧭 Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🕒 Remove old files from uploads
+      - name: 🧩 Prepare environment
         run: |
-          echo "🔍 Searching for files older than 48h in /uploads..."
-          find uploads -type f -mmin +2880 -print -delete || echo "No old files found."
+          sudo apt-get update
+          sudo apt-get install -y jq
 
-      - name: 📦 Commit and push cleanup changes
+      - name: 🕒 Remove unused or old uploads
+        run: |
+          echo "🧹 Kontrola nepoužitých souborů ve složce /uploads..."
+          if [ ! -f "orders.json" ]; then
+            echo "⚠️ Soubor orders.json neexistuje, přeskakuji kontrolu."
+            exit 0
+          fi
+
+          # extrahuj všechny URL nebo názvy fotek z orders.json
+          jq -r '.. | .fotky? | select(. != null)[]' orders.json > used_files.txt || true
+
+          # log pro kontrolu
+          echo "Použité soubory:"
+          cat used_files.txt || echo "(žádné)"
+
+          # projdi všechny soubory v uploads
+          for file in $(find uploads -type f); do
+            base=$(basename "$file")
+            if grep -q "$base" used_files.txt; then
+              echo "✅ Soubor $base je stále používán – zachovávám."
+            else
+              # zkontroluj stáří souboru
+              age_hours=$(( ($(date +%s) - $(stat -c %Y "$file")) / 3600 ))
+              if [ $age_hours -gt 48 ]; then
+                echo "🗑️ Smazán soubor: $base (stáří: ${age_hours}h)"
+                rm "$file"
+              else
+                echo "⏳ Soubor $base je mladší než 48h – ponechávám."
+              fi
+            fi
+          done
+
+      - name: 📦 Commit and push cleanup
         run: |
           git config user.name "GitHub Action"
           git config user.email "actions@github.com"
           git add -A
-          git commit -m "🧹 Removed old uploads (older than 48h)" || echo "Nothing to commit"
+          git commit -m "🧹 Removed unused uploads older than 48h" || echo "No changes"
           git push
