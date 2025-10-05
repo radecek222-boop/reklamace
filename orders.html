@@ -1,11 +1,25 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nová reklamace – White Glove Service</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- 📍 Leaflet pro mapu -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-o9N1j7kP6+vCkKOBY6FVqZQ95JvJQY01tY/M2FZ8A3s="
+    crossorigin=""
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-o1A9ZjXG0GywR/T1yqT7xqKj6rRbfj7CkCzv+1U9jRM="
+    crossorigin=""
+  ></script>
 </head>
+
 <body>
   <div class="wrapper">
     <h1>WHITE GLOVE SERVICE</h1>
@@ -13,51 +27,84 @@
 
     <form id="reklamaceForm" novalidate>
       <label>Číslo reklamace / objednávky:</label>
-      <input type="text" name="cislo" required>
+      <input type="text" name="cislo" required />
 
       <label>Zákazník:</label>
-      <input type="text" name="zakaznik" required>
+      <input type="text" name="zakaznik" required />
 
       <label>Ulice a číslo popisné:</label>
       <div class="address-wrapper">
-        <input type="text" id="ulice" name="ulice" required placeholder="např. Vinohradská 120">
+        <input
+          type="text"
+          id="ulice"
+          name="ulice"
+          required
+          placeholder="např. Vinohradská 120"
+        />
         <div id="suggestions" class="suggestions"></div>
       </div>
 
+      <!-- 🗺️ Mapa náhledu -->
+      <div id="mapPreview" class="map-preview hidden"></div>
+
       <label>Město:</label>
-      <input type="text" id="mesto" name="mesto" required>
+      <input type="text" id="mesto" name="mesto" required />
 
       <label>PSČ:</label>
-      <input type="text" id="psc" name="psc" required pattern="^\d{3}\s?\d{2}$" title="Zadej PSČ ve formátu 12345 nebo 123 45">
+      <input
+        type="text"
+        id="psc"
+        name="psc"
+        required
+        pattern="^\d{3}\s?\d{2}$"
+        title="Zadej PSČ ve formátu 12345 nebo 123 45"
+      />
 
       <label>Telefon:</label>
-      <div style="display:flex; gap:8px;">
-        <select id="predvolba" style="max-width:130px;">
+      <div style="display: flex; gap: 8px">
+        <select id="predvolba" style="max-width: 130px">
           <option value="+420">🇨🇿 +420</option>
           <option value="+421">🇸🇰 +421</option>
           <option value="+43">🇦🇹 +43</option>
         </select>
-        <input type="tel" id="telefon" name="telefon" required placeholder="např. 777123456">
+        <input
+          type="tel"
+          id="telefon"
+          name="telefon"
+          required
+          placeholder="např. 777123456"
+        />
       </div>
 
       <label>E-mail:</label>
-      <input type="email" id="email" name="email" required placeholder="např. info@firma.cz">
+      <input
+        type="email"
+        id="email"
+        name="email"
+        required
+        placeholder="např. info@firma.cz"
+      />
 
       <label>Model / Název produktu:</label>
-      <input type="text" name="produkt" required>
+      <input type="text" name="produkt" required />
 
       <label>Datum prodeje:</label>
-      <input type="date" name="datum_prodeje" required>
+      <input type="date" name="datum_prodeje" required />
 
       <label>Datum reklamace:</label>
-      <input type="date" name="datum_reklamace" required>
+      <input type="date" name="datum_reklamace" required />
 
       <label>Popis závady:</label>
       <textarea name="popis" required></textarea>
 
       <label>Přiložit fotografie (max. 5):</label>
       <small>Podporované formáty: JPG, PNG, HEIC (max. 5 MB / soubor)</small>
-      <input type="file" id="fotky" accept="image/jpeg,image/png,image/heic" multiple>
+      <input
+        type="file"
+        id="fotky"
+        accept="image/jpeg,image/png,image/heic"
+        multiple
+      />
       <div id="preview" class="preview"></div>
 
       <label>Objednávku zpracoval:</label>
@@ -77,11 +124,11 @@
 
       <div id="jinaSekce" class="hidden">
         <label>Zadej nový zápis zadavatele:</label>
-        <input type="text" id="jinaJmeno" name="jinaJmeno">
+        <input type="text" id="jinaJmeno" name="jinaJmeno" />
         <label>E-mail zadavatele:</label>
-        <input type="email" id="jinaEmail" name="jinaEmail">
+        <input type="email" id="jinaEmail" name="jinaEmail" />
         <label>Telefon zadavatele:</label>
-        <input type="tel" id="jinaTelefon" name="jinaTelefon">
+        <input type="tel" id="jinaTelefon" name="jinaTelefon" />
       </div>
 
       <div class="actions">
@@ -100,19 +147,19 @@
           <stop offset="100%" style="stop-color:#00a86b;stop-opacity:1" />
         </linearGradient>
       </defs>
-      <circle cx="26" cy="26" r="25" fill="none"/>
-      <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="26" cy="26" r="25" fill="none" />
+      <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round" />
     </svg>
   </div>
 
   <script>
-    /* === automaticky velká písmena === */
+    /* === Automatická velká písmena === */
     const cisloInput = document.querySelector('input[name="cislo"]');
     cisloInput.addEventListener("input", () => {
       cisloInput.value = cisloInput.value.toUpperCase();
     });
 
-    /* === přesný našeptávač (CZ, SK, AT) === */
+    /* === Našeptávač (CZ, SK, AT) s mapou === */
     const uliceInput = document.getElementById("ulice");
     const mestoInput = document.getElementById("mesto");
     const pscInput = document.getElementById("psc");
@@ -126,7 +173,7 @@
       if (query.length < 2) return;
 
       try {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=cz,sk,at&limit=5&dedupe=1&polygon_geojson=0&q=${encodeURIComponent(query)}`;
+        const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=cz,sk,at&limit=5&dedupe=1&q=${encodeURIComponent(query)}`;
         const res = await fetch(url);
         const data = await res.json();
 
@@ -146,10 +193,22 @@
             pscInput.value = item.address.postcode || "";
             adresaPlatna = true;
             suggestionContainer.innerHTML = "";
+
+            // 🗺️ mini mapa
+            const mapDiv = document.getElementById("mapPreview");
+            mapDiv.classList.remove("hidden");
+            mapDiv.innerHTML = "";
+            const lat = parseFloat(item.lat);
+            const lon = parseFloat(item.lon);
+            const map = L.map(mapDiv, { center: [lat, lon], zoom: 16, zoomControl: false, attributionControl: false });
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+            L.marker([lat, lon]).addTo(map);
           });
           suggestionContainer.appendChild(div);
         });
-      } catch (err) { console.error("Chyba při načítání adres:", err); }
+      } catch (err) {
+        console.error("Chyba při načítání adres:", err);
+      }
     });
 
     document.addEventListener("click", e => {
@@ -157,14 +216,14 @@
         suggestionContainer.innerHTML = "";
     });
 
-    /* === validace tel + e-mail === */
+    /* === Validace tel + e-mail === */
     const telefonInput = document.getElementById("telefon");
     const predvolba = document.getElementById("predvolba");
     const emailInput = document.getElementById("email");
     function validateTelefon() { return /^[0-9]{8,12}$/.test(telefonInput.value.trim()); }
     function validateEmail() { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailInput.value.trim()); }
 
-    /* === komprese + náhled === */
+    /* === Komprese + náhled === */
     async function compressImage(file, maxSizeMB=1, maxDim=1280){
       const img = await createImageBitmap(file);
       const canvas=document.createElement("canvas");
@@ -195,17 +254,17 @@
       }
     });
 
-    /* === přepínání sekce Jiná === */
+    /* === Sekce Jiná === */
     const selectZpracoval=document.getElementById("zpracoval");
     const jinaSekce=document.getElementById("jinaSekce");
     const jinaInputs=jinaSekce.querySelectorAll("input");
     selectZpracoval.onchange=()=>{if(selectZpracoval.value==="Jiná"){jinaSekce.classList.remove("hidden");jinaInputs.forEach(i=>i.required=true);}else{jinaSekce.classList.add("hidden");jinaInputs.forEach(i=>i.required=false);}};
 
-    /* === zvuk + fajfka === */
+    /* === Zvuk + fajfka === */
     function playSuccessSound(){try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const o=ctx.createOscillator();const g=ctx.createGain();o.type="sine";o.frequency.setValueAtTime(880,ctx.currentTime);g.gain.setValueAtTime(0.1,ctx.currentTime);o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+0.25);}catch{}}
     function showSuccess(){playSuccessSound();const s=document.getElementById("successCheck");s.classList.add("active");setTimeout(()=>{window.location.href="index.html";},2500);}
 
-    /* === odeslání === */
+    /* === Odeslání === */
     document.getElementById("reklamaceForm").addEventListener("submit",async e=>{
       e.preventDefault();
       const f=e.target;
