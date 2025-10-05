@@ -4,228 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nová reklamace – White Glove Service</title>
-  <style>
-    body {
-      font-family: "Inter", system-ui, sans-serif;
-      background: #f6f7fb;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      color: #111;
-    }
-
-    .wrapper {
-      background: #fff;
-      padding: 30px;
-      margin-top: 40px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 700px;
-      position: relative;
-    }
-
-    h1 {
-      font-size: 2.8em;
-      font-weight: 900;
-      text-align: center;
-      margin-bottom: 10px;
-      color: #111;
-    }
-
-    h2 {
-      font-size: 1.2em;
-      font-weight: 500;
-      color: #666;
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    label {
-      display: block;
-      font-weight: 600;
-      margin-top: 15px;
-      margin-bottom: 5px;
-    }
-
-    input, textarea, select {
-      width: 100%;
-      padding: 10px;
-      font-size: 1em;
-      font-family: "Inter", system-ui, sans-serif;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-      transition: border 0.2s;
-      font-weight: 400;
-    }
-
-    textarea {
-      height: 100px;
-      resize: vertical;
-    }
-
-    input:invalid,
-    textarea:invalid,
-    select:invalid {
-      border: 2px solid;
-      border-image: linear-gradient(45deg, #ff4d4d, #ff7b7b) 1;
-    }
-
-    input[type="file"] {
-      margin-top: 5px;
-    }
-
-    small {
-      font-size: 0.8em;
-      color: #666;
-    }
-
-    .btn {
-      display: inline-block;
-      text-decoration: none;
-      padding: 12px 28px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1em;
-      border: none;
-      cursor: pointer;
-      transition: transform 0.15s ease-in-out, opacity 0.2s;
-      color: white;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-      min-width: 140px;
-      font-family: "Inter", system-ui, sans-serif;
-    }
-
-    .btn:hover {
-      transform: scale(1.04);
-      opacity: 0.9;
-    }
-
-    .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
-    .btn-send { background: linear-gradient(135deg, #0046ff, #357aff); }
-
-    .actions {
-      text-align: center;
-      margin-top: 25px;
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-    }
-
-    .hidden { display: none; }
-
-    .preview {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .preview-item {
-      width: 80px;
-      height: 80px;
-      position: relative;
-      border-radius: 6px;
-      overflow: hidden;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
-
-    .preview-item img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .progress-bar {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      height: 5px;
-      background: linear-gradient(90deg, #4caf50, #8bc34a);
-      width: 0%;
-      transition: width 0.3s;
-    }
-
-    .invalid {
-      border: 2px solid;
-      border-image: linear-gradient(45deg, #ff4d4d, #ff7b7b) 1;
-    }
-
-    .address-wrapper {
-      position: relative;
-    }
-
-    .suggestions {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      width: 100%;
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      max-height: 180px;
-      overflow-y: auto;
-      z-index: 1000;
-    }
-
-    .suggestions div {
-      padding: 8px;
-      cursor: pointer;
-      font-size: 0.95em;
-    }
-
-    .suggestions div:hover {
-      background: #f0f0f0;
-    }
-
-    .success-check {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(255,255,255,0.9);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      opacity: 0;
-      transition: opacity 0.4s;
-      pointer-events: none;
-    }
-
-    .success-check.active {
-      opacity: 1;
-      pointer-events: all;
-    }
-
-    .checkmark {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      display: block;
-      stroke-width: 5;
-      stroke: url(#grad1);
-      stroke-miterlimit: 10;
-      margin: 10% auto;
-      box-shadow: inset 0px 0px 0px #7ac142;
-      animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
-    }
-
-    @keyframes fill {
-      100% { box-shadow: inset 0px 0px 0px 60px #00d084; }
-    }
-
-    @keyframes scale {
-      0%, 100% { transform: none; }
-      50% { transform: scale3d(1.1, 1.1, 1); }
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -327,7 +106,6 @@
     </svg>
   </div>
 
-  <!-- JavaScript bude následovat zde -->
   <script>
     // === Automaticky převádí číslo objednávky na VELKÁ písmena při psaní ===
     const cisloInput = document.querySelector('input[name="cislo"]');
@@ -393,27 +171,19 @@
       const canvas = document.createElement("canvas");
       let [w, h] = [img.width, img.height];
 
-      if (w > h && w > maxDim) {
-        h *= maxDim / w;
-        w = maxDim;
-      } else if (h > w && h > maxDim) {
-        w *= maxDim / h;
-        h = maxDim;
-      }
+      if (w > h && w > maxDim) { h *= maxDim / w; w = maxDim; }
+      else if (h > w && h > maxDim) { w *= maxDim / h; h = maxDim; }
 
-      canvas.width = w;
-      canvas.height = h;
+      canvas.width = w; canvas.height = h;
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0, w, h);
 
       let quality = 0.9;
       let blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
-
       while (blob.size / 1024 / 1024 > maxSizeMB && quality > 0.4) {
         quality -= 0.1;
         blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
       }
-
       return blob;
     }
 
@@ -424,36 +194,24 @@
     fotkyInput.addEventListener("change", async () => {
       preview.innerHTML = "";
       compressedFiles = [];
-
       const files = Array.from(fotkyInput.files).slice(0, 5);
-
       for (const file of files) {
         if (!file.type.startsWith("image/")) continue;
-
         const item = document.createElement("div");
         item.classList.add("preview-item");
-
         const img = document.createElement("img");
         const progress = document.createElement("div");
         progress.classList.add("progress-bar");
-
         item.appendChild(progress);
         preview.appendChild(item);
-
         const reader = new FileReader();
-        reader.onload = e => {
-          img.src = e.target.result;
-          item.appendChild(img);
-        };
+        reader.onload = e => { img.src = e.target.result; item.appendChild(img); };
         reader.readAsDataURL(file);
-
         const blob = await compressImage(file);
         compressedFiles.push({ name: file.name, blob });
-
         let w = 0;
         const int = setInterval(() => {
-          w += 10;
-          progress.style.width = w + "%";
+          w += 10; progress.style.width = w + "%";
           if (w >= 100) clearInterval(int);
         }, 40);
       }
@@ -474,7 +232,7 @@
       }
     };
 
-    // === Upload na GitHub ===
+    // === Upload a uložení ===
     async function uploadToGitHub(owner, repo, path, fileBlob, message, token) {
       const base64Data = await new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -505,54 +263,37 @@
     async function submitToGitHub(dataObj, owner, repo, path, message, token) {
       const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
       const getResp = await fetch(getUrl, {
-        headers: {
-          "Authorization": `token ${token}`,
-          "Accept": "application/vnd.github.v3+json"
-        }
+        headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json" }
       });
-
       let existingContent = "[]", sha = null;
       if (getResp.ok) {
         const existing = await getResp.json();
         existingContent = atob(existing.content.replace(/\n/g, ""));
         sha = existing.sha;
       }
-
       const arr = JSON.parse(existingContent);
       arr.push(dataObj);
       const newContent = JSON.stringify(arr, null, 2);
       const base64 = btoa(unescape(encodeURIComponent(newContent)));
-
       const body = { message, content: base64, branch: "main" };
       if (sha) body.sha = sha;
-
       const putResp = await fetch(getUrl, {
         method: "PUT",
-        headers: {
-          "Authorization": `token ${token}`,
-          "Accept": "application/vnd.github.v3+json",
-          "Content-Type": "application/json"
-        },
+        headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json", "Content-Type": "application/json" },
         body: JSON.stringify(body)
       });
-
       if (!putResp.ok) throw new Error(await putResp.text());
     }
 
-    // === Zvuk a fajfka ===
+    // === Zvuk + animace ===
     function playSuccessSound() {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        o.type = "sine";
-        o.frequency.setValueAtTime(880, ctx.currentTime);
-        g.gain.setValueAtTime(0.1, ctx.currentTime);
-        o.connect(g);
-        g.connect(ctx.destination);
-        o.start();
-        o.stop(ctx.currentTime + 0.25);
-      } catch (e) { console.warn("Zvuk se nepodařilo přehrát:", e); }
+        const o = ctx.createOscillator(); const g = ctx.createGain();
+        o.type = "sine"; o.frequency.setValueAtTime(880, ctx.currentTime);
+        g.gain.setValueAtTime(0.1, ctx.currentTime); o.connect(g); g.connect(ctx.destination);
+        o.start(); o.stop(ctx.currentTime + 0.25);
+      } catch {}
     }
 
     function showSuccess() {
@@ -568,31 +309,16 @@
       const form = e.target;
       const fields = form.querySelectorAll("input[required], textarea[required], select[required]");
       let valid = true;
-
       fields.forEach(f => {
-        if (!f.value.trim()) {
-          f.classList.add("invalid");
-          valid = false;
-        } else { f.classList.remove("invalid"); }
+        if (!f.value.trim()) { f.classList.add("invalid"); valid = false; }
+        else f.classList.remove("invalid");
       });
-
       if (!validateTelefon()) { telefonInput.classList.add("invalid"); valid = false; }
-      else telefonInput.classList.remove("invalid");
-
       if (!validateEmail()) { emailInput.classList.add("invalid"); valid = false; }
-      else emailInput.classList.remove("invalid");
+      if (!adresaPlatna) { alert("Vyber prosím adresu z našeptávače."); uliceInput.classList.add("invalid"); valid = false; }
+      if (!valid) return alert("Zkontroluj červeně označená pole.");
 
-      if (!adresaPlatna) {
-        alert("Vyber prosím adresu z našeptávače.");
-        uliceInput.classList.add("invalid");
-        valid = false;
-      }
-
-      if (!valid) { alert("Zkontroluj červeně označená pole."); return; }
-
-      const owner = "radecek222-boop";
-      const repo = "reklamace";
-      const token = prompt("Zadej GitHub token:");
+      const owner = "radecek222-boop", repo = "reklamace", token = prompt("Zadej GitHub token:");
       const cisloReklamace = (form.cislo.value.trim().toUpperCase() || "REK");
 
       const dataObj = {
@@ -609,11 +335,7 @@
         popis: form.popis.value,
         fotky: [],
         jinaZadavatel: form.zpracoval.value === "Jiná"
-          ? {
-              jmeno: form.jinaJmeno.value,
-              email: form.jinaEmail.value,
-              telefon: form.jinaTelefon.value
-            }
+          ? { jmeno: form.jinaJmeno.value, email: form.jinaEmail.value, telefon: form.jinaTelefon.value }
           : null
       };
 
@@ -625,11 +347,9 @@
           await uploadToGitHub(owner, repo, path, file.blob, message, token);
           dataObj.fotky.push(safeName);
         }
-
         const message = `Nová reklamace ${cisloReklamace}`;
         await submitToGitHub(dataObj, owner, repo, "orders.json", message, token);
-        showSuccess();
-        form.reset();
+        showSuccess(); form.reset();
       } catch (err) { alert("Chyba: " + err.message); }
     });
   </script>
