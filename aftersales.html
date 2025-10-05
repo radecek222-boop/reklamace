@@ -40,6 +40,13 @@
     }
     .btn:hover { background:#5a6268; }
     .actions { text-align:center; margin-top:25px; }
+    .note {
+      font-size: 0.9em;
+      color: #666;
+      text-align: center;
+      margin-top: 25px;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
@@ -50,16 +57,16 @@
 
     <form id="servisForm">
       <label>Jméno a příjmení:</label>
-      <input type="text" name="zakaznik">
+      <input type="text" name="zakaznik" required>
 
       <label>Adresa:</label>
-      <input type="text" name="adresa">
+      <input type="text" name="adresa" required>
 
       <label>Telefon:</label>
-      <input type="tel" name="telefon">
+      <input type="tel" name="telefon" required>
 
       <label>E-mail:</label>
-      <input type="email" name="email">
+      <input type="email" name="email" required>
 
       <label>Model / Název produktu:</label>
       <input type="text" name="produkt">
@@ -73,14 +80,11 @@
       <label>Přiložit fotografie (max. 3):</label>
       <input type="file" id="fotky" accept="image/*" multiple>
 
-      <label>Jméno zadavatele:</label>
-      <input type="text" name="zadavatel_jmeno">
-
-      <label>E-mail zadavatele:</label>
-      <input type="email" name="zadavatel_email">
-
-      <label>Telefon zadavatele:</label>
-      <input type="tel" name="zadavatel_telefon">
+      <p class="note">
+        Po odeslání formuláře bude váš požadavek předán našemu technikovi.  
+        Ten vás bude kontaktovat v nejbližším možném termínu po ověření možností zásahu a orientační ceny opravy.  
+        Děkujeme za pochopení a trpělivost.
+      </p>
 
       <div class="actions">
         <a href="index.html" class="btn">Zpět</a>
@@ -92,17 +96,12 @@
   <script>
     async function submitToGitHub(dataObj, owner, repo, path, message, token) {
       const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-
       const getResp = await fetch(getUrl, {
-        headers: {
-          "Authorization": `token ${token}`,
-          "Accept": "application/vnd.github.v3+json"
-        }
+        headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json" }
       });
 
       let existingContent = "[]";
       let sha = null;
-
       if (getResp.ok) {
         const existing = await getResp.json();
         existingContent = atob(existing.content.replace(/\n/g, ""));
@@ -138,7 +137,6 @@
 
     document.getElementById("servisForm").addEventListener("submit", async function(e) {
       e.preventDefault();
-
       if (!confirm("Opravdu odeslat požadavek?")) return;
 
       const f = e.target;
@@ -155,11 +153,6 @@
         datum_nakupu: f.datum_nakupu.value,
         popis: f.popis.value,
         fotky: Array.from(files).map(f => f.name),
-        zadavatel: {
-          jmeno: f.zadavatel_jmeno.value,
-          email: f.zadavatel_email.value,
-          telefon: f.zadavatel_telefon.value
-        },
         datum_vytvoreni: new Date().toISOString().split("T")[0]
       };
 
@@ -167,8 +160,7 @@
         const owner = "radecek222-boop";
         const repo = "reklamace";
         const path = "orders.json";
-        const message = `Nový pozáruční servis od ${dataObj.zadavatel.jmeno || "neznámý zadavatel"}`;
-
+        const message = `Nový pozáruční servis od ${dataObj.zakaznik || "neznámý zákazník"}`;
         const token = prompt("Zadej GitHub token pro zápis:");
         if (!token) throw new Error("Nebyl zadán token – požadavek se neuložil.");
 
