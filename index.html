@@ -17,49 +17,60 @@
     height: 100vh;
     text-align: center;
   }
+
   h1 {
     font-size: 2.8em;
     font-weight: 900;
     margin-bottom: 10px;
     color: #111;
   }
+
   h2 {
     font-size: 1.2em;
     font-weight: 500;
     color: #666;
     margin-bottom: 50px;
   }
+
   .btn-container {
     display: flex;
     gap: 20px;
     flex-wrap: wrap;
     justify-content: center;
   }
+
   .btn {
     color: white;
     font-weight: 600;
-    padding: 14px 28px;
+    padding: 14px 32px;
     font-size: 1em;
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
     transition: transform 0.1s ease-in-out, opacity 0.2s;
     text-decoration: none;
-    min-width: 220px;
+    min-width: 240px;
     text-align: center;
   }
-  .btn:hover { transform: scale(1.03); opacity: 0.9; }
-  .btn-new { background: linear-gradient(145deg, #004080, #1e90ff, #003366); }
-  .btn-after { background: linear-gradient(145deg, #006600, #28a745, #004d00); }
-  .btn-list { background: linear-gradient(145deg, #6c757d, #a0a4a7, #5c636a); }
+  .btn:hover { transform: scale(1.04); opacity: 0.9; }
+
+  .btn-new {
+    background: linear-gradient(135deg, #0046ff, #357aff);
+  }
+  .btn-after {
+    background: linear-gradient(135deg, #00b36b, #3cd67a);
+  }
+  .btn-list {
+    background: linear-gradient(135deg, #444, #8b8b8b);
+  }
 
   #adminButton {
     position: fixed;
     top: 15px;
     right: 20px;
     z-index: 1500;
-    background: linear-gradient(145deg,#555,#999,#777);
+    background: linear-gradient(135deg, #666, #999);
     color: white;
     padding: 8px 16px;
     border: none;
@@ -68,37 +79,81 @@
     cursor: pointer;
     box-shadow: 0 2px 6px rgba(0,0,0,0.2);
   }
+
   #adminLoginOverlay {
-    position: fixed; top:0; left:0; width:100%; height:100%;
+    position: fixed;
+    top:0; left:0; width:100%; height:100%;
     background:rgba(0,0,0,0.7);
     display:none; justify-content:center; align-items:center;
-    z-index:3000; backdrop-filter: blur(4px);
+    z-index:3000;
+    backdrop-filter: blur(4px);
   }
+
   #adminLoginBox {
-    background:white; padding:40px 30px; border-radius:12px;
-    box-shadow:0 4px 20px rgba(0,0,0,0.3); text-align:center;
-    max-width:340px; width:90%; animation:fadeIn 0.3s ease-in-out;
+    background:white;
+    padding:40px 30px;
+    border-radius:12px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.3);
+    text-align:center;
+    max-width:340px;
+    width:90%;
+    animation:fadeIn 0.3s ease-in-out;
   }
-  #adminLoginBox h2 { margin-top:0; font-size:1.3em; font-weight:800; color:#111; }
-  #adminLoginBox p { color:#555; font-size:0.95em; margin-bottom:20px; }
+
+  #adminLoginBox h2 {
+    margin-top:0;
+    font-size:1.3em;
+    font-weight:800;
+    color:#111;
+  }
+
+  #adminLoginBox p {
+    color:#555;
+    font-size:0.95em;
+    margin-bottom:20px;
+  }
+
   #adminPassword {
-    width:100%; padding:10px 12px; border:1px solid #ccc; border-radius:8px;
-    font-size:1em; margin-bottom:15px; box-sizing:border-box; outline:none;
+    width:100%;
+    padding:10px 12px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    font-size:1em;
+    margin-bottom:15px;
+    box-sizing:border-box;
+    outline:none;
     transition:all 0.2s ease-in-out;
   }
-  #adminPassword:focus { border-color:#1e90ff; box-shadow:0 0 5px rgba(30,144,255,0.4); }
-  #adminLoginBtn {
-    background:linear-gradient(145deg,#004080,#1e90ff,#003366);
-    border:none; padding:10px 20px; border-radius:8px; color:white;
-    font-weight:600; cursor:pointer; font-size:1em;
+
+  #adminPassword:focus {
+    border-color:#1e90ff;
+    box-shadow:0 0 5px rgba(30,144,255,0.4);
   }
-  #adminError { color:#c00; font-size:0.9em; font-weight:600; display:none; }
+
+  #adminLoginBtn {
+    background:linear-gradient(135deg,#0046ff,#357aff);
+    border:none;
+    padding:10px 20px;
+    border-radius:8px;
+    color:white;
+    font-weight:600;
+    cursor:pointer;
+    font-size:1em;
+    transition:transform 0.1s ease-in-out, opacity 0.2s;
+  }
+
+  #adminError {
+    color:#c00;
+    font-size:0.9em;
+    font-weight:600;
+    display:none;
+  }
 
   #adminStatus {
     position: fixed;
     bottom: 15px;
     right: 20px;
-    background: #222;
+    background: #111;
     color: #fff;
     padding: 10px 16px;
     border-radius: 8px;
@@ -109,14 +164,29 @@
     z-index: 2500;
   }
 
-  @keyframes fadeIn {
-    from { opacity:0; transform:translateY(-10px); }
-    to { opacity:1; transform:translateY(0); }
+  #logoutBtn {
+    background: transparent;
+    border: 1px solid #fff;
+    color: #fff;
+    border-radius: 6px;
+    padding: 4px 8px;
+    margin-left: 10px;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: all 0.2s;
+  }
+  #logoutBtn:hover {
+    background: rgba(255,255,255,0.1);
   }
 
   @media (max-width:768px) {
     #adminButton { right:50%; transform:translateX(50%); top:10px; }
     .btn-container { flex-direction: column; gap: 15px; }
+  }
+
+  @keyframes fadeIn {
+    from { opacity:0; transform:translateY(-10px); }
+    to { opacity:1; transform:translateY(0); }
   }
 </style>
 </head>
@@ -133,7 +203,10 @@
 
   <button id="adminButton">Admin</button>
 
-  <div id="adminStatus">Admin aktivní (zbývá <span id="countdown">15:00</span>)</div>
+  <div id="adminStatus">
+    Admin aktivní – zbývá <span id="countdown">15:00</span>
+    <button id="logoutBtn">Odhlásit</button>
+  </div>
 
   <div id="adminLoginOverlay">
     <div id="adminLoginBox">
@@ -154,12 +227,14 @@
     const listButton = document.getElementById("adminListButton");
     const statusBox = document.getElementById("adminStatus");
     const countdownEl = document.getElementById("countdown");
+    const logoutBtn = document.getElementById("logoutBtn");
 
     function showAdminList() {
       listButton.style.display = "inline-block";
       statusBox.style.display = "block";
       startCountdown();
     }
+
     function hideAdminList() {
       listButton.style.display = "none";
       statusBox.style.display = "none";
@@ -191,8 +266,10 @@
     function logout(reason="neaktivity") {
       localStorage.removeItem("wgsAdmin");
       hideAdminList();
-      alert(`⏱️ Přístup admina byl ukončen z důvodu ${reason}.`);
+      alert(`⏱️ Přístup admina byl ukončen (${reason}).`);
     }
+
+    logoutBtn.addEventListener("click", () => logout("odhlášení"));
 
     function resetInactivityTimer(){
       clearTimeout(inactivityTimer);
@@ -212,6 +289,7 @@
 
     function startCountdown() {
       clearInterval(countdownTimer);
+      remainingTime = EXPIRATION_MINUTES * 60;
       countdownTimer = setInterval(() => {
         remainingTime--;
         if (remainingTime <= 0) {
