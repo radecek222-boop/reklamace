@@ -10,18 +10,22 @@ body { margin:0; padding:20px; background:#f6f7fb; }
 h1 { text-align:center; font-size:2em; font-weight:900; margin:0 0 10px; }
 h2 { text-align:center; font-size:1.1em; font-weight:600; margin:0 0 20px; color:#555; }
 
-.btn-gradient { display:inline-block; text-decoration:none; padding:10px 22px; border-radius:8px;
-font-weight:600; font-size:1em; color:#fff; border:none; cursor:pointer;
-box-shadow:0 2px 8px rgba(0,0,0,0.15); transition:transform 0.15s ease-in-out, opacity 0.2s; margin:4px; }
+.btn-gradient {
+  display:inline-block; text-decoration:none; padding:10px 22px; border-radius:8px;
+  font-weight:600; font-size:1em; color:#fff; border:none; cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,0.15);
+  transition:transform 0.15s ease-in-out, opacity 0.2s; margin:4px;
+}
 .btn-gradient:hover { transform:scale(1.04); opacity:0.9; }
-
 .btn-green { background:linear-gradient(135deg,#00b36b,#3cd67a); }
 .btn-gray { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
 .btn-blue { background:linear-gradient(135deg,#0046ff,#357aff); }
 
 .top-actions { text-align:center; margin-bottom:20px; }
-.searchbox { width:100%; max-width:400px; margin:0 auto 20px; display:block; padding:10px;
-border:1px solid #ccc; border-radius:8px; font-size:1em; background:#fff; }
+.searchbox {
+  width:100%; max-width:400px; margin:0 auto 20px; display:block;
+  padding:10px; border:1px solid #ccc; border-radius:8px; font-size:1em; background:#fff;
+}
 
 table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; }
 th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #ddd; font-size:0.95em; }
@@ -29,13 +33,35 @@ th { background:#eee; font-weight:700; }
 tr:hover { background:#f1f3f5; cursor:pointer; }
 
 @media (max-width:768px){ th:nth-child(n+5), td:nth-child(n+5){display:none;} }
-#detailModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none;justify-content:center;align-items:center;padding:20px;z-index:1000;}
-#detailContent{background:white;border-radius:10px;padding:20px;max-width:600px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 4px 15px rgba(0,0,0,0.2);}
-#detailButtons{text-align:center;margin-top:20px;}
-#detailButtons button{margin:5px;padding:10px 16px;border:none;border-radius:8px;cursor:pointer;color:#fff;font-weight:600;transition:transform 0.15s ease,opacity 0.2s;}
-#detailButtons button:hover{transform:scale(1.05);opacity:0.9;}
-.btn-close{background:linear-gradient(135deg,#6c757d,#a0a4a7);}
-.btn-done{background:linear-gradient(135deg,#00b36b,#3cd67a);}
+
+#detailModal {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center;
+  padding:20px; z-index:1000;
+}
+#detailContent {
+  background:white; border-radius:10px; padding:20px; max-width:600px; width:100%;
+  max-height:85vh; overflow-y:auto; box-shadow:0 4px 15px rgba(0,0,0,0.2);
+}
+#detailButtons { text-align:center; margin-top:20px; }
+#detailButtons button {
+  margin:5px; padding:10px 16px; border:none; border-radius:8px;
+  cursor:pointer; color:#fff; font-weight:600;
+  transition:transform 0.15s ease, opacity 0.2s;
+}
+#detailButtons button:hover { transform:scale(1.05); opacity:0.9; }
+.btn-close { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
+.btn-done { background:linear-gradient(135deg,#00b36b,#3cd67a); }
+
+.photo-gallery { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:10px; }
+.photo-gallery img { max-width:100px; border-radius:6px; cursor:pointer; transition:transform 0.2s ease; }
+.photo-gallery img:hover { transform:scale(1.1); }
+
+#photoView {
+  display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:1100;
+}
+#photoView img { max-width:90%; max-height:90%; border-radius:10px; }
 </style>
 </head>
 <body>
@@ -43,8 +69,9 @@ tr:hover { background:#f1f3f5; cursor:pointer; }
 <h2>Seznam reklamací a servisních požadavků</h2>
 
 <div class="top-actions">
-<a href="hotove.html" class="btn-gradient btn-green">Hotové reklamace</a>
-<button onclick="loadOrders()" class="btn-gradient btn-blue">Načíst znovu</button>
+  <a href="index.html" class="btn-gradient btn-gray">Zpět na hlavní stránku</a>
+  <a href="hotove.html" class="btn-gradient btn-green">Hotové reklamace</a>
+  <button onclick="loadOrders()" class="btn-gradient btn-blue">Načíst znovu</button>
 </div>
 
 <input type="text" id="searchInput" class="searchbox" placeholder="Hledat podle jména, adresy nebo telefonu...">
@@ -57,15 +84,18 @@ tr:hover { background:#f1f3f5; cursor:pointer; }
 </table>
 
 <div id="detailModal">
-<div id="detailContent">
-<h3 id="detailName" style="margin-top:0;"></h3>
-<div id="detailInfo"></div>
-<div id="detailButtons">
-<button id="markDone" class="btn-done">Označit jako hotové</button>
-<button id="closeDetail" class="btn-close">Zavřít</button>
+  <div id="detailContent">
+    <h3 id="detailName" style="margin-top:0;"></h3>
+    <div id="detailInfo"></div>
+    <div class="photo-gallery" id="photoGallery"></div>
+    <div id="detailButtons">
+      <button id="markDone" class="btn-done">Označit jako hotové</button>
+      <button id="closeDetail" class="btn-close">Zavřít</button>
+    </div>
+  </div>
 </div>
-</div>
-</div>
+
+<div id="photoView"><img id="photoLarge" src=""></div>
 
 <script>
 const GITHUB_USER="radecek222-boop",REPO="reklamace",TOKEN="TVŮJ_TOKEN",ORDERS_FILE="orders.json",HOTOVE_FILE="hotove.json";
@@ -98,9 +128,14 @@ function openDetail(item){
   <p><b>Telefon:</b> ${item["Telefon"]||""}</p>
   <p><b>E-mail:</b> ${item["Email"]||""}</p>
   <p><b>Popis:</b> ${item["Popis CZ"]||""}</p>`;
+ const gallery=document.getElementById("photoGallery");gallery.innerHTML="";
+ ["Foto1","Foto2","Foto3"].forEach(k=>{
+  if(item[k]){const img=document.createElement("img");img.src=item[k];img.onclick=()=>openPhoto(img.src);gallery.appendChild(img);}
+ });
  document.getElementById("markDone").onclick=()=>markAsDone(item);
 }
 
+function openPhoto(src){const v=document.getElementById("photoView");const i=document.getElementById("photoLarge");i.src=src;v.style.display="flex";v.onclick=()=>v.style.display="none";}
 document.getElementById("closeDetail").onclick=()=>document.getElementById("detailModal").style.display="none";
 
 async function markAsDone(item){
