@@ -136,9 +136,16 @@
     async function loadDone() {
       const tbody = document.getElementById("tableBody");
       try {
-        const res = await fetch("https://raw.githubusercontent.com/radecek222-boop/reklamace/main/hotove.json?" + Date.now());
-        if (!res.ok) throw new Error("Soubor hotove.json nebyl nalezen nebo není veřejný.");
+        const res = await fetch("https://raw.githubusercontent.com/radecek222-boop/reklamace/main/hotove.json?nocache=" + Date.now(), {
+          method: "GET",
+          headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json; charset=utf-8"
+          },
+          cache: "no-store"
+        });
 
+        if (!res.ok) throw new Error("Soubor hotove.json nebyl nalezen nebo není veřejný.");
         let text = await res.text();
         let data = [];
         try {
