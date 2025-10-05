@@ -65,6 +65,7 @@
     }
     #suggestions li { padding:8px 10px; cursor:pointer; }
     #suggestions li:hover { background:#f1f3f5; }
+    .hidden { display:none; }
   </style>
 </head>
 <body>
@@ -75,6 +76,32 @@
     <form id="reklamaceForm">
       <label>Číslo reklamace / objednávky:</label>
       <input type="text" name="cislo" required>
+
+      <label>Zadavatel (prodejna):</label>
+      <select id="zpracoval" name="contract" required>
+        <option value="">Vyber...</option>
+        <option value="Natuzzi Editions - Strejcek">Natuzzi Editions - Strejcek</option>
+        <option value="Natuzzi Editions - Vimrova">Natuzzi Editions - Vimrova</option>
+        <option value="Natuzzi Italia - Bratislava">Natuzzi Italia - Bratislava</option>
+        <option value="Natuzzi Italia - Jama">Natuzzi Italia - Jama</option>
+        <option value="Natuzzi Italia - River">Natuzzi Italia - River</option>
+        <option value="Natuzzi Italia - SOHO">Natuzzi Italia - SOHO</option>
+        <option value="Softaly - SOHO">Softaly - SOHO</option>
+        <option value="Phase - Klucarova">Phase - Klucarova</option>
+        <option value="Phase - Jancova">Phase - Jancova</option>
+        <option value="Jiná">Jiná</option>
+      </select>
+
+      <div id="jinaSekce" class="hidden">
+        <label>Název zadavatele:</label>
+        <input type="text" id="jinaJmeno" name="jinaJmeno">
+
+        <label>E-mail zadavatele:</label>
+        <input type="email" id="jinaEmail" name="jinaEmail">
+
+        <label>Telefon zadavatele:</label>
+        <input type="tel" id="jinaTelefon" name="jinaTelefon">
+      </div>
 
       <label>Zákazník:</label>
       <input type="text" name="zakaznik" required>
@@ -117,12 +144,25 @@
   </div>
 
   <script>
+    const selectZpracoval = document.getElementById("zpracoval");
+    const jinaSekce = document.getElementById("jinaSekce");
+    const jinaInputs = jinaSekce.querySelectorAll("input");
+
+    selectZpracoval.addEventListener("change", () => {
+      if (selectZpracoval.value === "Jiná") {
+        jinaSekce.classList.remove("hidden");
+        jinaInputs.forEach(inp => inp.required = true);
+      } else {
+        jinaSekce.classList.add("hidden");
+        jinaInputs.forEach(inp => inp.required = false);
+      }
+    });
+
     const adresaInput = document.getElementById("adresa");
     const suggestions = document.getElementById("suggestions");
     const progressWrapper = document.getElementById("progressWrapper");
     const progressFill = document.getElementById("progressFill");
     const progressText = document.getElementById("progressText");
-
     let timer = null;
 
     // 🔍 Našeptávač adres
@@ -181,17 +221,10 @@
       const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
       const path = `uploads/${fileName}`;
       const url = `https://api.github.com/repos/radecek222-boop/reklamace/contents/${path}`;
-      const body = {
-        message: `Upload ${fileName}`,
-        content: base64,
-        branch: "main"
-      };
+      const body = { message: `Upload ${fileName}`, content: base64, branch: "main" };
       const res = await fetch(url, {
         method: "PUT",
-        headers: {
-          Authorization: `token ${token}`,
-          "Content-Type": "application/json"
-        },
+        headers: { Authorization: `token ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify(body)
       });
       if (!res.ok) throw new Error(await res.text());
@@ -244,6 +277,7 @@
 
       const dataObj = {
         typ: "reklamace",
+        contract: f.contract.value,
         cislo: f.cislo.value,
         zakaznik: f.zakaznik.value,
         adresa: f.adresa.value,
@@ -253,7 +287,12 @@
         datum_prodeje: f.datum_prodeje.value,
         datum_reklamace: f.datum_reklamace.value,
         popis: f.popis.value,
-        fotky: uploadedUrls
+        fotky: uploadedUrls,
+        jinaZadavatel: f.contract.value === "Jiná" ? {
+          jmeno: f.jinaJmeno.value,
+          email: f.jinaEmail.value,
+          telefon: f.jinaTelefon.value
+        } : null
       };
 
       await updateOrders(dataObj, token);
