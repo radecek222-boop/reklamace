@@ -10,18 +10,28 @@
     h1 { text-align:center; font-size:2em; font-weight:900; margin:0 0 10px; }
     h2 { text-align:center; font-size:1.1em; font-weight:600; margin:0 0 20px; color:#555; }
 
+    /* 🔹 tlačítka nahoře */
     .toolbar { text-align:center; margin-bottom:15px; }
     .btn {
-      display:inline-block; text-decoration:none; color:#fff; padding:10px 18px; border-radius:8px; font-weight:700;
+      display:inline-block; text-decoration:none; color:#fff;
+      padding:10px 18px; border-radius:8px; font-weight:700;
       background:#6c757d; margin:0 6px;
+      transition:transform .15s ease;
     }
-    .btn:hover { background:#5a6268; }
+    .btn:hover { background:#5a6268; transform:translateY(-1px); }
     .btn-green {
       background: linear-gradient(135deg, #28a745, #58d68d, #2ecc71);
-      background-size: 200% 200%;
+      background-size:200% 200%;
       animation: shine 3s ease infinite;
     }
-    @keyframes shine { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+    @keyframes shine {
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
+    @media(max-width:768px){
+      .btn{display:block;width:100%;margin-bottom:10px;}
+    }
 
     .searchbox {
       width:100%; max-width:420px; margin:0 auto 20px; display:block; padding:10px;
@@ -36,27 +46,29 @@
     .contract-poz { color:#7b1fa2; font-weight:700; }
     .status-done { color:#2e7d32; font-weight:800; }
 
-    /* 📱 Responzivní tabulka: na mobilu nechat 4 sloupce (JMÉNO, ADRESA, TELEFON, STAV) */
+    /* 📱 Responzivní: na mobilu 4 sloupce */
     @media (max-width: 768px) {
-      th:nth-child(1), td:nth-child(1) { display:none; } /* schovat číslování */
-      th:nth-child(2), td:nth-child(2) { display:none; } /* schovat CONTRACT */
+      th:nth-child(1), td:nth-child(1) { display:none; }
+      th:nth-child(2), td:nth-child(2) { display:none; }
       th:nth-child(6), td:nth-child(6),
-      th:nth-child(7), td:nth-child(7) { display:none; } /* schovat email + popis (detail v modalu) */
-      th:nth-child(8), td:nth-child(8) { display:table-cell; } /* TYP jako „stav“ necháme viditelný */
+      th:nth-child(7), td:nth-child(7) { display:none; }
     }
 
     /* Modal detail */
     #detailModal {
       position:fixed; top:0; left:0; width:100%; height:100%;
-      background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; padding:20px; z-index:1000;
+      background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center;
+      padding:20px; z-index:1000;
     }
     #detailContent {
-      background:white; border-radius:10px; padding:20px; max-width:600px; width:100%;
-      max-height:85vh; overflow-y:auto; box-shadow:0 4px 15px rgba(0,0,0,0.2);
+      background:white; border-radius:10px; padding:20px;
+      max-width:600px; width:100%; max-height:85vh; overflow-y:auto;
+      box-shadow:0 4px 15px rgba(0,0,0,0.2);
     }
     #detailButtons { text-align:center; margin-top:18px; }
     #detailButtons button {
-      margin:5px; padding:10px 16px; border:none; border-radius:8px; cursor:pointer; color:#fff; font-weight:700;
+      margin:5px; padding:10px 16px; border:none; border-radius:8px;
+      cursor:pointer; color:#fff; font-weight:700;
     }
     .btn-close { background:#6c757d; }
     .btn-close:hover { background:#5a6268; }
@@ -70,9 +82,8 @@
     .photo-gallery img { max-width:100px; border-radius:6px; cursor:pointer; transition:transform 0.2s ease; }
     .photo-gallery img:hover { transform:scale(1.1); }
 
-    /* Fullscreen náhled fotky */
-    #photoView { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85);
-      justify-content:center; align-items:center; z-index:1100; }
+    #photoView { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:1100; }
     #photoView img { max-width:90%; max-height:90%; border-radius:10px; }
   </style>
 </head>
@@ -82,7 +93,7 @@
   <h2>Hotové reklamace</h2>
 
   <div class="toolbar">
-    <a href="seznam.html" class="btn">⬅ Zpět na aktivní</a>
+    <a href="seznam.html" class="btn btn-green">⬅ Zpět na aktivní</a>
     <a href="index.html" class="btn">🏠 Domů</a>
   </div>
 
@@ -119,21 +130,28 @@
     </div>
   </div>
 
-  <!-- Fullscreen obraz -->
   <div id="photoView"><img id="photoLarge" src=""></div>
 
   <script>
     async function loadDone() {
       const tbody = document.getElementById("tableBody");
       try {
-        const res = await fetch("https://raw.githubusercontent.com/radecek222-boop/reklamace/main/hotove.json");
+        const res = await fetch("https://raw.githubusercontent.com/radecek222-boop/reklamace/main/hotove.json?" + Date.now());
         if (!res.ok) throw new Error("Soubor hotove.json nebyl nalezen nebo není veřejný.");
-        const data = await res.json();
+
+        let text = await res.text();
+        let data = [];
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error("Soubor hotove.json není platný JSON.");
+        }
 
         if (!Array.isArray(data) || data.length === 0) {
           tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Žádné hotové reklamace</td></tr>`;
           return;
         }
+
         renderTable(data);
       } catch (e) {
         tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:red;">Chyba: ${e.message}</td></tr>`;
@@ -216,6 +234,8 @@
       });
     });
 
+    // 🌀 Načti data vždy čerstvě při otevření
+    window.addEventListener("pageshow", () => loadDone());
     loadDone();
   </script>
 </body>
