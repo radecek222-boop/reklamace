@@ -133,7 +133,58 @@
   </div>
 
   <script>
-    document.getElementById("reklamaceForm").addEventListener("submit", function(e) {
+    async function submitToGitHub(dataObj, owner, repo, path, message, token) {
+      // načti aktuální obsah souboru orders.json
+      const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+      const getResp = await fetch(getUrl, {
+        headers: {
+          "Authorization": `token ${token}`,
+          "Accept": "application/vnd.github.v3+json"
+        }
+      });
+
+      let existingContent = "[]";
+      let sha = null;
+
+      if (getResp.ok) {
+        const existing = await getResp.json();
+        existingContent = atob(existing.content.replace(/\n/g, ""));
+        sha = existing.sha;
+      }
+
+      const arr = JSON.parse(existingContent);
+      arr.push(dataObj);
+
+      const newContent = JSON.stringify(arr, null, 2);
+      const base64 = btoa(unescape(encodeURIComponent(newContent)));
+
+      const body = {
+        message,
+        content: base64,
+        branch: "main"
+      };
+      if (sha) body.sha = sha;
+
+      const putUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+      const putResp = await fetch(putUrl, {
+        method: "PUT",
+        headers: {
+          "Authorization": `token ${token}`,
+          "Accept": "application/vnd.github.v3+json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!putResp.ok) {
+        const err = await putResp.text();
+        throw new Error("Chyba při zápisu: " + err);
+      }
+
+      return await putResp.json();
+    }
+
+    document.getElementById("reklamaceForm").addEventListener("submit", async function(e) {
       e.preventDefault();
 
       const files = document.getElementById("fotky").files;
@@ -142,8 +193,34 @@
         if (!potvrdit) return;
       }
 
-      alert("Reklamace byla úspěšně odeslána. (zatím testovací režim)");
-      this.reset();
+      const form = e.target;
+      const dataObj = {
+        cislo: form.cislo.value,
+        zakaznik: form.zakaznik.value,
+        adresa: form.adresa.value,
+        telefon: form.telefon.value,
+        email: form.email.value,
+        produkt: form.produkt.value,
+        datum_prodeje: form.datum_prodeje.value,
+        datum_reklamace: form.datum_reklamace.value,
+        popis: form.popis.value,
+        fotky: Array.from(files).map(f => f.name)
+      };
+
+      try {
+        const owner = "radecek222-boop";
+        const repo = "reklamace";
+        const path = "orders.json";
+        const message = `Nová reklamace ${dataObj.cislo}`;
+        const token = "SEM_VLOŽ_TVŮJ_TOKEN"; // ← sem vlož svůj skutečný token
+
+        await submitToGitHub(dataObj, owner, repo, path, message, token);
+        alert("Reklamace byla úspěšně uložena do GitHubu!");
+        form.reset();
+      } catch (err) {
+        console.error(err);
+        alert("Chyba při odesílání: " + err.message);
+      }
     });
   </script>
 
