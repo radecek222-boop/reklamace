@@ -22,118 +22,24 @@
       padding: 25px 30px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.08);
     }
-    h1 {
-      text-align: center;
-      font-size: 1.8em;
-      font-weight: 900;
-      margin: 0;
+    h1 { text-align: center; font-size: 1.8em; font-weight: 900; margin: 0; }
+    h2 { text-align: center; font-size: 1em; font-weight: 500; color: #666; margin-bottom: 25px; }
+    label { display: block; margin-top: 12px; font-weight: 600; color: #333; }
+    input, textarea {
+      width: 100%; padding: 10px; margin-top: 6px;
+      border: 1px solid #ccc; border-radius: 8px; font-family: inherit;
+      font-size: 15px; box-sizing: border-box;
     }
-    h2 {
-      text-align: center;
-      font-size: 1em;
-      font-weight: 500;
-      color: #666;
-      margin-bottom: 25px;
-    }
-    label {
-      display: block;
-      margin-top: 12px;
-      font-weight: 600;
-      color: #333;
-    }
-    input, textarea, select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-family: inherit;
-      font-size: 15px;
-      box-sizing: border-box;
-      transition: border-color 0.2s;
-    }
-    input:invalid, textarea:invalid {
-      border-color: #d9534f;
-      background: #fff6f6;
-    }
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-    input[type="file"] {
-      border: none;
-      padding: 6px 0;
-    }
-    .photo-count {
-      font-size: 14px;
-      color: #555;
-      margin-top: 5px;
-      text-align: right;
-    }
-    .buttons {
-      margin-top: 25px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-    }
+    textarea { resize: vertical; min-height: 80px; }
+    input:invalid, textarea:invalid { border-color: #d9534f; background: #fff6f6; }
+    .buttons { margin-top: 25px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
     .btn {
-      border: none;
-      color: white;
-      padding: 10px 25px;
-      border-radius: 12px;
-      font-size: 15px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: 0.2s;
+      border: none; color: white; padding: 10px 25px; border-radius: 12px;
+      font-size: 15px; cursor: pointer; font-weight: 600; transition: 0.2s;
     }
-    .btn:active {
-      transform: scale(0.97);
-    }
-    .btn-submit {
-      background: linear-gradient(135deg, #5a8dee, #7b42f6);
-    }
-    .btn-back {
-      background: linear-gradient(135deg, #9e9e9e, #6c757d);
-    }
-    .preview {
-      margin-top: 10px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .photo-box {
-      position: relative;
-      display: inline-block;
-    }
-    .photo-box img {
-      width: 120px;
-      height: 120px;
-      object-fit: cover;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-    .remove-btn {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background: #d9534f;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 22px;
-      height: 22px;
-      font-size: 14px;
-      cursor: pointer;
-      line-height: 0;
-    }
-    .message {
-      margin-top: 20px;
-      font-weight: 600;
-      text-align: center;
-      color: #28a745;
-      display: none;
-    }
+    .btn-submit { background: linear-gradient(135deg, #5a8dee, #7b42f6); }
+    .btn-back { background: linear-gradient(135deg, #9e9e9e, #6c757d); }
+    .message { margin-top: 20px; font-weight: 600; text-align: center; color: #28a745; display: none; }
   </style>
 </head>
 <body>
@@ -143,7 +49,7 @@
   <h2>Formulář pro zadání nového případu</h2>
 
   <form id="orderForm" novalidate>
-    <label>Číslo reklamace/OC:</label>
+    <label>Číslo objednávky:</label>
     <input type="text" name="cislo_objednavky" required>
 
     <label>Zákazník:</label>
@@ -168,13 +74,7 @@
     <input type="date" name="datum_nakupu" required>
 
     <label>Popis závady:</label>
-    <textarea name="popis" placeholder="Popište závadu nebo problém" required></textarea>
-
-    <label>Přiložit fotografie (min. 1, max. 3):</label>
-    <input type="file" id="photos" name="photos" accept="image/*" multiple required>
-    <div class="photo-count" id="photoCount">Nahráno 0 / 3 fotografií</div>
-
-    <div class="preview" id="preview"></div>
+    <textarea name="popis" required></textarea>
 
     <div class="buttons">
       <button type="button" class="btn btn-back" onclick="window.location.href='index.html'">Zpět na hlavní stránku</button>
@@ -186,86 +86,70 @@
 </div>
 
 <script>
-  const form = document.getElementById('orderForm');
-  const message = document.getElementById('message');
-  const preview = document.getElementById('preview');
-  const photosInput = document.getElementById('photos');
-  const photoCount = document.getElementById('photoCount');
-  let photoFiles = [];
+  /*******************************************************
+   🔑 SEM VLOŽ NOVÝ TOKEN (mezi uvozovky níže)
+   ⚠️ Tento token nikdy nesmíš nahrát do veřejného repozitáře!
+  *******************************************************/
+  const GITHUB_TOKEN = "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;
 
-  // Aktualizace počtu fotek
-  function updatePhotoCount() {
-    photoCount.textContent = `Nahráno ${photoFiles.length} / 3 fotografií`;
-  }
+  const REPO = "radecek222-boop"; // název repozitáře
+  const FILE_PATH = "orders.json"; // soubor, kam se zapisuje
+  const USERNAME = "radecek222"; // tvé GitHub uživatelské jméno
 
-  // Obnovení náhledů
-  function renderPreviews() {
-    preview.innerHTML = '';
-    photoFiles.forEach((file, index) => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        const box = document.createElement('div');
-        box.className = 'photo-box';
-        const img = document.createElement('img');
-        img.src = e.target.result;
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'remove-btn';
-        removeBtn.innerHTML = '×';
-        removeBtn.onclick = () => {
-          photoFiles.splice(index, 1);
-          renderPreviews();
-          updatePhotoCount();
-        };
-        box.appendChild(img);
-        box.appendChild(removeBtn);
-        preview.appendChild(box);
-      };
-      reader.readAsDataURL(file);
-    });
-    updatePhotoCount();
-  }
+  const form = document.getElementById("orderForm");
+  const message = document.getElementById("message");
 
-  // Zpracování nahraných fotek
-  photosInput.addEventListener('change', () => {
-    const newFiles = Array.from(photosInput.files);
-    photoFiles = photoFiles.concat(newFiles).slice(0, 3);
-    renderPreviews();
-    photosInput.value = ''; // reset input
-  });
-
-  // Validace formuláře
-  form.addEventListener('submit', e => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    let valid = true;
-    const inputs = form.querySelectorAll('input[required], textarea[required]');
-    inputs.forEach(el => {
-      if ((el.type === "file" && photoFiles.length === 0) || (!el.value.trim() && el.type !== "file")) {
-        el.style.borderColor = "#d9534f";
-        el.style.background = "#fff6f6";
-        valid = false;
-      } else {
-        el.style.borderColor = "#ccc";
-        el.style.background = "white";
-      }
-    });
 
-    if (!valid) {
-      alert("Prosím, vyplňte všechna povinná pole a přiložte alespoň jednu fotografii.");
+    // validace polí
+    const data = Object.fromEntries(new FormData(form).entries());
+    if (Object.values(data).some(v => !v.trim())) {
+      alert("Vyplň prosím všechna pole.");
       return;
     }
 
-    const formData = Object.fromEntries(new FormData(form).entries());
-    console.log("Nový požadavek:", formData);
-    console.log("Počet fotek:", photoFiles.length);
+    // přidání metadat
+    data.datum_zalozeni = new Date().toISOString();
+    data.id = "REQ-" + Date.now();
 
-    form.reset();
-    photoFiles = [];
-    renderPreviews();
-    message.style.display = 'block';
-    setTimeout(() => message.style.display = 'none', 4000);
+    // načtení aktuálního obsahu orders.json
+    const apiUrl = `https://api.github.com/repos/${USERNAME}/${REPO}/contents/${FILE_PATH}`;
+
+    const response = await fetch(apiUrl, {
+      headers: { Authorization: `token ${GITHUB_TOKEN}` }
+    });
+    const file = await response.json();
+    const existingData = file.content ? JSON.parse(atob(file.content)) : [];
+
+    // přidání nového záznamu
+    existingData.push(data);
+
+    // nový obsah jako base64
+    const newContent = btoa(JSON.stringify(existingData, null, 2));
+
+    // zápis do GitHubu
+    const update = await fetch(apiUrl, {
+      method: "PUT",
+      headers: {
+        "Authorization": `token ${GITHUB_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: `Nový požadavek od ${data.zakaznik}`,
+        content: newContent,
+        sha: file.sha
+      })
+    });
+
+    if (update.ok) {
+      message.style.display = "block";
+      form.reset();
+      setTimeout(() => message.style.display = "none", 4000);
+    } else {
+      alert("Chyba při zápisu do GitHubu. Zkontroluj token nebo oprávnění.");
+    }
   });
-
-  updatePhotoCount();
 </script>
 
 </body>
