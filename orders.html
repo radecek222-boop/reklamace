@@ -1,214 +1,106 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nová reklamace – White Glove Service</title>
-  <style>
-    body {
-      font-family: "Inter", system-ui, sans-serif;
-      background: #f6f7fb;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-    }
-    .wrapper {
-      background: #fff;
-      padding: 30px;
-      margin-top: 40px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 700px;
-    }
-    h1, h2 {
-      text-align: center;
-      margin: 0 0 20px;
-    }
-    label {
-      display: block;
-      font-weight: 600;
-      margin-top: 15px;
-      margin-bottom: 5px;
-    }
-    input, textarea, select {
-      width: 100%;
-      padding: 10px;
-      font-size: 1em;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-    }
-    textarea { height: 100px; resize: vertical; }
-    input[type="file"] { margin-top: 5px; }
-    .btn {
-      display: inline-block;
-      background: #6c757d;
-      color: #fff;
-      text-decoration: none;
-      padding: 12px 28px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1em;
-      transition: background 0.2s;
-      margin: 10px 5px 0 0;
-      border: none;
-      cursor: pointer;
-    }
-    .btn:hover { background: #5a6268; }
-    .actions { text-align: center; margin-top: 25px; }
-    .hidden { display: none; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WHITE GLOVE SERVICE – Nová reklamace</title>
+<style>
+:root { font-family: Inter, system-ui, Arial, sans-serif; color:#111; }
+body { margin:0; padding:20px; background:#f6f7fb; }
+h1 { text-align:center; font-size:2.2em; font-weight:900; margin:0 0 10px; }
+h2 { text-align:center; font-size:1.2em; font-weight:600; margin:0 0 20px; color:#555; }
+
+.container { max-width:800px; margin:auto; background:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
+
+.top-bar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px; }
+.btn {
+  display:inline-block;
+  padding:10px 20px;
+  border:none;
+  border-radius:6px;
+  text-decoration:none;
+  font-weight:600;
+  cursor:pointer;
+  color:white;
+  box-shadow:0 2px 5px rgba(0,0,0,0.15);
+  transition:opacity 0.2s, transform 0.1s;
+}
+.btn:hover { opacity:0.9; transform:scale(1.02); }
+.btn-back { background:linear-gradient(145deg, #808080, #dcdcdc, #a9a9a9); color:#000; }
+.btn-reload { background:linear-gradient(145deg, #004080, #1e90ff, #003366); color:white; }
+
+form label { display:block; font-weight:600; margin-top:10px; }
+form input, form textarea, form select {
+  width:100%; padding:8px; font-size:1em; border:1px solid #ccc; border-radius:6px; margin-top:4px;
+}
+form textarea { resize:vertical; }
+
+.submit-btn {
+  margin-top:20px;
+  width:100%;
+  background:linear-gradient(145deg, #006600, #28a745, #004d00);
+  color:white; border:none; border-radius:6px;
+  padding:12px; font-size:1em; font-weight:600; cursor:pointer;
+  transition:transform 0.1s ease-in-out;
+}
+.submit-btn:hover { transform:scale(1.02); }
+
+.message {
+  display:none;
+  margin-top:15px;
+  padding:10px;
+  border-radius:6px;
+  background:#d4edda;
+  color:#155724;
+  font-weight:600;
+  text-align:center;
+}
+</style>
 </head>
+
 <body>
-  <div class="wrapper">
-    <h1>WHITE GLOVE SERVICE</h1>
-    <h2>Nová reklamace</h2>
+<h1>WHITE GLOVE SERVICE</h1>
+<h2>Nová reklamace</h2>
 
-    <form id="reklamaceForm">
-      <label>Číslo reklamace / číslo objednávky:</label>
-      <input type="text" name="cislo" required>
-
-      <label>Zákazník:</label>
-      <input type="text" name="zakaznik" required>
-
-      <label>Adresa:</label>
-      <input type="text" name="adresa" required>
-
-      <label>Telefon:</label>
-      <input type="tel" name="telefon">
-      <label>E-mail:</label>
-      <input type="email" name="email">
-      <p style="height: 20px;"></p>
-
-      <label>Model / Název produktu:</label>
-      <input type="text" name="produkt">
-      <label>Datum prodeje:</label>
-      <input type="date" name="datum_prodeje">
-      <label>Datum reklamace:</label>
-      <input type="date" name="datum_reklamace">
-      <label>Popis závady:</label>
-      <textarea name="popis"></textarea>
-
-      <label>Přiložit fotografie (max. 3):</label>
-      <input type="file" id="fotky" accept="image/*" multiple>
-
-      <label>Objednávku zpracoval:</label>
-      <select id="zpracoval" name="zpracoval" required>
-        <option value="">Vyber...</option>
-        <option value="Natuzzi Editions - Strejcek">Natuzzi Editions - Strejcek</option>
-        <option value="Natuzzi Editions - Vimrova">Natuzzi Editions - Vimrova</option>
-        <option value="Natuzzi Italia - Bratislava">Natuzzi Italia - Bratislava</option>
-        <option value="Natuzzi Italia - Jama">Natuzzi Italia - Jama</option>
-        <option value="Natuzzi Italia - River">Natuzzi Italia - River</option>
-        <option value="Natuzzi Italia - SOHO">Natuzzi Italia - SOHO</option>
-        <option value="Softaly - SOHO">Softaly - SOHO</option>
-        <option value="Phase - Klucarova">Phase - Klucarova</option>
-        <option value="Phase - Jancova">Phase - Jancova</option>
-        <option value="Jiná">Jiná</option>
-      </select>
-
-      <div id="jinaSekce" class="hidden">
-        <label>Zadej nový zápis zadavatele:</label>
-        <input type="text" id="jinaJmeno" name="jinaJmeno">
-        <label>E-mail zadavatele:</label>
-        <input type="email" id="jinaEmail" name="jinaEmail">
-        <label>Telefon zadavatele:</label>
-        <input type="tel" id="jinaTelefon" name="jinaTelefon">
-      </div>
-
-      <div class="actions">
-        <a href="index.html" class="btn">Zpět</a>
-        <button type="submit" class="btn">Odeslat</button>
-      </div>
-    </form>
+<div class="container">
+  <div class="top-bar">
+    <button class="btn btn-back" onclick="history.back()">⬅️ Zpět</button>
+    <button class="btn btn-reload" onclick="location.reload()">🔄 Načíst znovu</button>
   </div>
 
-  <script>
-    const selectZpracoval = document.getElementById("zpracoval");
-    const jinaSekce = document.getElementById("jinaSekce");
-    const jinaInputs = jinaSekce.querySelectorAll("input");
+  <form id="claim-form">
+    <label>Číslo objednávky</label>
+    <input type="text" id="order" required>
 
-    selectZpracoval.addEventListener("change", () => {
-      if (selectZpracoval.value === "Jiná") {
-        jinaSekce.classList.remove("hidden");
-        jinaInputs.forEach(inp => inp.required = true);
-      } else {
-        jinaSekce.classList.add("hidden");
-        jinaInputs.forEach(inp => inp.required = false);
-      }
-    });
+    <label>Číslo reklamace</label>
+    <input type="text" id="claim" required>
 
-    async function submitToGitHub(dataObj, owner, repo, path, message, token) {
-      const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-      const getResp = await fetch(getUrl, {
-        headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json" }
-      });
+    <label>Zákazník</label>
+    <input type="text" id="customer" required>
 
-      let existingContent = "[]", sha = null;
-      if (getResp.ok) {
-        const existing = await getResp.json();
-        existingContent = atob(existing.content.replace(/\n/g, ""));
-        sha = existing.sha;
-      }
+    <label>Adresa</label>
+    <input type="text" id="address">
 
-      const arr = JSON.parse(existingContent);
-      arr.push(dataObj);
-      const newContent = JSON.stringify(arr, null, 2);
-      const base64 = btoa(unescape(encodeURIComponent(newContent)));
+    <label>Telefon</label>
+    <input type="text" id="phone">
 
-      const body = { message, content: base64, branch: "main" };
-      if (sha) body.sha = sha;
+    <label>Email</label>
+    <input type="email" id="email">
 
-      const putResp = await fetch(getUrl, {
-        method: "PUT",
-        headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json", "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
+    <label>Popis problému</label>
+    <textarea id="description" rows="4" required></textarea>
 
-      if (!putResp.ok) throw new Error(await putResp.text());
-    }
+    <label>Technik</label>
+    <select id="technician">
+      <option>Radek Zikmund</option>
+      <option>Milan Kolín</option>
+      <option>Kolín/Zikmund</option>
+    </select>
 
-    document.getElementById("reklamaceForm").addEventListener("submit", async e => {
-      e.preventDefault();
-      const files = document.getElementById("fotky").files;
-      if (files.length === 0 && !confirm("Odeslat bez fotografií?")) return;
+    <button type="submit" class="submit-btn">📤 Odeslat reklamaci</button>
+    <div id="msg" class="message">✅ Reklamace byla úspěšně uložena!<br>Budete přesměrován na hlavní stránku...</div>
+  </form>
+</div>
 
-      const f = e.target;
-      const dataObj = {
-        typ: "reklamace",
-        contract: f.zpracoval.value, // 🔥 uloží jméno z dropdownu
-        cislo: f.cislo.value,
-        zakaznik: f.zakaznik.value,
-        adresa: f.adresa.value,
-        telefon: f.telefon.value,
-        email: f.email.value,
-        produkt: f.produkt.value,
-        datum_prodeje: f.datum_prodeje.value,
-        datum_reklamace: f.datum_reklamace.value,
-        popis: f.popis.value,
-        fotky: Array.from(files).map(f => f.name),
-        jinaZadavatel: f.zpracoval.value === "Jiná" ? {
-          jmeno: f.jinaJmeno.value,
-          email: f.jinaEmail.value,
-          telefon: f.jinaTelefon.value
-        } : null
-      };
-
-      try {
-        const owner = "radecek222-boop", repo = "reklamace", path = "orders.json";
-        const message = `Nová reklamace ${dataObj.cislo}`;
-        const token = prompt("Zadej GitHub token:");
-        await submitToGitHub(dataObj, owner, repo, path, message, token);
-        alert("Reklamace uložena.");
-        f.reset();
-      } catch (err) {
-        alert("Chyba: " + err.message);
-      }
-    });
-  </script>
-</body>
-</html>
+<script>
+// Simulace uložení reklamace (z
