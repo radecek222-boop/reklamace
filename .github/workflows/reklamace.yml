@@ -1,1 +1,57 @@
+name: Reklamace – přesun a údržba fotek
 
+on:
+  push:
+    paths:
+      - "data/orders.json"
+      - "data/hotove.json"
+      - "uploads/**"
+
+permissions:
+  contents: write
+
+jobs:
+  manage-reklamace:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+
+    - name: Install jq (JSON processor)
+      run: sudo apt-get install -y jq
+
+    - name: Process reklamace files
+      run: |
+        echo "Kontrola přesunutých reklamací..."
+        if [ -f data/orders.json ] && [ -f data/hotove.json ]; then
+          # Najdi všechny čísla reklamací v hotove.json
+          HOTOVE_IDS=$(jq -r '.[].cislo' data/hotove.json)
+          echo "Hotové reklamace: $HOTOVE_IDS"
+          
+          for ID in $HOTOVE_IDS; do
+            if [ -d "uploads/$ID" ]; then
+              echo "🗑️ Mažu fotky k reklamaci $ID"
+              rm -rf "uploads/$ID"
+            fi
+          done
+        else
+          echo "Soubor orders.json nebo hotove.json chybí."
+        fi
+
+    - name: Commit and push changes
+      run: |
+        git config user.name "WGS Bot"
+        git config user.email "bot@whiteglove.cz"
+        git add -A
+        if git diff --staged --quiet; then
+          echo "Žádné změny k uložení."
+        else
+          git commit -m "Automatická údržba: odstraněny fotky z hotových reklamací"
+          git push
+        fi
