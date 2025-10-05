@@ -1,0 +1,80 @@
+name: Delete expired photos
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # každý den v 02:00
+  workflow_dispatch:     # možnost spustit ručně v GitHubu
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Delete expired photos from hotove.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          echo "Kontrola vypršelých fotek..."
+          FILE="hotove.json"
+          TMP="hotove_tmp.json"
+          DATE_NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          # Stáhnout JSON
+          curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3.raw" \
+            -o "$FILE" \
+            "https://api.github.com/repos/$REPO/contents/$FILE"
+
+          if [ ! -f "$FILE" ]; then
+            echo "Soubor $FILE nenalezen."
+            exit 0
+          fi
+
+          # Nainstalovat jq pro JSON úpravy
+          sudo apt-get install -y jq
+
+          # Přečti JSON a iteruj
+          jq -c '.[]' "$FILE" | while read -r item; do
+            delete_time=$(echo "$item" | jq -r '.SmazatFotkyPo // empty')
+            if [ -n "$delete_time" ] && [ "$delete_time" \< "$DATE_NOW" ]; then
+              for key in Foto1 Foto2 Foto3; do
+                url=$(echo "$item" | jq -r --arg k "$key" '.[$k] // empty')
+                if [ -n "$url" ]; then
+                  path=$(echo "$url" | sed 's#.*main/##')
+                  echo "Mazání $path ..."
+                  sha=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+                    "https://api.github.com/repos/$REPO/contents/$path" | jq -r '.sha // empty')
+                  if [ "$sha" != "null" ] && [ -n "$sha" ]; then
+                    curl -s -X DELETE \
+                      -H "Authorization: token $GITHUB_TOKEN" \
+                      -H "Content-Type: application/json" \
+                      -d "{\"message\":\"Auto-delete photo $path\",\"sha\":\"$sha\"}" \
+                      "https://api.github.com/repos/$REPO/contents/$path" > /dev/null
+                  fi
+                fi
+              done
+            fi
+          done
+
+          # Odstraní pole s fotkami a časem z vypršelých záznamů
+          jq --arg now "$DATE_NOW" '
+            map(if .SmazatFotkyPo and .SmazatFotkyPo < $now then
+              del(.Foto1, .Foto2, .Foto3, .SmazatFotkyPo)
+            else . end)
+          ' "$FILE" > "$TMP"
+
+          mv "$TMP" "$FILE"
+
+          # Commit & push
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add "$FILE"
+          git commit -m "Automatické mazání expirovaných fotek ($(date))" || true
+          git push
