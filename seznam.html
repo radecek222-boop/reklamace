@@ -30,7 +30,6 @@
     .btn-green { background:linear-gradient(135deg,#00b36b,#3cd67a); }
     .btn-gray { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
     .btn-blue { background:linear-gradient(135deg,#0046ff,#357aff); }
-    .btn-purple { background:linear-gradient(135deg,#8e44ad,#9b59b6,#c471ed); }
 
     @media(max-width:768px){
       .btn-gradient{display:block;width:100%;text-align:center;padding:14px 0;font-size:1.05em;margin:8px 0;}
@@ -161,7 +160,17 @@
       try {
         const response = await fetch("https://raw.githubusercontent.com/radecek222-boop/reklamace/main/orders.json?" + Date.now());
         if (!response.ok) throw new Error("Nepodařilo se načíst data.");
-        const data = await response.json();
+        const text = await response.text();
+
+        // 🔧 Oprava kódování – převod nejběžnějších rozbitých sekvencí na správné znaky
+        const fixedText = text
+          .replace(/Ã¡/g,"á").replace(/Ã©/g,"é").replace(/Ã¨/g,"ě").replace(/Ã­/g,"í")
+          .replace(/Ã³/g,"ó").replace(/Ãº/g,"ú").replace(/Ã±/g,"ň").replace(/Ã½/g,"ý")
+          .replace(/Ã¯/g,"ř").replace(/Ã¨/g,"ě").replace(/Ã§/g,"č").replace(/Ã°/g,"ď")
+          .replace(/Ã²/g,"ů").replace(/Ã´/g,"ô").replace(/Ã/g,"Ď").replace(/Ã¡/g,"á")
+          .replace(/Ã©/g,"é").replace(/Ãº/g,"ú").replace(/Ã¼/g,"ü").replace(/Ã‰/g,"É");
+
+        const data = JSON.parse(fixedText);
         renderTable(data);
       } catch (e) {
         document.getElementById("tableBody").innerHTML =
@@ -187,7 +196,6 @@
           <td>${item.popis || ""}</td>
           <td>${item.typ || ""}</td>
         `;
-
         tr.addEventListener("click", () => openDetail(item));
         tbody.appendChild(tr);
       });
