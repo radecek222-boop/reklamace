@@ -1,213 +1,254 @@
 <!doctype html>
 <html lang="cs">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>WHITE GLOVE SERVICE – Seznam reklamací</title>
-<style>
-:root { font-family: Inter, system-ui, Arial, sans-serif; color:#111; }
-body { margin:0; padding:20px; background:#f6f7fb; }
-h1 { text-align:center; font-size:2.2em; font-weight:900; margin:0 0 10px; }
-h2 { text-align:center; font-size:1.2em; font-weight:600; margin:0 0 20px; color:#555; }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WHITE GLOVE SERVICE – Seznam reklamací</title>
+  <style>
+    :root { font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:#111; }
+    body { margin:0; padding:20px; background:#f6f7fb; }
+    h1 { text-align:center; font-size:2em; font-weight:900; margin:0 0 10px; }
+    h2 { text-align:center; font-size:1.1em; font-weight:600; margin:0 0 20px; color:#555; }
 
-.container { max-width:1250px; margin:auto; background:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
+    /* 🔹 jednotné gradientní tlačítka */
+    .btn-gradient {
+      display:inline-block;
+      text-decoration:none;
+      padding:10px 22px;
+      border-radius:8px;
+      font-weight:600;
+      font-size:1em;
+      color:#fff;
+      border:none;
+      cursor:pointer;
+      box-shadow:0 2px 8px rgba(0,0,0,0.15);
+      transition:transform 0.15s ease-in-out, opacity 0.2s;
+      margin:4px;
+    }
+    .btn-gradient:hover { transform:scale(1.04); opacity:0.9; }
 
-.top-bar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px; }
-.btn {
-  display:inline-block;
-  padding:10px 20px;
-  border:none;
-  border-radius:6px;
-  text-decoration:none;
-  font-weight:600;
-  cursor:pointer;
-  color:white;
-  box-shadow:0 2px 5px rgba(0,0,0,0.15);
-  transition:opacity 0.2s, transform 0.1s;
-}
-.btn:hover { opacity:0.9; transform:scale(1.02); }
-.btn-back { background:linear-gradient(145deg, #808080, #dcdcdc, #a9a9a9); color:#000; }
-.btn-reload { background:linear-gradient(145deg, #004080, #1e90ff, #003366); color:white; }
-.btn-top { background:#6c757d; color:white; }
-input#search { flex:1; padding:8px 12px; border:1px solid #ccc; border-radius:6px; font-size:1em; }
+    .btn-green { background:linear-gradient(135deg,#00b36b,#3cd67a); }
+    .btn-gray { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
+    .btn-blue { background:linear-gradient(135deg,#0046ff,#357aff); }
+    .btn-purple { background:linear-gradient(135deg,#8e44ad,#9b59b6,#c471ed); }
 
-table { width:100%; border-collapse:collapse; }
-th, td { padding:8px 10px; border-bottom:1px solid #ddd; text-align:left; vertical-align:top; font-size:0.9em; }
-th { background:#e9ecef; font-weight:700; }
-tr:hover { background:#f8f9fa; }
-tr.new { background:#fff8dc; }
-tr.wait { background:#ffe4b5; }
-tr.done { background:#d8f3dc; }
-tr.cancel { background:#e9ecef; }
+    @media(max-width:768px){
+      .btn-gradient{display:block;width:100%;text-align:center;padding:14px 0;font-size:1.05em;margin:8px 0;}
+    }
 
-.btn-protocol {
-  background:#004080; color:white; padding:6px 12px; border:none; border-radius:6px;
-  cursor:pointer; font-size:0.85em; font-weight:600; transition:all 0.2s ease-in-out;
-}
-.btn-protocol:hover { background:#1e90ff; }
+    .top-actions {
+      text-align:center;
+      margin-bottom:20px;
+    }
 
-.photo-preview img { height:60px; margin:2px; border-radius:4px; cursor:pointer; transition:transform 0.2s ease-in-out; }
-.photo-preview img:hover { transform:scale(1.1); }
+    .searchbox {
+      width:100%;
+      max-width:400px;
+      margin:0 auto 20px;
+      display:block;
+      padding:10px;
+      border:1px solid #ccc;
+      border-radius:8px;
+      font-size:1em;
+      background:#fff;
+    }
 
-#lightbox {
-  position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8);
-  display:none; justify-content:center; align-items:center; z-index:1000;
-}
-#lightbox img { max-width:90%; max-height:90%; border-radius:8px; }
+    table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; }
+    th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #ddd; font-size:0.95em; }
+    th { background:#eee; font-weight:700; }
+    tr:hover { background:#f1f3f5; cursor:pointer; }
 
-@media(max-width:768px){
-  th, td { font-size:0.8em; }
-  .photo-preview img { height:50px; }
-  .top-bar { flex-direction:column; }
-}
-</style>
+    .contract-poz { color:#7b1fa2; font-weight:700; }
+
+    /* 📱 mobil: jen 4 sloupce */
+    @media (max-width: 768px) {
+      th:nth-child(n+5), td:nth-child(n+5) { display:none; }
+      th:nth-child(1), td:nth-child(1) { display:none; }
+    }
+
+    /* 🔍 modal detail */
+    #detailModal {
+      position:fixed;
+      top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.5);
+      display:none; justify-content:center; align-items:center;
+      padding:20px; z-index:1000;
+    }
+    #detailContent {
+      background:white;
+      border-radius:10px;
+      padding:20px;
+      max-width:600px;
+      width:100%;
+      max-height:85vh;
+      overflow-y:auto;
+      box-shadow:0 4px 15px rgba(0,0,0,0.2);
+    }
+    #detailButtons { text-align:center; margin-top:20px; }
+    #detailButtons button {
+      margin:5px; padding:10px 16px; border:none; border-radius:8px;
+      cursor:pointer; color:#fff; font-weight:600;
+      transition:transform 0.15s ease, opacity 0.2s;
+    }
+    #detailButtons button:hover { transform:scale(1.05); opacity:0.9; }
+    .btn-close { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
+    .btn-protocol { background:linear-gradient(135deg,#0046ff,#357aff); }
+
+    .photo-gallery {
+      display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:10px;
+    }
+    .photo-gallery img {
+      max-width:100px; border-radius:6px; cursor:pointer; transition:transform 0.2s ease;
+    }
+    .photo-gallery img:hover { transform:scale(1.1); }
+
+    /* Fullscreen fotka */
+    #photoView {
+      display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:1100;
+    }
+    #photoView img { max-width:90%; max-height:90%; border-radius:10px; }
+  </style>
 </head>
-
 <body>
-<h1>WHITE GLOVE SERVICE</h1>
-<h2>Seznam reklamací</h2>
+  <h1>WHITE GLOVE SERVICE</h1>
+  <h2>Seznam reklamací a servisních požadavků</h2>
 
-<div class="container">
-  <div class="top-bar">
-    <button class="btn btn-back" onclick="history.back()">⬅️ Zpět</button>
-    <a class="btn btn-top" href="hotove.html">📁 Hotové reklamace</a>
-    <input type="text" id="search" placeholder="🔍 Hledat zákazníka, číslo, model...">
-    <button class="btn btn-reload" onclick="location.reload()">🔄 Načíst znovu</button>
+  <div class="top-actions">
+    <a href="hotove.html" class="btn-gradient btn-green">Hotové reklamace</a>
+    <button onclick="window.history.back()" class="btn-gradient btn-gray">Zpět</button>
+    <button onclick="loadOrders()" class="btn-gradient btn-blue">Načíst znovu</button>
   </div>
 
-  <table id="claims-table">
+  <input type="text" id="searchInput" class="searchbox" placeholder="Hledat podle jména, adresy nebo telefonu...">
+
+  <table id="dataTable">
     <thead>
       <tr>
-        <th>Objednávka</th>
-        <th>Reklamace</th>
-        <th>Zákazník</th>
-        <th>Adresa</th>
-        <th>Telefon</th>
-        <th>Email</th>
-        <th>Značka</th>
-        <th>Model</th>
-        <th>Technik</th>
-        <th>Stav</th>
-        <th>Popis / Problém / Návrh</th>
-        <th>Fotky</th>
-        <th>Akce</th>
+        <th>#</th>
+        <th>CONTRACT</th>
+        <th>JMÉNO</th>
+        <th>ADRESA</th>
+        <th>TELEFON</th>
+        <th>E-MAIL</th>
+        <th>POPIS</th>
+        <th>TYP</th>
       </tr>
     </thead>
-    <tbody></tbody>
+    <tbody id="tableBody">
+      <tr><td colspan="8" style="text-align:center; padding:20px;">Načítání dat...</td></tr>
+    </tbody>
   </table>
-</div>
 
-<div id="lightbox" onclick="this.style.display='none'">
-  <img src="">
-</div>
+  <!-- Modal detail -->
+  <div id="detailModal">
+    <div id="detailContent">
+      <h3 id="detailName" style="margin-top:0;"></h3>
+      <div id="detailInfo"></div>
+      <div class="photo-gallery" id="photoGallery"></div>
+      <div id="detailButtons">
+        <button id="closeDetail" class="btn-close">Zavřít detail</button>
+        <button id="createProtocol" class="btn-protocol">Otevřít protokol</button>
+      </div>
+    </div>
+  </div>
 
-<script>
-const dataUrl = "https://whitegloveservice.github.io/data/reklamace.json"; // ← uprav podle názvu repa
+  <!-- Fullscreen náhled fotky -->
+  <div id="photoView"><img id="photoLarge" src=""></div>
 
-async function loadData(){
-  const tbody = document.querySelector("#claims-table tbody");
-  tbody.innerHTML = "<tr><td colspan='13' style='text-align:center; padding:20px;'>Načítám data...</td></tr>";
+  <script>
+    async function loadOrders() {
+      try {
+        const response = await fetch("https://raw.githubusercontent.com/radecek222-boop/reklamace/main/orders.json?" + Date.now());
+        if (!response.ok) throw new Error("Nepodařilo se načíst data.");
+        const data = await response.json();
+        renderTable(data);
+      } catch (e) {
+        document.getElementById("tableBody").innerHTML =
+          `<tr><td colspan="8" style="text-align:center; color:red;">Chyba při načítání dat: ${e.message}</td></tr>`;
+      }
+    }
 
-  try {
-    const res = await fetch(dataUrl);
-    const data = await res.json();
-    tbody.innerHTML = "";
+    function renderTable(data) {
+      const tbody = document.getElementById("tableBody");
+      tbody.innerHTML = "";
 
-    data.sort((a,b) => new Date(b["Datum podání reklamace"]) - new Date(a["Datum podání reklamace"]));
+      data.forEach((item, index) => {
+        const tr = document.createElement("tr");
+        const contractClass = item.contract === "POZ" ? "contract-poz" : "";
 
-    data.forEach(item => {
-      const stav = (item["Stav"] || "").toLowerCase();
-      const tr = document.createElement("tr");
-      if (stav.includes("nová")) tr.classList.add("new");
-      else if (stav.includes("čeká")) tr.classList.add("wait");
-      else if (stav.includes("hotov")) tr.classList.add("done");
-      else if (stav.includes("zruš")) tr.classList.add("cancel");
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td class="${contractClass}">${item.contract || ""}</td>
+          <td>${item.zakaznik || ""}</td>
+          <td>${item.adresa || ""}</td>
+          <td><a href="tel:${item.telefon || ""}">${item.telefon || ""}</a></td>
+          <td><a href="mailto:${item.email || ""}">${item.email || ""}</a></td>
+          <td>${item.popis || ""}</td>
+          <td>${item.typ || ""}</td>
+        `;
 
-      const photos = [item.Foto1, item.Foto2, item.Foto3, item.Foto4]
-        .filter(Boolean)
-        .map(url => `<img src="${url}" onclick="openLightbox('${url}')">`)
-        .join("");
+        tr.addEventListener("click", () => openDetail(item));
+        tbody.appendChild(tr);
+      });
+    }
 
-      tr.innerHTML = `
-        <td>${item["Číslo objednávky"] || ""}</td>
-        <td>${item["Číslo reklamace"] || ""}</td>
-        <td>${item["Zákazník"] || ""}</td>
-        <td>${item["Adresa"] || ""}</td>
-        <td>${makePhone(item["Telefon"])}</td>
-        <td>${item["Email"] || ""}</td>
-        <td>${item["Značka"] || ""}</td>
-        <td>${item["Model"] || ""}</td>
-        <td>${item["Technik"] || ""}</td>
-        <td>${item["Stav"] || ""}</td>
-        <td>
-          <b>CZ:</b> ${item["Popis CZ"] || ""}<br>
-          <b>EN:</b> ${item["Popis EN"] || ""}<br>
-          <b>Problém:</b> ${item["Problém CZ"] || ""}<br>
-          <b>Návrh:</b> ${item["Návrh CZ"] || ""}
-        </td>
-        <td class="photo-preview">${photos}</td>
-        <td><button class="btn-protocol" onclick='openProtocol(${JSON.stringify(item)})'>📋 Otevřít protokol</button></td>
+    function openDetail(item) {
+      const modal = document.getElementById("detailModal");
+      modal.style.display = "flex";
+      document.getElementById("detailName").textContent = item.zakaznik || "Neznámý zákazník";
+      document.getElementById("detailInfo").innerHTML = `
+        <p><b>Adresa:</b> ${item.adresa || ""}</p>
+        <p><b>Telefon:</b> ${item.telefon || ""}</p>
+        <p><b>E-mail:</b> ${item.email || ""}</p>
+        <p><b>Popis závady:</b><br>${item.popis || ""}</p>
+        <p><b>Model:</b> ${item.produkt || ""}</p>
+        <p><b>Contract:</b> ${item.contract || ""}</p>
+        <p><b>Datum vytvoření:</b> ${item.datum_vytvoreni || "-"}</p>
       `;
 
-      tbody.appendChild(tr);
+      const gallery = document.getElementById("photoGallery");
+      gallery.innerHTML = "";
+      if (item.fotky && item.fotky.length > 0) {
+        item.fotky.forEach(photo => {
+          const img = document.createElement("img");
+          img.src = photo.startsWith("http") ? photo : `https://raw.githubusercontent.com/radecek222-boop/reklamace/main/${photo}`;
+          img.alt = "foto";
+          img.addEventListener("click", () => openPhoto(img.src));
+          gallery.appendChild(img);
+        });
+      }
+      document.getElementById("createProtocol").onclick = () => createProtocol(item);
+    }
+
+    function createProtocol(item) {
+      localStorage.setItem("selectedOrder", JSON.stringify(item));
+      window.location.href = "protokol.html";
+    }
+
+    function openPhoto(src) {
+      const view = document.getElementById("photoView");
+      const img = document.getElementById("photoLarge");
+      img.src = src;
+      view.style.display = "flex";
+      view.onclick = () => { view.style.display = "none"; };
+    }
+
+    document.getElementById("closeDetail").addEventListener("click", () => {
+      document.getElementById("detailModal").style.display = "none";
     });
-  } catch (err) {
-    tbody.innerHTML = `<tr><td colspan='13' style='color:red; text-align:center;'>Chyba při načítání dat: ${err}</td></tr>`;
-  }
-}
 
-function makePhone(num){
-  if(!num) return "";
-  const clean = num.replace(/\s+/g,"");
-  return `<a href="tel:${clean}" style="color:#007bff; text-decoration:none;">${num}</a>`;
-}
+    document.getElementById("searchInput").addEventListener("input", e => {
+      const filter = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll("#dataTable tbody tr");
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? "" : "none";
+      });
+    });
 
-function openLightbox(url){
-  const lb = document.getElementById("lightbox");
-  lb.style.display = "flex";
-  lb.querySelector("img").src = url;
-}
-
-function openProtocol(item){
-  const map = {
-    "order-number":"Číslo objednávky",
-    "claim-number":"Číslo reklamace",
-    "customer":"Zákazník",
-    "address":"Adresa",
-    "phone":"Telefon",
-    "email":"Email",
-    "brand":"Značka",
-    "model":"Model",
-    "technician":"Technik",
-    "visit-date":"Datum návštěvy",
-    "delivery-date":"Datum doručení",
-    "claim-date":"Datum podání reklamace",
-    "description-cz":"Popis CZ",
-    "description-en":"Popis EN",
-    "problem-cz":"Problém CZ",
-    "problem-en":"Problém EN",
-    "repair-cz":"Návrh CZ",
-    "repair-en":"Návrh EN",
-    "price-work":"Cena práce",
-    "price-material":"Cena materiál",
-    "price-transport":"Cena doprava",
-    "solved":"Vyřešeno",
-    "sign-date":"Datum podpisu"
-  };
-  const obj = {};
-  for(const [key,val] of Object.entries(map)) obj[key] = item[val] || "";
-  localStorage.setItem("selectedCustomer", JSON.stringify(obj));
-  window.location.href = "protokol.html";
-}
-
-document.getElementById("search").addEventListener("input", e => {
-  const q = e.target.value.toLowerCase();
-  document.querySelectorAll("#claims-table tbody tr").forEach(tr => {
-    tr.style.display = tr.innerText.toLowerCase().includes(q) ? "" : "none";
-  });
-});
-
-loadData();
-</script>
+    window.addEventListener("pageshow", () => { loadOrders(); });
+    loadOrders();
+  </script>
 </body>
 </html>
