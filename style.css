@@ -1,13 +1,296 @@
-for (const fch of compressedFiles) {
-  const safe = `${cislo}_${fch.name.replace(/\s+/g, "_")}`;
-  fch.status.textContent = "Nahrávám...";
-  fch.progress.style.background = "linear-gradient(90deg, #2196f3, #64b5f6)";
-  fch.progress.style.width = "60%";
+<style>
+  body {
+    font-family: "Inter", system-ui, sans-serif;
+    background: #f6f7fb;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+  }
 
-  await uploadToGitHub(owner, repo, `foto/${safe}`, fch.blob, `Nová fotka ${cislo}`, token);
+  .wrapper {
+    background: #fff;
+    padding: 30px;
+    margin: 40px 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 700px;
+    position: relative;
+    box-sizing: border-box;
+  }
 
-  fch.progress.style.width = "100%";
-  fch.progress.style.background = "linear-gradient(90deg, #4caf50, #8bc34a)";
-  fch.status.textContent = "✅ Hotovo";
-  dataObj.fotky.push(safe);
-}
+  h1, h2 {
+    text-align: center;
+    margin: 0 0 20px;
+  }
+
+  h1 {
+    font-size: 2.6em;
+    font-weight: 900;
+    color: #111;
+  }
+
+  h2 {
+    font-size: 1.2em;
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 25px;
+  }
+
+  label {
+    display: block;
+    font-weight: 600;
+    margin-top: 15px;
+    margin-bottom: 5px;
+  }
+
+  input, textarea, select {
+    width: 100%;
+    padding: 10px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    transition: border 0.2s;
+  }
+
+  textarea {
+    height: 100px;
+    resize: vertical;
+  }
+
+  input:invalid, textarea:invalid, select:invalid {
+    border: 2px solid;
+    border-image: linear-gradient(45deg, #ff4d4d, #ff7b7b) 1;
+  }
+
+  small {
+    font-size: 0.8em;
+    color: #666;
+  }
+
+  .btn {
+    display: inline-block;
+    text-decoration: none;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1em;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease-in-out, opacity 0.2s;
+    color: white;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    min-width: 140px;
+  }
+
+  .btn:hover {
+    transform: scale(1.04);
+    opacity: 0.9;
+  }
+
+  .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
+  .btn-send { background: linear-gradient(135deg, #0046ff, #357aff); }
+
+  .actions {
+    text-align: center;
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .hidden { display: none; }
+
+  /* === Náhledy fotek === */
+  .preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .preview-item {
+    width: 90px;
+    height: 90px;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+
+  .preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .progress-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #ffb300, #ff9800);
+    width: 0%;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    transition: width 0.4s ease, background 0.4s ease;
+  }
+
+  .preview-status {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(255,255,255,0.8);
+    padding: 2px 6px;
+    font-size: 0.7em;
+    font-weight: 600;
+    border-radius: 4px;
+    color: #333;
+    display: none;
+  }
+
+  .invalid {
+    border: 2px solid;
+    border-image: linear-gradient(45deg, #ff4d4d, #ff7b7b) 1;
+  }
+
+  /* === Geoapify našeptávač === */
+  .address-wrapper { position: relative; }
+
+  .suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    max-height: 180px;
+    overflow-y: auto;
+    z-index: 1000;
+  }
+
+  .suggestions div {
+    padding: 8px;
+    cursor: pointer;
+  }
+
+  .suggestions div:hover {
+    background: #f0f0f0;
+  }
+
+  /* === Zaoblená mapa === */
+  #mapPreview {
+    width: 100%;
+    height: 250px;
+    margin-top: 10px;
+    border-radius: 14px;
+    overflow: hidden;
+    transition: height 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+
+  #mapPreview:empty {
+    background: #f0f0f0;
+    border: 2px dashed #ccc;
+  }
+
+  #mapPreview.show {
+    animation: mapShow 0.5s ease forwards;
+  }
+
+  @keyframes mapShow {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* === Loader (přesýpací hodiny) === */
+  .wait-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(2px);
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    flex-direction: column;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .wait-overlay.active {
+    display: flex;
+  }
+
+  .hourglass {
+    border: 4px solid #ccc;
+    border-top: 4px solid #0046ff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* === Fajfka úspěchu === */
+  .success-check {
+    display: none;
+    position: fixed;
+    inset: 0;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255,255,255,0.9);
+    z-index: 2100;
+  }
+
+  .success-check.active {
+    display: flex;
+  }
+
+  .checkmark {
+    width: 80px;
+    height: 80px;
+    stroke-width: 3;
+    stroke: url(#grad1);
+    fill: none;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: draw 1s ease forwards;
+  }
+
+  @keyframes draw {
+    to { stroke-dashoffset: 0; }
+  }
+
+  /* === Responsivní úpravy === */
+  @media (max-width: 600px) {
+    #mapPreview {
+      height: 180px;
+      border-radius: 10px;
+    }
+    .wrapper {
+      padding: 20px;
+      margin: 20px 10px;
+    }
+    h1 {
+      font-size: 2em;
+    }
+    .preview-item {
+      width: 80px;
+      height: 80px;
+    }
+  }
+</style>
