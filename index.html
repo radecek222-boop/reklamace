@@ -1,235 +1,154 @@
-<!DOCTYPE html>
-<html lang="cs">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WHITE GLOVE SERVICE – Startovací verze</title>
-  <style>
-    body {
-      font-family: "Inter", system-ui, sans-serif;
-      background: #f6f7fb;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      flex-direction: column;
-      text-align: center;
-    }
+<!-- === WHITE GLOVE SERVICE ADMIN LOGIN (index only) === -->
+<style>
+#adminLoginOverlay {
+  position: fixed;
+  top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.7);
+  display:flex; justify-content:center; align-items:center;
+  z-index:3000;
+  backdrop-filter: blur(4px);
+}
+#adminLoginBox {
+  background:white;
+  padding:40px 30px;
+  border-radius:12px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.3);
+  text-align:center;
+  max-width:340px;
+  width:90%;
+  animation:fadeIn 0.3s ease-in-out;
+}
+#adminLoginBox h2 {
+  margin-top:0;
+  font-size:1.3em;
+  font-weight:800;
+  color:#111;
+}
+#adminLoginBox p {
+  color:#555;
+  font-size:0.95em;
+  margin-bottom:20px;
+}
+#adminPassword {
+  width:100%;
+  padding:10px 12px;
+  border:1px solid #ccc;
+  border-radius:8px;
+  font-size:1em;
+  font-family:Inter, sans-serif;
+  margin-bottom:15px;
+  box-sizing:border-box;
+  outline:none;
+  transition:all 0.2s ease-in-out;
+}
+#adminPassword:focus {
+  border-color:#1e90ff;
+  box-shadow:0 0 5px rgba(30,144,255,0.4);
+}
+#adminLoginBtn {
+  background:linear-gradient(145deg,#004080,#1e90ff,#003366);
+  border:none;
+  padding:10px 20px;
+  border-radius:8px;
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+  font-size:1em;
+  transition:transform 0.1s ease-in-out, opacity 0.2s;
+}
+#adminLoginBtn:hover { transform:scale(1.03); opacity:0.9; }
+#adminError {
+  color:#c00;
+  font-size:0.9em;
+  font-weight:600;
+  display:none;
+}
+@keyframes fadeIn {
+  from { opacity:0; transform:translateY(-10px); }
+  to { opacity:1; transform:translateY(0); }
+}
+</style>
 
-    h1 {
-      font-size: 2.8em;
-      font-weight: 900;
-      margin-bottom: 10px;
-      color: #111;
-    }
-
-    h2 {
-      font-size: 1.2em;
-      font-weight: 500;
-      margin-top: 0;
-      margin-bottom: 50px;
-      color: #555;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      text-decoration: none;
-      color: white;
-      font-weight: 700;
-      font-size: 1.05em;
-      border-radius: 10px;
-      padding: 14px 28px;
-      min-width: 240px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-
-    /* Šedý metalický gradient (ADMIN) */
-    .btn-grey {
-      background: linear-gradient(135deg, #6c757d, #b1b1b1, #6c757d);
-      background-size: 200% 200%;
-      animation: shineGrey 3s ease infinite;
-    }
-
-    @keyframes shineGrey {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    /* Zelený metalický gradient (NOVÁ REKLAMACE) */
-    .btn-green {
-      background: linear-gradient(135deg, #2ecc71, #58d68d, #28a745);
-      background-size: 200% 200%;
-      animation: shineGreen 3s ease infinite;
-    }
-
-    @keyframes shineGreen {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    /* Fialový metalický gradient (POZÁRUČNÍ SERVIS) */
-    .btn-purple {
-      background: linear-gradient(135deg, #9b59b6, #c471ed, #8e44ad);
-      background-size: 200% 200%;
-      animation: shinePurple 3s ease infinite;
-    }
-
-    @keyframes shinePurple {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    .btn:active {
-      transform: scale(0.98);
-      box-shadow: none;
-    }
-
-    .icon {
-      font-size: 1.1em;
-      opacity: 0.9;
-    }
-
-    .button-row {
-      display: flex;
-      gap: 20px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .top-buttons {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 25px;
-    }
-
-    .btn-small {
-      min-width: 140px;
-      padding: 10px 18px;
-      font-size: 0.9em;
-    }
-
-    /* Animace zámku */
-    @keyframes lockShake {
-      0%, 100% { transform: rotate(0deg); }
-      25% { transform: rotate(15deg); }
-      75% { transform: rotate(-15deg); }
-    }
-
-    .shake {
-      animation: lockShake 0.4s ease;
-    }
-  </style>
-</head>
-<body>
-
-  <h1>WHITE GLOVE SERVICE</h1>
-  <h2>specializovaný autorizovaný servis Natuzzi</h2>
-
-  <!-- ADMIN -->
-  <div class="top-buttons">
-    <button id="adminBtn" class="btn btn-grey btn-small"><span class="icon">🔒</span> ADMIN</button>
+<div id="adminLoginOverlay">
+  <div id="adminLoginBox">
+    <h2>WHITE GLOVE SERVICE</h2>
+    <p>Zadejte přístupový kód</p>
+    <input type="password" id="adminPassword" placeholder="••••••">
+    <div id="adminError">❌ Nesprávný kód</div>
+    <button id="adminLoginBtn">Přihlásit se</button>
   </div>
+</div>
 
-  <!-- HLAVNÍ DVĚ TLAČÍTKA -->
-  <div class="button-row">
-    <a href="orders.html" class="btn btn-green">NOVÁ REKLAMACE</a>
-    <a href="aftersales.html" class="btn btn-purple">POZÁRUČNÍ SERVIS</a>
-  </div>
-
-  <p style="font-size:0.9em; color:#888; margin-top:40px;">Verze startovací | Přístup pro interní použití</p>
-
-  <script>
-    const adminBtn = document.getElementById("adminBtn");
-    adminBtn.addEventListener("click", () => {
-      const icon = adminBtn.querySelector(".icon");
-      icon.classList.add("shake");
-      setTimeout(() => icon.classList.remove("shake"), 400);
-
-      const pin = prompt("Zadejte přístupový kód pro ADMIN:");
-      if (pin === "7890") {
-        window.location.href = "seznam.html";
-      } else if (pin !== null) {
-        alert("Nesprávný PIN. Přístup zamítnut.");
-      }
-    });
-  </script>
 <script>
-// ======= OCHRANA ADMIN PŘÍSTUPU S NEAKTIVITOU =======
-
-const ACCESS_CODE = "wgs2025";          // 🔑 Admin heslo
-const EXPIRATION_MINUTES = 15;          // platnost hesla
-const INACTIVITY_MINUTES = 5;           // odhlášení po neaktivitě
+const ACCESS_CODE = "wgs2025";           // 🔑 zde můžeš libovolně změnit heslo
+const EXPIRATION_MINUTES = 15;           // platnost přihlášení
+const INACTIVITY_MINUTES = 5;            // odhlášení po neaktivitě
 
 let inactivityTimer;
 
-// === Kontrola, zda je uložen platný přístupový kód ===
-function checkAccess() {
+function checkAccess(){
   const data = JSON.parse(localStorage.getItem("wgsAdmin") || "null");
   const now = Date.now();
-  if (!data || !data.time || now - data.time > EXPIRATION_MINUTES * 60 * 1000) {
-    requestAccessCode();
+  if(!data || !data.time || now - data.time > EXPIRATION_MINUTES * 60 * 1000){
+    showLogin();
   } else {
-    startInactivityTimer(); // spustí sledování aktivity
+    hideLogin();
+    startInactivityTimer();
   }
 }
 
-// === Získání přístupového kódu ===
-function requestAccessCode() {
-  const code = prompt("🔐 Zadejte přístupový kód pro administraci:");
-  if (code === ACCESS_CODE) {
-    localStorage.setItem("wgsAdmin", JSON.stringify({ code: "OK", time: Date.now() }));
-    alert("✅ Přístup povolen na 15 minut.");
+function showLogin(){
+  document.getElementById("adminLoginOverlay").style.display = "flex";
+  document.getElementById("adminPassword").focus();
+  clearTimeout(inactivityTimer);
+}
+
+function hideLogin(){
+  document.getElementById("adminLoginOverlay").style.display = "none";
+}
+
+// po přihlášení
+function tryLogin(){
+  const input = document.getElementById("adminPassword");
+  const error = document.getElementById("adminError");
+  if(input.value.trim() === ACCESS_CODE){
+    localStorage.setItem("wgsAdmin", JSON.stringify({ code:"OK", time:Date.now() }));
+    hideLogin();
+    error.style.display = "none";
     startInactivityTimer();
   } else {
-    alert("❌ Nesprávný kód. Přístup odepřen.");
-    window.location.href = "index.html";
+    error.style.display = "block";
+    input.value = "";
+    input.focus();
   }
 }
 
-// === Odhlášení ===
-function logout() {
+function logout(){
   localStorage.removeItem("wgsAdmin");
   alert("⏱️ Přístup vypršel z důvodu neaktivity.");
-  window.location.href = "index.html";
+  showLogin();
 }
 
-// === Restart časovače při aktivitě ===
-function resetInactivityTimer() {
+function resetInactivityTimer(){
   clearTimeout(inactivityTimer);
   inactivityTimer = setTimeout(logout, INACTIVITY_MINUTES * 60 * 1000);
 }
 
-// === Detekce aktivity ===
-function startInactivityTimer() {
+function startInactivityTimer(){
   resetInactivityTimer();
   ["click","mousemove","keypress","scroll","touchstart","touchmove","focus"].forEach(evt => {
     document.addEventListener(evt, resetInactivityTimer, { passive: true });
   });
-  // když zhasne obrazovka nebo přejde do spánku → focusout
   window.addEventListener("blur", () => {
     clearTimeout(inactivityTimer);
     inactivityTimer = setTimeout(logout, INACTIVITY_MINUTES * 60 * 1000);
   });
 }
 
-// === Spuštění ===
+document.getElementById("adminLoginBtn").addEventListener("click", tryLogin);
+document.getElementById("adminPassword").addEventListener("keypress", e => {
+  if(e.key === "Enter") tryLogin();
+});
+
 checkAccess();
 </script>
-
-</body>
-</html>
