@@ -80,23 +80,15 @@
     }
     #progressText { text-align: center; font-size: 0.9em; margin-top: 5px; color: #333; }
 
-    /* 🔍 našeptávač */
     #suggestions {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      position: absolute;
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      width: 100%;
-      max-height: 180px;
-      overflow-y: auto;
-      z-index: 1000;
-      display: none;
+      list-style:none; margin:0; padding:0;
+      position:absolute; background:white;
+      border:1px solid #ccc; border-radius:6px;
+      width:100%; max-height:180px; overflow-y:auto;
+      z-index:1000; display:none;
     }
-    #suggestions li { padding: 8px 10px; cursor: pointer; }
-    #suggestions li:hover { background: #f1f3f5; }
+    #suggestions li { padding:8px 10px; cursor:pointer; }
+    #suggestions li:hover { background:#f1f3f5; }
   </style>
 </head>
 <body>
@@ -118,7 +110,7 @@
       <input type="tel" name="telefon" required>
 
       <label>Adresa servisu:</label>
-      <div style="position: relative;">
+      <div style="position:relative;">
         <input type="text" name="adresa" id="adresa" placeholder="Zadejte ulici..." autocomplete="off" required>
         <ul id="suggestions"></ul>
       </div>
@@ -152,7 +144,7 @@
     const progressText = document.getElementById("progressText");
     let timer = null;
 
-    // 🧠 Našeptávač adres
+    // 🔍 Našeptávač adres
     adresaInput.addEventListener("input", () => {
       adresaInput.dataset.selected = "false";
       clearTimeout(timer);
@@ -170,7 +162,7 @@
     function showSuggestions(results) {
       suggestions.innerHTML = "";
       if (!results.length) { suggestions.style.display = "none"; return; }
-      results.slice(0, 8).forEach(r => {
+      results.slice(0,8).forEach(r => {
         const li = document.createElement("li");
         li.textContent = r.display_name;
         li.onclick = () => selectAddress(r.display_name);
@@ -192,12 +184,10 @@
         img.onload = () => {
           const canvas = document.createElement("canvas");
           const max = 800;
-          let w = img.width;
-          let h = img.height;
+          let w = img.width, h = img.height;
           if (w > h && w > max) { h *= max / w; w = max; }
           else if (h > w && h > max) { w *= max / h; h = max; }
-          canvas.width = w;
-          canvas.height = h;
+          canvas.width = w; canvas.height = h;
           const ctx = canvas.getContext("2d");
           ctx.drawImage(img, 0, 0, w, h);
           canvas.toBlob(b => resolve(b), "image/jpeg", 0.8);
@@ -206,34 +196,90 @@
       });
     }
 
+    async function uploadToGitHub(fileBlob, fileName, token) {
+      const arrayBuffer = await fileBlob.arrayBuffer();
+      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      const path = `uploads/${fileName}`;
+      const url = `https://api.github.com/repos/radecek222-boop/reklamace/contents/${path}`;
+      const body = {
+        message: `Upload ${fileName}`,
+        content: base64,
+        branch: "main"
+      };
+      const res = await fetch(url, {
+        method: "PUT",
+        headers: {
+          Authorization: `token ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return `https://raw.githubusercontent.com/radecek222-boop/reklamace/main/${path}`;
+    }
+
+    async function updateOrders(dataObj, token) {
+      const url = `https://api.github.com/repos/radecek222-boop/reklamace/contents/orders.json`;
+      const get = await fetch(url, { headers: { Authorization: `token ${token}` } });
+      let existing = "[]", sha = null;
+      if (get.ok) {
+        const j = await get.json();
+        existing = atob(j.content.replace(/\n/g, ""));
+        sha = j.sha;
+      }
+      const arr = JSON.parse(existing);
+      arr.push(dataObj);
+      const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(arr, null, 2))));
+      const body = { message: `Nový pozáruční servis`, content: newContent, branch: "main" };
+      if (sha) body.sha = sha;
+      const put = await fetch(url, {
+        method: "PUT",
+        headers: { Authorization: `token ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      if (!put.ok) throw new Error(await put.text());
+    }
+
     // 🧾 Odeslání formuláře
     document.getElementById("servisForm").addEventListener("submit", async e => {
       e.preventDefault();
 
-      if (!adresaInput.dataset.selected || adresaInput.dataset.selected !== "true") {
+      if (adresaInput.dataset.selected !== "true") {
         alert("Vyberte adresu z nabídky (našeptávače).");
         adresaInput.focus(); return;
       }
 
-      const files = [...document.getElementById("fotky").files].slice(0,3);
-      if (!files.length && !confirm("Odeslat bez fotografií?")) return;
+      const token = prompt("Zadej GitHub token:");
+      if (!token) return alert("Token je nutný.");
 
+      const f = e.target;
+      const files = [...document.getElementById("fotky").files].slice(0,3);
+      const uploadedUrls = [];
       progressWrapper.style.display = "block";
-      progressText.textContent = "Zpracovávám fotografie...";
-      progressFill.style.width = "0%";
 
       for (let i=0; i<files.length; i++) {
+        progressText.textContent = `Zpracovávám ${i+1}/${files.length}`;
         const blob = await resizeImage(files[i]);
-        const percent = Math.round(((i+1)/files.length)*100);
-        progressFill.style.width = `${percent}%`;
-        progressText.textContent = `Nahráno ${i+1}/${files.length}`;
-        await new Promise(r => setTimeout(r, 200));
+        const url = await uploadToGitHub(blob, Date.now() + "_" + files[i].name, token);
+        uploadedUrls.push(url);
+        progressFill.style.width = `${((i+1)/files.length)*100}%`;
       }
 
-      progressFill.style.width = "100%";
-      progressText.textContent = "✅ Nahrávání dokončeno";
+      const dataObj = {
+        typ: "Pozáruční servis",
+        cislo: f.cislo.value,
+        zakaznik: f.zadavatel.value,
+        adresa: f.adresa.value,
+        telefon: f.telefon.value,
+        email: f.email.value,
+        produkt: f.produkt.value,
+        popis: f.popis.value,
+        fotky: uploadedUrls
+      };
 
-      alert("✅ Formulář validní. Tady proběhne nahrání na GitHub.");
+      await updateOrders(dataObj, token);
+      alert("✅ Pozáruční servis byl úspěšně odeslán!");
+      window.location.href = "index.html";
     });
   </script>
 </body>
