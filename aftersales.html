@@ -1,125 +1,214 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>WHITE GLOVE SERVICE – Aftersales servis</title>
-<style>
-:root { font-family: Inter, system-ui, Arial, sans-serif; color:#111; }
-body { margin:0; padding:20px; background:#f6f7fb; }
-h1 { text-align:center; font-size:2.2em; font-weight:900; margin:0 0 10px; }
-h2 { text-align:center; font-size:1.2em; font-weight:600; margin:0 0 20px; color:#555; }
-
-.container { max-width:1250px; margin:auto; background:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
-
-.top-bar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px; }
-.btn {
-  display:inline-block; padding:10px 20px; border:none; border-radius:6px;
-  font-weight:600; cursor:pointer; color:white; box-shadow:0 2px 5px rgba(0,0,0,0.15);
-  transition:opacity 0.2s, transform 0.1s;
-}
-.btn:hover { opacity:0.9; transform:scale(1.02); }
-.btn-back { background:linear-gradient(145deg, #808080, #dcdcdc, #a9a9a9); color:#000; }
-.btn-reload { background:linear-gradient(145deg, #004080, #1e90ff, #003366); color:white; }
-
-table { width:100%; border-collapse:collapse; }
-th, td { padding:8px 10px; border-bottom:1px solid #ddd; text-align:left; vertical-align:top; font-size:0.9em; }
-th { background:#e9ecef; font-weight:700; }
-tr:hover { background:#f8f9fa; }
-tr.wait { background:#ffe4b5; }
-tr.new { background:#fff8dc; }
-
-.photo-preview img { height:60px; margin:2px; border-radius:4px; cursor:pointer; transition:transform 0.2s ease-in-out; }
-.photo-preview img:hover { transform:scale(1.1); }
-
-#lightbox {
-  position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8);
-  display:none; justify-content:center; align-items:center; z-index:1000;
-}
-#lightbox img { max-width:90%; max-height:90%; border-radius:8px; }
-
-@media(max-width:768px){
-  th, td { font-size:0.8em; }
-  .photo-preview img { height:50px; }
-  .top-bar { flex-direction:column; }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pozáruční servis – White Glove Service</title>
+  <style>
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      background: #f6f7fb;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    .wrapper {
+      background: #fff;
+      padding: 30px;
+      margin-top: 40px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 700px;
+    }
+    h1, h2 {
+      text-align: center;
+      margin: 0 0 20px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-top: 15px;
+      margin-bottom: 5px;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    textarea { height: 100px; resize: vertical; }
+    input[type="file"] { margin-top: 5px; }
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1em;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.2s;
+      margin: 10px 5px 0 0;
+      color: #fff;
+    }
+    .btn:hover { transform: scale(1.03); opacity: 0.9; }
+    .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
+    .btn-submit { background: linear-gradient(135deg, #0046ff, #357aff); }
+    .actions { text-align: center; margin-top: 25px; }
+    .hidden { display: none; }
+  </style>
 </head>
-
 <body>
-<h1>WHITE GLOVE SERVICE</h1>
-<h2>Aftersales servis</h2>
+  <div class="wrapper">
+    <h1>WHITE GLOVE SERVICE</h1>
+    <h2>Pozáruční servis</h2>
 
-<div class="container">
-  <div class="top-bar">
-    <button class="btn btn-back" onclick="history.back()">⬅️ Zpět</button>
-    <button class="btn btn-reload" onclick="location.reload()">🔄 Načíst znovu</button>
+    <form id="servisForm">
+      <label>Číslo zakázky / objednávky:</label>
+      <input type="text" name="cislo" required>
+
+      <label>Zákazník:</label>
+      <input type="text" name="zakaznik" required>
+
+      <label>Adresa:</label>
+      <input type="text" name="adresa" required>
+
+      <label>Telefon:</label>
+      <input type="tel" name="telefon">
+      <label>E-mail:</label>
+      <input type="email" name="email">
+
+      <p style="height: 20px;"></p>
+
+      <label>Model / Název produktu:</label>
+      <input type="text" name="produkt">
+      <label>Datum objednávky:</label>
+      <input type="date" name="datum_objednavky">
+      <label>Popis požadavku:</label>
+      <textarea name="popis"></textarea>
+
+      <label>Přiložit fotografie (max. 3):</label>
+      <input type="file" id="fotky" accept="image/*" multiple>
+
+      <label>Zadavatel / prodejce:</label>
+      <select id="zpracoval" name="zpracoval" required>
+        <option value="">Vyber...</option>
+        <option value="Natuzzi Editions - Strejcek">Natuzzi Editions - Strejcek</option>
+        <option value="Natuzzi Editions - Vimrova">Natuzzi Editions - Vimrova</option>
+        <option value="Natuzzi Italia - Bratislava">Natuzzi Italia - Bratislava</option>
+        <option value="Natuzzi Italia - Jama">Natuzzi Italia - Jama</option>
+        <option value="Natuzzi Italia - River">Natuzzi Italia - River</option>
+        <option value="Natuzzi Italia - SOHO">Natuzzi Italia - SOHO</option>
+        <option value="Softaly - SOHO">Softaly - SOHO</option>
+        <option value="Phase - Klucarova">Phase - Klucarova</option>
+        <option value="Phase - Jancova">Phase - Jancova</option>
+        <option value="Jiná">Jiná</option>
+      </select>
+
+      <div id="jinaSekce" class="hidden">
+        <label>Zadej nový zápis zadavatele:</label>
+        <input type="text" id="jinaJmeno" name="jinaJmeno">
+        <label>E-mail zadavatele:</label>
+        <input type="email" id="jinaEmail" name="jinaEmail">
+        <label>Telefon zadavatele:</label>
+        <input type="tel" id="jinaTelefon" name="jinaTelefon">
+      </div>
+
+      <div class="actions">
+        <a href="index.html" class="btn btn-back">Zpět</a>
+        <button type="submit" class="btn btn-submit">Odeslat</button>
+      </div>
+    </form>
   </div>
 
-  <table id="claims-table">
-    <thead>
-      <tr>
-        <th>Objednávka</th>
-        <th>Zákazník</th>
-        <th>Technik</th>
-        <th>Stav</th>
-        <th>Popis</th>
-        <th>Fotky</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
+  <script>
+    const selectZpracoval = document.getElementById("zpracoval");
+    const jinaSekce = document.getElementById("jinaSekce");
+    const jinaInputs = jinaSekce.querySelectorAll("input");
 
-<div id="lightbox" onclick="this.style.display='none'">
-  <img src="">
-</div>
-
-<script>
-const dataUrl = "https://whitegloveservice.github.io/data/reklamace.json";
-
-async function loadData(){
-  const tbody = document.querySelector("#claims-table tbody");
-  tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; padding:20px;'>Načítám data...</td></tr>";
-
-  try {
-    const res = await fetch(dataUrl);
-    const data = await res.json();
-    tbody.innerHTML = "";
-
-    const pending = data.filter(x => (x["Vyřešeno"] || "").toUpperCase() !== "ANO");
-
-    pending.forEach(item => {
-      const photos = [item.Foto1, item.Foto2].filter(Boolean)
-        .map(url => `<img src="${url}" onclick="openLightbox('${url}')">`).join("");
-
-      const tr = document.createElement("tr");
-      const stav = (item["Stav"] || "").toLowerCase();
-      if (stav.includes("nová")) tr.classList.add("new");
-      else tr.classList.add("wait");
-
-      tr.innerHTML = `
-        <td>${item["Číslo objednávky"]}</td>
-        <td>${item["Zákazník"]}</td>
-        <td>${item["Technik"]}</td>
-        <td>${item["Stav"]}</td>
-        <td>${item["Popis CZ"]}</td>
-        <td class="photo-preview">${photos}</td>
-      `;
-      tbody.appendChild(tr);
+    selectZpracoval.addEventListener("change", () => {
+      if (selectZpracoval.value === "Jiná") {
+        jinaSekce.classList.remove("hidden");
+        jinaInputs.forEach(inp => inp.required = true);
+      } else {
+        jinaSekce.classList.add("hidden");
+        jinaInputs.forEach(inp => inp.required = false);
+      }
     });
-  } catch (err) {
-    tbody.innerHTML = `<tr><td colspan='6' style='color:red; text-align:center;'>Chyba: ${err}</td></tr>`;
-  }
-}
 
-function openLightbox(url){
-  const lb = document.getElementById("lightbox");
-  lb.style.display = "flex";
-  lb.querySelector("img").src = url;
-}
+    async function submitToGitHub(dataObj, owner, repo, path, message, token) {
+      const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+      const getResp = await fetch(getUrl, {
+        headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json" }
+      });
 
-loadData();
-</script>
+      let existingContent = "[]", sha = null;
+      if (getResp.ok) {
+        const existing = await getResp.json();
+        existingContent = atob(existing.content.replace(/\n/g, ""));
+        sha = existing.sha;
+      }
+
+      const arr = JSON.parse(existingContent);
+      arr.push(dataObj);
+      const newContent = JSON.stringify(arr, null, 2);
+      const base64 = btoa(unescape(encodeURIComponent(newContent)));
+
+      const body = { message, content: base64, branch: "main" };
+      if (sha) body.sha = sha;
+
+      const putResp = await fetch(getUrl, {
+        method: "PUT",
+        headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json", "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      if (!putResp.ok) throw new Error(await putResp.text());
+    }
+
+    document.getElementById("servisForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      const files = document.getElementById("fotky").files;
+      if (files.length === 0 && !confirm("Odeslat bez fotografií?")) return;
+
+      const f = e.target;
+      const dataObj = {
+        typ: "aftersales",
+        contract: f.zpracoval.value,
+        cislo: f.cislo.value,
+        zakaznik: f.zakaznik.value,
+        adresa: f.adresa.value,
+        telefon: f.telefon.value,
+        email: f.email.value,
+        produkt: f.produkt.value,
+        datum_objednavky: f.datum_objednavky.value,
+        popis: f.popis.value,
+        fotky: Array.from(files).map(f => f.name),
+        jinaZadavatel: f.zpracoval.value === "Jiná" ? {
+          jmeno: f.jinaJmeno.value,
+          email: f.jinaEmail.value,
+          telefon: f.jinaTelefon.value
+        } : null
+      };
+
+      try {
+        const owner = "radecek222-boop", repo = "reklamace", path = "aftersales.json";
+        const message = `Nový pozáruční servis ${dataObj.cislo}`;
+        const token = prompt("Zadej GitHub token:");
+        await submitToGitHub(dataObj, owner, repo, path, message, token);
+        alert("Pozáruční servis uložen.");
+        f.reset();
+        window.location.href = "index.html";
+      } catch (err) {
+        alert("Chyba: " + err.message);
+      }
+    });
+  </script>
 </body>
 </html>
