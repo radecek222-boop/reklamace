@@ -37,7 +37,6 @@
           <option value="+420">🇨🇿 +420</option>
           <option value="+421">🇸🇰 +421</option>
           <option value="+43">🇦🇹 +43</option>
-          <option value="+49">🇩🇪 +49</option>
         </select>
         <input type="tel" id="telefon" name="telefon" required placeholder="např. 777123456">
       </div>
@@ -107,13 +106,13 @@
   </div>
 
   <script>
-    // Automatické velké písmena
+    // === Automatická velká písmena ===
     const cisloInput = document.querySelector('input[name="cislo"]');
     cisloInput.addEventListener("input", () => {
       cisloInput.value = cisloInput.value.toUpperCase();
     });
 
-    // === Našeptávač adresy (OpenStreetMap) ===
+    // === Přesný našeptávač adres (CZ, SK, AT) ===
     const uliceInput = document.getElementById("ulice");
     const mestoInput = document.getElementById("mesto");
     const pscInput = document.getElementById("psc");
@@ -126,24 +125,34 @@
       suggestionContainer.innerHTML = "";
       if (query.length < 2) return;
 
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}&countrycodes=cz,sk&limit=5`
-      );
-      const data = await res.json();
-      if (!data.length) return;
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=cz,sk,at&limit=5&dedupe=1&polygon_geojson=0&q=${encodeURIComponent(query)}`;
+        const res = await fetch(url);
+        const data = await res.json();
 
-      data.forEach(item => {
-        const div = document.createElement("div");
-        div.textContent = item.display_name;
-        div.addEventListener("click", () => {
-          uliceInput.value = (item.address.road || "") + " " + (item.address.house_number || "");
-          mestoInput.value = item.address.city || item.address.town || item.address.village || "";
-          pscInput.value = item.address.postcode || "";
-          adresaPlatna = true;
-          suggestionContainer.innerHTML = "";
+        const queryLower = query.toLowerCase();
+        const filtered = data.filter(item =>
+          (item.display_name && item.display_name.toLowerCase().includes(queryLower)) ||
+          (item.address && Object.values(item.address).some(v => v && v.toLowerCase().includes(queryLower)))
+        );
+
+        if (!filtered.length) return;
+
+        filtered.forEach(item => {
+          const div = document.createElement("div");
+          div.textContent = item.display_name;
+          div.addEventListener("click", () => {
+            uliceInput.value = (item.address.road || "") + " " + (item.address.house_number || "");
+            mestoInput.value = item.address.city || item.address.town || item.address.village || "";
+            pscInput.value = item.address.postcode || "";
+            adresaPlatna = true;
+            suggestionContainer.innerHTML = "";
+          });
+          suggestionContainer.appendChild(div);
         });
-        suggestionContainer.appendChild(div);
-      });
+      } catch (err) {
+        console.error("Chyba při načítání adres:", err);
+      }
     });
 
     document.addEventListener("click", e => {
@@ -157,14 +166,10 @@
     const predvolba = document.getElementById("predvolba");
     const emailInput = document.getElementById("email");
 
-    function validateTelefon() {
-      return /^[0-9]{8,12}$/.test(telefonInput.value.trim());
-    }
-    function validateEmail() {
-      return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailInput.value.trim());
-    }
+    function validateTelefon() { return /^[0-9]{8,12}$/.test(telefonInput.value.trim()); }
+    function validateEmail() { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailInput.value.trim()); }
 
-    // === Komprese obrázků ===
+    // === Komprese a náhledy obrázků ===
     async function compressImage(file, maxSizeMB = 1, maxDim = 1280) {
       const img = await createImageBitmap(file);
       const canvas = document.createElement("canvas");
@@ -206,10 +211,7 @@
         const blob = await compressImage(file);
         compressedFiles.push({ name: file.name, blob });
         let w = 0;
-        const int = setInterval(() => {
-          w += 10; progress.style.width = w + "%";
-          if (w >= 100) clearInterval(int);
-        }, 40);
+        const int = setInterval(() => { w += 10; progress.style.width = w + "%"; if (w >= 100) clearInterval(int); }, 40);
       }
     });
 
@@ -227,57 +229,7 @@
       }
     };
 
-    // === GitHub upload + zvuk + fajfka ===
-    async function uploadToGitHub(owner, repo, path, fileBlob, message, token) {
-      const base64Data = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result.split(",")[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(fileBlob);
-      });
-      const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-      const body = { message, content: base64Data, branch: "main" };
-      const response = await fetch(url, {
-        method: "PUT",
-        headers: {
-          "Authorization": `token ${token}`,
-          "Accept": "application/vnd.github.v3+json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-      });
-      if (!response.ok) throw new Error(await response.text());
-    }
-
-    async function submitToGitHub(dataObj, owner, repo, path, message, token) {
-      const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-      const getResp = await fetch(getUrl, {
-        headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json" }
-      });
-      let existingContent = "[]", sha = null;
-      if (getResp.ok) {
-        const existing = await getResp.json();
-        existingContent = atob(existing.content.replace(/\n/g, ""));
-        sha = existing.sha;
-      }
-      const arr = JSON.parse(existingContent);
-      arr.push(dataObj);
-      const newContent = JSON.stringify(arr, null, 2);
-      const base64 = btoa(unescape(encodeURIComponent(newContent)));
-      const body = { message, content: base64, branch: "main" };
-      if (sha) body.sha = sha;
-      const putResp = await fetch(getUrl, {
-        method: "PUT",
-        headers: {
-          "Authorization": `token ${token}`,
-          "Accept": "application/vnd.github.v3+json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-      });
-      if (!putResp.ok) throw new Error(await putResp.text());
-    }
-
+    // === Zvuk + fajfka ===
     function playSuccessSound() {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
