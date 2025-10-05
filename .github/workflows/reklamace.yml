@@ -1,7 +1,8 @@
-name: Reklamace – přesun a údržba fotek
+name: Reklamace – přesun hotových + mazání fotek
 
 on:
   push:
+    branches: [ main ]
     paths:
       - "data/orders.json"
       - "data/hotove.json"
@@ -11,40 +12,73 @@ permissions:
   contents: write
 
 jobs:
-  manage-reklamace:
+  move-and-clean:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
+    - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 18
+    - name: Install jq
+      run: sudo apt-get update && sudo apt-get install -y jq
 
-    - name: Install jq (JSON processor)
-      run: sudo apt-get install -y jq
-
-    - name: Process reklamace files
+    - name: Ensure data files exist
       run: |
-        echo "Kontrola přesunutých reklamací..."
-        if [ -f data/orders.json ] && [ -f data/hotove.json ]; then
-          # Najdi všechny čísla reklamací v hotove.json
-          HOTOVE_IDS=$(jq -r '.[].cislo' data/hotove.json)
-          echo "Hotové reklamace: $HOTOVE_IDS"
-          
-          for ID in $HOTOVE_IDS; do
-            if [ -d "uploads/$ID" ]; then
-              echo "🗑️ Mažu fotky k reklamaci $ID"
-              rm -rf "uploads/$ID"
-            fi
-          done
-        else
-          echo "Soubor orders.json nebo hotove.json chybí."
-        fi
+        mkdir -p data uploads
+        [ -f data/orders.json ] || echo "[]" > data/orders.json
+        [ -f data/hotove.json ] || echo "[]" > data/hotove.json
 
-    - name: Commit and push changes
+    - name: Find solved claims in orders.json
+      id: find
+      run: |
+        # Seznam ID (pole .cislo) všech záznamů označených jako vyřešené/ hotové
+        # Detekujeme více variant polí a hodnot (case-insensitive).
+        MOVES=$(jq -r '
+          .[] 
+          | select(
+              ( ((.vyreseno // .Vyřešeno // .Vyreseno // "") | ascii_downcase) == "ano" )
+              or
+              ( ((.stav // .Stav // "") | ascii_downcase | gsub("í";"i")) | test("hotovo|vyrizeno") )
+            )
+          | .cislo
+        ' data/orders.json)
+
+        echo "IDs to move:"
+        echo "$MOVES"
+        echo "ids=$MOVES" >> $GITHUB_OUTPUT
+
+    - name: Move solved claims to hotove.json and delete uploads
+      if: steps.find.outputs.ids != ''
+      run: |
+        set -e
+        for ID in ${{ steps.find.outputs.ids }}; do
+          echo "→ Zpracovávám reklamaci: $ID"
+
+          # 1) Přidej daný rekord do hotove.json
+          #    (v případě, že by tam ID náhodou již bylo, přeskakujeme duplicitní append)
+          jq --arg id "$ID" -c '.[] | select(.cislo == $id)' data/orders.json > /tmp/_recs.json
+          if [ ! -s /tmp/_recs.json ]; then
+            echo "   ⚠️ Záznam s cislo=$ID v orders.json nenalezen, přeskočeno."
+            continue
+          fi
+          # Přidej všechny nalezené záznamy (typicky jeden) do hotove.json
+          jq --slurpfile recs /tmp/_recs.json '. + $recs' data/hotove.json > /tmp/hotove_new.json
+          mv /tmp/hotove_new.json data/hotove.json
+
+          # 2) Odeber daný rekord z orders.json
+          jq --arg id "$ID" '[ .[] | select(.cislo != $id) ]' data/orders.json > /tmp/orders_new.json
+          mv /tmp/orders_new.json data/orders.json
+
+          # 3) Smaž fotky v uploads/<cislo>/
+          if [ -d "uploads/$ID" ]; then
+            echo "   🗑️ Mažu fotky v uploads/$ID"
+            rm -rf "uploads/$ID"
+          else
+            echo "   ℹ️ Složka uploads/$ID neexistuje, není co mazat."
+          fi
+        done
+
+    - name: Commit & push if changed
       run: |
         git config user.name "WGS Bot"
         git config user.email "bot@whiteglove.cz"
@@ -52,6 +86,6 @@ jobs:
         if git diff --staged --quiet; then
           echo "Žádné změny k uložení."
         else
-          git commit -m "Automatická údržba: odstraněny fotky z hotových reklamací"
+          git commit -m "Automatický přesun hotových reklamací + mazání fotek"
           git push
         fi
