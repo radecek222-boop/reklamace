@@ -4,19 +4,111 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WHITE GLOVE SERVICE – Seznam reklamací</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
-    :root { font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:#111; }
-    body { margin:0; padding:20px; background:#f6f7fb; }
-    h1 { text-align:center; font-size:2em; font-weight:900; margin:0 0 10px; }
-    h2 { text-align:center; font-size:1.2em; font-weight:600; margin:0 0 20px; color:#555; }
-    table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; }
-    th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #ddd; font-size:0.95em; }
+    :root {
+      font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+      color:#111;
+    }
+    body {
+      margin:0;
+      padding:20px;
+      background:#f6f7fb;
+    }
+    h1 {
+      text-align:center;
+      font-size:2em;
+      font-weight:900;
+      margin:0 0 10px;
+    }
+    h2 {
+      text-align:center;
+      font-size:1.1em;
+      font-weight:600;
+      margin:0 0 20px;
+      color:#555;
+    }
+
+    table {
+      width:100%;
+      border-collapse:collapse;
+      background:white;
+      border-radius:8px;
+      overflow:hidden;
+    }
+    th, td {
+      padding:10px 12px;
+      text-align:left;
+      border-bottom:1px solid #ddd;
+      font-size:0.95em;
+    }
     th { background:#eee; font-weight:700; }
     tr:hover { background:#f1f3f5; cursor:pointer; }
-    .contract-poz { color:#007bff; font-weight:700; }
-    .btn { background:#6c757d; color:#fff; padding:10px 20px; text-decoration:none; border-radius:8px; display:inline-block; margin-top:15px; }
+
+    .contract-poz { color:#7b1fa2; font-weight:700; }
+
+    .btn {
+      background:#6c757d;
+      color:#fff;
+      padding:10px 20px;
+      text-decoration:none;
+      border-radius:8px;
+      display:inline-block;
+      margin-top:15px;
+    }
     .btn:hover { background:#5a6268; }
-    .searchbox { width:100%; max-width:400px; margin:0 auto 20px; display:block; padding:10px; border:1px solid #ccc; border-radius:8px; font-size:1em; }
+
+    .searchbox {
+      width:100%;
+      max-width:400px;
+      margin:0 auto 20px;
+      display:block;
+      padding:10px;
+      border:1px solid #ccc;
+      border-radius:8px;
+      font-size:1em;
+    }
+
+    /* ✅ Responsivní část pro mobily */
+    @media (max-width: 768px) {
+      th:nth-child(n+5),
+      td:nth-child(n+5) { display:none; } /* skrýt sloupce 5+ */
+      th:nth-child(1) { display:none; } /* skrýt číslování */
+      td:nth-child(1) { display:none; }
+
+      th:nth-child(2)::after { content: " (stav)"; color:#666; font-weight:400; }
+    }
+
+    /* Modal detail */
+    #detailModal {
+      position:fixed;
+      top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.5);
+      display:none;
+      justify-content:center;
+      align-items:center;
+      padding:20px;
+    }
+    #detailContent {
+      background:white;
+      border-radius:10px;
+      padding:20px;
+      max-width:500px;
+      width:100%;
+      max-height:80vh;
+      overflow-y:auto;
+      box-shadow:0 4px 15px rgba(0,0,0,0.2);
+    }
+    #closeDetail {
+      background:#6c757d;
+      color:#fff;
+      border:none;
+      border-radius:8px;
+      padding:8px 16px;
+      cursor:pointer;
+      float:right;
+    }
+    #closeDetail:hover { background:#5a6268; }
   </style>
 </head>
 <body>
@@ -30,12 +122,12 @@
       <tr>
         <th>#</th>
         <th>CONTRACT</th>
-        <th>Zákazník</th>
-        <th>Adresa</th>
-        <th>Telefon</th>
-        <th>E-mail</th>
-        <th>Popis</th>
-        <th>Typ</th>
+        <th>JMÉNO</th>
+        <th>ADRESA</th>
+        <th>TELEFON</th>
+        <th>E-MAIL</th>
+        <th>POPIS</th>
+        <th>TYP</th>
       </tr>
     </thead>
     <tbody id="tableBody">
@@ -47,38 +139,39 @@
     <a href="index.html" class="btn">Zpět na hlavní stránku</a>
   </div>
 
+  <!-- Modal pro detail -->
+  <div id="detailModal">
+    <div id="detailContent">
+      <button id="closeDetail">Zavřít</button>
+      <h3 id="detailName" style="margin-top:0;"></h3>
+      <p id="detailInfo"></p>
+    </div>
+  </div>
+
   <script>
     async function loadOrders() {
-      const url = "https://raw.githubusercontent.com/radecek222-boop/reklamace/main/orders.json";
-      const tableBody = document.getElementById("tableBody");
       try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("Soubor nebyl nalezen nebo není veřejný.");
-        const text = await res.text();
-
-        let data = [];
-        try { data = JSON.parse(text); } 
-        catch { throw new Error("Soubor není platný JSON."); }
-
-        if (!Array.isArray(data) || data.length === 0) {
-          tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Žádné záznamy</td></tr>`;
-          return;
-        }
+        const response = await fetch("https://raw.githubusercontent.com/radecek222-boop/reklamace/main/orders.json");
+        if (!response.ok) throw new Error("Nepodařilo se načíst data.");
+        const data = await response.json();
         renderTable(data);
-      } catch (err) {
-        tableBody.innerHTML = `<tr><td colspan="8" style="color:red; text-align:center;">Chyba: ${err.message}</td></tr>`;
+      } catch (e) {
+        document.getElementById("tableBody").innerHTML =
+          `<tr><td colspan="8" style="text-align:center; color:red;">Chyba při načítání dat: ${e.message}</td></tr>`;
       }
     }
 
     function renderTable(data) {
       const tbody = document.getElementById("tableBody");
       tbody.innerHTML = "";
-      data.forEach((item, i) => {
+
+      data.forEach((item, index) => {
         const tr = document.createElement("tr");
-        const cls = item.contract === "POZ" ? "contract-poz" : "";
+        const contractClass = item.contract === "POZ" ? "contract-poz" : "";
+
         tr.innerHTML = `
-          <td>${i + 1}</td>
-          <td class="${cls}">${item.contract || ""}</td>
+          <td>${index + 1}</td>
+          <td class="${contractClass}">${item.contract || ""}</td>
           <td>${item.zakaznik || ""}</td>
           <td>${item.adresa || ""}</td>
           <td><a href="tel:${item.telefon || ""}">${item.telefon || ""}</a></td>
@@ -86,18 +179,37 @@
           <td>${item.popis || ""}</td>
           <td>${item.typ || ""}</td>
         `;
-        tr.addEventListener("click", () => {
-          localStorage.setItem("selectedOrder", JSON.stringify(item));
-          window.location.href = "protokol.html";
-        });
+
+        tr.addEventListener("click", () => openDetail(item));
         tbody.appendChild(tr);
       });
     }
 
+    function openDetail(item) {
+      const modal = document.getElementById("detailModal");
+      modal.style.display = "flex";
+
+      document.getElementById("detailName").textContent = item.zakaznik || "Neznámý zákazník";
+      document.getElementById("detailInfo").innerHTML = `
+        <p><b>Adresa:</b> ${item.adresa || ""}</p>
+        <p><b>Telefon:</b> ${item.telefon || ""}</p>
+        <p><b>E-mail:</b> ${item.email || ""}</p>
+        <p><b>Popis závady:</b><br>${item.popis || ""}</p>
+        <p><b>Typ:</b> ${item.typ || ""}</p>
+        <p><b>Contract:</b> ${item.contract || ""}</p>
+      `;
+    }
+
+    document.getElementById("closeDetail").addEventListener("click", () => {
+      document.getElementById("detailModal").style.display = "none";
+    });
+
     document.getElementById("searchInput").addEventListener("input", e => {
-      const f = e.target.value.toLowerCase();
-      document.querySelectorAll("#dataTable tbody tr").forEach(r => {
-        r.style.display = r.textContent.toLowerCase().includes(f) ? "" : "none";
+      const filter = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll("#dataTable tbody tr");
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? "" : "none";
       });
     });
 
