@@ -111,7 +111,6 @@
       display: none;
     }
 
-    /* Náhled obrázků */
     .preview {
       display: flex;
       flex-wrap: wrap;
@@ -144,13 +143,11 @@
       transition: width 0.3s;
     }
 
-    /* Nevalidní červený gradient */
     .invalid {
       border: 2px solid;
       border-image: linear-gradient(45deg, #ff4d4d, #ff7b7b) 1;
     }
 
-    /* ✅ fajfka animace */
     .success-check {
       position: fixed;
       top: 0;
@@ -247,6 +244,7 @@
       <small>Podporované formáty: JPG, PNG, HEIC (max. 5 MB / soubor)</small>
       <input type="file" id="fotky" accept="image/jpeg,image/png,image/heic" multiple>
       <div id="preview" class="preview"></div>
+
       <label>Objednávku zpracoval:</label>
       <select id="zpracoval" name="zpracoval" required>
         <option value="">Vyber...</option>
@@ -290,7 +288,6 @@
       <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   </div>
-
   <script>
     // === Našeptávač adresy (OpenStreetMap) ===
     const uliceInput = document.getElementById("ulice");
@@ -313,16 +310,18 @@
       if (!data.length) return;
 
       suggestionBox = document.createElement("div");
-      suggestionBox.style.position = "absolute";
-      suggestionBox.style.background = "#fff";
-      suggestionBox.style.border = "1px solid #ccc";
-      suggestionBox.style.borderRadius = "6px";
-      suggestionBox.style.boxShadow = "0 4px 10px rgba(0,0,0,0.1)";
-      suggestionBox.style.marginTop = "2px";
-      suggestionBox.style.zIndex = "999";
-      suggestionBox.style.width = uliceInput.offsetWidth + "px";
-      suggestionBox.style.maxHeight = "180px";
-      suggestionBox.style.overflowY = "auto";
+      Object.assign(suggestionBox.style, {
+        position: "absolute",
+        background: "#fff",
+        border: "1px solid #ccc",
+        borderRadius: "6px",
+        boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+        marginTop: "2px",
+        zIndex: "999",
+        width: uliceInput.offsetWidth + "px",
+        maxHeight: "180px",
+        overflowY: "auto"
+      });
 
       data.forEach(item => {
         const div = document.createElement("div");
@@ -450,7 +449,8 @@
         jinaInputs.forEach(i => i.required = false);
       }
     };
-    // === Nahrání souborů na GitHub ===
+
+    // === Upload, JSON, fajfka, zvuk ===
     async function uploadToGitHub(owner, repo, path, fileBlob, message, token) {
       const base64Data = await new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -478,7 +478,6 @@
       }
     }
 
-    // === Uložení JSON dat do GitHubu ===
     async function submitToGitHub(dataObj, owner, repo, path, message, token) {
       const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
       const getResp = await fetch(getUrl, {
@@ -516,7 +515,6 @@
       if (!putResp.ok) throw new Error(await putResp.text());
     }
 
-    // === Zvukový efekt "pling" ===
     function playSuccessSound() {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -529,23 +527,18 @@
         g.connect(ctx.destination);
         o.start();
         o.stop(ctx.currentTime + 0.25);
-      } catch (e) {
-        console.warn("Zvuk se nepodařilo přehrát:", e);
-      }
+      } catch (e) { console.warn("Zvuk se nepodařilo přehrát:", e); }
     }
 
-    // === Zobrazení fajfky po úspěchu ===
     function showSuccess() {
-      playSuccessSound(); // 🔊 přehraje krátké "pling"
+      playSuccessSound();
       const success = document.getElementById("successCheck");
       success.classList.add("active");
       setTimeout(() => { window.location.href = "index.html"; }, 2500);
     }
 
-    // === Odeslání formuláře ===
     document.getElementById("reklamaceForm").addEventListener("submit", async e => {
       e.preventDefault();
-
       const form = e.target;
       const fields = form.querySelectorAll("input[required], textarea[required], select[required]");
       let valid = true;
@@ -554,24 +547,14 @@
         if (!f.value.trim()) {
           f.classList.add("invalid");
           valid = false;
-        } else {
-          f.classList.remove("invalid");
-        }
+        } else { f.classList.remove("invalid"); }
       });
 
-      if (!validateTelefon()) {
-        telefonInput.classList.add("invalid");
-        valid = false;
-      } else {
-        telefonInput.classList.remove("invalid");
-      }
+      if (!validateTelefon()) { telefonInput.classList.add("invalid"); valid = false; }
+      else telefonInput.classList.remove("invalid");
 
-      if (!validateEmail()) {
-        emailInput.classList.add("invalid");
-        valid = false;
-      } else {
-        emailInput.classList.remove("invalid");
-      }
+      if (!validateEmail()) { emailInput.classList.add("invalid"); valid = false; }
+      else emailInput.classList.remove("invalid");
 
       if (!adresaPlatna) {
         alert("Vyber prosím adresu z našeptávače.");
@@ -579,20 +562,17 @@
         valid = false;
       }
 
-      if (!valid) {
-        alert("Zkontroluj prosím červeně označená pole.");
-        return;
-      }
+      if (!valid) { alert("Zkontroluj červeně označená pole."); return; }
 
       const owner = "radecek222-boop";
       const repo = "reklamace";
       const token = prompt("Zadej GitHub token:");
-      const cisloReklamace = form.cislo.value.trim() || "REK";
+      const cisloReklamace = (form.cislo.value.trim().toUpperCase() || "REK");
 
       const dataObj = {
         typ: "reklamace",
         contract: form.zpracoval.value,
-        cislo: form.cislo.value,
+        cislo: cisloReklamace,
         zakaznik: form.zakaznik.value,
         adresa: `${form.ulice.value}, ${form.mesto.value}, ${form.psc.value}`,
         telefon: `${predvolba.value} ${form.telefon.value}`,
@@ -612,7 +592,6 @@
       };
 
       try {
-        // === Nahraj fotky do /foto/ ===
         for (const file of compressedFiles) {
           const safeName = `${cisloReklamace}_${file.name.replace(/\s+/g, "_")}`;
           const path = `foto/${safeName}`;
@@ -621,16 +600,11 @@
           dataObj.fotky.push(safeName);
         }
 
-        // === Ulož záznam do orders.json ===
-        const message = `Nová reklamace ${dataObj.cislo}`;
+        const message = `Nová reklamace ${cisloReklamace}`;
         await submitToGitHub(dataObj, owner, repo, "orders.json", message, token);
-
-        // === Úspěch ===
         showSuccess();
         form.reset();
-      } catch (err) {
-        alert("Chyba: " + err.message);
-      }
+      } catch (err) { alert("Chyba: " + err.message); }
     });
   </script>
 </body>
