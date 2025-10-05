@@ -198,11 +198,11 @@
       };
 
       try {
-        const owner = "radecek222-boop", repo = "reklamace", path = "aftersales.json";
+        const owner = "radecek222-boop", repo = "reklamace", path = "orders.json";
         const message = `Nový pozáruční servis ${dataObj.cislo}`;
         const token = prompt("Zadej GitHub token:");
         await submitToGitHub(dataObj, owner, repo, path, message, token);
-        alert("Pozáruční servis uložen.");
+        alert("Pozáruční servis uložen do seznamu.");
         f.reset();
         window.location.href = "index.html";
       } catch (err) {
