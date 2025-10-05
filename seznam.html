@@ -27,7 +27,8 @@ tr.done { background:#d8f3dc; }
 tr.cancel { background:#e9ecef; }
 
 .btn-protocol {
-  background:#004080; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; font-size:0.85em; font-weight:600;
+  background:#004080; color:white; padding:6px 12px; border:none; border-radius:6px;
+  cursor:pointer; font-size:0.85em; font-weight:600; transition:all 0.2s ease-in-out;
 }
 .btn-protocol:hover { background:#1e90ff; }
 
@@ -40,7 +41,6 @@ tr.cancel { background:#e9ecef; }
   display:none; justify-content:center; align-items:center; z-index:1000;
 }
 #lightbox img { max-width:90%; max-height:90%; border-radius:8px; }
-#lightbox.close { display:none; }
 
 @media(max-width:768px){
   th, td { font-size:0.8em; }
@@ -87,7 +87,7 @@ tr.cancel { background:#e9ecef; }
 </div>
 
 <script>
-const dataUrl = "https://tvuj-repozitar.github.io/data/reklamace.json"; // ← změň podle svého repa
+const dataUrl = "https://tvuj-repozitar.github.io/data/reklamace.json"; // ← Uprav na svou GitHub Pages adresu
 
 async function loadData(){
   const tbody = document.querySelector("#claims-table tbody");
@@ -131,11 +131,9 @@ async function loadData(){
           <b>Návrh:</b> ${item["Návrh CZ"] || ""}
         </td>
         <td class="photo-preview">${photos}</td>
-        <td><button class="btn-protocol" onclick="openProtocol(item)">📋 Otevřít protokol</button></td>
+        <td><button class="btn-protocol" onclick='openProtocol(${JSON.stringify(item)})'>📋 Otevřít protokol</button></td>
       `;
 
-      // Připojení objektu pro openProtocol
-      tr.querySelector(".btn-protocol").addEventListener("click", () => openProtocol(item));
       tbody.appendChild(tr);
     });
   } catch (err) {
@@ -143,7 +141,7 @@ async function loadData(){
   }
 }
 
-// === Pomocné funkce ===
+// Pomocné funkce
 function makePhone(num){
   if(!num) return "";
   const clean = num.replace(/\s+/g,"");
@@ -188,7 +186,7 @@ function openProtocol(item){
   window.location.href = "protokol.html";
 }
 
-// === Vyhledávání ===
+// Vyhledávání
 document.getElementById("search").addEventListener("input", e => {
   const q = e.target.value.toLowerCase();
   document.querySelectorAll("#claims-table tbody tr").forEach(tr => {
@@ -196,7 +194,6 @@ document.getElementById("search").addEventListener("input", e => {
   });
 });
 
-// Načti po startu
 loadData();
 </script>
 </body>
