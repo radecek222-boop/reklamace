@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Servisní protokol - White Glove Service</title>
+  <title>Servisní protokol – White Glove Service</title>
 
   <style>
     :root {
@@ -52,7 +52,6 @@
 
     input[type="text"],
     input[type="date"],
-    select,
     textarea {
       width: 100%;
       padding: 8px;
@@ -245,13 +244,12 @@
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 
   <script>
-    // inicializace podpisu
+    // --- inicializace podpisového pole ---
     const canvas = document.getElementById("signaturePad");
     const signaturePad = new SignaturePad(canvas);
-
     document.getElementById("clearSignature").addEventListener("click", () => signaturePad.clear());
 
-    // načtení detailu z localStorage
+    // --- načtení dat ze seznamu (localStorage) ---
     const saved = localStorage.getItem("selectedOrder");
     if (saved) {
       const o = JSON.parse(saved);
@@ -266,14 +264,14 @@
       document.getElementById("datumPodani").value = o.datum_podani_reklamace || "";
       document.getElementById("popis").value = o.popis || "";
 
-      // zobrazí fotky
+      // náhled fotek z GitHubu
       const photos = document.getElementById("photosContainer");
       photos.innerHTML = (o.fotky || [])
         .map(p => `<img src="https://raw.githubusercontent.com/radecek222/radecek222-boop/main/${p}" alt="foto">`)
         .join("");
     }
 
-    // export do PDF (včetně podpisu)
+    // --- export PDF včetně podpisu ---
     document.getElementById("exportPDF").addEventListener("click", async () => {
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({ unit: "pt", format: "a4" });
@@ -286,17 +284,18 @@
       const pageHeight = (canvasImg.height * pageWidth) / canvasImg.width;
       pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pageHeight);
 
-      // přidá podpis, pokud existuje
+      // vložení podpisu, pokud existuje
       if (!signaturePad.isEmpty()) {
         const sigData = signaturePad.toDataURL();
         pdf.addImage(sigData, "PNG", 50, pageHeight - 180, 150, 100);
       }
 
       const name = document.getElementById("zakaznik").value || "Reklamace";
-      pdf.save(`${name}_protokol.pdf`);
+      const cislo = document.getElementById("cisloReklamace").value || "Bez čísla";
+      pdf.save(`${cislo}_${name}_protokol.pdf`);
     });
 
-    // otevření e-mailu s předmětem
+    // --- odeslání e-mailu ---
     document.getElementById("sendEmail").addEventListener("click", () => {
       const zak = document.getElementById("zakaznik").value;
       const email = document.getElementById("email").value;
@@ -305,7 +304,7 @@
       window.location.href = `mailto:${email}?subject=${predmet}&body=${telo}`;
     });
 
-    // přizpůsobení plátna podpisu
+    // --- přizpůsobení podpisového plátna ---
     function resizeCanvas() {
       const ratio = Math.max(window.devicePixelRatio || 1, 1);
       canvas.width = canvas.offsetWidth * ratio;
