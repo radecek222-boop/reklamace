@@ -67,7 +67,10 @@
       background: linear-gradient(145deg, #006600, #28a745, #004d00);
     }
 
-    /* --- ADMIN BUTTON --- */
+    .btn-list {
+      background: linear-gradient(145deg, #6c757d, #a0a4a7, #5c636a);
+    }
+
     #adminButton {
       position: fixed;
       top: 15px;
@@ -104,7 +107,6 @@
       }
     }
 
-    /* --- ADMIN LOGIN MODAL --- */
     #adminLoginOverlay {
       position: fixed;
       top:0; left:0; width:100%; height:100%;
@@ -194,11 +196,11 @@
   <div class="btn-container">
     <a href="orders.html" class="btn btn-new">📝 Založit novou reklamaci</a>
     <a href="aftersales.html" class="btn btn-after">🧰 Pozáruční servis</a>
+    <a href="seznam.html" id="adminListButton" class="btn btn-list" style="display:none;">📋 Seznam reklamací</a>
   </div>
 
   <button id="adminButton">Admin</button>
 
-  <!-- ADMIN LOGIN MODAL -->
   <div id="adminLoginOverlay">
     <div id="adminLoginBox">
       <h2>WHITE GLOVE SERVICE</h2>
@@ -215,6 +217,16 @@
     const INACTIVITY_MINUTES = 5;
     let inactivityTimer;
 
+    const listButton = document.getElementById("adminListButton");
+
+    function showAdminList() {
+      listButton.style.display = "inline-block";
+    }
+
+    function hideAdminList() {
+      listButton.style.display = "none";
+    }
+
     document.getElementById("adminButton").addEventListener("click", () => {
       document.getElementById("adminLoginOverlay").style.display = "flex";
       document.getElementById("adminPassword").focus();
@@ -228,6 +240,7 @@
         document.getElementById("adminLoginOverlay").style.display = "none";
         error.style.display = "none";
         startInactivityTimer();
+        showAdminList();
         alert("✅ Přístup pro admina povolen na 15 minut.");
       } else {
         error.style.display = "block";
@@ -238,6 +251,7 @@
 
     function logout(){
       localStorage.removeItem("wgsAdmin");
+      hideAdminList();
       alert("⏱️ Přístup vypršel z důvodu neaktivity.");
     }
 
@@ -256,6 +270,21 @@
         inactivityTimer = setTimeout(logout, INACTIVITY_MINUTES * 60 * 1000);
       });
     }
+
+    // kontrola po načtení, jestli admin už přihlášen
+    window.addEventListener("DOMContentLoaded", () => {
+      const adminData = localStorage.getItem("wgsAdmin");
+      if(adminData){
+        const { time } = JSON.parse(adminData);
+        const now = Date.now();
+        if((now - time) / 60000 < EXPIRATION_MINUTES){
+          showAdminList();
+          startInactivityTimer();
+        } else {
+          localStorage.removeItem("wgsAdmin");
+        }
+      }
+    });
 
     document.getElementById("adminLoginBtn").addEventListener("click", tryLogin);
     document.getElementById("adminPassword").addEventListener("keypress", e => {
