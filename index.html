@@ -53,7 +53,7 @@
 
     /* Zelený metalický gradient */
     .btn-green {
-      background: linear-gradient(135deg, #28a745, #4dd06d, #28a745);
+      background: linear-gradient(135deg, #2ecc71, #58d68d, #28a745);
       background-size: 200% 200%;
       animation: shineGreen 3s ease infinite;
     }
@@ -79,6 +79,10 @@
       transform: scale(0.98);
       box-shadow: none;
     }
+
+    #adminBtn {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -86,8 +90,26 @@
   <h2>specializovaný autorizovaný servis Natuzzi</h2>
 
   <a href="orders.html" class="btn btn-green">OBJEDNÁNÍ REKLAMACE</a>
-  <a href="seznam.html" class="btn btn-grey">ADMIN</a>
+  <a href="seznam.html" class="btn btn-grey" id="adminBtn">ADMIN</a>
 
   <p style="font-size:0.9em; color:#888; margin-top:40px;">Verze startovací | Přístup pro interní použití</p>
+
+  <script>
+    let enteredCode = "";
+
+    document.addEventListener("keydown", (e) => {
+      enteredCode += e.key;
+
+      // ořízneme, aby se ukládaly jen poslední 4 znaky
+      if (enteredCode.length > 4) {
+        enteredCode = enteredCode.slice(-4);
+      }
+
+      if (enteredCode === "7890") {
+        document.getElementById("adminBtn").style.display = "inline-block";
+        enteredCode = ""; // reset kódu
+      }
+    });
+  </script>
 </body>
 </html>
