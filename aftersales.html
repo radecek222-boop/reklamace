@@ -75,20 +75,74 @@
 
       <label>Jméno zadavatele:</label>
       <input type="text" name="zadavatel_jmeno">
+
       <label>E-mail zadavatele:</label>
       <input type="email" name="zadavatel_email">
+
       <label>Telefon zadavatele:</label>
       <input type="tel" name="zadavatel_telefon">
 
       <div class="actions">
         <a href="index.html" class="btn">Zpět</a>
-        <button type="submit" class="btn">Odeslat</button>
+        <button type="submit" class="btn">Odeslat požadavek</button>
       </div>
     </form>
   </div>
 
   <script>
-    document.getElementById("servisForm").addEventListener("submit", async (e) => {
+    // 🔒 Bezpečný zápis do GitHubu – token se zadává ručně při odeslání
+    async function submitToGitHub(dataObj, owner, repo, path, message, token) {
+      const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+
+      // 1️⃣ Načteme existující obsah
+      const getResp = await fetch(getUrl, {
+        headers: {
+          "Authorization": `token ${token}`,
+          "Accept": "application/vnd.github.v3+json"
+        }
+      });
+
+      let existingContent = "[]";
+      let sha = null;
+
+      if (getResp.ok) {
+        const existing = await getResp.json();
+        existingContent = atob(existing.content.replace(/\n/g, ""));
+        sha = existing.sha;
+      }
+
+      // 2️⃣ Přidáme nový záznam
+      const arr = JSON.parse(existingContent);
+      arr.push(dataObj);
+
+      // 3️⃣ Převedeme zpět do Base64
+      const newContent = JSON.stringify(arr, null, 2);
+      const base64 = btoa(unescape(encodeURIComponent(newContent)));
+
+      // 4️⃣ Vytvoříme tělo požadavku
+      const body = { message, content: base64, branch: "main" };
+      if (sha) body.sha = sha;
+
+      // 5️⃣ Zapíšeme změnu
+      const putResp = await fetch(getUrl, {
+        method: "PUT",
+        headers: {
+          "Authorization": `token ${token}`,
+          "Accept": "application/vnd.github.v3+json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!putResp.ok) {
+        const err = await putResp.text();
+        throw new Error("Chyba při zápisu: " + err);
+      }
+
+      return await putResp.json();
+    }
+
+    document.getElementById("servisForm").addEventListener("submit", async function(e) {
       e.preventDefault();
       const potvrdit = confirm("Opravdu odeslat požadavek?");
       if (!potvrdit) return;
@@ -111,12 +165,27 @@
           jmeno: f.zadavatel_jmeno.value,
           email: f.zadavatel_email.value,
           telefon: f.zadavatel_telefon.value
-        }
+        },
+        datum_vytvoreni: new Date().toISOString().split("T")[0]
       };
 
-      console.log("TEST MODE – nový požadavek:", dataObj);
-      alert("Děkujeme, požadavek byl odeslán. (zatím testovací režim)");
-      f.reset();
+      try {
+        const owner = "radecek222-boop";
+        const repo = "reklamace";
+        const path = "orders.json";
+        const message = `Nový pozáruční servis od ${dataObj.zadavatel.jmeno || "neznámý zadavatel"}`;
+
+        const token = prompt("Zadej GitHub token pro zápis:");
+        if (!token) throw new Error("Nebyl zadán token – požadavek se neuložil.");
+
+        await submitToGitHub(dataObj, owner, repo, path, message, token);
+
+        alert("Děkujeme, požadavek byl uložen.");
+        f.reset();
+      } catch (err) {
+        console.error(err);
+        alert("Chyba při odesílání: " + err.message);
+      }
     });
   </script>
 
