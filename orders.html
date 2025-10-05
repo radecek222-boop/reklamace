@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="cs">
 <head>
@@ -51,6 +50,11 @@
       font-family: inherit;
       font-size: 15px;
       box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    input:invalid, textarea:invalid {
+      border-color: #d9534f;
+      background: #fff6f6;
     }
     textarea {
       resize: vertical;
@@ -59,6 +63,12 @@
     input[type="file"] {
       border: none;
       padding: 6px 0;
+    }
+    .photo-count {
+      font-size: 14px;
+      color: #555;
+      margin-top: 5px;
+      text-align: right;
     }
     .buttons {
       margin-top: 25px;
@@ -92,12 +102,30 @@
       flex-wrap: wrap;
       gap: 10px;
     }
-    .preview img {
+    .photo-box {
+      position: relative;
+      display: inline-block;
+    }
+    .photo-box img {
       width: 120px;
       height: 120px;
       object-fit: cover;
       border-radius: 8px;
       border: 1px solid #ccc;
+    }
+    .remove-btn {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #d9534f;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      font-size: 14px;
+      cursor: pointer;
+      line-height: 0;
     }
     .message {
       margin-top: 20px;
@@ -114,7 +142,7 @@
   <h1>Založení nového požadavku</h1>
   <h2>Formulář pro zadání nového případu</h2>
 
-  <form id="orderForm">
+  <form id="orderForm" novalidate>
     <label>Číslo objednávky:</label>
     <input type="text" name="cislo_objednavky" required>
 
@@ -122,28 +150,29 @@
     <input type="text" name="zakaznik" required>
 
     <label>Adresa:</label>
-    <input type="text" name="adresa">
+    <input type="text" name="adresa" required>
 
     <label>Telefon:</label>
-    <input type="text" name="telefon">
+    <input type="text" name="telefon" required>
 
     <label>E-mail:</label>
-    <input type="email" name="email">
+    <input type="email" name="email" required>
 
     <label>Značka:</label>
-    <input type="text" name="znacka">
+    <input type="text" name="znacka" required>
 
     <label>Model / Název produktu:</label>
-    <input type="text" name="model">
+    <input type="text" name="model" required>
 
     <label>Datum nákupu:</label>
-    <input type="date" name="datum_nakupu">
+    <input type="date" name="datum_nakupu" required>
 
     <label>Popis závady:</label>
-    <textarea name="popis" placeholder="Popište závadu nebo problém"></textarea>
+    <textarea name="popis" placeholder="Popište závadu nebo problém" required></textarea>
 
-    <label>Přiložit fotografie (max. 3):</label>
-    <input type="file" id="photos" name="photos" accept="image/*" multiple>
+    <label>Přiložit fotografie (min. 1, max. 3):</label>
+    <input type="file" id="photos" name="photos" accept="image/*" multiple required>
+    <div class="photo-count" id="photoCount">Nahráno 0 / 3 fotografií</div>
 
     <div class="preview" id="preview"></div>
 
@@ -161,32 +190,82 @@
   const message = document.getElementById('message');
   const preview = document.getElementById('preview');
   const photosInput = document.getElementById('photos');
+  const photoCount = document.getElementById('photoCount');
+  let photoFiles = [];
 
-  // Náhled nahraných fotek
-  photosInput.addEventListener('change', () => {
+  // Aktualizace počtu fotek
+  function updatePhotoCount() {
+    photoCount.textContent = `Nahráno ${photoFiles.length} / 3 fotografií`;
+  }
+
+  // Obnovení náhledů
+  function renderPreviews() {
     preview.innerHTML = '';
-    const files = photosInput.files;
-    for (let i = 0; i < Math.min(files.length, 3); i++) {
+    photoFiles.forEach((file, index) => {
       const reader = new FileReader();
       reader.onload = e => {
+        const box = document.createElement('div');
+        box.className = 'photo-box';
         const img = document.createElement('img');
         img.src = e.target.result;
-        preview.appendChild(img);
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-btn';
+        removeBtn.innerHTML = '×';
+        removeBtn.onclick = () => {
+          photoFiles.splice(index, 1);
+          renderPreviews();
+          updatePhotoCount();
+        };
+        box.appendChild(img);
+        box.appendChild(removeBtn);
+        preview.appendChild(box);
       };
-      reader.readAsDataURL(files[i]);
-    }
+      reader.readAsDataURL(file);
+    });
+    updatePhotoCount();
+  }
+
+  // Zpracování nahraných fotek
+  photosInput.addEventListener('change', () => {
+    const newFiles = Array.from(photosInput.files);
+    photoFiles = photoFiles.concat(newFiles).slice(0, 3);
+    renderPreviews();
+    photosInput.value = ''; // reset input
   });
 
-  // Odeslání formuláře (zatím do konzole)
+  // Validace formuláře
   form.addEventListener('submit', e => {
     e.preventDefault();
-    const data = Object.fromEntries(new FormData(form).entries());
-    console.log("Nový požadavek:", data);
+    let valid = true;
+    const inputs = form.querySelectorAll('input[required], textarea[required]');
+    inputs.forEach(el => {
+      if ((el.type === "file" && photoFiles.length === 0) || (!el.value.trim() && el.type !== "file")) {
+        el.style.borderColor = "#d9534f";
+        el.style.background = "#fff6f6";
+        valid = false;
+      } else {
+        el.style.borderColor = "#ccc";
+        el.style.background = "white";
+      }
+    });
+
+    if (!valid) {
+      alert("Prosím, vyplňte všechna povinná pole a přiložte alespoň jednu fotografii.");
+      return;
+    }
+
+    const formData = Object.fromEntries(new FormData(form).entries());
+    console.log("Nový požadavek:", formData);
+    console.log("Počet fotek:", photoFiles.length);
+
     form.reset();
-    preview.innerHTML = '';
+    photoFiles = [];
+    renderPreviews();
     message.style.display = 'block';
     setTimeout(() => message.style.display = 'none', 4000);
   });
+
+  updatePhotoCount();
 </script>
 
 </body>
