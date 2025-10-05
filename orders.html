@@ -25,6 +25,7 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       width: 100%;
       max-width: 700px;
+      position: relative;
     }
 
     h1, h2 {
@@ -148,6 +149,50 @@
       border: 2px solid;
       border-image: linear-gradient(45deg, #ff4d4d, #ff7b7b) 1;
     }
+
+    /* ✅ fajfka animace */
+    .success-check {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.4s;
+      pointer-events: none;
+    }
+
+    .success-check.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .checkmark {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      display: block;
+      stroke-width: 5;
+      stroke: url(#grad1);
+      stroke-miterlimit: 10;
+      margin: 10% auto;
+      box-shadow: inset 0px 0px 0px #7ac142;
+      animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+    }
+
+    @keyframes fill {
+      100% { box-shadow: inset 0px 0px 0px 60px #00d084; }
+    }
+
+    @keyframes scale {
+      0%, 100% { transform: none; }
+      50% { transform: scale3d(1.1, 1.1, 1); }
+    }
   </style>
 </head>
 
@@ -202,7 +247,6 @@
       <small>Podporované formáty: JPG, PNG, HEIC (max. 5 MB / soubor)</small>
       <input type="file" id="fotky" accept="image/jpeg,image/png,image/heic" multiple>
       <div id="preview" class="preview"></div>
-
       <label>Objednávku zpracoval:</label>
       <select id="zpracoval" name="zpracoval" required>
         <option value="">Vyber...</option>
@@ -234,70 +278,80 @@
     </form>
   </div>
 
+  <div class="success-check" id="successCheck">
+    <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+      <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#00d084;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#00a86b;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <circle cx="26" cy="26" r="25" fill="none"/>
+      <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
   <script>
-    // --- Našeptávač adres (OpenStreetMap) ---
+    // === Našeptávač adresy (OpenStreetMap) ===
     const uliceInput = document.getElementById("ulice");
     const mestoInput = document.getElementById("mesto");
     const pscInput = document.getElementById("psc");
     let adresaPlatna = false;
+    let suggestionBox;
 
     uliceInput.addEventListener("input", async () => {
       const query = uliceInput.value.trim();
       adresaPlatna = false;
-
-      if (query.length < 4) return;
+      if (query.length < 2) return;
 
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}&countrycodes=cz,sk&limit=5`
       );
-
       const data = await res.json();
-      let list = document.getElementById("suggestions");
-      if (list) list.remove();
 
-      if (data.length === 0) return;
+      if (suggestionBox) suggestionBox.remove();
+      if (!data.length) return;
 
-      list = document.createElement("ul");
-      Object.assign(list.style, {
-        listStyle: "none",
-        padding: "6px",
-        margin: "0",
-        position: "absolute",
-        background: "#fff",
-        border: "1px solid #ccc",
-        borderRadius: "6px",
-        width: uliceInput.offsetWidth + "px",
-        zIndex: 1000
-      });
-
-      list.id = "suggestions";
+      suggestionBox = document.createElement("div");
+      suggestionBox.style.position = "absolute";
+      suggestionBox.style.background = "#fff";
+      suggestionBox.style.border = "1px solid #ccc";
+      suggestionBox.style.borderRadius = "6px";
+      suggestionBox.style.boxShadow = "0 4px 10px rgba(0,0,0,0.1)";
+      suggestionBox.style.marginTop = "2px";
+      suggestionBox.style.zIndex = "999";
+      suggestionBox.style.width = uliceInput.offsetWidth + "px";
+      suggestionBox.style.maxHeight = "180px";
+      suggestionBox.style.overflowY = "auto";
 
       data.forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = item.display_name;
-        li.style.padding = "6px";
-        li.style.cursor = "pointer";
-
-        li.onclick = () => {
+        const div = document.createElement("div");
+        div.textContent = item.display_name;
+        div.style.padding = "8px";
+        div.style.cursor = "pointer";
+        div.addEventListener("mouseenter", () => div.style.background = "#f2f2f2");
+        div.addEventListener("mouseleave", () => div.style.background = "#fff");
+        div.onclick = () => {
           uliceInput.value = (item.address.road || "") + " " + (item.address.house_number || "");
           mestoInput.value = item.address.city || item.address.town || item.address.village || "";
           pscInput.value = item.address.postcode || "";
           adresaPlatna = true;
-          list.remove();
+          suggestionBox.remove();
         };
-
-        list.appendChild(li);
+        suggestionBox.appendChild(div);
       });
 
-      uliceInput.parentNode.appendChild(list);
+      uliceInput.parentNode.style.position = "relative";
+      uliceInput.parentNode.appendChild(suggestionBox);
     });
 
     document.addEventListener("click", e => {
-      const list = document.getElementById("suggestions");
-      if (list && !list.contains(e.target) && e.target !== uliceInput) list.remove();
+      if (suggestionBox && !suggestionBox.contains(e.target) && e.target !== uliceInput) {
+        suggestionBox.remove();
+      }
     });
 
-    // --- Validace telefonu a e-mailu ---
+    // === Validace telefonu a e-mailu ===
     const telefonInput = document.getElementById("telefon");
     const predvolba = document.getElementById("predvolba");
     const emailInput = document.getElementById("email");
@@ -310,7 +364,7 @@
       return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailInput.value.trim());
     }
 
-    // --- Komprese fotek ---
+    // === Komprese obrázků ===
     async function compressImage(file, maxSizeMB = 1, maxDim = 1280) {
       const img = await createImageBitmap(file);
       const canvas = document.createElement("canvas");
@@ -382,7 +436,7 @@
       }
     });
 
-    // --- Sekce Jiná ---
+    // === Sekce Jiná ===
     const selectZpracoval = document.getElementById("zpracoval");
     const jinaSekce = document.getElementById("jinaSekce");
     const jinaInputs = jinaSekce.querySelectorAll("input");
@@ -396,12 +450,42 @@
         jinaInputs.forEach(i => i.required = false);
       }
     };
+    // === Nahrání souborů na GitHub ===
+    async function uploadToGitHub(owner, repo, path, fileBlob, message, token) {
+      const base64Data = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(fileBlob);
+      });
 
-    // --- Zápis na GitHub ---
+      const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+      const body = { message, content: base64Data, branch: "main" };
+
+      const response = await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Authorization": `token ${token}`,
+          "Accept": "application/vnd.github.v3+json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error("Chyba při nahrávání souboru: " + errText);
+      }
+    }
+
+    // === Uložení JSON dat do GitHubu ===
     async function submitToGitHub(dataObj, owner, repo, path, message, token) {
       const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
       const getResp = await fetch(getUrl, {
-        headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json" }
+        headers: {
+          "Authorization": `token ${token}`,
+          "Accept": "application/vnd.github.v3+json"
+        }
       });
 
       let existingContent = "[]", sha = null;
@@ -432,7 +516,33 @@
       if (!putResp.ok) throw new Error(await putResp.text());
     }
 
-    // --- Odeslání formuláře ---
+    // === Zvukový efekt "pling" ===
+    function playSuccessSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = "sine";
+        o.frequency.setValueAtTime(880, ctx.currentTime);
+        g.gain.setValueAtTime(0.1, ctx.currentTime);
+        o.connect(g);
+        g.connect(ctx.destination);
+        o.start();
+        o.stop(ctx.currentTime + 0.25);
+      } catch (e) {
+        console.warn("Zvuk se nepodařilo přehrát:", e);
+      }
+    }
+
+    // === Zobrazení fajfky po úspěchu ===
+    function showSuccess() {
+      playSuccessSound(); // 🔊 přehraje krátké "pling"
+      const success = document.getElementById("successCheck");
+      success.classList.add("active");
+      setTimeout(() => { window.location.href = "index.html"; }, 2500);
+    }
+
+    // === Odeslání formuláře ===
     document.getElementById("reklamaceForm").addEventListener("submit", async e => {
       e.preventDefault();
 
@@ -474,7 +584,10 @@
         return;
       }
 
-      if (compressedFiles.length === 0 && !confirm("Odeslat bez fotografií?")) return;
+      const owner = "radecek222-boop";
+      const repo = "reklamace";
+      const token = prompt("Zadej GitHub token:");
+      const cisloReklamace = form.cislo.value.trim() || "REK";
 
       const dataObj = {
         typ: "reklamace",
@@ -488,7 +601,7 @@
         datum_prodeje: form.datum_prodeje.value,
         datum_reklamace: form.datum_reklamace.value,
         popis: form.popis.value,
-        fotky: compressedFiles.map(f => f.name),
+        fotky: [],
         jinaZadavatel: form.zpracoval.value === "Jiná"
           ? {
               jmeno: form.jinaJmeno.value,
@@ -499,17 +612,22 @@
       };
 
       try {
-        const owner = "radecek222-boop";
-        const repo = "reklamace";
-        const path = "orders.json";
+        // === Nahraj fotky do /foto/ ===
+        for (const file of compressedFiles) {
+          const safeName = `${cisloReklamace}_${file.name.replace(/\s+/g, "_")}`;
+          const path = `foto/${safeName}`;
+          const message = `Nová fotka k reklamaci ${cisloReklamace}`;
+          await uploadToGitHub(owner, repo, path, file.blob, message, token);
+          dataObj.fotky.push(safeName);
+        }
+
+        // === Ulož záznam do orders.json ===
         const message = `Nová reklamace ${dataObj.cislo}`;
-        const token = prompt("Zadej GitHub token:");
+        await submitToGitHub(dataObj, owner, repo, "orders.json", message, token);
 
-        await submitToGitHub(dataObj, owner, repo, path, message, token);
-        alert("Reklamace uložena (fotky komprimovány pod 1 MB).");
-
+        // === Úspěch ===
+        showSuccess();
         form.reset();
-        window.location.href = "index.html";
       } catch (err) {
         alert("Chyba: " + err.message);
       }
