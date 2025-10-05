@@ -10,19 +10,20 @@
     h1 { text-align:center; font-size:2em; font-weight:900; margin:0 0 10px; }
     h2 { text-align:center; font-size:1.1em; font-weight:600; margin:0 0 20px; color:#555; }
 
-    /* 🔹 tlačítka nahoře */
-    .toolbar { text-align:center; margin-bottom:15px; }
+    .toolbar { text-align:center; margin-bottom:12px; }
     .btn {
       display:inline-block; text-decoration:none; color:#fff;
       padding:10px 18px; border-radius:8px; font-weight:700;
-      background:#6c757d; margin:0 6px;
-      transition:transform .15s ease;
+      background:#6c757d; margin:0 6px; transition:transform .15s ease;
     }
     .btn:hover { background:#5a6268; transform:translateY(-1px); }
     .btn-green {
       background: linear-gradient(135deg, #28a745, #58d68d, #2ecc71);
       background-size:200% 200%;
       animation: shine 3s ease infinite;
+    }
+    .btn-blue {
+      background:#007bff;
     }
     @keyframes shine {
       0%{background-position:0% 50%}
@@ -34,7 +35,7 @@
     }
 
     .searchbox {
-      width:100%; max-width:420px; margin:0 auto 20px; display:block; padding:10px;
+      width:100%; max-width:420px; margin:10px auto 20px; display:block; padding:10px;
       border:1px solid #ccc; border-radius:8px; font-size:1em; background:#fff;
     }
 
@@ -46,12 +47,12 @@
     .contract-poz { color:#7b1fa2; font-weight:700; }
     .status-done { color:#2e7d32; font-weight:800; }
 
-    /* 📱 Responzivní: na mobilu 4 sloupce */
+    /* 📱 Mobil: zobraz jen 4 sloupce (JMÉNO, ADRESA, TELEFON, STAV) */
     @media (max-width: 768px) {
-      th:nth-child(1), td:nth-child(1) { display:none; }
-      th:nth-child(2), td:nth-child(2) { display:none; }
+      th:nth-child(1), td:nth-child(1) { display:none; } /* # */
+      th:nth-child(2), td:nth-child(2) { display:none; } /* CONTRACT */
       th:nth-child(6), td:nth-child(6),
-      th:nth-child(7), td:nth-child(7) { display:none; }
+      th:nth-child(7), td:nth-child(7) { display:none; } /* E-MAIL + POPIS */
     }
 
     /* Modal detail */
@@ -95,6 +96,7 @@
   <div class="toolbar">
     <a href="seznam.html" class="btn btn-green">⬅ Zpět na aktivní</a>
     <a href="index.html" class="btn">🏠 Domů</a>
+    <button id="refreshBtn" class="btn btn-blue">🔁 Načíst hotové reklamace</button>
   </div>
 
   <input type="text" id="searchInput" class="searchbox" placeholder="Hledat podle jména, adresy nebo telefonu...">
@@ -135,30 +137,16 @@
   <script>
     async function loadDone() {
       const tbody = document.getElementById("tableBody");
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px;">⏳ Načítání...</td></tr>`;
       try {
-        const res = await fetch("https://raw.githubusercontent.com/radecek222-boop/reklamace/main/hotove.json?nocache=" + Date.now(), {
-          method: "GET",
-          headers: {
-            "Accept": "application/json",
-            "Content-Type": "application/json; charset=utf-8"
-          },
+        // ✅ GitHub API bez cache – vždy aktuální obsah souboru
+        const res = await fetch("https://api.github.com/repos/radecek222-boop/reklamace/contents/hotove.json", {
+          headers: { "Accept": "application/vnd.github.v3.raw" },
           cache: "no-store"
         });
-
         if (!res.ok) throw new Error("Soubor hotove.json nebyl nalezen nebo není veřejný.");
-        let text = await res.text();
-        let data = [];
-        try {
-          data = JSON.parse(text);
-        } catch {
-          throw new Error("Soubor hotove.json není platný JSON.");
-        }
 
-        if (!Array.isArray(data) || data.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Žádné hotové reklamace</td></tr>`;
-          return;
-        }
-
+        const data = await res.json();
         renderTable(data);
       } catch (e) {
         tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:red;">Chyba: ${e.message}</td></tr>`;
@@ -168,6 +156,11 @@
     function renderTable(data) {
       const tbody = document.getElementById("tableBody");
       tbody.innerHTML = "";
+
+      if (!Array.isArray(data) || data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Žádné hotové reklamace</td></tr>`;
+        return;
+      }
 
       data.forEach((item, index) => {
         const tr = document.createElement("tr");
@@ -193,6 +186,7 @@
     function openDetail(item) {
       const modal = document.getElementById("detailModal");
       modal.style.display = "flex";
+
       document.getElementById("detailName").textContent = item.zakaznik || "Neznámý zákazník";
       document.getElementById("detailInfo").innerHTML = `
         <p><b>Adresa:</b> ${item.adresa || ""}</p>
@@ -241,8 +235,8 @@
       });
     });
 
-    // 🌀 Načti data vždy čerstvě při otevření
-    window.addEventListener("pageshow", () => loadDone());
+    document.getElementById("refreshBtn").addEventListener("click", loadDone);
+    window.addEventListener("pageshow", () => loadDone()); // vždy načíst čerstvá data
     loadDone();
   </script>
 </body>
