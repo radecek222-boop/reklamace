@@ -1,124 +1,203 @@
 <!doctype html>
 <html lang="cs">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WHITE GLOVE SERVICE – Seznam reklamací</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <style>
-    :root { font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:#111 }
-    body { margin:0; padding:20px; background:#f6f7fb }
-    h1 { text-align:center; font-size:2em; font-weight:900; margin:0 0 10px; }
-    h2 { text-align:center; font-size:1.2em; font-weight:600; margin:0 0 20px; color:#555; }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WHITE GLOVE SERVICE – Seznam reklamací</title>
+<style>
+:root { font-family: Inter, system-ui, Arial, sans-serif; color:#111; }
+body { margin:0; padding:20px; background:#f6f7fb; }
+h1 { text-align:center; font-size:2.2em; font-weight:900; margin:0 0 10px; }
+h2 { text-align:center; font-size:1.2em; font-weight:600; margin:0 0 20px; color:#555; }
 
-    .btn-top {
-      display:inline-block; background:#6c757d; color:white; padding:10px 20px;
-      border-radius:6px; text-decoration:none; font-weight:600; margin-bottom:20px;
-      box-shadow:0 2px 5px rgba(0,0,0,0.15);
-    }
-    .btn-top:hover { opacity:0.9; }
+.container { max-width:1250px; margin:auto; background:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
 
-    table { width:100%; border-collapse:collapse; margin:auto; max-width:1200px; background:white; box-shadow:0 0 10px rgba(0,0,0,0.1); }
-    th, td { padding:8px 10px; text-align:left; border-bottom:1px solid #ddd; font-size:0.9em; }
-    th { background:#e9ecef; font-weight:700; }
-    tr:hover { background:#f1f3f5; }
-    tr.new-row { background:#fff8dc !important; }
+.top-bar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px; }
+.btn-top { background:#6c757d; color:white; padding:10px 20px; border-radius:6px; text-decoration:none; font-weight:600; box-shadow:0 2px 5px rgba(0,0,0,0.15); }
+.btn-top:hover { opacity:0.9; }
+input#search { flex:1; padding:8px 12px; border:1px solid #ccc; border-radius:6px; font-size:1em; }
 
-    .btn-protocol {
-      background:#004080; color:white; padding:6px 12px; border:none;
-      border-radius:6px; cursor:pointer; font-size:0.85em; font-weight:600;
-      transition:all 0.2s ease-in-out;
-    }
-    .btn-protocol:hover { background:#1e90ff; }
+table { width:100%; border-collapse:collapse; }
+th, td { padding:8px 10px; border-bottom:1px solid #ddd; text-align:left; vertical-align:top; font-size:0.9em; }
+th { background:#e9ecef; font-weight:700; }
+tr:hover { background:#f8f9fa; }
+tr.new { background:#fff8dc; }
+tr.wait { background:#ffe4b5; }
+tr.done { background:#d8f3dc; }
+tr.cancel { background:#e9ecef; }
 
-    .clickable { color:#007bff; text-decoration:none; }
-    .clickable:hover { text-decoration:underline; }
-  </style>
+.btn-protocol {
+  background:#004080; color:white; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; font-size:0.85em; font-weight:600;
+}
+.btn-protocol:hover { background:#1e90ff; }
+
+.photo-preview img { height:60px; margin:2px; border-radius:4px; cursor:pointer; transition:transform 0.2s ease-in-out; }
+.photo-preview img:hover { transform:scale(1.1); }
+
+/* lightbox */
+#lightbox {
+  position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8);
+  display:none; justify-content:center; align-items:center; z-index:1000;
+}
+#lightbox img { max-width:90%; max-height:90%; border-radius:8px; }
+#lightbox.close { display:none; }
+
+@media(max-width:768px){
+  th, td { font-size:0.8em; }
+  .photo-preview img { height:50px; }
+}
+</style>
 </head>
 
 <body>
-  <h1>WHITE GLOVE SERVICE</h1>
-  <h2>Seznam reklamací</h2>
-  <div style="text-align:center;">
+<h1>WHITE GLOVE SERVICE</h1>
+<h2>Seznam reklamací</h2>
+
+<div class="container">
+  <div class="top-bar">
     <a class="btn-top" href="hotove.html">📁 Hotové reklamace</a>
+    <input type="text" id="search" placeholder="🔍 Hledat zákazníka, číslo, model...">
+    <a class="btn-top" href="javascript:loadData()">🔄 Načíst znovu</a>
   </div>
 
   <table id="claims-table">
     <thead>
       <tr>
-        <th>Číslo objednávky</th>
-        <th>Číslo reklamace</th>
+        <th>Objednávka</th>
+        <th>Reklamace</th>
         <th>Zákazník</th>
         <th>Adresa</th>
         <th>Telefon</th>
         <th>Email</th>
         <th>Značka</th>
         <th>Model</th>
+        <th>Technik</th>
         <th>Stav</th>
+        <th>Popis / Problém / Návrh</th>
+        <th>Fotky</th>
         <th>Akce</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
+</div>
+
+<div id="lightbox" onclick="this.style.display='none'">
+  <img src="">
+</div>
 
 <script>
-const csvUrl = "https://tvuj-repozitar.github.io/data/reklamace.csv"; // ← sem později vložíš správnou GitHub adresu CSV
+const dataUrl = "https://tvuj-repozitar.github.io/data/reklamace.json"; // ← změň podle svého repa
 
-// === Načtení CSV z GitHubu ===
-fetch(csvUrl)
-  .then(response => response.text())
-  .then(csvText => {
-    const parsed = Papa.parse(csvText, { header: true });
-    const tbody = document.querySelector("#claims-table tbody");
+async function loadData(){
+  const tbody = document.querySelector("#claims-table tbody");
+  tbody.innerHTML = "<tr><td colspan='13' style='text-align:center; padding:20px;'>Načítám data...</td></tr>";
 
-    parsed.data.forEach(row => {
-      if (!row["Číslo objednávky"]) return; // přeskočí prázdné řádky
+  try {
+    const res = await fetch(dataUrl);
+    const data = await res.json();
+    tbody.innerHTML = "";
 
+    data.sort((a,b) => new Date(b["Datum podání reklamace"]) - new Date(a["Datum podání reklamace"]));
+
+    data.forEach(item => {
+      const stav = (item["Stav"] || "").toLowerCase();
       const tr = document.createElement("tr");
-      const stav = (row["Stav"] || "").toLowerCase();
-      if (stav.includes("nová")) tr.classList.add("new-row");
+      if (stav.includes("nová")) tr.classList.add("new");
+      else if (stav.includes("čeká")) tr.classList.add("wait");
+      else if (stav.includes("hotov")) tr.classList.add("done");
+      else if (stav.includes("zruš")) tr.classList.add("cancel");
+
+      const photos = [item.Foto1, item.Foto2, item.Foto3, item.Foto4]
+        .filter(Boolean)
+        .map(url => `<img src="${url}" onclick="openLightbox('${url}')">`)
+        .join("");
 
       tr.innerHTML = `
-        <td>${row["Číslo objednávky"] || ""}</td>
-        <td>${row["Číslo reklamace"] || ""}</td>
-        <td>${row["Zákazník"] || ""}</td>
-        <td>${row["Adresa"] || ""}</td>
-        <td>${makePhone(row["Telefon"])}</td>
-        <td>${row["Email"] || ""}</td>
-        <td>${row["Značka"] || ""}</td>
-        <td>${row["Model"] || ""}</td>
-        <td>${row["Stav"] || ""}</td>
-        <td><button class="btn-protocol" onclick="openProtocol(this.closest('tr'))">📋 Otevřít protokol</button></td>
+        <td>${item["Číslo objednávky"] || ""}</td>
+        <td>${item["Číslo reklamace"] || ""}</td>
+        <td>${item["Zákazník"] || ""}</td>
+        <td>${item["Adresa"] || ""}</td>
+        <td>${makePhone(item["Telefon"])}</td>
+        <td>${item["Email"] || ""}</td>
+        <td>${item["Značka"] || ""}</td>
+        <td>${item["Model"] || ""}</td>
+        <td>${item["Technik"] || ""}</td>
+        <td>${item["Stav"] || ""}</td>
+        <td>
+          <b>CZ:</b> ${item["Popis CZ"] || ""}<br>
+          <b>EN:</b> ${item["Popis EN"] || ""}<br>
+          <b>Problém:</b> ${item["Problém CZ"] || ""}<br>
+          <b>Návrh:</b> ${item["Návrh CZ"] || ""}
+        </td>
+        <td class="photo-preview">${photos}</td>
+        <td><button class="btn-protocol" onclick="openProtocol(item)">📋 Otevřít protokol</button></td>
       `;
 
+      // Připojení objektu pro openProtocol
+      tr.querySelector(".btn-protocol").addEventListener("click", () => openProtocol(item));
       tbody.appendChild(tr);
     });
-  })
-  .catch(err => console.error("Chyba při načítání CSV:", err));
-
-// === Telefon → klikací link ===
-function makePhone(num) {
-  if (!num) return "";
-  const clean = num.replace(/\s+/g,"");
-  return `<a class="clickable" href="tel:${clean}">${num}</a>`;
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan='13' style='color:red; text-align:center;'>Chyba při načítání dat: ${err}</td></tr>`;
+  }
 }
 
-// === Přenos dat do protokolu ===
-function openProtocol(row) {
-  const cells = row.querySelectorAll("td");
-  const data = {
-    "order-number": cells[0]?.innerText.trim(),
-    "claim-number": cells[1]?.innerText.trim(),
-    "customer": cells[2]?.innerText.trim(),
-    "address": cells[3]?.innerText.trim(),
-    "phone": cells[4]?.innerText.replace(/[\n\r]/g,"").trim(),
-    "email": cells[5]?.innerText.trim(),
-    "brand": cells[6]?.innerText.trim(),
-    "model": cells[7]?.innerText.trim(),
+// === Pomocné funkce ===
+function makePhone(num){
+  if(!num) return "";
+  const clean = num.replace(/\s+/g,"");
+  return `<a href="tel:${clean}" style="color:#007bff; text-decoration:none;">${num}</a>`;
+}
+
+function openLightbox(url){
+  const lb = document.getElementById("lightbox");
+  lb.style.display = "flex";
+  lb.querySelector("img").src = url;
+}
+
+function openProtocol(item){
+  const map = {
+    "order-number":"Číslo objednávky",
+    "claim-number":"Číslo reklamace",
+    "customer":"Zákazník",
+    "address":"Adresa",
+    "phone":"Telefon",
+    "email":"Email",
+    "brand":"Značka",
+    "model":"Model",
+    "technician":"Technik",
+    "visit-date":"Datum návštěvy",
+    "delivery-date":"Datum doručení",
+    "claim-date":"Datum podání reklamace",
+    "description-cz":"Popis CZ",
+    "description-en":"Popis EN",
+    "problem-cz":"Problém CZ",
+    "problem-en":"Problém EN",
+    "repair-cz":"Návrh CZ",
+    "repair-en":"Návrh EN",
+    "price-work":"Cena práce",
+    "price-material":"Cena materiál",
+    "price-transport":"Cena doprava",
+    "solved":"Vyřešeno",
+    "sign-date":"Datum podpisu"
   };
-  localStorage.setItem("selectedCustomer", JSON.stringify(data));
+  const obj = {};
+  for(const [key,val] of Object.entries(map)) obj[key] = item[val] || "";
+  localStorage.setItem("selectedCustomer", JSON.stringify(obj));
   window.location.href = "protokol.html";
 }
+
+// === Vyhledávání ===
+document.getElementById("search").addEventListener("input", e => {
+  const q = e.target.value.toLowerCase();
+  document.querySelectorAll("#claims-table tbody tr").forEach(tr => {
+    tr.style.display = tr.innerText.toLowerCase().includes(q) ? "" : "none";
+  });
+});
+
+// Načti po startu
+loadData();
 </script>
 </body>
 </html>
