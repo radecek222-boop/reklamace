@@ -168,6 +168,68 @@
       }
     });
   </script>
+<script>
+// ======= OCHRANA ADMIN PŘÍSTUPU S NEAKTIVITOU =======
+
+const ACCESS_CODE = "wgs2025";          // 🔑 Admin heslo
+const EXPIRATION_MINUTES = 15;          // platnost hesla
+const INACTIVITY_MINUTES = 5;           // odhlášení po neaktivitě
+
+let inactivityTimer;
+
+// === Kontrola, zda je uložen platný přístupový kód ===
+function checkAccess() {
+  const data = JSON.parse(localStorage.getItem("wgsAdmin") || "null");
+  const now = Date.now();
+  if (!data || !data.time || now - data.time > EXPIRATION_MINUTES * 60 * 1000) {
+    requestAccessCode();
+  } else {
+    startInactivityTimer(); // spustí sledování aktivity
+  }
+}
+
+// === Získání přístupového kódu ===
+function requestAccessCode() {
+  const code = prompt("🔐 Zadejte přístupový kód pro administraci:");
+  if (code === ACCESS_CODE) {
+    localStorage.setItem("wgsAdmin", JSON.stringify({ code: "OK", time: Date.now() }));
+    alert("✅ Přístup povolen na 15 minut.");
+    startInactivityTimer();
+  } else {
+    alert("❌ Nesprávný kód. Přístup odepřen.");
+    window.location.href = "index.html";
+  }
+}
+
+// === Odhlášení ===
+function logout() {
+  localStorage.removeItem("wgsAdmin");
+  alert("⏱️ Přístup vypršel z důvodu neaktivity.");
+  window.location.href = "index.html";
+}
+
+// === Restart časovače při aktivitě ===
+function resetInactivityTimer() {
+  clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(logout, INACTIVITY_MINUTES * 60 * 1000);
+}
+
+// === Detekce aktivity ===
+function startInactivityTimer() {
+  resetInactivityTimer();
+  ["click","mousemove","keypress","scroll","touchstart","touchmove","focus"].forEach(evt => {
+    document.addEventListener(evt, resetInactivityTimer, { passive: true });
+  });
+  // když zhasne obrazovka nebo přejde do spánku → focusout
+  window.addEventListener("blur", () => {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(logout, INACTIVITY_MINUTES * 60 * 1000);
+  });
+}
+
+// === Spuštění ===
+checkAccess();
+</script>
 
 </body>
 </html>
