@@ -166,7 +166,7 @@ function buildPdfFileName(){
   return `${customer}_${claim}_${order}_${today}.pdf`;
 }
 
-// ✅ export vždy 1 A4, podpis jen jednou
+// ✅ vždy jen 1 stránka A4, podpis jen jednou
 function generatePdf(callback){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF("p","mm","a4");
@@ -220,48 +220,6 @@ function openMailClient(){
   const subject = `Reklamace Natuzzi - ${customer} (${order})`;
   const body = `Dobrý den ${customer},\n\nzasíláme Vám protokol z návštěvy technika.\n\nČíslo reklamace: ${claim}\nDatum návštěvy: ${visitDate}\n\nSoubor ${lastPdfName} byl uložen – prosím přiložte jej do e-mailu jako přílohu.\n\n=====================\nWHITE GLOVE SERVICE\n=====================\nDo Dubče 364, Běchovice 190 11\n+420 725 965 826\nreklamace-wgs@email.cz`;
   window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-}
-
-// ✅ PROPISOVÁNÍ DAT ZE SEZNAMU
-window.addEventListener("message",(event)=>{
-  if(event.data.type==="openProtocol"){
-    const d=event.data.row; if(!d) return;
-    document.getElementById("order-number").value = d["Order number"]||"";
-    document.getElementById("claim-number").value = d["Label"]||"";
-    document.getElementById("customer").value = d["Customer"]||"";
-    document.getElementById("address").value = d["Address"]||"";
-    document.getElementById("phone").value = d["KONTAKT"]||"";
-    document.getElementById("email").value = d["Email"]||d["EMAIL"]||d["E-mail"]||d["MAIL"]||d[15]||"";
-    document.getElementById("brand").value = d["Contract"]||d["Label"]||"";
-    document.getElementById("model").value = d["Model"]||"";
-    document.getElementById("description-cz").value = d["POPIS REKLAMACE - OPRAVY"]||"";
-    document.getElementById("problem-cz").value = d["Problem detected"]||"";
-    document.getElementById("repair-cz").value = d["Repair proposal"]||"";
-    document.getElementById("visit-date").value = d["Visit date"]||"";
-    document.getElementById("delivery-date").value = d["Delivery date"]||"";
-    document.getElementById("claim-date").value = d["Complaint date"]||"";
-    document.getElementById("sign-date").value = d["Signature date"]||"";
-    document.getElementById("parts").value = d["Number of repaired parts"]||"";
-    document.getElementById("price-work").value = d["Work cost"]||"";
-    document.getElementById("price-material").value = d["Material cost"]||"";
-    document.getElementById("price-second").value = d["Second technician cost"]||"";
-    document.getElementById("price-transport").value = d["Transport cost"]||"";
-    document.getElementById("price-total").value = d["Total cost"]||"";
-    document.getElementById("solved").value = d["Complaint solved?"]||"";
-    document.getElementById("dealer").value = d["Waiting for dealer statement?"]||"";
-    document.getElementById("damage").value = d["Damage by technician?"]||"";
-    document.getElementById("payment").value = d["Customer will pay?"]||"";
-  }
-});
-
-// ✅ AUTOMATICKÝ PŘEKLAD
-function autoTranslate(srcId, tgtId){
-  const sourceText=document.getElementById(srcId).value;
-  const targetEl=document.getElementById(tgtId);
-  if(!sourceText.trim()) return targetEl.value="";
-  fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=cs&tl=en&dt=t&q=${encodeURIComponent(sourceText)}`)
-    .then(res=>res.json())
-    .then(data=>{ if(data && data[0]) targetEl.value=data[0].map(pair=>pair[0]).join(""); });
 }
 </script>
 </body>
