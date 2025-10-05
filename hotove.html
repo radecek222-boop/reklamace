@@ -1,243 +1,129 @@
 <!doctype html>
 <html lang="cs">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WHITE GLOVE SERVICE – Hotové reklamace</title>
-  <style>
-    :root { font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:#111; }
-    body { margin:0; padding:20px; background:#f6f7fb; }
-    h1 { text-align:center; font-size:2em; font-weight:900; margin:0 0 10px; }
-    h2 { text-align:center; font-size:1.1em; font-weight:600; margin:0 0 20px; color:#555; }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WHITE GLOVE SERVICE – Hotové reklamace</title>
+<style>
+:root { font-family: Inter, system-ui, Arial, sans-serif; color:#111; }
+body { margin:0; padding:20px; background:#f6f7fb; }
+h1 { text-align:center; font-size:2.2em; font-weight:900; margin:0 0 10px; }
+h2 { text-align:center; font-size:1.2em; font-weight:600; margin:0 0 20px; color:#555; }
 
-    .toolbar { text-align:center; margin-bottom:12px; }
-    .btn {
-      display:inline-block; text-decoration:none; color:#fff;
-      padding:10px 18px; border-radius:8px; font-weight:700;
-      background:#6c757d; margin:0 6px; transition:transform .15s ease;
-    }
-    .btn:hover { background:#5a6268; transform:translateY(-1px); }
-    .btn-green {
-      background: linear-gradient(135deg, #28a745, #58d68d, #2ecc71);
-      background-size:200% 200%;
-      animation: shine 3s ease infinite;
-    }
-    .btn-blue {
-      background:#007bff;
-    }
-    @keyframes shine {
-      0%{background-position:0% 50%}
-      50%{background-position:100% 50%}
-      100%{background-position:0% 50%}
-    }
-    @media(max-width:768px){
-      .btn{display:block;width:100%;margin-bottom:10px;}
-    }
+.container { max-width:1250px; margin:auto; background:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
 
-    .searchbox {
-      width:100%; max-width:420px; margin:10px auto 20px; display:block; padding:10px;
-      border:1px solid #ccc; border-radius:8px; font-size:1em; background:#fff;
-    }
+.top-bar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px; }
+.btn {
+  display:inline-block; padding:10px 20px; border:none; border-radius:6px;
+  font-weight:600; cursor:pointer; color:white; box-shadow:0 2px 5px rgba(0,0,0,0.15);
+  transition:opacity 0.2s, transform 0.1s;
+}
+.btn:hover { opacity:0.9; transform:scale(1.02); }
+.btn-back { background:linear-gradient(145deg, #808080, #dcdcdc, #a9a9a9); color:#000; }
+.btn-reload { background:linear-gradient(145deg, #004080, #1e90ff, #003366); color:white; }
 
-    table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; }
-    th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #ddd; font-size:0.95em; }
-    th { background:#eee; font-weight:700; }
-    tr:hover { background:#f1f3f5; cursor:pointer; }
+table { width:100%; border-collapse:collapse; }
+th, td { padding:8px 10px; border-bottom:1px solid #ddd; text-align:left; vertical-align:top; font-size:0.9em; }
+th { background:#e9ecef; font-weight:700; }
+tr:hover { background:#f8f9fa; }
+tr.done { background:#d8f3dc; }
 
-    .contract-poz { color:#7b1fa2; font-weight:700; }
-    .status-done { color:#2e7d32; font-weight:800; }
+.photo-preview img { height:60px; margin:2px; border-radius:4px; cursor:pointer; transition:transform 0.2s ease-in-out; }
+.photo-preview img:hover { transform:scale(1.1); }
 
-    /* 📱 Mobil: zobraz jen 4 sloupce (JMÉNO, ADRESA, TELEFON, STAV) */
-    @media (max-width: 768px) {
-      th:nth-child(1), td:nth-child(1) { display:none; } /* # */
-      th:nth-child(2), td:nth-child(2) { display:none; } /* CONTRACT */
-      th:nth-child(6), td:nth-child(6),
-      th:nth-child(7), td:nth-child(7) { display:none; } /* E-MAIL + POPIS */
-    }
+#lightbox {
+  position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8);
+  display:none; justify-content:center; align-items:center; z-index:1000;
+}
+#lightbox img { max-width:90%; max-height:90%; border-radius:8px; }
 
-    /* Modal detail */
-    #detailModal {
-      position:fixed; top:0; left:0; width:100%; height:100%;
-      background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center;
-      padding:20px; z-index:1000;
-    }
-    #detailContent {
-      background:white; border-radius:10px; padding:20px;
-      max-width:600px; width:100%; max-height:85vh; overflow-y:auto;
-      box-shadow:0 4px 15px rgba(0,0,0,0.2);
-    }
-    #detailButtons { text-align:center; margin-top:18px; }
-    #detailButtons button {
-      margin:5px; padding:10px 16px; border:none; border-radius:8px;
-      cursor:pointer; color:#fff; font-weight:700;
-    }
-    .btn-close { background:#6c757d; }
-    .btn-close:hover { background:#5a6268; }
-    .btn-protocol {
-      background: linear-gradient(135deg, #8e44ad, #9b59b6, #c471ed);
-      background-size: 200% 200%;
-      animation: shine 3s ease infinite;
-    }
-
-    .photo-gallery { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:10px; }
-    .photo-gallery img { max-width:100px; border-radius:6px; cursor:pointer; transition:transform 0.2s ease; }
-    .photo-gallery img:hover { transform:scale(1.1); }
-
-    #photoView { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-      background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:1100; }
-    #photoView img { max-width:90%; max-height:90%; border-radius:10px; }
-  </style>
+@media(max-width:768px){
+  th, td { font-size:0.8em; }
+  .photo-preview img { height:50px; }
+  .top-bar { flex-direction:column; }
+}
+</style>
 </head>
+
 <body>
+<h1>WHITE GLOVE SERVICE</h1>
+<h2>Hotové reklamace</h2>
 
-  <h1>WHITE GLOVE SERVICE</h1>
-  <h2>Hotové reklamace</h2>
-
-  <div class="toolbar">
-    <a href="seznam.html" class="btn btn-green">⬅ Zpět na aktivní</a>
-    <a href="index.html" class="btn">🏠 Domů</a>
-    <button id="refreshBtn" class="btn btn-blue">🔁 Načíst hotové reklamace</button>
+<div class="container">
+  <div class="top-bar">
+    <button class="btn btn-back" onclick="history.back()">⬅️ Zpět</button>
+    <button class="btn btn-reload" onclick="location.reload()">🔄 Načíst znovu</button>
   </div>
 
-  <input type="text" id="searchInput" class="searchbox" placeholder="Hledat podle jména, adresy nebo telefonu...">
-
-  <table id="dataTable">
+  <table id="claims-table">
     <thead>
       <tr>
-        <th>#</th>
-        <th>CONTRACT</th>
-        <th>JMÉNO</th>
-        <th>ADRESA</th>
-        <th>TELEFON</th>
-        <th>E-MAIL</th>
-        <th>POPIS</th>
-        <th>STAV</th>
+        <th>Objednávka</th>
+        <th>Reklamace</th>
+        <th>Zákazník</th>
+        <th>Adresa</th>
+        <th>Telefon</th>
+        <th>Email</th>
+        <th>Model</th>
+        <th>Technik</th>
+        <th>Stav</th>
+        <th>Fotky</th>
       </tr>
     </thead>
-    <tbody id="tableBody">
-      <tr><td colspan="8" style="text-align:center; padding:20px;">Načítání dat...</td></tr>
-    </tbody>
+    <tbody></tbody>
   </table>
+</div>
 
-  <!-- Modal detail -->
-  <div id="detailModal">
-    <div id="detailContent">
-      <h3 id="detailName" style="margin-top:0;"></h3>
-      <div id="detailInfo"></div>
-      <div class="photo-gallery" id="photoGallery"></div>
-      <div id="detailButtons">
-        <button id="closeDetail" class="btn-close">Zavřít detail</button>
-        <button id="openProtocol" class="btn-protocol">Otevřít protokol</button>
-      </div>
-    </div>
-  </div>
+<div id="lightbox" onclick="this.style.display='none'">
+  <img src="">
+</div>
 
-  <div id="photoView"><img id="photoLarge" src=""></div>
+<script>
+const dataUrl = "https://whitegloveservice.github.io/data/reklamace.json";
 
-  <script>
-    async function loadDone() {
-      const tbody = document.getElementById("tableBody");
-      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px;">⏳ Načítání...</td></tr>`;
-      try {
-        // ✅ GitHub API bez cache – vždy aktuální obsah souboru
-        const res = await fetch("https://api.github.com/repos/radecek222-boop/reklamace/contents/hotove.json", {
-          headers: { "Accept": "application/vnd.github.v3.raw" },
-          cache: "no-store"
-        });
-        if (!res.ok) throw new Error("Soubor hotove.json nebyl nalezen nebo není veřejný.");
+async function loadData(){
+  const tbody = document.querySelector("#claims-table tbody");
+  tbody.innerHTML = "<tr><td colspan='10' style='text-align:center; padding:20px;'>Načítám data...</td></tr>";
 
-        const data = await res.json();
-        renderTable(data);
-      } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:red;">Chyba: ${e.message}</td></tr>`;
-      }
-    }
+  try {
+    const res = await fetch(dataUrl);
+    const data = await res.json();
+    tbody.innerHTML = "";
 
-    function renderTable(data) {
-      const tbody = document.getElementById("tableBody");
-      tbody.innerHTML = "";
+    const doneData = data.filter(x => (x["Vyřešeno"] || "").toUpperCase() === "ANO");
 
-      if (!Array.isArray(data) || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Žádné hotové reklamace</td></tr>`;
-        return;
-      }
+    doneData.forEach(item => {
+      const photos = [item.Foto1, item.Foto2, item.Foto3].filter(Boolean)
+        .map(url => `<img src="${url}" onclick="openLightbox('${url}')">`).join("");
 
-      data.forEach((item, index) => {
-        const tr = document.createElement("tr");
-        const contractClass = item.contract === "POZ" ? "contract-poz" : "";
-        const statusClass = (item.popis && item.popis.toUpperCase().includes("HOTOVO")) ? "status-done" : "";
-
-        tr.innerHTML = `
-          <td>${index + 1}</td>
-          <td class="${contractClass}">${item.contract || ""}</td>
-          <td>${item.zakaznik || ""}</td>
-          <td>${item.adresa || ""}</td>
-          <td><a href="tel:${item.telefon || ""}">${item.telefon || ""}</a></td>
-          <td><a href="mailto:${item.email || ""}">${item.email || ""}</a></td>
-          <td>${item.popis || ""}</td>
-          <td class="${statusClass}">${(item.popis || "").toUpperCase().includes("HOTOVO") ? "HOTOVO" : (item.typ || "-")}</td>
-        `;
-
-        tr.addEventListener("click", () => openDetail(item));
-        tbody.appendChild(tr);
-      });
-    }
-
-    function openDetail(item) {
-      const modal = document.getElementById("detailModal");
-      modal.style.display = "flex";
-
-      document.getElementById("detailName").textContent = item.zakaznik || "Neznámý zákazník";
-      document.getElementById("detailInfo").innerHTML = `
-        <p><b>Adresa:</b> ${item.adresa || ""}</p>
-        <p><b>Telefon:</b> ${item.telefon || ""}</p>
-        <p><b>E-mail:</b> ${item.email || ""}</p>
-        <p><b>Popis:</b><br>${item.popis || ""}</p>
-        <p><b>Model:</b> ${item.produkt || ""}</p>
-        <p><b>Contract:</b> ${item.contract || ""}</p>
-        <p><b>Datum vytvoření:</b> ${item.datum_vytvoreni || "-"}</p>
+      const tr = document.createElement("tr");
+      tr.classList.add("done");
+      tr.innerHTML = `
+        <td>${item["Číslo objednávky"]}</td>
+        <td>${item["Číslo reklamace"]}</td>
+        <td>${item["Zákazník"]}</td>
+        <td>${item["Adresa"]}</td>
+        <td><a href="tel:${item["Telefon"]}">${item["Telefon"]}</a></td>
+        <td>${item["Email"]}</td>
+        <td>${item["Model"]}</td>
+        <td>${item["Technik"]}</td>
+        <td>${item["Stav"]}</td>
+        <td class="photo-preview">${photos}</td>
       `;
-
-      const gallery = document.getElementById("photoGallery");
-      gallery.innerHTML = "";
-      if (item.fotky && item.fotky.length > 0) {
-        item.fotky.forEach(photo => {
-          const img = document.createElement("img");
-          img.src = photo.startsWith("http") ? photo : `https://raw.githubusercontent.com/radecek222-boop/reklamace/main/${photo}`;
-          img.alt = "foto";
-          img.addEventListener("click", () => openPhoto(img.src));
-          gallery.appendChild(img);
-        });
-      }
-
-      document.getElementById("openProtocol").onclick = () => {
-        localStorage.setItem("selectedOrder", JSON.stringify(item));
-        window.location.href = "protokol.html";
-      };
-    }
-
-    function openPhoto(src) {
-      const view = document.getElementById("photoView");
-      const img = document.getElementById("photoLarge");
-      img.src = src;
-      view.style.display = "flex";
-      view.onclick = () => { view.style.display = "none"; };
-    }
-
-    document.getElementById("closeDetail").addEventListener("click", () => {
-      document.getElementById("detailModal").style.display = "none";
+      tbody.appendChild(tr);
     });
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan='10' style='color:red; text-align:center;'>Chyba: ${err}</td></tr>`;
+  }
+}
 
-    document.getElementById("searchInput").addEventListener("input", e => {
-      const filter = e.target.value.toLowerCase();
-      document.querySelectorAll("#dataTable tbody tr").forEach(r => {
-        r.style.display = r.textContent.toLowerCase().includes(filter) ? "" : "none";
-      });
-    });
+function openLightbox(url){
+  const lb = document.getElementById("lightbox");
+  lb.style.display = "flex";
+  lb.querySelector("img").src = url;
+}
 
-    document.getElementById("refreshBtn").addEventListener("click", loadDone);
-    window.addEventListener("pageshow", () => loadDone()); // vždy načíst čerstvá data
-    loadDone();
-  </script>
+loadData();
+</script>
 </body>
 </html>
