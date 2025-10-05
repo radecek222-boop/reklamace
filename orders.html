@@ -204,7 +204,9 @@
       <input type="text" name="zakaznik" required>
 
       <label>Ulice a číslo popisné:</label>
-      <input type="text" id="ulice" name="ulice" required placeholder="např. Vinohradská 120">
+      <div style="position:relative;">
+        <input type="text" id="ulice" name="ulice" required placeholder="např. Vinohradská 120">
+      </div>
 
       <label>Město:</label>
       <input type="text" id="mesto" name="mesto" required>
@@ -286,13 +288,13 @@
       <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   </div>
-
   <script>
-    // === Automatická konverze čísla objednávky na VELKÁ písmena ===
+    // === Automaticky převádí číslo objednávky na VELKÁ písmena při psaní ===
     const cisloInput = document.querySelector('input[name="cislo"]');
     cisloInput.addEventListener("input", () => {
       cisloInput.value = cisloInput.value.toUpperCase();
     });
+
     // === Našeptávač adresy (OpenStreetMap) ===
     const uliceInput = document.getElementById("ulice");
     const mestoInput = document.getElementById("mesto");
@@ -344,8 +346,9 @@
         suggestionBox.appendChild(div);
       });
 
-      uliceInput.parentNode.style.position = "relative";
-      uliceInput.parentNode.appendChild(suggestionBox);
+      const parent = uliceInput.parentNode;
+      parent.style.position = "relative";
+      parent.appendChild(suggestionBox);
     });
 
     document.addEventListener("click", e => {
@@ -454,7 +457,7 @@
       }
     };
 
-    // === Upload, JSON, fajfka, zvuk ===
+    // === Upload a zápis ===
     async function uploadToGitHub(owner, repo, path, fileBlob, message, token) {
       const base64Data = await new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -541,6 +544,7 @@
       setTimeout(() => { window.location.href = "index.html"; }, 2500);
     }
 
+    // === Odeslání formuláře ===
     document.getElementById("reklamaceForm").addEventListener("submit", async e => {
       e.preventDefault();
       const form = e.target;
