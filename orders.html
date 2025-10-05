@@ -10,164 +10,187 @@ body { margin:0; padding:20px; background:#f6f7fb; }
 h1 { text-align:center; font-size:2em; font-weight:900; margin:0 0 10px; }
 h2 { text-align:center; font-size:1.1em; font-weight:600; margin:0 0 20px; color:#555; }
 
-form {
-  background:white; max-width:700px; margin:0 auto; padding:20px;
-  border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1);
-}
-label { display:block; margin-top:10px; font-weight:600; }
+form { max-width:700px; margin:0 auto; background:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
+label { display:block; margin-top:12px; font-weight:600; }
 input, textarea, select {
-  width:100%; padding:10px; margin-top:4px;
-  border:1px solid #ccc; border-radius:8px; font-size:15px;
+  width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; margin-top:4px;
+  font-size:1em; font-family:inherit;
 }
-textarea { min-height:80px; resize:vertical; }
-button {
-  display:block; width:100%; margin-top:20px;
-  padding:12px; font-size:1em; font-weight:600; color:#fff;
-  border:none; border-radius:8px; cursor:pointer;
+textarea { resize:vertical; min-height:80px; }
+
+.btn {
+  display:inline-block; padding:10px 22px; border:none; border-radius:8px;
+  font-weight:600; color:white; cursor:pointer; margin:10px 5px 0 0;
   background:linear-gradient(135deg,#0046ff,#357aff);
-  transition:opacity .2s;
+  transition:transform 0.15s ease-in-out, opacity 0.2s;
 }
-button:hover { opacity:.9; }
+.btn:hover { transform:scale(1.04); opacity:0.9; }
+.btn-gray { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
 
 #suggestions {
-  position:absolute; background:#fff; border:1px solid #ddd; border-radius:6px;
-  max-height:200px; overflow:auto; z-index:10; width:calc(100% - 22px);
-  box-shadow:0 2px 6px rgba(0,0,0,0.15);
+  list-style:none; margin:0; padding:0;
+  position:absolute; background:white;
+  border:1px solid #ccc; border-radius:6px;
+  width:calc(100% - 2px);
+  max-height:180px; overflow-y:auto;
+  z-index:1000; display:none;
 }
-.suggestion { padding:8px; cursor:pointer; }
-.suggestion:hover { background:#eef3ff; }
+#suggestions li { padding:8px 10px; cursor:pointer; }
+#suggestions li:hover { background:#f1f3f5; }
 
-.preview {
-  display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;
-}
-.preview img {
-  max-width:100px; border-radius:6px; border:1px solid #ddd;
-}
+.photo-preview { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+.photo-preview img { width:90px; border-radius:6px; border:1px solid #ccc; object-fit:cover; }
+
 </style>
 </head>
 <body>
-
 <h1>WHITE GLOVE SERVICE</h1>
-<h2>Nová reklamace</h2>
+<h2>Nový servisní požadavek / reklamace</h2>
 
-<form id="reklForm">
-  <label>Číslo objednávky</label>
-  <input type="text" id="objednavka" required>
-
+<form id="reklamaceForm">
   <label>Zákazník</label>
   <input type="text" id="zakaznik" required>
 
   <label>Adresa</label>
   <div style="position:relative;">
-    <input type="text" id="adresa" autocomplete="off" placeholder="Začni psát ulici nebo město..." required>
-    <div id="suggestions"></div>
+    <input type="text" id="adresa" placeholder="Zadejte ulici a číslo..." autocomplete="off" required>
+    <ul id="suggestions"></ul>
   </div>
 
   <label>Telefon</label>
-  <input type="text" id="telefon" pattern="[0-9 +]{9,20}" required>
+  <input type="tel" id="telefon">
 
   <label>E-mail</label>
-  <input type="email" id="email" required>
+  <input type="email" id="email">
+
+  <label>Značka</label>
+  <select id="znacka">
+    <option value="">Vyberte</option>
+    <option value="Natuzzi Italia">Natuzzi Italia</option>
+    <option value="Natuzzi Editions">Natuzzi Editions</option>
+    <option value="Softaly">Softaly</option>
+    <option value="Jiná">Jiná</option>
+  </select>
+
+  <label>Model</label>
+  <input type="text" id="model">
 
   <label>Popis závady</label>
-  <textarea id="popis" placeholder="Popiš zjištěnou závadu..." required></textarea>
+  <textarea id="popis"></textarea>
 
-  <label>Fotky (max. 3 soubory)</label>
+  <label>Fotky (max 3)</label>
   <input type="file" id="fotky" accept="image/*" multiple>
-  <div class="preview" id="preview"></div>
+  <div class="photo-preview" id="preview"></div>
 
-  <button type="submit">💾 Uložit reklamaci</button>
+  <div style="text-align:center;margin-top:20px;">
+    <button type="submit" class="btn">Uložit reklamaci</button>
+    <button type="button" class="btn btn-gray" onclick="window.history.back()">Zpět</button>
+  </div>
 </form>
 
 <script>
 const GITHUB_USER = "radecek222-boop";
 const REPO = "reklamace";
-const TOKEN = "TVŮJ_TOKEN";  // ⚠️ vlož svůj GitHub token
+const TOKEN = "TVŮJ_TOKEN";
 const ORDERS_FILE = "orders.json";
 
-// 🧩 Mapy.cz API – našeptávání adres
-const input = document.getElementById("adresa");
-const box = document.getElementById("suggestions");
-let timeout;
-input.addEventListener("input", e => {
-  clearTimeout(timeout);
-  const q = e.target.value.trim();
-  if (q.length < 3) { box.innerHTML=""; return; }
-  timeout = setTimeout(async () => {
-    try {
-      const res = await fetch(`https://api.mapy.cz/geocode?query=${encodeURIComponent(q)}&format=json`);
-      const data = await res.json();
-      const list = data.result?.items || [];
-      if (!list.length) { box.innerHTML=""; return; }
-      box.innerHTML = list.map(i =>
-        `<div class="suggestion" data-full="${i.name}">${i.name}</div>`
-      ).join("");
-    } catch { box.innerHTML=""; }
-  }, 300);
-});
-box.addEventListener("click", e => {
-  const el = e.target.closest(".suggestion");
-  if (!el) return;
-  input.value = el.dataset.full;
-  box.innerHTML = "";
-});
-document.addEventListener("click", e => {
-  if (!box.contains(e.target) && e.target !== input) box.innerHTML = "";
+// 🧠 Adresní našeptávač
+const adresaInput = document.getElementById("adresa");
+const suggestions = document.getElementById("suggestions");
+let timer = null;
+
+adresaInput.addEventListener("input", () => {
+  clearTimeout(timer);
+  const query = adresaInput.value.trim();
+  if (query.length < 3) {
+    suggestions.style.display = "none";
+    return;
+  }
+  timer = setTimeout(() => searchAddress(query), 400);
 });
 
+async function searchAddress(query) {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=cz&q=${encodeURIComponent(query)}`);
+    const data = await res.json();
+    showSuggestions(data);
+  } catch (e) {
+    console.warn("Chyba při načítání adres:", e);
+  }
+}
+
+function showSuggestions(results) {
+  suggestions.innerHTML = "";
+  if (!results.length) {
+    suggestions.style.display = "none";
+    return;
+  }
+  results.slice(0, 8).forEach(r => {
+    const li = document.createElement("li");
+    li.textContent = r.display_name;
+    li.onclick = () => selectAddress(r.display_name);
+    suggestions.appendChild(li);
+  });
+  suggestions.style.display = "block";
+}
+
+function selectAddress(address) {
+  adresaInput.value = address;
+  suggestions.style.display = "none";
+}
+
 // 📸 Náhled fotek
-const fotkyInput = document.getElementById("fotky");
-const previewBox = document.getElementById("preview");
-fotkyInput.addEventListener("change", () => {
-  previewBox.innerHTML = "";
-  Array.from(fotkyInput.files).slice(0,3).forEach(file => {
+document.getElementById("fotky").addEventListener("change", e => {
+  const preview = document.getElementById("preview");
+  preview.innerHTML = "";
+  [...e.target.files].slice(0,3).forEach(file => {
     const img = document.createElement("img");
     img.src = URL.createObjectURL(file);
-    previewBox.appendChild(img);
+    preview.appendChild(img);
   });
 });
 
-// 💾 Uložení reklamace
-document.getElementById("reklForm").addEventListener("submit", async e => {
+// 💾 Uložení reklamace do GitHubu
+document.getElementById("reklamaceForm").addEventListener("submit", async e => {
   e.preventDefault();
-  const form = e.target;
-
-  const newItem = {
-    "Číslo objednávky": form.objednavka.value.trim(),
-    "Číslo reklamace": "NBU-" + Date.now().toString().slice(-7),
-    "Zákazník": form.zakaznik.value.trim(),
-    "Adresa": form.adresa.value.trim(),
-    "Telefon": form.telefon.value.trim(),
-    "Email": form.email.value.trim(),
-    "Popis CZ": form.popis.value.trim(),
-    "Stav": "Nová reklamace",
-    "Vyřešeno": "NE",
-    "Datum podání reklamace": new Date().toISOString().split("T")[0]
-  };
-
-  // ⬆️ Nahrát fotky do /uploads/
-  const uploadedUrls = [];
-  const files = Array.from(fotkyInput.files).slice(0,3);
-  for (let i=0;i<files.length;i++){
-    const url = await uploadFile(files[i]);
-    uploadedUrls.push(url);
-    newItem[`Foto${i+1}`] = url;
-  }
-
-  // ⬇️ Uložit do orders.json
   try {
+    const newOrder = {
+      "Číslo objednávky": "CZ" + new Date().getFullYear() + "-" + Math.floor(Math.random()*9999),
+      "Číslo reklamace": "NBU-" + Math.floor(Math.random()*99999999),
+      "Zákazník": zakaznik.value.trim(),
+      "Adresa": adresa.value.trim(),
+      "Telefon": telefon.value.trim(),
+      "Email": email.value.trim(),
+      "Značka": znacka.value,
+      "Model": model.value,
+      "Popis CZ": popis.value,
+      "Datum podání reklamace": new Date().toISOString().split("T")[0],
+      "Stav": "Nová reklamace",
+      "Vyřešeno": "NE"
+    };
+
+    // Upload fotek
+    const files = [...document.getElementById("fotky").files].slice(0,3);
+    for (let i=0;i<files.length;i++) {
+      const url = await uploadFile(files[i]);
+      newOrder[`Foto${i+1}`] = url;
+    }
+
+    // Získat existující data a přidat nový záznam
     const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${ORDERS_FILE}?${Date.now()}`);
     const data = await res.json().catch(()=>[]);
-    data.push(newItem);
+    data.push(newOrder);
     await updateFile(ORDERS_FILE, JSON.stringify(data, null, 2));
+
     alert("Reklamace byla úspěšně uložena.");
-    form.reset(); previewBox.innerHTML = "";
+    e.target.reset();
+    document.getElementById("preview").innerHTML = "";
   } catch (err) {
     alert("Chyba při ukládání: " + err.message);
   }
 });
 
-// 🗂️ Upload souboru do GitHub /uploads/
+// 🧩 Upload fotek
 async function uploadFile(file){
   const reader = new FileReader();
   return new Promise((resolve,reject)=>{
@@ -176,39 +199,24 @@ async function uploadFile(file){
       const path = `uploads/${Date.now()}_${file.name}`;
       const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${path}`, {
         method:"PUT",
-        headers:{
-          Authorization:`token ${TOKEN}`,
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify({
-          message:`Nahrána fotka ${file.name}`,
-          content:base64
-        })
+        headers:{Authorization:`token ${TOKEN}`,"Content-Type":"application/json"},
+        body:JSON.stringify({message:`Nahrána fotka ${file.name}`,content:base64})
       });
       if(res.ok) resolve(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${path}`);
-      else reject("Chyba nahrávání obrázku");
+      else reject("Chyba nahrávání fotky");
     };
     reader.readAsDataURL(file);
   });
 }
 
-// ✏️ Update orders.json
-async function updateFile(filename, content){
-  const metaRes = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`, {
-    headers: { Authorization:`token ${TOKEN}` }
-  });
-  const meta = await metaRes.json();
-  await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`, {
+// 📄 Update JSON souboru
+async function updateFile(filename,content){
+  const metaRes=await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`,{headers:{Authorization:`token ${TOKEN}`}});
+  const meta=await metaRes.json();
+  await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`,{
     method:"PUT",
-    headers:{
-      Authorization:`token ${TOKEN}`,
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-      message:`Přidána nová reklamace do ${filename}`,
-      content:btoa(unescape(encodeURIComponent(content))),
-      sha:meta.sha
-    })
+    headers:{Authorization:`token ${TOKEN}`,"Content-Type":"application/json"},
+    body:JSON.stringify({message:`Aktualizace ${filename}`,content:btoa(unescape(encodeURIComponent(content))),sha:meta.sha})
   });
 }
 </script>
