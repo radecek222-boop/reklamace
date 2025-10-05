@@ -1,192 +1,124 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WHITE GLOVE SERVICE – Startovací verze</title>
-  <style>
-    body {
-      font-family: "Inter", system-ui, sans-serif;
-      background: #f6f7fb;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      text-align: center;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WHITE GLOVE SERVICE – Startovací verze</title>
+<style>
+  body {
+    font-family: "Inter", system-ui, sans-serif;
+    background: #f6f7fb;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+  }
+  h1 {
+    font-size: 2.8em;
+    font-weight: 900;
+    margin-bottom: 10px;
+    color: #111;
+  }
+  h2 {
+    font-size: 1.2em;
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 50px;
+  }
+  .btn-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .btn {
+    color: white;
+    font-weight: 600;
+    padding: 14px 28px;
+    font-size: 1em;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    transition: transform 0.1s ease-in-out, opacity 0.2s;
+    text-decoration: none;
+    min-width: 220px;
+    text-align: center;
+  }
+  .btn:hover { transform: scale(1.03); opacity: 0.9; }
+  .btn-new { background: linear-gradient(145deg, #004080, #1e90ff, #003366); }
+  .btn-after { background: linear-gradient(145deg, #006600, #28a745, #004d00); }
+  .btn-list { background: linear-gradient(145deg, #6c757d, #a0a4a7, #5c636a); }
 
-    h1 {
-      font-size: 2.8em;
-      font-weight: 900;
-      margin-bottom: 10px;
-      color: #111;
-    }
+  #adminButton {
+    position: fixed;
+    top: 15px;
+    right: 20px;
+    z-index: 1500;
+    background: linear-gradient(145deg,#555,#999,#777);
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  #adminLoginOverlay {
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.7);
+    display:none; justify-content:center; align-items:center;
+    z-index:3000; backdrop-filter: blur(4px);
+  }
+  #adminLoginBox {
+    background:white; padding:40px 30px; border-radius:12px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.3); text-align:center;
+    max-width:340px; width:90%; animation:fadeIn 0.3s ease-in-out;
+  }
+  #adminLoginBox h2 { margin-top:0; font-size:1.3em; font-weight:800; color:#111; }
+  #adminLoginBox p { color:#555; font-size:0.95em; margin-bottom:20px; }
+  #adminPassword {
+    width:100%; padding:10px 12px; border:1px solid #ccc; border-radius:8px;
+    font-size:1em; margin-bottom:15px; box-sizing:border-box; outline:none;
+    transition:all 0.2s ease-in-out;
+  }
+  #adminPassword:focus { border-color:#1e90ff; box-shadow:0 0 5px rgba(30,144,255,0.4); }
+  #adminLoginBtn {
+    background:linear-gradient(145deg,#004080,#1e90ff,#003366);
+    border:none; padding:10px 20px; border-radius:8px; color:white;
+    font-weight:600; cursor:pointer; font-size:1em;
+  }
+  #adminError { color:#c00; font-size:0.9em; font-weight:600; display:none; }
 
-    h2 {
-      font-size: 1.2em;
-      font-weight: 500;
-      color: #666;
-      margin-bottom: 50px;
-    }
+  #adminStatus {
+    position: fixed;
+    bottom: 15px;
+    right: 20px;
+    background: #222;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    display: none;
+    z-index: 2500;
+  }
 
-    .btn-container {
-      display: flex;
-      gap: 20px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
+  @keyframes fadeIn {
+    from { opacity:0; transform:translateY(-10px); }
+    to { opacity:1; transform:translateY(0); }
+  }
 
-    .btn {
-      color: white;
-      font-weight: 600;
-      padding: 14px 28px;
-      font-size: 1em;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-      transition: transform 0.1s ease-in-out, opacity 0.2s;
-      text-decoration: none;
-      min-width: 220px;
-      text-align: center;
-    }
-
-    .btn:hover {
-      transform: scale(1.03);
-      opacity: 0.9;
-    }
-
-    .btn-new {
-      background: linear-gradient(145deg, #004080, #1e90ff, #003366);
-    }
-
-    .btn-after {
-      background: linear-gradient(145deg, #006600, #28a745, #004d00);
-    }
-
-    .btn-list {
-      background: linear-gradient(145deg, #6c757d, #a0a4a7, #5c636a);
-    }
-
-    #adminButton {
-      position: fixed;
-      top: 15px;
-      right: 20px;
-      z-index: 1500;
-      background: linear-gradient(145deg,#555,#999,#777);
-      color: white;
-      padding: 8px 16px;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      transition: transform 0.1s ease-in-out, opacity 0.2s;
-    }
-
-    #adminButton:hover {
-      transform: scale(1.05);
-      opacity: 0.9;
-    }
-
-    @media (max-width: 768px) {
-      #adminButton {
-        right: 50%;
-        transform: translateX(50%);
-        top: 10px;
-        font-size: 0.9em;
-        padding: 6px 14px;
-      }
-
-      .btn-container {
-        flex-direction: column;
-        gap: 15px;
-      }
-    }
-
-    #adminLoginOverlay {
-      position: fixed;
-      top:0; left:0; width:100%; height:100%;
-      background:rgba(0,0,0,0.7);
-      display:none; justify-content:center; align-items:center;
-      z-index:3000;
-      backdrop-filter: blur(4px);
-    }
-
-    #adminLoginBox {
-      background:white;
-      padding:40px 30px;
-      border-radius:12px;
-      box-shadow:0 4px 20px rgba(0,0,0,0.3);
-      text-align:center;
-      max-width:340px;
-      width:90%;
-      animation:fadeIn 0.3s ease-in-out;
-    }
-
-    #adminLoginBox h2 {
-      margin-top:0;
-      font-size:1.3em;
-      font-weight:800;
-      color:#111;
-    }
-
-    #adminLoginBox p {
-      color:#555;
-      font-size:0.95em;
-      margin-bottom:20px;
-    }
-
-    #adminPassword {
-      width:100%;
-      padding:10px 12px;
-      border:1px solid #ccc;
-      border-radius:8px;
-      font-size:1em;
-      font-family:Inter, sans-serif;
-      margin-bottom:15px;
-      box-sizing:border-box;
-      outline:none;
-      transition:all 0.2s ease-in-out;
-    }
-
-    #adminPassword:focus {
-      border-color:#1e90ff;
-      box-shadow:0 0 5px rgba(30,144,255,0.4);
-    }
-
-    #adminLoginBtn {
-      background:linear-gradient(145deg,#004080,#1e90ff,#003366);
-      border:none;
-      padding:10px 20px;
-      border-radius:8px;
-      color:white;
-      font-weight:600;
-      cursor:pointer;
-      font-size:1em;
-      transition:transform 0.1s ease-in-out, opacity 0.2s;
-    }
-
-    #adminLoginBtn:hover {
-      transform:scale(1.03);
-      opacity:0.9;
-    }
-
-    #adminError {
-      color:#c00;
-      font-size:0.9em;
-      font-weight:600;
-      display:none;
-    }
-
-    @keyframes fadeIn {
-      from { opacity:0; transform:translateY(-10px); }
-      to { opacity:1; transform:translateY(0); }
-    }
-  </style>
+  @media (max-width:768px) {
+    #adminButton { right:50%; transform:translateX(50%); top:10px; }
+    .btn-container { flex-direction: column; gap: 15px; }
+  }
+</style>
 </head>
 
 <body>
@@ -194,12 +126,14 @@
   <h2>specializovaný autorizovaný servis Natuzzi</h2>
 
   <div class="btn-container">
-    <a href="orders.html" class="btn btn-new">📝 Založit novou reklamaci</a>
-    <a href="aftersales.html" class="btn btn-after">🧰 Pozáruční servis</a>
-    <a href="seznam.html" id="adminListButton" class="btn btn-list" style="display:none;">📋 Seznam reklamací</a>
+    <a href="orders.html" class="btn btn-new">Založit novou reklamaci</a>
+    <a href="aftersales.html" class="btn btn-after">Pozáruční servis</a>
+    <a href="seznam.html" id="adminListButton" class="btn btn-list" style="display:none;">Seznam reklamací</a>
   </div>
 
   <button id="adminButton">Admin</button>
+
+  <div id="adminStatus">Admin aktivní (zbývá <span id="countdown">15:00</span>)</div>
 
   <div id="adminLoginOverlay">
     <div id="adminLoginBox">
@@ -215,16 +149,21 @@
     const ACCESS_CODE = "wgs2025";
     const EXPIRATION_MINUTES = 15;
     const INACTIVITY_MINUTES = 5;
-    let inactivityTimer;
+    let inactivityTimer, countdownTimer, remainingTime = EXPIRATION_MINUTES * 60;
 
     const listButton = document.getElementById("adminListButton");
+    const statusBox = document.getElementById("adminStatus");
+    const countdownEl = document.getElementById("countdown");
 
     function showAdminList() {
       listButton.style.display = "inline-block";
+      statusBox.style.display = "block";
+      startCountdown();
     }
-
     function hideAdminList() {
       listButton.style.display = "none";
+      statusBox.style.display = "none";
+      stopCountdown();
     }
 
     document.getElementById("adminButton").addEventListener("click", () => {
@@ -249,29 +188,48 @@
       }
     }
 
-    function logout(){
+    function logout(reason="neaktivity") {
       localStorage.removeItem("wgsAdmin");
       hideAdminList();
-      alert("⏱️ Přístup vypršel z důvodu neaktivity.");
+      alert(`⏱️ Přístup admina byl ukončen z důvodu ${reason}.`);
     }
 
     function resetInactivityTimer(){
       clearTimeout(inactivityTimer);
-      inactivityTimer = setTimeout(logout, INACTIVITY_MINUTES * 60 * 1000);
+      inactivityTimer = setTimeout(() => logout("neaktivity"), INACTIVITY_MINUTES * 60 * 1000);
     }
 
     function startInactivityTimer(){
       resetInactivityTimer();
-      ["click","mousemove","keypress","scroll","touchstart","touchmove","focus"].forEach(evt => {
+      ["click","mousemove","keypress","scroll","touchstart","focus"].forEach(evt => {
         document.addEventListener(evt, resetInactivityTimer, { passive:true });
       });
       window.addEventListener("blur", () => {
         clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(logout, INACTIVITY_MINUTES * 60 * 1000);
+        inactivityTimer = setTimeout(() => logout("neaktivity"), INACTIVITY_MINUTES * 60 * 1000);
       });
     }
 
-    // kontrola po načtení, jestli admin už přihlášen
+    function startCountdown() {
+      clearInterval(countdownTimer);
+      countdownTimer = setInterval(() => {
+        remainingTime--;
+        if (remainingTime <= 0) {
+          logout("vypršení času");
+          clearInterval(countdownTimer);
+          return;
+        }
+        const m = String(Math.floor(remainingTime / 60)).padStart(2, "0");
+        const s = String(remainingTime % 60).padStart(2, "0");
+        countdownEl.textContent = `${m}:${s}`;
+      }, 1000);
+    }
+
+    function stopCountdown() {
+      clearInterval(countdownTimer);
+      remainingTime = EXPIRATION_MINUTES * 60;
+    }
+
     window.addEventListener("DOMContentLoaded", () => {
       const adminData = localStorage.getItem("wgsAdmin");
       if(adminData){
