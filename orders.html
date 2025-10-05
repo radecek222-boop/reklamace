@@ -89,11 +89,10 @@
 
   <div class="message" id="message">Reklamace byla úspěšně odeslána ✅</div>
 </div>
-
 <script>
   /*******************************************************
    🔑 SEM VLOŽ NOVÝ TOKEN (mezi uvozovky níže)
-   ⚠️ Pouze pro interní testování – nikdy veřejně!
+   ⚠️ Pouze pro interní testování – nikdy neveřejně!
   *******************************************************/
   const GITHUB_TOKEN = "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";
 
@@ -108,6 +107,7 @@
 
   let photoFiles = [];
 
+  // náhled fotek
   photosInput.addEventListener("change", () => {
     preview.innerHTML = "";
     photoFiles = Array.from(photosInput.files).slice(0, 3);
@@ -122,29 +122,22 @@
     });
   });
 
+  // odeslání formuláře
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+
     const data = Object.fromEntries(new FormData(form).entries());
     if (Object.values(data).some(v => !v.trim())) {
       alert("Vyplň prosím všechna povinná pole.");
       return;
     }
 
-    // Přidání ID a dat
     const now = new Date();
     data.id = "REQ-" + now.getTime();
     data.datum_podani_reklamace = now.toLocaleDateString("cs-CZ");
     data.fotky = [];
 
-    // Převod fotek na Base64 (uložení do GitHubu)
-    for (const file of photoFiles) {
-      const base64 = await toBase64(file);
-      const path = `uploads/${data.id}/${file.name}`;
-      await uploadFileToGitHub(path, base64, file.name);
-      data.fotky.push(path);
-    }
-
-    // Načtení původního orders.json
+    // načtení orders.json
     const apiUrl = `https://api.github.com/repos/${USERNAME}/${REPO}/contents/${FILE_PATH}`;
     const res = await fetch(apiUrl, {
       headers: { Authorization: `token ${GITHUB_TOKEN}` }
@@ -152,9 +145,19 @@
     const file = await res.json();
     const oldData = file.content ? JSON.parse(atob(file.content)) : [];
 
+    // upload fotek (max. 3)
+    for (const fileObj of photoFiles) {
+      const base64 = await toBase64(fileObj);
+      const path = `uploads/${data.id}/${fileObj.name}`;
+      await uploadFileToGitHub(path, base64, fileObj.name);
+      data.fotky.push(path);
+    }
+
+    // přidání nové reklamace
     oldData.push(data);
     const newContent = btoa(JSON.stringify(oldData, null, 2));
 
+    // zápis do GitHubu
     const update = await fetch(apiUrl, {
       method: "PUT",
       headers: {
@@ -174,10 +177,11 @@
       preview.innerHTML = "";
       setTimeout(() => message.style.display = "none", 4000);
     } else {
-      alert("Chyba při odeslání na GitHub. Zkontroluj token nebo oprávnění.");
+      alert("Chyba při zápisu do GitHubu. Zkontroluj token nebo oprávnění.");
     }
   });
 
+  // převod souboru na Base64
   function toBase64(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -187,6 +191,7 @@
     });
   }
 
+  // nahrání souboru na GitHub
   async function uploadFileToGitHub(path, base64, name) {
     const url = `https://api.github.com/repos/${USERNAME}/${REPO}/contents/${path}`;
     const upload = await fetch(url, {
