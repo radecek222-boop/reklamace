@@ -27,62 +27,44 @@
     h1, h2 { text-align: center; margin: 0 0 20px; }
     label { display: block; font-weight: 600; margin-top: 15px; margin-bottom: 5px; }
     input, textarea, select {
-      width: 100%;
-      padding: 10px;
-      font-size: 1em;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
+      width: 100%; padding: 10px; font-size: 1em;
+      border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;
     }
     textarea { height: 100px; resize: vertical; }
     input[type="file"] { margin-top: 5px; }
 
-    /* ✅ jednotné tlačítka */
     .btn {
-      display: inline-block;
-      text-decoration: none;
-      padding: 12px 28px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1em;
-      border: none;
-      cursor: pointer;
-      transition: transform 0.15s ease-in-out, opacity 0.2s;
-      color: white;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-      min-width: 140px;
+      display: inline-block; text-decoration: none; padding: 12px 28px;
+      border-radius: 8px; font-weight: 600; font-size: 1em;
+      border: none; cursor: pointer; transition: transform 0.15s ease, opacity 0.2s;
+      color: #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+      margin: 10px 5px 0 0;
     }
-    .btn:hover { transform: scale(1.04); opacity: 0.9; }
+    .btn:hover { transform: scale(1.03); opacity: 0.9; }
     .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
     .btn-send { background: linear-gradient(135deg, #0046ff, #357aff); }
+    .actions { text-align: center; margin-top: 25px; }
 
-    .actions {
-      text-align: center;
-      margin-top: 25px;
-      display: flex;
-      justify-content: center;
-      gap: 20px;
+    #progressWrapper { margin-top: 15px; display: none; }
+    #progressBar {
+      height: 10px; width: 100%; background: #eee;
+      border-radius: 6px; overflow: hidden;
     }
+    #progressFill {
+      height: 100%; width: 0%; background: linear-gradient(135deg,#0046ff,#357aff);
+      transition: width 0.2s ease;
+    }
+    #progressText { text-align: center; font-size: 0.9em; margin-top: 5px; color: #333; }
 
-    .hidden { display: none; }
-
-    /* 🔍 našeptávač adres */
     #suggestions {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      position: absolute;
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      width: 100%;
-      max-height: 180px;
-      overflow-y: auto;
-      z-index: 1000;
-      display: none;
+      list-style:none; margin:0; padding:0;
+      position:absolute; background:white;
+      border:1px solid #ccc; border-radius:6px;
+      width:100%; max-height:180px; overflow-y:auto;
+      z-index:1000; display:none;
     }
-    #suggestions li { padding: 8px 10px; cursor: pointer; }
-    #suggestions li:hover { background: #f1f3f5; }
+    #suggestions li { padding:8px 10px; cursor:pointer; }
+    #suggestions li:hover { background:#f1f3f5; }
   </style>
 </head>
 <body>
@@ -98,7 +80,7 @@
       <input type="text" name="zakaznik" required>
 
       <label>Adresa:</label>
-      <div style="position: relative;">
+      <div style="position:relative;">
         <input type="text" name="adresa" id="adresa" placeholder="Zadejte ulici..." autocomplete="off" required>
         <ul id="suggestions"></ul>
       </div>
@@ -122,28 +104,9 @@
       <label>Přiložit fotografie (max. 3):</label>
       <input type="file" id="fotky" accept="image/*" multiple>
 
-      <label>Objednávku zpracoval:</label>
-      <select id="zpracoval" name="zpracoval" required>
-        <option value="">Vyber...</option>
-        <option value="Natuzzi Editions - Strejcek">Natuzzi Editions - Strejcek</option>
-        <option value="Natuzzi Editions - Vimrova">Natuzzi Editions - Vimrova</option>
-        <option value="Natuzzi Italia - Bratislava">Natuzzi Italia - Bratislava</option>
-        <option value="Natuzzi Italia - Jama">Natuzzi Italia - Jama</option>
-        <option value="Natuzzi Italia - River">Natuzzi Italia - River</option>
-        <option value="Natuzzi Italia - SOHO">Natuzzi Italia - SOHO</option>
-        <option value="Softaly - SOHO">Softaly - SOHO</option>
-        <option value="Phase - Klucarova">Phase - Klucarova</option>
-        <option value="Phase - Jancova">Phase - Jancova</option>
-        <option value="Jiná">Jiná</option>
-      </select>
-
-      <div id="jinaSekce" class="hidden">
-        <label>Zadej nový zápis zadavatele:</label>
-        <input type="text" id="jinaJmeno" name="jinaJmeno">
-        <label>E-mail zadavatele:</label>
-        <input type="email" id="jinaEmail" name="jinaEmail">
-        <label>Telefon zadavatele:</label>
-        <input type="tel" id="jinaTelefon" name="jinaTelefon">
+      <div id="progressWrapper">
+        <div id="progressBar"><div id="progressFill"></div></div>
+        <div id="progressText">Nahrávání...</div>
       </div>
 
       <div class="actions">
@@ -156,8 +119,13 @@
   <script>
     const adresaInput = document.getElementById("adresa");
     const suggestions = document.getElementById("suggestions");
+    const progressWrapper = document.getElementById("progressWrapper");
+    const progressFill = document.getElementById("progressFill");
+    const progressText = document.getElementById("progressText");
+
     let timer = null;
 
+    // 🔍 Našeptávač adres
     adresaInput.addEventListener("input", () => {
       adresaInput.dataset.selected = "false";
       clearTimeout(timer);
@@ -190,28 +158,107 @@
       suggestions.style.display = "none";
     }
 
-    const selectZpracoval = document.getElementById("zpracoval");
-    const jinaSekce = document.getElementById("jinaSekce");
-    const jinaInputs = jinaSekce.querySelectorAll("input");
+    async function resizeImage(file) {
+      return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const max = 800;
+          let w = img.width, h = img.height;
+          if (w > h && w > max) { h *= max / w; w = max; }
+          else if (h > w && h > max) { w *= max / h; h = max; }
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, w, h);
+          canvas.toBlob(b => resolve(b), "image/jpeg", 0.8);
+        };
+        img.src = URL.createObjectURL(file);
+      });
+    }
 
-    selectZpracoval.addEventListener("change", () => {
-      if (selectZpracoval.value === "Jiná") {
-        jinaSekce.classList.remove("hidden");
-        jinaInputs.forEach(inp => inp.required = true);
-      } else {
-        jinaSekce.classList.add("hidden");
-        jinaInputs.forEach(inp => inp.required = false);
+    async function uploadToGitHub(fileBlob, fileName, token) {
+      const arrayBuffer = await fileBlob.arrayBuffer();
+      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      const path = `uploads/${fileName}`;
+      const url = `https://api.github.com/repos/radecek222-boop/reklamace/contents/${path}`;
+      const body = {
+        message: `Upload ${fileName}`,
+        content: base64,
+        branch: "main"
+      };
+      const res = await fetch(url, {
+        method: "PUT",
+        headers: {
+          Authorization: `token ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return `https://raw.githubusercontent.com/radecek222-boop/reklamace/main/${path}`;
+    }
+
+    async function updateOrders(dataObj, token) {
+      const url = `https://api.github.com/repos/radecek222-boop/reklamace/contents/orders.json`;
+      const get = await fetch(url, { headers: { Authorization: `token ${token}` } });
+      let existing = "[]", sha = null;
+      if (get.ok) {
+        const j = await get.json();
+        existing = atob(j.content.replace(/\n/g, ""));
+        sha = j.sha;
       }
-    });
+      const arr = JSON.parse(existing);
+      arr.push(dataObj);
+      const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(arr, null, 2))));
+      const body = { message: `Nová reklamace ${dataObj.cislo}`, content: newContent, branch: "main" };
+      if (sha) body.sha = sha;
+      const put = await fetch(url, {
+        method: "PUT",
+        headers: { Authorization: `token ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      if (!put.ok) throw new Error(await put.text());
+    }
 
     document.getElementById("reklamaceForm").addEventListener("submit", async e => {
       e.preventDefault();
-      if (!adresaInput.dataset.selected || adresaInput.dataset.selected !== "true") {
-        alert("Vyberte adresu z nabídky (našeptávače).");
-        adresaInput.focus();
-        return;
+      if (adresaInput.dataset.selected !== "true") {
+        alert("Vyberte adresu z nabídky."); adresaInput.focus(); return;
       }
-      alert("✅ Formulář prošel validací. Tady proběhne odeslání na GitHub.");
+
+      const token = prompt("Zadej GitHub token:");
+      if (!token) return alert("Token je nutný.");
+
+      const f = e.target;
+      const files = [...document.getElementById("fotky").files].slice(0,3);
+      const uploadedUrls = [];
+      progressWrapper.style.display = "block";
+
+      for (let i=0; i<files.length; i++) {
+        progressText.textContent = `Zpracovávám ${i+1}/${files.length}`;
+        const blob = await resizeImage(files[i]);
+        const url = await uploadToGitHub(blob, Date.now() + "_" + files[i].name, token);
+        uploadedUrls.push(url);
+        progressFill.style.width = `${((i+1)/files.length)*100}%`;
+      }
+
+      const dataObj = {
+        typ: "reklamace",
+        cislo: f.cislo.value,
+        zakaznik: f.zakaznik.value,
+        adresa: f.adresa.value,
+        telefon: f.telefon.value,
+        email: f.email.value,
+        produkt: f.produkt.value,
+        datum_prodeje: f.datum_prodeje.value,
+        datum_reklamace: f.datum_reklamace.value,
+        popis: f.popis.value,
+        fotky: uploadedUrls
+      };
+
+      await updateOrders(dataObj, token);
+      alert("✅ Reklamace byla úspěšně odeslána!");
+      window.location.href = "index.html";
     });
   </script>
 </body>
