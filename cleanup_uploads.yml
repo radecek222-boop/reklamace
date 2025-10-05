@@ -1,0 +1,29 @@
+name: 🔥 Cleanup old uploads (48h)
+
+on:
+  schedule:
+    - cron: "0 3 * * *"   # každý den ve 3:00 ráno
+  workflow_dispatch:       # možnost ručního spuštění z GitHubu
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🧭 Checkout repo
+        uses: actions/checkout@v4
+
+      - name: 🕒 Remove old files from uploads
+        run: |
+          echo "🔍 Searching for files older than 48h in /uploads..."
+          find uploads -type f -mmin +2880 -print -delete || echo "No old files found."
+
+      - name: 📦 Commit and push cleanup changes
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "actions@github.com"
+          git add -A
+          git commit -m "🧹 Removed old uploads (older than 48h)" || echo "Nothing to commit"
+          git push
