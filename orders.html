@@ -44,21 +44,34 @@
     }
     textarea { height: 100px; resize: vertical; }
     input[type="file"] { margin-top: 5px; }
+
     .btn {
       display: inline-block;
-      background: #6c757d;
       color: #fff;
       text-decoration: none;
       padding: 12px 28px;
       border-radius: 8px;
       font-weight: 600;
       font-size: 1em;
-      transition: background 0.2s;
-      margin: 10px 5px 0 0;
       border: none;
       cursor: pointer;
+      margin: 10px 5px 0 0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: transform 0.1s, opacity 0.2s;
     }
-    .btn:hover { background: #5a6268; }
+    .btn:hover { opacity: 0.9; transform: scale(1.02); }
+
+    .btn-back {
+      background: linear-gradient(145deg, #808080, #dcdcdc, #a9a9a9);
+      color: #000;
+    }
+    .btn-reload {
+      background: linear-gradient(145deg, #004080, #1e90ff, #003366);
+    }
+    .btn-send {
+      background: linear-gradient(145deg, #006600, #28a745, #004d00);
+    }
+
     .actions { text-align: center; margin-top: 25px; }
     .hidden { display: none; }
   </style>
@@ -121,8 +134,9 @@
       </div>
 
       <div class="actions">
-        <a href="index.html" class="btn">Zpět</a>
-        <button type="submit" class="btn">Odeslat</button>
+        <a href="index.html" class="btn btn-back">⬅️ Zpět</a>
+        <button type="button" class="btn btn-reload" onclick="location.reload()">🔄 Načíst znovu</button>
+        <button type="submit" class="btn btn-send">📤 Odeslat</button>
       </div>
     </form>
   </div>
@@ -180,7 +194,7 @@
       const f = e.target;
       const dataObj = {
         typ: "reklamace",
-        contract: f.zpracoval.value, // 🔥 uloží jméno z dropdownu
+        contract: f.zpracoval.value,
         cislo: f.cislo.value,
         zakaznik: f.zakaznik.value,
         adresa: f.adresa.value,
@@ -203,8 +217,9 @@
         const message = `Nová reklamace ${dataObj.cislo}`;
         const token = prompt("Zadej GitHub token:");
         await submitToGitHub(dataObj, owner, repo, path, message, token);
-        alert("Reklamace uložena.");
+        alert("✅ Reklamace byla úspěšně uložena.");
         f.reset();
+        setTimeout(() => window.location.href = "index.html", 1500);
       } catch (err) {
         alert("Chyba: " + err.message);
       }
