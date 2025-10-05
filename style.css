@@ -1,244 +1,31 @@
-/* === WHITE GLOVE SERVICE – jednotný styl (vzhled shodný s index.html) === */
-
-body {
-  font-family: "Inter", system-ui, sans-serif;
-  background: #f6f7fb;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  color: #111;
-}
-
-/* --- Hlavní box --- */
-.wrapper {
-  background: #fff;
-  padding: 40px 50px;
-  border-radius: 16px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.1);
-  width: 100%;
-  max-width: 720px;
-  box-sizing: border-box;
-  text-align: left;
-}
-
-/* --- Nadpisy --- */
-h1 {
-  font-size: 2.8em;
-  font-weight: 900;
-  margin-bottom: 10px;
-  text-align: center;
-  color: #111;
-}
-
-h2 {
-  font-size: 1.2em;
-  font-weight: 500;
-  color: #666;
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-/* --- Formulářové prvky --- */
-label {
-  display: block;
-  font-weight: 600;
-  margin-top: 15px;
-  margin-bottom: 6px;
-}
-
-input, textarea, select {
-  width: 100%;
-  padding: 10px 12px;
-  font-size: 1em;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-sizing: border-box;
-  font-family: "Inter", sans-serif;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
-}
-
-input:focus, textarea:focus, select:focus {
-  border-color: #0046ff;
-  box-shadow: 0 0 0 3px rgba(0,70,255,0.1);
-  outline: none;
-}
-
-textarea {
-  height: 100px;
-  resize: vertical;
-}
-
-/* --- Chybová pole --- */
-.invalid {
-  border: 2px solid;
-  border-image: linear-gradient(135deg, #ff4d4d, #ff7b7b) 1;
-}
-
-/* --- Našeptávač --- */
-.address-wrapper {
-  position: relative;
-}
-
-.suggestions {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.1);
-  z-index: 10;
-  overflow-y: auto;
-  max-height: 200px;
-}
-
-.suggestions div {
-  padding: 10px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.suggestions div:hover {
-  background: #f2f4f8;
-}
-
-/* --- Mapa náhledu (vylepšený design s animací) --- */
-.map-preview {
+#mapPreview {
   width: 100%;
   height: 250px;
-  margin-top: 14px;
-  border-radius: 12px;
-  overflow: hidden;
-  background: linear-gradient(145deg, #f9f9fb, #e8eaef);
-  border: 1px solid #d2d4da;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.6s ease, transform 0.4s ease;
-}
-
-.map-preview.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.hidden { display: none; }
-
-/* --- Náhledy fotek --- */
-.preview {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
   margin-top: 10px;
-}
-
-.preview-item {
-  width: 80px;
-  height: 80px;
-  position: relative;
-  border-radius: 8px;
+  border-radius: 14px; /* větší zaoblení */
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: height 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-.preview-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+#mapPreview:empty {
+  background: #f0f0f0;
+  border: 2px dashed #ccc;
 }
 
-.progress-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 6px;
-  background: linear-gradient(90deg, #00d084, #00a86b);
-  width: 0%;
-  transition: width 0.4s ease;
+/* animace zoom-in při zobrazení */
+#mapPreview.show {
+  animation: mapShow 0.5s ease forwards;
 }
 
-/* --- Tlačítka --- */
-.btn {
-  display: inline-block;
-  padding: 12px 28px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 1em;
-  border: none;
-  cursor: pointer;
-  text-decoration: none;
-  color: #fff;
-  transition: transform 0.15s ease-in-out, opacity 0.25s;
-  min-width: 150px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+@keyframes mapShow {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
 }
 
-.btn:hover {
-  transform: scale(1.04);
-  opacity: 0.9;
-}
-
-.btn-back {
-  background: linear-gradient(135deg, #6c757d, #a0a4a7);
-}
-
-.btn-send {
-  background: linear-gradient(135deg, #0046ff, #357aff);
-}
-
-/* --- Ovládací sekce --- */
-.actions {
-  margin-top: 35px;
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-}
-
-/* --- Animace fajfky --- */
-.success-check {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255,255,255,0.9);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  opacity: 0;
-  transition: opacity 0.4s;
-  pointer-events: none;
-}
-
-.success-check.active {
-  opacity: 1;
-  pointer-events: all;
-}
-
-.checkmark {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  display: block;
-  stroke-width: 5;
-  stroke: url(#grad1);
-  stroke-miterlimit: 10;
-  margin: 10% auto;
-  box-shadow: inset 0 0 0 #7ac142;
-  animation: fill 0.4s ease-in-out 0.4s forwards, scale 0.3s ease-in-out 0.9s both;
-}
-
-@keyframes fill {
-  100% { box-shadow: inset 0 0 0 60px #00d084; }
-}
-
-@keyframes scale {
-  0%,100% { transform: none; }
-  50% { transform: scale3d(1.1,1.1,1); }
+@media (max-width: 600px) {
+  #mapPreview {
+    height: 180px;
+    border-radius: 10px;
+  }
 }
