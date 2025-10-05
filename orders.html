@@ -6,7 +6,6 @@
   <title>Nová reklamace – White Glove Service</title>
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
   <div class="wrapper">
     <h1>WHITE GLOVE SERVICE</h1>
@@ -64,15 +63,15 @@
       <label>Objednávku zpracoval:</label>
       <select id="zpracoval" name="zpracoval" required>
         <option value="">Vyber...</option>
-        <option value="Natuzzi Editions - Strejcek">Natuzzi Editions - Strejcek</option>
-        <option value="Natuzzi Editions - Vimrova">Natuzzi Editions - Vimrova</option>
-        <option value="Natuzzi Italia - Bratislava">Natuzzi Italia - Bratislava</option>
-        <option value="Natuzzi Italia - Jama">Natuzzi Italia - Jama</option>
-        <option value="Natuzzi Italia - River">Natuzzi Italia - River</option>
-        <option value="Natuzzi Italia - SOHO">Natuzzi Italia - SOHO</option>
-        <option value="Softaly - SOHO">Softaly - SOHO</option>
-        <option value="Phase - Klucarova">Phase - Klucarova</option>
-        <option value="Phase - Jancova">Phase - Jancova</option>
+        <option value="Natuzzi Editions - Strejcek">Natuzzi Editions – Strejcek</option>
+        <option value="Natuzzi Editions - Vimrova">Natuzzi Editions – Vimrova</option>
+        <option value="Natuzzi Italia - Bratislava">Natuzzi Italia – Bratislava</option>
+        <option value="Natuzzi Italia - Jama">Natuzzi Italia – Jama</option>
+        <option value="Natuzzi Italia - River">Natuzzi Italia – River</option>
+        <option value="Natuzzi Italia - SOHO">Natuzzi Italia – SOHO</option>
+        <option value="Softaly - SOHO">Softaly – SOHO</option>
+        <option value="Phase - Klucarova">Phase – Klucarova</option>
+        <option value="Phase - Jancova">Phase – Jancova</option>
         <option value="Jiná">Jiná</option>
       </select>
 
@@ -92,6 +91,7 @@
     </form>
   </div>
 
+  <!-- ✅ animace úspěchu -->
   <div class="success-check" id="successCheck">
     <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
       <defs>
@@ -106,13 +106,13 @@
   </div>
 
   <script>
-    // === Automatická velká písmena ===
+    /* === automaticky velká písmena === */
     const cisloInput = document.querySelector('input[name="cislo"]');
     cisloInput.addEventListener("input", () => {
       cisloInput.value = cisloInput.value.toUpperCase();
     });
 
-    // === Přesný našeptávač adres (CZ, SK, AT) ===
+    /* === přesný našeptávač (CZ, SK, AT) === */
     const uliceInput = document.getElementById("ulice");
     const mestoInput = document.getElementById("mesto");
     const pscInput = document.getElementById("psc");
@@ -130,14 +130,13 @@
         const res = await fetch(url);
         const data = await res.json();
 
-        const queryLower = query.toLowerCase();
+        const q = query.toLowerCase();
         const filtered = data.filter(item =>
-          (item.display_name && item.display_name.toLowerCase().includes(queryLower)) ||
-          (item.address && Object.values(item.address).some(v => v && v.toLowerCase().includes(queryLower)))
+          (item.display_name && item.display_name.toLowerCase().includes(q)) ||
+          (item.address && Object.values(item.address).some(v => v && v.toLowerCase().includes(q)))
         );
 
         if (!filtered.length) return;
-
         filtered.forEach(item => {
           const div = document.createElement("div");
           div.textContent = item.display_name;
@@ -150,151 +149,123 @@
           });
           suggestionContainer.appendChild(div);
         });
-      } catch (err) {
-        console.error("Chyba při načítání adres:", err);
-      }
+      } catch (err) { console.error("Chyba při načítání adres:", err); }
     });
 
     document.addEventListener("click", e => {
-      if (!suggestionContainer.contains(e.target) && e.target !== uliceInput) {
+      if (!suggestionContainer.contains(e.target) && e.target !== uliceInput)
         suggestionContainer.innerHTML = "";
-      }
     });
 
-    // === Validace ===
+    /* === validace tel + e-mail === */
     const telefonInput = document.getElementById("telefon");
     const predvolba = document.getElementById("predvolba");
     const emailInput = document.getElementById("email");
-
     function validateTelefon() { return /^[0-9]{8,12}$/.test(telefonInput.value.trim()); }
     function validateEmail() { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailInput.value.trim()); }
 
-    // === Komprese a náhledy obrázků ===
-    async function compressImage(file, maxSizeMB = 1, maxDim = 1280) {
+    /* === komprese + náhled === */
+    async function compressImage(file, maxSizeMB=1, maxDim=1280){
       const img = await createImageBitmap(file);
-      const canvas = document.createElement("canvas");
-      let [w, h] = [img.width, img.height];
-      if (w > h && w > maxDim) { h *= maxDim / w; w = maxDim; }
-      else if (h > w && h > maxDim) { w *= maxDim / h; h = maxDim; }
-      canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, w, h);
-      let quality = 0.9;
-      let blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
-      while (blob.size / 1024 / 1024 > maxSizeMB && quality > 0.4) {
-        quality -= 0.1;
-        blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
-      }
+      const canvas=document.createElement("canvas");
+      let[w,h]=[img.width,img.height];
+      if(w>h&&w>maxDim){h*=maxDim/w;w=maxDim;}else if(h>w&&h>maxDim){w*=maxDim/h;h=maxDim;}
+      canvas.width=w;canvas.height=h;
+      const ctx=canvas.getContext("2d");ctx.drawImage(img,0,0,w,h);
+      let q=0.9,blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));
+      while(blob.size/1024/1024>maxSizeMB&&q>0.4){q-=0.1;blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));}
       return blob;
     }
 
-    const fotkyInput = document.getElementById("fotky");
-    const preview = document.getElementById("preview");
-    let compressedFiles = [];
-
-    fotkyInput.addEventListener("change", async () => {
-      preview.innerHTML = "";
-      compressedFiles = [];
-      const files = Array.from(fotkyInput.files).slice(0, 5);
-      for (const file of files) {
-        if (!file.type.startsWith("image/")) continue;
-        const item = document.createElement("div");
-        item.classList.add("preview-item");
-        const img = document.createElement("img");
-        const progress = document.createElement("div");
-        progress.classList.add("progress-bar");
-        item.appendChild(progress);
-        preview.appendChild(item);
-        const reader = new FileReader();
-        reader.onload = e => { img.src = e.target.result; item.appendChild(img); };
-        reader.readAsDataURL(file);
-        const blob = await compressImage(file);
-        compressedFiles.push({ name: file.name, blob });
-        let w = 0;
-        const int = setInterval(() => { w += 10; progress.style.width = w + "%"; if (w >= 100) clearInterval(int); }, 40);
+    const fotkyInput=document.getElementById("fotky");
+    const preview=document.getElementById("preview");
+    let compressedFiles=[];
+    fotkyInput.addEventListener("change",async()=>{
+      preview.innerHTML="";compressedFiles=[];
+      const files=Array.from(fotkyInput.files).slice(0,5);
+      for(const file of files){
+        if(!file.type.startsWith("image/"))continue;
+        const item=document.createElement("div");item.classList.add("preview-item");
+        const img=document.createElement("img");const bar=document.createElement("div");
+        bar.classList.add("progress-bar");item.appendChild(bar);preview.appendChild(item);
+        const reader=new FileReader();reader.onload=e=>{img.src=e.target.result;item.appendChild(img);};
+        reader.readAsDataURL(file);const blob=await compressImage(file);
+        compressedFiles.push({name:file.name,blob});
+        let w=0;const t=setInterval(()=>{w+=10;bar.style.width=w+"%";if(w>=100)clearInterval(t);},40);
       }
     });
 
-    // === Sekce Jiná ===
-    const selectZpracoval = document.getElementById("zpracoval");
-    const jinaSekce = document.getElementById("jinaSekce");
-    const jinaInputs = jinaSekce.querySelectorAll("input");
-    selectZpracoval.onchange = () => {
-      if (selectZpracoval.value === "Jiná") {
-        jinaSekce.classList.remove("hidden");
-        jinaInputs.forEach(i => i.required = true);
-      } else {
-        jinaSekce.classList.add("hidden");
-        jinaInputs.forEach(i => i.required = false);
-      }
-    };
+    /* === přepínání sekce Jiná === */
+    const selectZpracoval=document.getElementById("zpracoval");
+    const jinaSekce=document.getElementById("jinaSekce");
+    const jinaInputs=jinaSekce.querySelectorAll("input");
+    selectZpracoval.onchange=()=>{if(selectZpracoval.value==="Jiná"){jinaSekce.classList.remove("hidden");jinaInputs.forEach(i=>i.required=true);}else{jinaSekce.classList.add("hidden");jinaInputs.forEach(i=>i.required=false);}};
 
-    // === Zvuk + fajfka ===
-    function playSuccessSound() {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const o = ctx.createOscillator(); const g = ctx.createGain();
-        o.type = "sine"; o.frequency.setValueAtTime(880, ctx.currentTime);
-        g.gain.setValueAtTime(0.1, ctx.currentTime); o.connect(g); g.connect(ctx.destination);
-        o.start(); o.stop(ctx.currentTime + 0.25);
-      } catch {}
-    }
+    /* === zvuk + fajfka === */
+    function playSuccessSound(){try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const o=ctx.createOscillator();const g=ctx.createGain();o.type="sine";o.frequency.setValueAtTime(880,ctx.currentTime);g.gain.setValueAtTime(0.1,ctx.currentTime);o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+0.25);}catch{}}
+    function showSuccess(){playSuccessSound();const s=document.getElementById("successCheck");s.classList.add("active");setTimeout(()=>{window.location.href="index.html";},2500);}
 
-    function showSuccess() {
-      playSuccessSound();
-      const success = document.getElementById("successCheck");
-      success.classList.add("active");
-      setTimeout(() => { window.location.href = "index.html"; }, 2500);
-    }
-
-    // === Odeslání formuláře ===
-    document.getElementById("reklamaceForm").addEventListener("submit", async e => {
+    /* === odeslání === */
+    document.getElementById("reklamaceForm").addEventListener("submit",async e=>{
       e.preventDefault();
-      const form = e.target;
-      const fields = form.querySelectorAll("input[required], textarea[required], select[required]");
-      let valid = true;
-      fields.forEach(f => {
-        if (!f.value.trim()) { f.classList.add("invalid"); valid = false; }
-        else f.classList.remove("invalid");
-      });
-      if (!validateTelefon()) { telefonInput.classList.add("invalid"); valid = false; }
-      if (!validateEmail()) { emailInput.classList.add("invalid"); valid = false; }
-      if (!adresaPlatna) { alert("Vyber prosím adresu z našeptávače."); uliceInput.classList.add("invalid"); valid = false; }
-      if (!valid) return alert("Zkontroluj červeně označená pole.");
+      const f=e.target;
+      const fields=f.querySelectorAll("input[required],textarea[required],select[required]");
+      let valid=true;
+      fields.forEach(i=>{if(!i.value.trim()){i.classList.add("invalid");valid=false;}else i.classList.remove("invalid");});
+      if(!validateTelefon()){telefonInput.classList.add("invalid");valid=false;}
+      if(!validateEmail()){emailInput.classList.add("invalid");valid=false;}
+      if(!adresaPlatna){alert("Vyber prosím adresu z našeptávače.");uliceInput.classList.add("invalid");valid=false;}
+      if(!valid)return alert("Zkontroluj červeně označená pole.");
 
-      const owner = "radecek222-boop", repo = "reklamace", token = prompt("Zadej GitHub token:");
-      const cisloReklamace = (form.cislo.value.trim().toUpperCase() || "REK");
-
-      const dataObj = {
-        typ: "reklamace",
-        contract: form.zpracoval.value,
-        cislo: cisloReklamace,
-        zakaznik: form.zakaznik.value,
-        adresa: `${form.ulice.value}, ${form.mesto.value}, ${form.psc.value}`,
-        telefon: `${predvolba.value} ${form.telefon.value}`,
-        email: form.email.value,
-        produkt: form.produkt.value,
-        datum_prodeje: form.datum_prodeje.value,
-        datum_reklamace: form.datum_reklamace.value,
-        popis: form.popis.value,
-        fotky: [],
-        jinaZadavatel: form.zpracoval.value === "Jiná"
-          ? { jmeno: form.jinaJmeno.value, email: form.jinaEmail.value, telefon: form.jinaTelefon.value }
-          : null
+      const owner="radecek222-boop",repo="reklamace",token=prompt("Zadej GitHub token:");
+      const cislo=f.cislo.value.trim().toUpperCase()||"REK";
+      const dataObj={
+        typ:"reklamace",
+        contract:f.zpracoval.value,
+        cislo,
+        zakaznik:f.zakaznik.value,
+        adresa:`${f.ulice.value}, ${f.mesto.value}, ${f.psc.value}`,
+        telefon:`${predvolba.value} ${f.telefon.value}`,
+        email:f.email.value,
+        produkt:f.produkt.value,
+        datum_prodeje:f.datum_prodeje.value,
+        datum_reklamace:f.datum_reklamace.value,
+        popis:f.popis.value,
+        fotky:[],
+        jinaZadavatel:f.zpracoval.value==="Jiná"?{jmeno:f.jinaJmeno.value,email:f.jinaEmail.value,telefon:f.jinaTelefon.value}:null
       };
 
-      try {
-        for (const file of compressedFiles) {
-          const safeName = `${cisloReklamace}_${file.name.replace(/\s+/g, "_")}`;
-          const path = `foto/${safeName}`;
-          const message = `Nová fotka k reklamaci ${cisloReklamace}`;
-          await uploadToGitHub(owner, repo, path, file.blob, message, token);
-          dataObj.fotky.push(safeName);
+      async function uploadToGitHub(owner,repo,path,blob,msg,token){
+        const base64=await new Promise(r=>{const reader=new FileReader();reader.onloadend=()=>r(reader.result.split(",")[1]);reader.readAsDataURL(blob);});
+        const res=await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`,{
+          method:"PUT",
+          headers:{"Authorization":`token ${token}`,"Accept":"application/vnd.github.v3+json","Content-Type":"application/json"},
+          body:JSON.stringify({message:msg,content:base64,branch:"main"})
+        });
+        if(!res.ok)throw new Error(await res.text());
+      }
+
+      async function submitToGitHub(dataObj,owner,repo,path,msg,token){
+        const url=`https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+        const res=await fetch(url,{headers:{"Authorization":`token ${token}`,"Accept":"application/vnd.github.v3+json"}});
+        let old="[]",sha=null;
+        if(res.ok){const j=await res.json();old=atob(j.content.replace(/\n/g,""));sha=j.sha;}
+        const arr=JSON.parse(old);arr.push(dataObj);
+        const base64=btoa(unescape(encodeURIComponent(JSON.stringify(arr,null,2))));
+        const body={message:msg,content:base64,branch:"main"};if(sha)body.sha=sha;
+        const put=await fetch(url,{method:"PUT",headers:{"Authorization":`token ${token}`,"Accept":"application/vnd.github.v3+json","Content-Type":"application/json"},body:JSON.stringify(body)});
+        if(!put.ok)throw new Error(await put.text());
+      }
+
+      try{
+        for(const fch of compressedFiles){
+          const safe=`${cislo}_${fch.name.replace(/\s+/g,"_")}`;
+          await uploadToGitHub(owner,repo,`foto/${safe}`,fch.blob,`Nová fotka k reklamaci ${cislo}`,token);
+          dataObj.fotky.push(safe);
         }
-        const message = `Nová reklamace ${cisloReklamace}`;
-        await submitToGitHub(dataObj, owner, repo, "orders.json", message, token);
-        showSuccess(); form.reset();
-      } catch (err) { alert("Chyba: " + err.message); }
+        await submitToGitHub(dataObj,owner,repo,"orders.json",`Nová reklamace ${cislo}`,token);
+        showSuccess();f.reset();
+      }catch(err){alert("Chyba: "+err.message);}
     });
   </script>
 </body>
