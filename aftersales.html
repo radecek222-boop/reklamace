@@ -1,178 +1,125 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pozáruční servis – White Glove Service</title>
-  <style>
-    body {
-      font-family: "Inter", system-ui, sans-serif;
-      background: #f6f7fb;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-    }
-    .wrapper {
-      background: #fff;
-      padding: 30px;
-      margin-top: 40px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 700px;
-    }
-    h1 { text-align:center; font-size:1.8em; font-weight:800; margin-bottom:10px; }
-    h2 { text-align:center; font-size:1em; font-weight:500; color:#555; margin-bottom:30px; }
-    label { display:block; font-weight:600; margin-top:15px; margin-bottom:5px; }
-    input, textarea {
-      width:100%; padding:10px; font-size:1em;
-      border:1px solid #ccc; border-radius:6px; box-sizing:border-box;
-    }
-    textarea { height:100px; resize:vertical; }
-    .btn {
-      display:inline-block; background:#6c757d; color:#fff;
-      text-decoration:none; padding:12px 28px; border-radius:8px;
-      font-weight:600; font-size:1em; transition:background 0.2s;
-      margin:10px 5px 0 0; border:none; cursor:pointer;
-    }
-    .btn:hover { background:#5a6268; }
-    .actions { text-align:center; margin-top:25px; }
-    .note {
-      font-size: 0.9em;
-      color: #666;
-      text-align: center;
-      margin-top: 25px;
-      line-height: 1.5;
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WHITE GLOVE SERVICE – Aftersales servis</title>
+<style>
+:root { font-family: Inter, system-ui, Arial, sans-serif; color:#111; }
+body { margin:0; padding:20px; background:#f6f7fb; }
+h1 { text-align:center; font-size:2.2em; font-weight:900; margin:0 0 10px; }
+h2 { text-align:center; font-size:1.2em; font-weight:600; margin:0 0 20px; color:#555; }
+
+.container { max-width:1250px; margin:auto; background:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
+
+.top-bar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px; }
+.btn {
+  display:inline-block; padding:10px 20px; border:none; border-radius:6px;
+  font-weight:600; cursor:pointer; color:white; box-shadow:0 2px 5px rgba(0,0,0,0.15);
+  transition:opacity 0.2s, transform 0.1s;
+}
+.btn:hover { opacity:0.9; transform:scale(1.02); }
+.btn-back { background:linear-gradient(145deg, #808080, #dcdcdc, #a9a9a9); color:#000; }
+.btn-reload { background:linear-gradient(145deg, #004080, #1e90ff, #003366); color:white; }
+
+table { width:100%; border-collapse:collapse; }
+th, td { padding:8px 10px; border-bottom:1px solid #ddd; text-align:left; vertical-align:top; font-size:0.9em; }
+th { background:#e9ecef; font-weight:700; }
+tr:hover { background:#f8f9fa; }
+tr.wait { background:#ffe4b5; }
+tr.new { background:#fff8dc; }
+
+.photo-preview img { height:60px; margin:2px; border-radius:4px; cursor:pointer; transition:transform 0.2s ease-in-out; }
+.photo-preview img:hover { transform:scale(1.1); }
+
+#lightbox {
+  position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8);
+  display:none; justify-content:center; align-items:center; z-index:1000;
+}
+#lightbox img { max-width:90%; max-height:90%; border-radius:8px; }
+
+@media(max-width:768px){
+  th, td { font-size:0.8em; }
+  .photo-preview img { height:50px; }
+  .top-bar { flex-direction:column; }
+}
+</style>
 </head>
+
 <body>
+<h1>WHITE GLOVE SERVICE</h1>
+<h2>Aftersales servis</h2>
 
-  <div class="wrapper">
-    <h1>WHITE GLOVE SERVICE</h1>
-    <h2>Pozáruční servis</h2>
-
-    <form id="servisForm">
-      <label>Jméno a příjmení:</label>
-      <input type="text" name="zakaznik" required>
-
-      <label>Adresa:</label>
-      <input type="text" name="adresa" required>
-
-      <label>Telefon:</label>
-      <input type="tel" name="telefon" required>
-
-      <label>E-mail:</label>
-      <input type="email" name="email" required>
-
-      <label>Model / Název produktu:</label>
-      <input type="text" name="produkt">
-
-      <label>Datum nákupu (pokud je známo):</label>
-      <input type="date" name="datum_nakupu">
-
-      <label>Popis požadavku:</label>
-      <textarea name="popis"></textarea>
-
-      <label>Přiložit fotografie (max. 3):</label>
-      <input type="file" id="fotky" accept="image/*" multiple>
-
-      <p class="note">
-        Po odeslání formuláře bude váš požadavek předán našemu technikovi.  
-        Ten vás bude kontaktovat v nejbližším možném termínu po ověření možností zásahu a orientační ceny opravy.  
-        Děkujeme za pochopení a trpělivost.
-      </p>
-
-      <div class="actions">
-        <a href="index.html" class="btn">Zpět</a>
-        <button type="submit" class="btn">Odeslat požadavek</button>
-      </div>
-    </form>
+<div class="container">
+  <div class="top-bar">
+    <button class="btn btn-back" onclick="history.back()">⬅️ Zpět</button>
+    <button class="btn btn-reload" onclick="location.reload()">🔄 Načíst znovu</button>
   </div>
 
-  <script>
-    async function submitToGitHub(dataObj, owner, repo, path, message, token) {
-      const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-      const getResp = await fetch(getUrl, {
-        headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json" }
-      });
+  <table id="claims-table">
+    <thead>
+      <tr>
+        <th>Objednávka</th>
+        <th>Zákazník</th>
+        <th>Technik</th>
+        <th>Stav</th>
+        <th>Popis</th>
+        <th>Fotky</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
 
-      let existingContent = "[]";
-      let sha = null;
-      if (getResp.ok) {
-        const existing = await getResp.json();
-        existingContent = atob(existing.content.replace(/\n/g, ""));
-        sha = existing.sha;
-      }
+<div id="lightbox" onclick="this.style.display='none'">
+  <img src="">
+</div>
 
-      const arr = JSON.parse(existingContent);
-      arr.push(dataObj);
+<script>
+const dataUrl = "https://whitegloveservice.github.io/data/reklamace.json";
 
-      const newContent = JSON.stringify(arr, null, 2);
-      const base64 = btoa(unescape(encodeURIComponent(newContent)));
+async function loadData(){
+  const tbody = document.querySelector("#claims-table tbody");
+  tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; padding:20px;'>Načítám data...</td></tr>";
 
-      const body = { message, content: base64, branch: "main" };
-      if (sha) body.sha = sha;
+  try {
+    const res = await fetch(dataUrl);
+    const data = await res.json();
+    tbody.innerHTML = "";
 
-      const putResp = await fetch(getUrl, {
-        method: "PUT",
-        headers: {
-          "Authorization": `token ${token}`,
-          "Accept": "application/vnd.github.v3+json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-      });
+    const pending = data.filter(x => (x["Vyřešeno"] || "").toUpperCase() !== "ANO");
 
-      if (!putResp.ok) {
-        const err = await putResp.text();
-        throw new Error("Chyba při zápisu: " + err);
-      }
+    pending.forEach(item => {
+      const photos = [item.Foto1, item.Foto2].filter(Boolean)
+        .map(url => `<img src="${url}" onclick="openLightbox('${url}')">`).join("");
 
-      return await putResp.json();
-    }
+      const tr = document.createElement("tr");
+      const stav = (item["Stav"] || "").toLowerCase();
+      if (stav.includes("nová")) tr.classList.add("new");
+      else tr.classList.add("wait");
 
-    document.getElementById("servisForm").addEventListener("submit", async function(e) {
-      e.preventDefault();
-      if (!confirm("Opravdu odeslat požadavek?")) return;
-
-      const f = e.target;
-      const files = document.getElementById("fotky").files;
-
-      const dataObj = {
-        typ: "pozáruční",
-        contract: "POZ",
-        zakaznik: f.zakaznik.value,
-        adresa: f.adresa.value,
-        telefon: f.telefon.value,
-        email: f.email.value,
-        produkt: f.produkt.value,
-        datum_nakupu: f.datum_nakupu.value,
-        popis: f.popis.value,
-        fotky: Array.from(files).map(f => f.name),
-        datum_vytvoreni: new Date().toISOString().split("T")[0]
-      };
-
-      try {
-        const owner = "radecek222-boop";
-        const repo = "reklamace";
-        const path = "orders.json";
-        const message = `Nový pozáruční servis od ${dataObj.zakaznik || "neznámý zákazník"}`;
-        const token = prompt("Zadej GitHub token pro zápis:");
-        if (!token) throw new Error("Nebyl zadán token – požadavek se neuložil.");
-
-        await submitToGitHub(dataObj, owner, repo, path, message, token);
-
-        alert("✅ Děkujeme, požadavek byl uložen.");
-        f.reset();
-      } catch (err) {
-        alert("❌ Chyba při odesílání: " + err.message);
-      }
+      tr.innerHTML = `
+        <td>${item["Číslo objednávky"]}</td>
+        <td>${item["Zákazník"]}</td>
+        <td>${item["Technik"]}</td>
+        <td>${item["Stav"]}</td>
+        <td>${item["Popis CZ"]}</td>
+        <td class="photo-preview">${photos}</td>
+      `;
+      tbody.appendChild(tr);
     });
-  </script>
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan='6' style='color:red; text-align:center;'>Chyba: ${err}</td></tr>`;
+  }
+}
 
+function openLightbox(url){
+  const lb = document.getElementById("lightbox");
+  lb.style.display = "flex";
+  lb.querySelector("img").src = url;
+}
+
+loadData();
+</script>
 </body>
 </html>
