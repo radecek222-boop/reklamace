@@ -195,8 +195,9 @@ function openPhoto(src) {
   view.onclick = () => { view.style.display = "none"; };
 }
 
+// ✅ Funkce: Vrátit reklamaci zpět do orders.json a obnovit fotky
 async function returnToActive(item) {
-  if (!confirm("Vrátit tuto reklamaci zpět mezi aktivní?")) return;
+  if (!confirm("Vrátit tuto reklamaci zpět mezi aktivní (včetně fotek)?")) return;
   try {
     const [hotoveRes, ordersRes] = await Promise.all([
       fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${HOTOVE_FILE}?${Date.now()}`),
@@ -207,6 +208,16 @@ async function returnToActive(item) {
       ordersRes.json().catch(()=>[])
     ]);
 
+    // 🧩 zkontroluj a obnov fotky
+    for (const key of ["Foto1", "Foto2", "Foto3"]) {
+      if (item[key] && !item[key].includes(`/uploads/`)) {
+        const blob = await fetch(item[key]).then(r => r.blob());
+        const file = new File([blob], key + ".jpg", { type: "image/jpeg" });
+        const newUrl = await uploadFile(file);
+        item[key] = newUrl;
+      }
+    }
+
     item["Stav"] = "Nová reklamace";
     item["Vyřešeno"] = "NE";
 
@@ -216,7 +227,7 @@ async function returnToActive(item) {
     await updateFile(HOTOVE_FILE, JSON.stringify(updatedHotove, null, 2));
     await updateFile(ORDERS_FILE, JSON.stringify(orders, null, 2));
 
-    alert("Reklamace byla vrácena mezi nové.");
+    alert("Reklamace byla vrácena mezi nové a fotky obnoveny.");
     document.getElementById("detailModal").style.display = "none";
     loadOrders();
   } catch (e) {
@@ -224,6 +235,32 @@ async function returnToActive(item) {
   }
 }
 
+// 📤 Upload obnovené fotky do GitHubu
+async function uploadFile(file){
+  const reader = new FileReader();
+  return new Promise((resolve,reject)=>{
+    reader.onload = async ()=>{
+      const base64 = reader.result.split(",")[1];
+      const path = `uploads/${Date.now()}_${file.name}`;
+      const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${path}`, {
+        method:"PUT",
+        headers:{
+          Authorization:`token ${TOKEN}`,
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          message:`Obnovena fotka ${file.name}`,
+          content:base64
+        })
+      });
+      if(res.ok) resolve(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${path}`);
+      else reject("Chyba obnovení obrázku");
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// 📄 Update JSON souborů
 async function updateFile(filename, content) {
   const metaRes = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`, {
     headers: { Authorization: `token ${TOKEN}` }
