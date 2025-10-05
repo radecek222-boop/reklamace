@@ -78,6 +78,11 @@
     font-weight: 600;
     cursor: pointer;
     box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  #adminButton.blink {
+    animation: blinkRed 1s infinite;
   }
 
   #adminLoginOverlay {
@@ -149,44 +154,27 @@
     display:none;
   }
 
-  #adminStatus {
-    position: fixed;
-    bottom: 15px;
-    right: 20px;
-    background: #111;
-    color: #fff;
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-size: 0.9em;
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    display: none;
-    z-index: 2500;
+  @keyframes fadeIn {
+    from { opacity:0; transform:translateY(-10px); }
+    to { opacity:1; transform:translateY(0); }
   }
 
-  #logoutBtn {
-    background: transparent;
-    border: 1px solid #fff;
-    color: #fff;
-    border-radius: 6px;
-    padding: 4px 8px;
-    margin-left: 10px;
-    cursor: pointer;
-    font-size: 0.8em;
-    transition: all 0.2s;
+  @keyframes fadeInOut {
+    0% { opacity: 0; transform: scale(0.8); }
+    20% { opacity: 1; transform: scale(1.1); }
+    50% { transform: scale(1); }
+    80% { opacity: 1; transform: scale(1.05); }
+    100% { opacity: 0; transform: scale(0.8); }
   }
-  #logoutBtn:hover {
-    background: rgba(255,255,255,0.1);
+
+  @keyframes blinkRed {
+    0%, 50%, 100% { background: linear-gradient(135deg, #b30000, #ff3333); }
+    25%, 75% { background: linear-gradient(135deg, #ff6666, #ff3333); }
   }
 
   @media (max-width:768px) {
     #adminButton { right:50%; transform:translateX(50%); top:10px; }
     .btn-container { flex-direction: column; gap: 15px; }
-  }
-
-  @keyframes fadeIn {
-    from { opacity:0; transform:translateY(-10px); }
-    to { opacity:1; transform:translateY(0); }
   }
 </style>
 </head>
@@ -201,12 +189,7 @@
     <a href="seznam.html" id="adminListButton" class="btn btn-list" style="display:none;">Seznam reklamací</a>
   </div>
 
-  <button id="adminButton">Admin</button>
-
-  <div id="adminStatus">
-    Admin aktivní – zbývá <span id="countdown">15:00</span>
-    <button id="logoutBtn">Odhlásit</button>
-  </div>
+  <button id="adminButton">ADMIN</button>
 
   <div id="adminLoginOverlay">
     <div id="adminLoginBox">
@@ -218,114 +201,133 @@
     </div>
   </div>
 
-  <script>
-    const ACCESS_CODE = "wgs2025";
-    const EXPIRATION_MINUTES = 15;
-    const INACTIVITY_MINUTES = 5;
-    let inactivityTimer, countdownTimer, remainingTime = EXPIRATION_MINUTES * 60;
+<script>
+const ACCESS_CODE = "wgs2025";
+const EXPIRATION_MINUTES = 10;
+const INACTIVITY_MINUTES = 5;
+let inactivityTimer, countdownTimer, remainingTime = EXPIRATION_MINUTES * 60;
+const listButton = document.getElementById("adminListButton");
+const adminButton = document.getElementById("adminButton");
 
-    const listButton = document.getElementById("adminListButton");
-    const statusBox = document.getElementById("adminStatus");
-    const countdownEl = document.getElementById("countdown");
-    const logoutBtn = document.getElementById("logoutBtn");
+function showCheckmark() {
+  const overlay = document.createElement("div");
+  overlay.style.position = "fixed";
+  overlay.style.top = 0;
+  overlay.style.left = 0;
+  overlay.style.width = "100%";
+  overlay.style.height = "100%";
+  overlay.style.background = "rgba(0,0,0,0.6)";
+  overlay.style.display = "flex";
+  overlay.style.justifyContent = "center";
+  overlay.style.alignItems = "center";
+  overlay.style.zIndex = "4000";
+  overlay.innerHTML = `
+    <div style="text-align:center; color:white; font-weight:700; font-size:1.2em; animation: fadeInOut 1.5s ease-in-out;">
+      <div style="font-size:5em; color:#3cd67a;">✔️</div>
+      <div>Přístup potvrzen</div>
+    </div>`;
+  document.body.appendChild(overlay);
+  setTimeout(() => overlay.remove(), 1500);
+}
 
-    function showAdminList() {
-      listButton.style.display = "inline-block";
-      statusBox.style.display = "block";
-      startCountdown();
+function showAdminList() {
+  listButton.style.display = "inline-block";
+  startCountdown();
+}
+
+function hideAdminList() {
+  listButton.style.display = "none";
+  stopCountdown();
+  adminButton.textContent = "ADMIN";
+  adminButton.classList.remove("blink");
+}
+
+document.getElementById("adminButton").addEventListener("click", () => {
+  document.getElementById("adminLoginOverlay").style.display = "flex";
+  document.getElementById("adminPassword").focus();
+});
+
+function tryLogin() {
+  const input = document.getElementById("adminPassword");
+  const error = document.getElementById("adminError");
+  if (input.value.trim() === ACCESS_CODE) {
+    localStorage.setItem("wgsAdmin", JSON.stringify({ code: "OK", time: Date.now() }));
+    document.getElementById("adminLoginOverlay").style.display = "none";
+    error.style.display = "none";
+    showCheckmark();
+    startInactivityTimer();
+    showAdminList();
+  } else {
+    error.style.display = "block";
+    input.value = "";
+    input.focus();
+  }
+}
+
+function logout(reason = "neaktivity") {
+  localStorage.removeItem("wgsAdmin");
+  hideAdminList();
+  console.log(`⏱️ Přístup admina byl ukončen (${reason}).`);
+}
+
+function resetInactivityTimer() {
+  clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(() => logout("neaktivity"), INACTIVITY_MINUTES * 60 * 1000);
+}
+
+function startInactivityTimer() {
+  resetInactivityTimer();
+  ["click", "mousemove", "keypress", "scroll", "touchstart", "focus"].forEach(evt => {
+    document.addEventListener(evt, resetInactivityTimer, { passive: true });
+  });
+}
+
+function startCountdown() {
+  clearInterval(countdownTimer);
+  remainingTime = EXPIRATION_MINUTES * 60;
+  countdownTimer = setInterval(() => {
+    remainingTime--;
+    if (remainingTime <= 0) {
+      logout("vypršení času");
+      clearInterval(countdownTimer);
+      return;
     }
+    const m = String(Math.floor(remainingTime / 60)).padStart(2, "0");
+    const s = String(remainingTime % 60).padStart(2, "0");
+    adminButton.textContent = `${m}:${s}`;
 
-    function hideAdminList() {
-      listButton.style.display = "none";
-      statusBox.style.display = "none";
-      stopCountdown();
+    // poslední minuta = blikání červeně
+    if (remainingTime <= 60) {
+      adminButton.classList.add("blink");
+    } else {
+      adminButton.classList.remove("blink");
     }
+  }, 1000);
+}
 
-    document.getElementById("adminButton").addEventListener("click", () => {
-      document.getElementById("adminLoginOverlay").style.display = "flex";
-      document.getElementById("adminPassword").focus();
-    });
+function stopCountdown() {
+  clearInterval(countdownTimer);
+  remainingTime = EXPIRATION_MINUTES * 60;
+}
 
-    function tryLogin(){
-      const input = document.getElementById("adminPassword");
-      const error = document.getElementById("adminError");
-      if(input.value.trim() === ACCESS_CODE){
-        localStorage.setItem("wgsAdmin", JSON.stringify({ code:"OK", time:Date.now() }));
-        document.getElementById("adminLoginOverlay").style.display = "none";
-        error.style.display = "none";
-        startInactivityTimer();
-        showAdminList();
-        alert("✅ Přístup pro admina povolen na 15 minut.");
-      } else {
-        error.style.display = "block";
-        input.value = "";
-        input.focus();
-      }
-    }
-
-    function logout(reason="neaktivity") {
+window.addEventListener("DOMContentLoaded", () => {
+  const adminData = localStorage.getItem("wgsAdmin");
+  if (adminData) {
+    const { time } = JSON.parse(adminData);
+    const now = Date.now();
+    if ((now - time) / 60000 < EXPIRATION_MINUTES) {
+      showAdminList();
+      startInactivityTimer();
+    } else {
       localStorage.removeItem("wgsAdmin");
-      hideAdminList();
-      alert(`⏱️ Přístup admina byl ukončen (${reason}).`);
     }
+  }
+});
 
-    logoutBtn.addEventListener("click", () => logout("odhlášení"));
-
-    function resetInactivityTimer(){
-      clearTimeout(inactivityTimer);
-      inactivityTimer = setTimeout(() => logout("neaktivity"), INACTIVITY_MINUTES * 60 * 1000);
-    }
-
-    function startInactivityTimer(){
-      resetInactivityTimer();
-      ["click","mousemove","keypress","scroll","touchstart","focus"].forEach(evt => {
-        document.addEventListener(evt, resetInactivityTimer, { passive:true });
-      });
-      window.addEventListener("blur", () => {
-        clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(() => logout("neaktivity"), INACTIVITY_MINUTES * 60 * 1000);
-      });
-    }
-
-    function startCountdown() {
-      clearInterval(countdownTimer);
-      remainingTime = EXPIRATION_MINUTES * 60;
-      countdownTimer = setInterval(() => {
-        remainingTime--;
-        if (remainingTime <= 0) {
-          logout("vypršení času");
-          clearInterval(countdownTimer);
-          return;
-        }
-        const m = String(Math.floor(remainingTime / 60)).padStart(2, "0");
-        const s = String(remainingTime % 60).padStart(2, "0");
-        countdownEl.textContent = `${m}:${s}`;
-      }, 1000);
-    }
-
-    function stopCountdown() {
-      clearInterval(countdownTimer);
-      remainingTime = EXPIRATION_MINUTES * 60;
-    }
-
-    window.addEventListener("DOMContentLoaded", () => {
-      const adminData = localStorage.getItem("wgsAdmin");
-      if(adminData){
-        const { time } = JSON.parse(adminData);
-        const now = Date.now();
-        if((now - time) / 60000 < EXPIRATION_MINUTES){
-          showAdminList();
-          startInactivityTimer();
-        } else {
-          localStorage.removeItem("wgsAdmin");
-        }
-      }
-    });
-
-    document.getElementById("adminLoginBtn").addEventListener("click", tryLogin);
-    document.getElementById("adminPassword").addEventListener("keypress", e => {
-      if(e.key === "Enter") tryLogin();
-    });
-  </script>
+document.getElementById("adminLoginBtn").addEventListener("click", tryLogin);
+document.getElementById("adminPassword").addEventListener("keypress", e => {
+  if (e.key === "Enter") tryLogin();
+});
+</script>
 </body>
 </html>
