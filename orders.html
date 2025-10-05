@@ -1,232 +1,218 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>WHITE GLOVE SERVICE – Nová reklamace</title>
-<style>
-:root { font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:#111; }
-body { margin:0; padding:20px; background:#f6f7fb; }
-h1 { text-align:center; font-size:2em; font-weight:900; margin:0 0 10px; }
-h2 { text-align:center; font-size:1.1em; font-weight:600; margin:0 0 20px; color:#555; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nová reklamace – White Glove Service</title>
+  <style>
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      background: #f6f7fb;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    .wrapper {
+      background: #fff;
+      padding: 30px;
+      margin-top: 40px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 700px;
+    }
+    h1, h2 { text-align: center; margin: 0 0 20px; }
+    label { display: block; font-weight: 600; margin-top: 15px; margin-bottom: 5px; }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    textarea { height: 100px; resize: vertical; }
+    input[type="file"] { margin-top: 5px; }
 
-.top-actions { text-align:center; margin-bottom:20px; }
+    /* ✅ jednotné tlačítka */
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1em;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s ease-in-out, opacity 0.2s;
+      color: white;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+      min-width: 140px;
+    }
+    .btn:hover { transform: scale(1.04); opacity: 0.9; }
+    .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
+    .btn-send { background: linear-gradient(135deg, #0046ff, #357aff); }
 
-.btn-gradient {
-  display:inline-block; text-decoration:none; padding:10px 22px; border-radius:8px;
-  font-weight:600; font-size:1em; color:#fff; border:none; cursor:pointer;
-  box-shadow:0 2px 8px rgba(0,0,0,0.15);
-  transition:transform 0.15s ease-in-out, opacity 0.2s; margin:4px;
-}
-.btn-gradient:hover { transform:scale(1.04); opacity:0.9; }
-.btn-gray { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
-.btn-blue { background:linear-gradient(135deg,#0046ff,#357aff); }
-.btn-green { background:linear-gradient(135deg,#00b36b,#3cd67a); }
-
-@media(max-width:768px){
-  .btn-gradient{display:block;width:100%;text-align:center;padding:14px 0;font-size:1.05em;margin:8px 0;}
-}
-
-form { max-width:700px; margin:0 auto; background:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
-label { display:block; margin-top:12px; font-weight:600; }
-input, textarea, select {
-  width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; margin-top:4px;
-  font-size:1em; font-family:inherit;
-}
-textarea { resize:vertical; min-height:80px; }
-
-#suggestions {
-  list-style:none; margin:0; padding:0;
-  position:absolute; background:white;
-  border:1px solid #ccc; border-radius:6px;
-  width:calc(100% - 2px);
-  max-height:180px; overflow-y:auto;
-  z-index:1000; display:none;
-}
-#suggestions li { padding:8px 10px; cursor:pointer; }
-#suggestions li:hover { background:#f1f3f5; }
-
-.photo-preview { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
-.photo-preview img { width:90px; border-radius:6px; border:1px solid #ccc; object-fit:cover; }
-</style>
-</head>
-<body>
-<h1>WHITE GLOVE SERVICE</h1>
-<h2>Nový servisní požadavek / reklamace</h2>
-
-<div class="top-actions">
-  <a href="index.html" class="btn-gradient btn-gray">Zpět na hlavní stránku</a>
-  <button onclick="window.location.reload()" class="btn-gradient btn-blue">Načíst znovu</button>
-</div>
-
-<form id="reklamaceForm">
-  <label>Zákazník</label>
-  <input type="text" id="zakaznik" required>
-
-  <label>Adresa</label>
-  <div style="position:relative;">
-    <input type="text" id="adresa" placeholder="Zadejte ulici a číslo..." autocomplete="off" required>
-    <ul id="suggestions"></ul>
-  </div>
-
-  <label>Telefon</label>
-  <input type="tel" id="telefon">
-
-  <label>E-mail</label>
-  <input type="email" id="email">
-
-  <label>Značka</label>
-  <select id="znacka">
-    <option value="">Vyberte</option>
-    <option value="Natuzzi Italia">Natuzzi Italia</option>
-    <option value="Natuzzi Editions">Natuzzi Editions</option>
-    <option value="Softaly">Softaly</option>
-    <option value="Jiná">Jiná</option>
-  </select>
-
-  <label>Model</label>
-  <input type="text" id="model">
-
-  <label>Popis závady</label>
-  <textarea id="popis"></textarea>
-
-  <label>Fotky (max 3)</label>
-  <input type="file" id="fotky" accept="image/*" multiple>
-  <div class="photo-preview" id="preview"></div>
-
-  <div style="text-align:center;margin-top:20px;">
-    <button type="submit" class="btn-gradient btn-green">Uložit reklamaci</button>
-    <button type="button" class="btn-gradient btn-gray" onclick="window.history.back()">Zpět</button>
-  </div>
-</form>
-
-<script>
-const GITHUB_USER = "radecek222-boop";
-const REPO = "reklamace";
-const TOKEN = "TVŮJ_TOKEN"; // ⚠️ vlož svůj GitHub token
-const ORDERS_FILE = "orders.json";
-
-// 🧠 Adresní našeptávač (OpenStreetMap)
-const adresaInput = document.getElementById("adresa");
-const suggestions = document.getElementById("suggestions");
-let timer = null;
-
-adresaInput.addEventListener("input", () => {
-  clearTimeout(timer);
-  const query = adresaInput.value.trim();
-  if (query.length < 3) {
-    suggestions.style.display = "none";
-    return;
-  }
-  timer = setTimeout(() => searchAddress(query), 400);
-});
-
-async function searchAddress(query) {
-  try {
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=cz&q=${encodeURIComponent(query)}`);
-    const data = await res.json();
-    showSuggestions(data);
-  } catch (e) {
-    console.warn("Chyba při načítání adres:", e);
-  }
-}
-
-function showSuggestions(results) {
-  suggestions.innerHTML = "";
-  if (!results.length) {
-    suggestions.style.display = "none";
-    return;
-  }
-  results.slice(0, 8).forEach(r => {
-    const li = document.createElement("li");
-    li.textContent = r.display_name;
-    li.onclick = () => selectAddress(r.display_name);
-    suggestions.appendChild(li);
-  });
-  suggestions.style.display = "block";
-}
-
-function selectAddress(address) {
-  adresaInput.value = address;
-  suggestions.style.display = "none";
-}
-
-// 📸 Náhled fotek
-document.getElementById("fotky").addEventListener("change", e => {
-  const preview = document.getElementById("preview");
-  preview.innerHTML = "";
-  [...e.target.files].slice(0,3).forEach(file => {
-    const img = document.createElement("img");
-    img.src = URL.createObjectURL(file);
-    preview.appendChild(img);
-  });
-});
-
-// 💾 Uložení reklamace
-document.getElementById("reklamaceForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  try {
-    const newOrder = {
-      "Číslo objednávky": "CZ" + new Date().getFullYear() + "-" + Math.floor(Math.random()*9999),
-      "Číslo reklamace": "NBU-" + Math.floor(Math.random()*99999999),
-      "Zákazník": zakaznik.value.trim(),
-      "Adresa": adresa.value.trim(),
-      "Telefon": telefon.value.trim(),
-      "Email": email.value.trim(),
-      "Značka": znacka.value,
-      "Model": model.value,
-      "Popis CZ": popis.value,
-      "Datum podání reklamace": new Date().toISOString().split("T")[0],
-      "Stav": "Nová reklamace",
-      "Vyřešeno": "NE"
-    };
-
-    const files = [...document.getElementById("fotky").files].slice(0,3);
-    for (let i=0;i<files.length;i++) {
-      const url = await uploadFile(files[i]);
-      newOrder[`Foto${i+1}`] = url;
+    .actions {
+      text-align: center;
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
     }
 
-    const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${ORDERS_FILE}?${Date.now()}`);
-    const data = await res.json().catch(()=>[]);
-    data.push(newOrder);
-    await updateFile(ORDERS_FILE, JSON.stringify(data, null, 2));
+    .hidden { display: none; }
 
-    alert("Reklamace byla úspěšně uložena.");
-    e.target.reset();
-    document.getElementById("preview").innerHTML = "";
-  } catch (err) {
-    alert("Chyba při ukládání: " + err.message);
-  }
-});
+    /* 🔍 našeptávač adres */
+    #suggestions {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      position: absolute;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 100%;
+      max-height: 180px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+    }
+    #suggestions li { padding: 8px 10px; cursor: pointer; }
+    #suggestions li:hover { background: #f1f3f5; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <h1>WHITE GLOVE SERVICE</h1>
+    <h2>Nová reklamace</h2>
 
-async function uploadFile(file){
-  const reader = new FileReader();
-  return new Promise((resolve,reject)=>{
-    reader.onload = async ()=>{
-      const base64 = reader.result.split(",")[1];
-      const path = `uploads/${Date.now()}_${file.name}`;
-      const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${path}`, {
-        method:"PUT",
-        headers:{Authorization:`token ${TOKEN}`,"Content-Type":"application/json"},
-        body:JSON.stringify({message:`Nahrána fotka ${file.name}`,content:base64})
+    <form id="reklamaceForm">
+      <label>Číslo reklamace / objednávky:</label>
+      <input type="text" name="cislo" required>
+
+      <label>Zákazník:</label>
+      <input type="text" name="zakaznik" required>
+
+      <label>Adresa:</label>
+      <div style="position: relative;">
+        <input type="text" name="adresa" id="adresa" placeholder="Zadejte ulici..." autocomplete="off" required>
+        <ul id="suggestions"></ul>
+      </div>
+
+      <label>Telefon:</label>
+      <input type="tel" name="telefon">
+      <label>E-mail:</label>
+      <input type="email" name="email">
+
+      <label>Model / Název produktu:</label>
+      <input type="text" name="produkt">
+
+      <label>Datum prodeje:</label>
+      <input type="date" name="datum_prodeje">
+      <label>Datum reklamace:</label>
+      <input type="date" name="datum_reklamace">
+
+      <label>Popis závady:</label>
+      <textarea name="popis"></textarea>
+
+      <label>Přiložit fotografie (max. 3):</label>
+      <input type="file" id="fotky" accept="image/*" multiple>
+
+      <label>Objednávku zpracoval:</label>
+      <select id="zpracoval" name="zpracoval" required>
+        <option value="">Vyber...</option>
+        <option value="Natuzzi Editions - Strejcek">Natuzzi Editions - Strejcek</option>
+        <option value="Natuzzi Editions - Vimrova">Natuzzi Editions - Vimrova</option>
+        <option value="Natuzzi Italia - Bratislava">Natuzzi Italia - Bratislava</option>
+        <option value="Natuzzi Italia - Jama">Natuzzi Italia - Jama</option>
+        <option value="Natuzzi Italia - River">Natuzzi Italia - River</option>
+        <option value="Natuzzi Italia - SOHO">Natuzzi Italia - SOHO</option>
+        <option value="Softaly - SOHO">Softaly - SOHO</option>
+        <option value="Phase - Klucarova">Phase - Klucarova</option>
+        <option value="Phase - Jancova">Phase - Jancova</option>
+        <option value="Jiná">Jiná</option>
+      </select>
+
+      <div id="jinaSekce" class="hidden">
+        <label>Zadej nový zápis zadavatele:</label>
+        <input type="text" id="jinaJmeno" name="jinaJmeno">
+        <label>E-mail zadavatele:</label>
+        <input type="email" id="jinaEmail" name="jinaEmail">
+        <label>Telefon zadavatele:</label>
+        <input type="tel" id="jinaTelefon" name="jinaTelefon">
+      </div>
+
+      <div class="actions">
+        <a href="index.html" class="btn btn-back">Zpět</a>
+        <button type="submit" class="btn btn-send">Odeslat</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const adresaInput = document.getElementById("adresa");
+    const suggestions = document.getElementById("suggestions");
+    let timer = null;
+
+    adresaInput.addEventListener("input", () => {
+      adresaInput.dataset.selected = "false";
+      clearTimeout(timer);
+      const query = adresaInput.value.trim();
+      if (query.length < 3) { suggestions.style.display = "none"; return; }
+      timer = setTimeout(() => searchAddress(query), 400);
+    });
+
+    async function searchAddress(query) {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=cz&q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      showSuggestions(data);
+    }
+
+    function showSuggestions(results) {
+      suggestions.innerHTML = "";
+      if (!results.length) { suggestions.style.display = "none"; return; }
+      results.slice(0,8).forEach(r => {
+        const li = document.createElement("li");
+        li.textContent = r.display_name;
+        li.onclick = () => selectAddress(r.display_name);
+        suggestions.appendChild(li);
       });
-      if(res.ok) resolve(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${path}`);
-      else reject("Chyba při nahrávání fotky");
-    };
-    reader.readAsDataURL(file);
-  });
-}
+      suggestions.style.display = "block";
+    }
 
-async function updateFile(filename,content){
-  const metaRes=await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`,{headers:{Authorization:`token ${TOKEN}`}});
-  const meta=await metaRes.json();
-  await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`,{
-    method:"PUT",
-    headers:{Authorization:`token ${TOKEN}`,"Content-Type":"application/json"},
-    body:JSON.stringify({message:`Aktualizace ${filename}`,content:btoa(unescape(encodeURIComponent(content))),sha:meta.sha})
-  });
-}
-</script>
+    function selectAddress(address) {
+      adresaInput.value = address;
+      adresaInput.dataset.selected = "true";
+      suggestions.style.display = "none";
+    }
+
+    const selectZpracoval = document.getElementById("zpracoval");
+    const jinaSekce = document.getElementById("jinaSekce");
+    const jinaInputs = jinaSekce.querySelectorAll("input");
+
+    selectZpracoval.addEventListener("change", () => {
+      if (selectZpracoval.value === "Jiná") {
+        jinaSekce.classList.remove("hidden");
+        jinaInputs.forEach(inp => inp.required = true);
+      } else {
+        jinaSekce.classList.add("hidden");
+        jinaInputs.forEach(inp => inp.required = false);
+      }
+    });
+
+    document.getElementById("reklamaceForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      if (!adresaInput.dataset.selected || adresaInput.dataset.selected !== "true") {
+        alert("Vyberte adresu z nabídky (našeptávače).");
+        adresaInput.focus();
+        return;
+      }
+      alert("✅ Formulář prošel validací. Tady proběhne odeslání na GitHub.");
+    });
+  </script>
 </body>
 </html>
