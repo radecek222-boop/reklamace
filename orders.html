@@ -10,15 +10,28 @@ body { margin:0; padding:20px; background:#f6f7fb; }
 h1 { text-align:center; font-size:2.2em; font-weight:900; margin:0 0 10px; }
 h2 { text-align:center; font-size:1.2em; font-weight:600; margin:0 0 20px; color:#555; }
 
-.container { max-width:800px; margin:auto; background:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
+.container {
+  max-width:900px;
+  margin:auto;
+  background:white;
+  padding:20px 25px;
+  border-radius:10px;
+  box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
 
-.top-bar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px; }
+.top-bar {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:20px;
+}
 .btn {
   display:inline-block;
   padding:10px 20px;
   border:none;
   border-radius:6px;
-  text-decoration:none;
   font-weight:600;
   cursor:pointer;
   color:white;
@@ -27,60 +40,71 @@ h2 { text-align:center; font-size:1.2em; font-weight:600; margin:0 0 20px; color
 }
 .btn:hover { opacity:0.9; transform:scale(1.02); }
 .btn-back { background:linear-gradient(145deg, #808080, #dcdcdc, #a9a9a9); color:#000; }
-.btn-reload { background:linear-gradient(145deg, #004080, #1e90ff, #003366); color:white; }
+.btn-reload { background:linear-gradient(145deg, #004080, #1e90ff, #003366); }
 
-form label { display:block; font-weight:600; margin-top:10px; }
-form input, form textarea, form select {
-  width:100%; padding:8px; font-size:1em; border:1px solid #ccc; border-radius:6px; margin-top:4px;
+form label {
+  display:block;
+  font-weight:600;
+  margin-top:12px;
 }
-form textarea { resize:vertical; }
+input, textarea, select {
+  width:100%;
+  padding:8px;
+  font-size:1em;
+  border:1px solid #ccc;
+  border-radius:6px;
+  margin-top:4px;
+  box-sizing:border-box;
+}
+textarea { resize:vertical; }
+
+.form-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:20px;
+}
 
 .submit-btn {
-  margin-top:20px;
+  margin-top:25px;
   width:100%;
   background:linear-gradient(145deg, #006600, #28a745, #004d00);
-  color:white; border:none; border-radius:6px;
-  padding:12px; font-size:1em; font-weight:600; cursor:pointer;
+  color:white;
+  border:none;
+  border-radius:6px;
+  padding:12px;
+  font-size:1em;
+  font-weight:600;
+  cursor:pointer;
   transition:transform 0.1s ease-in-out;
 }
 .submit-btn:hover { transform:scale(1.02); }
 
-/* Modal */
-#modal {
-  position:fixed; top:0; left:0; width:100%; height:100%;
-  background:rgba(0,0,0,0.6);
-  display:none; justify-content:center; align-items:center;
-  z-index:1000;
-}
-.modal-content {
-  background:white; padding:30px; border-radius:12px; text-align:center;
-  box-shadow:0 4px 15px rgba(0,0,0,0.3);
-  max-width:350px; width:90%;
-}
-.modal-content h3 { color:#155724; margin-bottom:10px; font-size:1.4em; }
-.modal-content p { color:#333; font-size:1em; margin:0 0 15px; }
-.modal-content button {
-  background:linear-gradient(145deg, #808080, #dcdcdc, #a9a9a9);
-  color:#000; border:none; border-radius:6px; padding:8px 16px;
-  cursor:pointer; font-weight:600; font-size:1em;
-  transition:transform 0.1s ease-in-out;
-}
-.modal-content button:hover { transform:scale(1.05); }
+/* upload */
+.file-input { margin-top:10px; }
 
-.progress-bar {
-  width:100%; height:6px; background:#e0e0e0; border-radius:4px; overflow:hidden; margin-top:10px;
+#preview {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:10px;
 }
-.progress {
-  height:100%; width:0%; background:linear-gradient(90deg, #28a745, #4cd964, #006600);
-  animation:fill 3s linear forwards;
+#preview img {
+  width:100px; height:100px; object-fit:cover;
+  border-radius:8px;
+  border:1px solid #ccc;
+  box-shadow:0 1px 4px rgba(0,0,0,0.1);
 }
-@keyframes fill { from { width:0%; } to { width:100%; } }
+
+@media (max-width:768px){
+  input, textarea, select { font-size:1em; }
+  .submit-btn { font-size:1em; }
+}
 </style>
 </head>
 
 <body>
 <h1>WHITE GLOVE SERVICE</h1>
-<h2>Nová reklamace</h2>
+<h2>Založit novou reklamaci</h2>
 
 <div class="container">
   <div class="top-bar">
@@ -88,78 +112,90 @@ form textarea { resize:vertical; }
     <button class="btn btn-reload" onclick="location.reload()">🔄 Načíst znovu</button>
   </div>
 
-  <form id="claim-form">
-    <label>Číslo objednávky</label>
-    <input type="text" id="order" required>
+  <form id="claimForm">
+    <div class="form-grid">
+      <div>
+        <label>Zadavatel</label>
+        <input type="text" id="zadavatel" required>
 
-    <label>Číslo reklamace</label>
-    <input type="text" id="claim" required>
+        <label>Zákazník</label>
+        <input type="text" id="zakaznik" required>
 
-    <label>Zákazník</label>
-    <input type="text" id="customer" required>
+        <label>Adresa zákazníka</label>
+        <input type="text" id="adresa">
 
-    <label>Adresa</label>
-    <input type="text" id="address">
+        <label>Telefon</label>
+        <input type="text" id="telefon">
 
-    <label>Telefon</label>
-    <input type="text" id="phone">
+        <label>Email</label>
+        <input type="email" id="email">
+      </div>
 
-    <label>Email</label>
-    <input type="email" id="email">
+      <div>
+        <label>Značka / Contract</label>
+        <input type="text" id="znacka">
 
-    <label>Popis problému</label>
-    <textarea id="description" rows="4" required></textarea>
+        <label>Model</label>
+        <input type="text" id="model">
 
-    <label>Technik</label>
-    <select id="technician">
-      <option>Radek Zikmund</option>
-      <option>Milan Kolín</option>
-      <option>Kolín/Zikmund</option>
-    </select>
+        <label>Číslo objednávky</label>
+        <input type="text" id="objednavka">
+
+        <label>Popis problému</label>
+        <textarea id="popis" rows="4"></textarea>
+
+        <label>Nahrát fotografie</label>
+        <input type="file" id="fotosoubory" class="file-input" multiple accept="image/*">
+        <div id="preview"></div>
+      </div>
+    </div>
 
     <button type="submit" class="submit-btn">📤 Odeslat reklamaci</button>
   </form>
 </div>
 
-<!-- Modal potvrzení -->
-<div id="modal">
-  <div class="modal-content">
-    <div style="font-size:50px;">✅</div>
-    <h3>Reklamace odeslána</h3>
-    <p>Děkujeme, reklamace byla úspěšně zaznamenána.</p>
-    <div class="progress-bar"><div class="progress"></div></div>
-    <button onclick="goHome()">⬅️ Zpět na hlavní stránku</button>
-  </div>
-</div>
-
 <script>
-document.getElementById("claim-form").addEventListener("submit", e => {
-  e.preventDefault();
-
-  console.log("Reklamace uložena:", {
-    order: order.value,
-    claim: claim.value,
-    customer: customer.value,
-    address: address.value,
-    phone: phone.value,
-    email: email.value,
-    description: description.value,
-    technician: technician.value
-  });
-
-  // zobraz modal
-  const modal = document.getElementById("modal");
-  modal.style.display = "flex";
-
-  // automaticky návrat po 3 s
-  setTimeout(() => {
-    goHome();
-  }, 3000);
+// ======== Náhled fotek ========
+document.getElementById('fotosoubory').addEventListener('change', function(e){
+  const preview = document.getElementById('preview');
+  preview.innerHTML = '';
+  for(let file of e.target.files){
+    const reader = new FileReader();
+    reader.onload = function(evt){
+      const img = document.createElement('img');
+      img.src = evt.target.result;
+      preview.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  }
 });
 
-function goHome(){
-  window.location.href = "index.html";
-}
+// ======== Odeslání reklamace ========
+document.getElementById("claimForm").addEventListener("submit", e => {
+  e.preventDefault();
+
+  const formData = {
+    zadavatel: zadavatel.value,
+    zakaznik: zakaznik.value,
+    adresa: adresa.value,
+    telefon: telefon.value,
+    email: email.value,
+    znacka: znacka.value,
+    model: model.value,
+    objednavka: objednavka.value,
+    popis: popis.value,
+    datum: new Date().toLocaleDateString()
+  };
+
+  console.log("Reklamace odeslána:", formData);
+
+  alert("✅ Reklamace byla úspěšně odeslána.");
+
+  // automatický návrat na hlavní stránku po 2 s
+  setTimeout(() => {
+    window.location.href = "index.html";
+  }, 2000);
+});
 </script>
 </body>
 </html>
