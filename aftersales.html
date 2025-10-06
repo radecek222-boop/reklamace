@@ -53,11 +53,23 @@
       display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;
     }
 
+    .address-wrapper { position: relative; }
+    .suggestions {
+      position: absolute; top: 100%; left: 0; width: 100%;
+      background: #fff; border: 1px solid #ccc; border-radius: 6px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      max-height: 180px; overflow-y: auto; z-index: 1000;
+    }
+    .suggestions div { padding: 8px; cursor: pointer; }
+    .suggestions div:hover { background: #f0f0f0; }
+
     #mapPreview {
       width: 100%; height: 250px; margin-top: 10px;
       border-radius: 14px; overflow: hidden;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      background: #f0f0f0;
     }
+
     .preview { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
     .preview-item {
       width:90px; height:90px; position:relative;
@@ -85,6 +97,7 @@
       cursor:pointer; color:#f00;
       box-shadow:0 1px 3px rgba(0,0,0,0.2);
     }
+
     .wait-overlay {
       display:none; position:fixed; inset:0;
       background:rgba(255,255,255,0.85);
@@ -131,13 +144,13 @@
     <h2>Pozáruční servis</h2>
 
     <form id="servisForm" novalidate>
-      <label>Jméno zadavatele:</label>
-      <input type="text" id="jmeno" required>
+      <label>Jméno a příjmení zákazníka:</label>
+      <input type="text" id="zakaznik" required>
 
-      <label>E-mail zadavatele:</label>
+      <label>E-mail zákazníka:</label>
       <input type="email" id="email" required>
 
-      <label>Telefon zadavatele:</label>
+      <label>Telefon zákazníka:</label>
       <input type="tel" id="telefon" required placeholder="např. 777123456">
 
       <label>Adresa servisu:</label>
@@ -190,6 +203,7 @@ const suggestionContainer=document.getElementById("suggestions");
 let adresaPlatna=false;
 let suggestTimer=null;
 
+// --- Našeptávač + mapa ---
 adresaInput.addEventListener("input",()=>{clearTimeout(suggestTimer);suggestTimer=setTimeout(runAutocomplete,300);});
 async function runAutocomplete(){
   const query=adresaInput.value.trim();adresaPlatna=false;suggestionContainer.innerHTML="";
@@ -268,7 +282,7 @@ document.getElementById("servisForm").addEventListener("submit",async e=>{
   if(!adresaPlatna){wait.classList.remove("active");alert("Vyberte adresu z našeptávače.");return;}
   const dataObj={
     typ:"Pozáruční servis",
-    jmeno:f.jmeno.value,
+    zakaznik:f.zakaznik.value,
     email:f.email.value,
     telefon:f.telefon.value,
     adresa:f.adresa.value,
