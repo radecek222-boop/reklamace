@@ -399,7 +399,9 @@ document.getElementById("reklamaceForm").addEventListener("submit",async e=>{
       fch.progress.style.background="linear-gradient(90deg,#2196f3,#64b5f6)";
       const formData=new FormData();
       formData.append("file",fch.blob,fch.file.name);
-      const up=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload",{method:"POST",body:formData});
+      const up=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+
+",{method:"POST",body:formData});
       if(!up.ok)throw new Error("Upload selhal");
       const r=await up.json();dataObj.fotky.push(r.filename);
       fch.progress.style.background="linear-gradient(90deg,#4caf50,#8bc34a)";
