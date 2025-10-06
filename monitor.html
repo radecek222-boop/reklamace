@@ -23,9 +23,10 @@
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       width: 100%;
-      max-width: 500px;
+      max-width: 520px;
       box-sizing: border-box;
       text-align: center;
+      position: relative;
     }
 
     h1 {
@@ -67,11 +68,35 @@
       color: #888;
       margin-top: 25px;
     }
+
+    /* Semaforový indikátor */
+    .indicator {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      box-shadow: 0 0 6px rgba(0,0,0,0.2);
+      background: gray;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+
+    .indicator.ok {
+      background: #28a745;
+      box-shadow: 0 0 8px #28a745;
+    }
+
+    .indicator.error {
+      background: #dc3545;
+      box-shadow: 0 0 8px #dc3545;
+    }
   </style>
 </head>
 
 <body>
   <div class="wrapper">
+    <div id="indicator" class="indicator"></div>
     <h1>WHITE GLOVE SERVICE</h1>
     <h2>API Status Monitor</h2>
 
@@ -79,13 +104,21 @@
     <footer>Aktualizuje se automaticky každých 30 s</footer>
   </div>
 
+  <!-- Zvuk upozornění -->
+  <audio id="alertSound">
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+  </audio>
+
   <script>
     const STATUS_URL = "https://wgs-token.72nvwf4pb2.workers.dev/status";
     const statusDiv = document.getElementById("status");
+    const indicator = document.getElementById("indicator");
+    const alertSound = document.getElementById("alertSound");
+
+    let lastState = true; // pro detekci přechodu z OK → ERROR
 
     async function loadStatus() {
       try {
-        statusDiv.textContent = "Načítám stav...";
         const res = await fetch(STATUS_URL, { cache: "no-store" });
         if (!res.ok) throw new Error("Chybná odpověď (" + res.status + ")");
         const data = await res.json();
@@ -96,10 +129,22 @@
           <div><b>Počet záznamů:</b> ${data.count ?? "?"}</div>
           <div><b>Poslední kontrola:</b> ${new Date(data.timestamp).toLocaleString("cs-CZ")}</div>
         `;
-
         statusDiv.innerHTML = html;
+
+        // ✅ zelená – vše OK
+        indicator.classList.remove("error");
+        indicator.classList.add("ok");
+        lastState = true;
       } catch (err) {
-        statusDiv.innerHTML = `<span class="error">Chyba načítání: ${err.message}</span>`;
+        statusDiv.innerHTML = `<span class="error">❌ Chyba načítání: ${err.message}</span>`;
+        indicator.classList.remove("ok");
+        indicator.classList.add("error");
+
+        // 🔔 zvuk jen při přechodu z OK na ERROR
+        if (lastState) {
+          try { alertSound.play(); } catch (e) {}
+          lastState = false;
+        }
       }
     }
 
