@@ -21,7 +21,6 @@ h2 { text-align:center; font-size:1.1em; font-weight:600; margin:0 0 20px; color
 .btn-gray { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
 .btn-blue { background:linear-gradient(135deg,#0046ff,#357aff); }
 .btn-orange { background:linear-gradient(135deg,#ff9933,#ffcc66); }
-.btn-yellow { background:linear-gradient(135deg,#ffcc00,#ffe680); }
 .btn-lightblue { background:linear-gradient(135deg,#66b3ff,#99ccff); }
 
 .top-actions { text-align:center; margin-bottom:20px; }
@@ -123,6 +122,7 @@ tr:hover { background:#f1f3f5; cursor:pointer; }
 
 <script>
 const GITHUB_USER="radecek222-boop",REPO="reklamace";
+const TOKEN="TVŮJ_TOKEN";
 const FILES=["orders.json","aftersales.json","hotove.json"];
 let currentItem=null,allData=[];
 
@@ -170,6 +170,7 @@ function renderTable(data){
   });
 }
 
+// DETAIL
 function openDetail(item){
   currentItem=item;
   document.getElementById("detailModal").style.display="flex";
@@ -188,11 +189,11 @@ function openDetail(item){
 function closeDetail(){document.getElementById("detailModal").style.display="none";}
 function openPhoto(src){document.getElementById("photoLarge").src=src;document.getElementById("photoView").style.display="flex";}
 
-// ---- Telefon akce ----
+// TELEFON AKCE
 function openActions(id){currentItem=allData.find(x=>x["Číslo reklamace"]===id||x["Číslo objednávky"]===id);document.getElementById("actionModal").style.display="flex";}
 function closeActions(){document.getElementById("actionModal").style.display="none";}
 
-// ---- Kalendář ----
+// KALENDÁŘ
 function openCalendar(){document.getElementById("calendarModal").style.display="flex";}
 function closeCalendar(){document.getElementById("calendarModal").style.display="none";}
 function confirmTerm(){
@@ -202,16 +203,50 @@ function confirmTerm(){
   closeCalendar();
 }
 
-// ---- Nastavení stavu (lokálně prozatím) ----
-function setStatus(status){
+// --- AKTUALIZACE DAT V GITHUBU ---
+async function updateFile(filename,content){
+  const meta=await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`,{
+    headers:{Authorization:`token ${TOKEN}`}
+  }).then(r=>r.json());
+  await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`,{
+    method:"PUT",
+    headers:{Authorization:`token ${TOKEN}`,"Content-Type":"application/json"},
+    body:JSON.stringify({
+      message:`Aktualizace ${filename}`,
+      content:btoa(unescape(encodeURIComponent(content))),
+      sha:meta.sha
+    })
+  });
+}
+
+// --- ZMĚNA STAVU ---
+async function setStatus(status){
   if(!currentItem)return;
   currentItem["Stav"]=status;
+
+  const sourceFile=currentItem.source+".json";
+  const fileUrl=`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${sourceFile}?${Date.now()}`;
+  let data=await fetch(fileUrl).then(r=>r.json()).catch(()=>[]);
+  
+  // pokud hotovo -> přesun do hotove.json
+  if(status==="Hotovo"){
+    const hotove=await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/hotove.json?${Date.now()}`).then(r=>r.json()).catch(()=>[]);
+    data=data.filter(d=>(d["Číslo reklamace"]!==currentItem["Číslo reklamace"]));
+    hotove.push(currentItem);
+    await updateFile("hotove.json",JSON.stringify(hotove,null,2));
+  } else {
+    const idx=data.findIndex(d=>d["Číslo reklamace"]===currentItem["Číslo reklamace"]);
+    if(idx>-1) data[idx]=currentItem;
+  }
+
+  await updateFile(sourceFile,JSON.stringify(data,null,2));
   renderTable(allData);
   closeActions();
   closeCalendar();
+  alert("Stav aktualizován na: "+status);
 }
 
-// ---- Vyhledávání ----
+// VYHLEDÁVÁNÍ
 document.getElementById("searchInput").addEventListener("input",()=>renderTable(allData));
 window.addEventListener("pageshow",loadAll);
 loadAll();
