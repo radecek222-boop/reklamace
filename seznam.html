@@ -35,9 +35,10 @@ tr:hover { background:#f1f3f5; cursor:pointer; }
 
 .new-blink { animation: blinkYellow 1s infinite alternate; }
 @keyframes blinkYellow { from{background:#fff9c4;} to{background:#fff176;} }
-
 .orange-blink { animation: blinkOrange 1s infinite alternate; }
 @keyframes blinkOrange { from{background:#ffe0b2;} to{background:#ffb74d;} }
+
+.draft-row { background:linear-gradient(135deg,#eaffea,#d7ffd9); }
 
 .action-btn {
   background:linear-gradient(135deg,#0046ff,#357aff);
@@ -47,7 +48,6 @@ tr:hover { background:#f1f3f5; cursor:pointer; }
 }
 .action-btn:hover { opacity:0.9; }
 
-.icon { font-size:1.1em; margin-right:6px; color:#0046ff; }
 .icon-phone { color:#00b36b; }
 .icon-waze { color:#357aff; }
 
@@ -91,6 +91,16 @@ async function loadAll(){
       all=all.concat(data.map(x=>({...x,_source:file})));
     }catch(e){console.warn("Chyba při načítání",file,e);}
   }
+
+  // Načti rozpracované (drafty)
+  try{
+    const draftRes=await fetch(WORKER_URL);
+    const draftData=await draftRes.json();
+    if(Array.isArray(draftData)){
+      all=all.concat(draftData.map(d=>({...d,_source:"drafts"})));
+    }
+  }catch(e){console.warn("Nelze načíst drafts:",e);}
+
   renderTable(all);
 }
 
@@ -103,21 +113,25 @@ function renderTable(data){
     || (x["Telefon"]||"").toLowerCase().includes(query);
   }).forEach((item)=>{
     const tr=document.createElement("tr");
-    const isNew=item["Stav"]?.toLowerCase().includes("nová");
-    const isHotove=item["Stav"]?.toLowerCase().includes("hotovo");
-    if(isNew) tr.classList.add("new-blink");
-    if(item["Stav"]==="Nezvedá") tr.classList.add("orange-blink");
 
+    // STYL
+    if(item._source==="drafts"){ tr.classList.add("draft-row"); }
+    else if(item["Stav"]?.toLowerCase().includes("nová")){ tr.classList.add("new-blink"); }
+    else if(item["Stav"]==="Nezvedá"){ tr.classList.add("orange-blink"); }
+
+    // HODNOTY
     const poz=item._source.includes("aftersales")?"POZ":"";
     const addr=item["Adresa"]?`<a class="link-icon" href="https://waze.com/ul?ll=&q=${encodeURIComponent(item["Adresa"])}" target="_blank"><i class='fa-brands fa-waze icon-waze'></i>${item["Adresa"]}</a>`:"";
     const tel=item["Telefon"]?`<a class="link-icon" href="tel:${item["Telefon"]}"><i class='fa-solid fa-phone icon-phone'></i>${item["Telefon"]}</a>`:"";
+    const stav=item._source==="drafts"?"Rozpracováno":(item["Stav"]||"Nová reklamace");
+    const btnText=item._source==="drafts"?"Pokračovat":"Otevřít";
 
     tr.innerHTML=`
       <td>${item["Zákazník"]||poz||"Neznámý"}</td>
       <td>${addr}</td>
       <td>${tel}</td>
-      <td>${item["Stav"]||"Nová"}</td>
-      <td><button class="action-btn" onclick='openProtocol(${JSON.stringify(item)})'><i class="fa-regular fa-file-lines"></i> Otevřít</button></td>
+      <td>${stav}</td>
+      <td><button class="action-btn" onclick='openProtocol(${JSON.stringify(item)})'><i class="fa-regular fa-file-lines"></i> ${btnText}</button></td>
     `;
     tbody.appendChild(tr);
   });
