@@ -564,6 +564,89 @@ window.addEventListener("load", () => {
   });
 });
 </script>
+<style>
+/* 🕓 Styl pro vlastní rolovací čas */
+.custom-time-picker {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.4em;
+  margin-top: 10px;
+}
+.custom-time-picker select {
+  appearance: none;
+  -webkit-appearance: none;
+  font-size: 1.2em;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid #ccc;
+  text-align: center;
+  outline: none;
+  transition: all 0.2s;
+}
+.custom-time-picker select:focus {
+  border-color: #0046ff;
+  box-shadow: 0 0 0 2px rgba(0,70,255,0.25);
+}
+.custom-time-picker span {
+  font-weight: 700;
+  color: #555;
+}
+</style>
+
+<script>
+/* 🕓 Nahrazení standardního inputu na desktopu za rolovací selektor */
+document.addEventListener("DOMContentLoaded", () => {
+  const timeInput = document.getElementById("casTerminu");
+  if (!timeInput) return;
+
+  // 🔹 Pouze na desktopu
+  if (!/Mobi|Android/i.test(navigator.userAgent)) {
+    const container = document.createElement("div");
+    container.className = "custom-time-picker";
+
+    // Hodiny
+    const hours = document.createElement("select");
+    for (let h = 0; h < 24; h++) {
+      const opt = document.createElement("option");
+      opt.value = String(h).padStart(2, "0");
+      opt.textContent = String(h).padStart(2, "0");
+      hours.appendChild(opt);
+    }
+
+    // Minuty
+    const minutes = document.createElement("select");
+    for (let m = 0; m < 60; m += 5) { // po 5 minutách
+      const opt = document.createElement("option");
+      opt.value = String(m).padStart(2, "0");
+      opt.textContent = String(m).padStart(2, "0");
+      minutes.appendChild(opt);
+    }
+
+    const sep = document.createElement("span");
+    sep.textContent = ":";
+
+    container.appendChild(hours);
+    container.appendChild(sep);
+    container.appendChild(minutes);
+
+    // Nahrazení inputu
+    timeInput.style.display = "none";
+    timeInput.parentNode.insertBefore(container, timeInput.nextSibling);
+
+    // Synchronizace do původního inputu
+    const syncTime = () => {
+      timeInput.value = `${hours.value}:${minutes.value}`;
+    };
+    hours.addEventListener("change", syncTime);
+    minutes.addEventListener("change", syncTime);
+    syncTime();
+  }
+});
+</script>
 
 </body>
 </html>
