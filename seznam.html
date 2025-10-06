@@ -32,36 +32,21 @@ th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #ddd; font-
 th { background:#eee; font-weight:700; }
 tr:hover { background:#f1f3f5; cursor:pointer; }
 
+@keyframes blinkYellow { 50% { background:linear-gradient(135deg,#fff8b3,#ffe680); } }
+@keyframes blinkOrange { 50% { background:linear-gradient(135deg,#ffd9b3,#ffcc80); } }
+
+.row-new { background:linear-gradient(135deg,#fff7a1,#fff1b0); animation:blinkYellow 1.5s infinite; }
+.row-nezveda { background:linear-gradient(135deg,#ffcc80,#ffb84d); animation:blinkOrange 1.5s infinite; }
+.row-termin { background:linear-gradient(135deg,#cce0ff,#99ccff); }
+.row-hotovo { background:linear-gradient(135deg,#a3e6b3,#66cc99); }
+
+.badge-poz {
+  background:#6c757d; color:white; font-size:0.8em; padding:2px 6px; border-radius:6px; margin-right:6px;
+}
+
 @media (max-width:768px){ th:nth-child(n+5), td:nth-child(n+5){display:none;} }
 
-#detailModal {
-  position:fixed; top:0; left:0; width:100%; height:100%;
-  background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center;
-  padding:20px; z-index:1000;
-}
-#detailContent {
-  background:white; border-radius:10px; padding:20px; max-width:600px; width:100%;
-  max-height:85vh; overflow-y:auto; box-shadow:0 4px 15px rgba(0,0,0,0.2);
-}
-#detailButtons { text-align:center; margin-top:20px; }
-#detailButtons button {
-  margin:5px; padding:10px 16px; border:none; border-radius:8px;
-  cursor:pointer; color:#fff; font-weight:600;
-  transition:transform 0.15s ease, opacity 0.2s;
-}
-#detailButtons button:hover { transform:scale(1.05); opacity:0.9; }
-.btn-close { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
-.btn-done { background:linear-gradient(135deg,#00b36b,#3cd67a); }
-
-.photo-gallery { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:10px; }
-.photo-gallery img { max-width:100px; border-radius:6px; cursor:pointer; transition:transform 0.2s ease; }
-.photo-gallery img:hover { transform:scale(1.1); }
-
-#photoView {
-  display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-  background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:1100;
-}
-#photoView img { max-width:90%; max-height:90%; border-radius:10px; }
+#detailModal { display:none; }
 </style>
 </head>
 <body>
@@ -71,108 +56,97 @@ tr:hover { background:#f1f3f5; cursor:pointer; }
 <div class="top-actions">
   <a href="index.html" class="btn-gradient btn-gray">Zpět na hlavní stránku</a>
   <a href="hotove.html" class="btn-gradient btn-green">Hotové reklamace</a>
-  <button onclick="loadOrders()" class="btn-gradient btn-blue">Načíst znovu</button>
+  <button onclick="loadAll()" class="btn-gradient btn-blue">Načíst znovu</button>
 </div>
 
 <input type="text" id="searchInput" class="searchbox" placeholder="Hledat podle jména, adresy nebo telefonu...">
 
 <table id="dataTable">
 <thead>
-<tr><th>#</th><th>OBJEDNÁVKA</th><th>JMÉNO</th><th>ADRESA</th><th>TELEFON</th><th>E-MAIL</th><th>POPIS</th><th>STAV</th></tr>
+<tr><th>ZÁKAZNÍK</th><th>ADRESA</th><th>TELEFON</th><th>STAV</th></tr>
 </thead>
-<tbody id="tableBody"><tr><td colspan="8" style="text-align:center;padding:20px;">Načítání dat...</td></tr></tbody>
+<tbody id="tableBody"><tr><td colspan="4" style="text-align:center;padding:20px;">Načítání dat...</td></tr></tbody>
 </table>
 
-<div id="detailModal">
-  <div id="detailContent">
-    <h3 id="detailName" style="margin-top:0;"></h3>
-    <div id="detailInfo"></div>
-    <div class="photo-gallery" id="photoGallery"></div>
-    <div id="detailButtons">
-      <button id="markDone" class="btn-done">Označit jako hotové</button>
-      <button id="closeDetail" class="btn-close">Zavřít</button>
-    </div>
-  </div>
-</div>
-
-<div id="photoView"><img id="photoLarge" src=""></div>
-
 <script>
-const GITHUB_USER="radecek222-boop",REPO="reklamace",TOKEN="TVŮJ_TOKEN",ORDERS_FILE="orders.json",HOTOVE_FILE="hotove.json";
+const GITHUB_USER="radecek222-boop",REPO="reklamace";
+const FILES=["orders.json","aftersales.json","hotove.json"];
 
-async function loadOrders(){
- try{
-  const res=await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${ORDERS_FILE}?${Date.now()}`);
-  const data=await res.json();
-  renderTable(data);
- }catch(e){document.getElementById("tableBody").innerHTML=`<tr><td colspan="8" style="text-align:center;color:red;">Chyba: ${e.message}</td></tr>`;}
+async function fetchJson(file){
+  try{
+    const res=await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${file}?${Date.now()}`);
+    if(!res.ok) throw new Error(res.statusText);
+    const data=await res.json();
+    return data.map(x=>({...x,source:file.replace('.json','')}));
+  }catch(e){
+    console.error("Chyba při načítání",file,e);
+    return [];
+  }
+}
+
+async function loadAll(){
+  const tbody=document.getElementById("tableBody");
+  tbody.innerHTML=`<tr><td colspan="4" style="text-align:center;padding:20px;">Načítání...</td></tr>`;
+  try{
+    const results=await Promise.all(FILES.map(f=>fetchJson(f)));
+    let all=results.flat();
+
+    // seřadit podle času (pokud mají datum)
+    all.sort((a,b)=>(new Date(b["Datum vytvoření"]||0))-(new Date(a["Datum vytvoření"]||0)));
+
+    renderTable(all);
+  }catch(e){
+    tbody.innerHTML=`<tr><td colspan="4" style="color:red;text-align:center;">Chyba: ${e.message}</td></tr>`;
+  }
 }
 
 function renderTable(data){
- const tbody=document.getElementById("tableBody");tbody.innerHTML="";
- data.forEach((item,i)=>{
-  const tr=document.createElement("tr");
-  tr.innerHTML=`<td>${i+1}</td><td>${item["Číslo objednávky"]||""}</td><td>${item["Zákazník"]||""}</td>
-  <td>${item["Adresa"]||""}</td><td>${item["Telefon"]||""}</td><td>${item["Email"]||""}</td>
-  <td>${item["Popis CZ"]||""}</td><td>${item["Stav"]||"Nová reklamace"}</td>`;
-  tr.addEventListener("click",()=>openDetail(item));
-  tbody.appendChild(tr);
- });
+  const tbody=document.getElementById("tableBody");
+  tbody.innerHTML="";
+
+  const search=document.getElementById("searchInput").value.toLowerCase();
+
+  const filtered=data.filter(d=>{
+    return (
+      (d["Zákazník"]||"").toLowerCase().includes(search) ||
+      (d["Adresa"]||"").toLowerCase().includes(search) ||
+      (d["Telefon"]||"").toLowerCase().includes(search)
+    );
+  });
+
+  if(filtered.length===0){
+    tbody.innerHTML=`<tr><td colspan="4" style="text-align:center;padding:20px;">Žádné výsledky</td></tr>`;
+    return;
+  }
+
+  filtered.forEach(item=>{
+    const tr=document.createElement("tr");
+    const stav=(item["Stav"]||"").toLowerCase();
+
+    if(stav.includes("nezvedá")) tr.classList.add("row-nezveda");
+    else if(stav.includes("termín")) tr.classList.add("row-termin");
+    else if(stav.includes("hotovo")) tr.classList.add("row-hotovo");
+    else tr.classList.add("row-new");
+
+    let nameCell=item["Zákazník"]||"";
+    if(item.source==="aftersales") nameCell=`<span class="badge-poz">POZ</span>${nameCell}`;
+
+    const wazeLink=item["Adresa"]?`<a href="https://waze.com/ul?q=${encodeURIComponent(item["Adresa"])}" target="_blank">${item["Adresa"]}</a>`:"";
+    const phoneLink=item["Telefon"]?`<a href="tel:${item["Telefon"].replace(/\s+/g,'')}" style="text-decoration:none;color:#0046ff;">📞 ${item["Telefon"]}</a>`:"";
+
+    tr.innerHTML=`
+      <td>${nameCell}</td>
+      <td>${wazeLink}</td>
+      <td>${phoneLink}</td>
+      <td>${item["Stav"]||"Nová"}</td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
-function openDetail(item){
- const modal=document.getElementById("detailModal");modal.style.display="flex";
- document.getElementById("detailName").textContent=item["Zákazník"]||"Neznámý zákazník";
- document.getElementById("detailInfo").innerHTML=`
-  <p><b>Adresa:</b> ${item["Adresa"]||""}</p>
-  <p><b>Telefon:</b> ${item["Telefon"]||""}</p>
-  <p><b>E-mail:</b> ${item["Email"]||""}</p>
-  <p><b>Popis:</b> ${item["Popis CZ"]||""}</p>`;
- const gallery=document.getElementById("photoGallery");gallery.innerHTML="";
- ["Foto1","Foto2","Foto3"].forEach(k=>{
-  if(item[k]){const img=document.createElement("img");img.src=item[k];img.onclick=()=>openPhoto(img.src);gallery.appendChild(img);}
- });
- document.getElementById("markDone").onclick=()=>markAsDone(item);
-}
-
-function openPhoto(src){const v=document.getElementById("photoView");const i=document.getElementById("photoLarge");i.src=src;v.style.display="flex";v.onclick=()=>v.style.display="none";}
-document.getElementById("closeDetail").onclick=()=>document.getElementById("detailModal").style.display="none";
-
-async function markAsDone(item){
- if(!confirm("Označit jako hotové?"))return;
- try{
-  const [ordersRes,hotoveRes]=await Promise.all([
-   fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${ORDERS_FILE}?${Date.now()}`),
-   fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${HOTOVE_FILE}?${Date.now()}`)
-  ]);
-  const [orders,hotove]=await Promise.all([ordersRes.json().catch(()=>[]),hotoveRes.json().catch(()=>[])]);
-  
-  const deleteTime=new Date(Date.now()+48*60*60*1000).toISOString();
-  item["Stav"]="Hotovo"; item["Vyřešeno"]="ANO"; item["SmazatFotkyPo"]=deleteTime;
-
-  const updatedOrders=orders.filter(o=>o["Číslo reklamace"]!==item["Číslo reklamace"]);
-  hotove.push(item);
-
-  await updateFile(ORDERS_FILE,JSON.stringify(updatedOrders,null,2));
-  await updateFile(HOTOVE_FILE,JSON.stringify(hotove,null,2));
-
-  alert("Reklamace označena jako hotová. Fotky budou smazány po 48 hodinách.");
-  document.getElementById("detailModal").style.display="none";
-  loadOrders();
- }catch(e){alert("Chyba při označení: "+e.message);}
-}
-
-async function updateFile(filename,content){
- const metaRes=await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`,{headers:{Authorization:`token ${TOKEN}`}});
- const meta=await metaRes.json();
- await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`,{
-  method:"PUT",headers:{Authorization:`token ${TOKEN}`,"Content-Type":"application/json"},
-  body:JSON.stringify({message:`Aktualizace ${filename}`,content:btoa(unescape(encodeURIComponent(content))),sha:meta.sha})
- });
-}
-
-window.addEventListener("pageshow",loadOrders);
-loadOrders();
+document.getElementById("searchInput").addEventListener("input",()=>loadAll());
+window.addEventListener("pageshow",loadAll);
+loadAll();
 </script>
 </body>
 </html>
