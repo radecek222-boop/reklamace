@@ -24,127 +24,57 @@ body {
   transition:border-color 0.3s ease;
   position:relative;
 }
-.wrapper.archive-border {
-  border-color:#ccc;
-}
-.header {
-  text-align:center;
-  margin-bottom:20px;
-}
-.header div:first-child {
-  font-size:28px;
-  font-weight:900;
-}
-.header div:last-child {
-  font-size:12px;
-  margin-top:4px;
-  font-weight:normal;
-}
+.wrapper.archive-border { border-color:#ccc; }
+.header { text-align:center; margin-bottom:20px; }
+.header div:first-child { font-size:28px; font-weight:900; }
+.header div:last-child { font-size:12px; margin-top:4px; font-weight:normal; }
 
-/* 🗂️ archivní banner */
-.archive-banner {
-  position:absolute;
-  top:0;
-  left:0;
-  right:0;
-  background:linear-gradient(135deg,#e0e0e0,#f0f0f0);
-  color:#333;
-  text-align:center;
-  font-weight:600;
-  padding:10px 0;
-  border-bottom:1px solid #bbb;
-  display:none;
-  box-shadow:0 2px 4px rgba(0,0,0,0.1);
+.archive-banner, .draft-banner {
+  position:absolute; top:0; left:0; right:0;
+  padding:10px 0; font-weight:600; text-align:center;
+  border-bottom:1px solid #bbb; box-shadow:0 2px 4px rgba(0,0,0,0.1);
 }
-.archive-banner span {
-  display:block;
-  font-weight:normal;
-  font-size:11px;
-  color:#555;
+.archive-banner {
+  background:linear-gradient(135deg,#e0e0e0,#f0f0f0); color:#333; display:none;
+}
+.draft-banner {
+  background:linear-gradient(135deg,#d1f7c4,#e6ffe6); color:#1b6b1b; display:none;
 }
 
 table { width:100%; border-collapse:collapse; margin:10px 0; }
 td { padding:6px; vertical-align:top; }
 .label { font-weight:600; display:block; }
 .label .en-label { display:block; font-size:0.85em; color:#666; font-weight:normal; margin:0; }
-.section-title { font-weight:700; margin-top:20px; display:flex; flex-direction:column; align-items:flex-start; }
-.section-title .en-label { font-size:0.9em; color:#666; font-weight:normal; margin-top:2px; }
 
-input, select {
-  width:100%;
-  height:36px;
-  line-height:36px;
-  padding:4px 8px;
-  font-size:1em;
-  border:1px solid #ccc;
-  border-radius:4px;
-  box-sizing:border-box;
-  color:#111;
-  background:#fff;
+input, select, textarea {
+  width:100%; padding:4px 8px; border:1px solid #ccc; border-radius:4px;
+  box-sizing:border-box; font-size:1em; color:#111; background:#fff;
 }
-textarea {
-  width:100%;
-  min-height:80px;
-  resize:vertical;
-  padding:4px 8px;
-  font-size:1em;
-  border:1px solid #ccc;
-  border-radius:4px;
-  box-sizing:border-box;
-  color:#111;
-  background:#fff;
-}
+textarea { min-height:80px; resize:vertical; }
 
 .split-section { display:flex; gap:10px; margin:10px 0; }
 .two-col-table { display:flex; gap:30px; flex-wrap:wrap; }
 .two-col-table .col { flex:1; min-width:300px; }
 
-#signature-pad {
-  border:2px dashed #888;
-  width:100%;
-  height:200px;
-  background:white;
-  touch-action:none;
-}
-.signature-label {
-  font-size:0.9em;
-  color:#444;
-  margin:4px 0 20px;
-}
+#signature-pad { border:2px dashed #888; width:100%; height:200px; background:white; touch-action:none; }
+.signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
 
-.btns {
-  margin-top:20px;
-  display:grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap:12px;
-}
+.btns { margin-top:20px; display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; }
 button {
-  height:44px;
-  font-size:0.9em;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:600;
-  color:white;
+  height:44px; font-size:0.9em; border:none; border-radius:8px;
+  cursor:pointer; font-weight:600; color:white;
   box-shadow:0 2px 5px rgba(0,0,0,0.2);
   transition:transform 0.1s ease-in-out, opacity 0.2s;
 }
-button:hover {
-  transform:scale(1.03);
-  opacity:0.9;
-}
-
-/* barvy tlačítek */
-.btn-clear { background: linear-gradient(135deg, #a83232, #ff4d4d); }
-.btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); color:#fff; }
-.btn-pdf { background: linear-gradient(135deg, #0046ff, #357aff); }
-.btn-email { background: linear-gradient(135deg, #00b36b, #3cd67a); }
+button:hover { transform:scale(1.03); opacity:0.9; }
+.btn-clear { background:linear-gradient(135deg,#a83232,#ff4d4d); }
+.btn-back { background:linear-gradient(135deg,#6c757d,#a0a4a7); color:#fff; }
+.btn-pdf { background:linear-gradient(135deg,#0046ff,#357aff); }
+.btn-email { background:linear-gradient(135deg,#00b36b,#3cd67a); }
 
 @media screen and (max-width:768px){
   .two-col-table, .split-section { flex-direction: column !important; gap:10px; }
-  .two-col-table .col, .split-section textarea { min-width:auto; width:100%; }
-  input, select, textarea { font-size:1em; height:36px; box-sizing:border-box; }
-  textarea { min-height:80px; }
+  input, select, textarea { font-size:1em; height:36px; }
   #signature-pad { height:180px; }
 }
 .force-desktop { width:794px !important; max-width:794px !important; }
@@ -152,16 +82,15 @@ button:hover {
 </head>
 <body>
 <div class="wrapper" id="wrapper">
-  <div id="archiveBanner" class="archive-banner">
-    🗂️ Archivovaný protokol (jen pro zobrazení)
-    <span>Archived record (view only)</span>
-  </div>
+  <div id="archiveBanner" class="archive-banner">🗂️ Archivovaný protokol (jen pro zobrazení)</div>
+  <div id="draftBanner" class="draft-banner">💾 Načten rozpracovaný protokol</div>
 
   <div class="header">
     <div>WHITE GLOVE SERVICE</div>
     <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
   </div>
 
+  <!-- FORMULÁŘ -->
   <div class="two-col-table">
     <div class="col">
       <table>
@@ -241,49 +170,71 @@ button:hover {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-let signaturePad, lastPdfName="protokol.pdf", isArchiveMode=false;
+const WORKER_URL = "https://wis-drafts-api.72nvwf4pb2.workers.dev/";
+let signaturePad, lastPdfName="protokol.pdf";
 
 window.addEventListener("DOMContentLoaded",()=>{
   const canvas=document.getElementById("signature-pad");
   canvas.width=canvas.offsetWidth; canvas.height=canvas.offsetHeight;
   signaturePad=new SignaturePad(canvas,{backgroundColor:"white"});
-  document.getElementById("visit-date").value=new Date().toISOString().split("T")[0];
-  document.getElementById("sign-date").value=new Date().toISOString().split("T")[0];
-
-  const stored=localStorage.getItem("selectedCustomer");
-  if(stored){
-    const data=JSON.parse(stored);
-    fillForm(data);
-    if(data["Stav"] && data["Stav"].toLowerCase().includes("hotovo")){
-      isArchiveMode=true;
-      enterArchiveMode();
-    }
-  }
+  const today=new Date().toISOString().split("T")[0];
+  document.getElementById("visit-date").value=today;
+  document.getElementById("sign-date").value=today;
+  loadDraft();
 });
 
-function fillForm(d){
-  document.getElementById("order-number").value=d["Číslo objednávky"]||"";
-  document.getElementById("claim-number").value=d["Číslo reklamace"]||"";
-  document.getElementById("customer").value=d["Zákazník"]||"";
-  document.getElementById("address").value=d["Adresa"]||"";
-  document.getElementById("phone").value=d["Telefon"]||"";
-  document.getElementById("email").value=d["Email"]||"";
-  document.getElementById("brand").value=d["Contract"]||"";
-  document.getElementById("description-cz").value=d["Popis CZ"]||"";
-  document.getElementById("description-en").value=d["Popis EN"]||"";
+function getFormData(){
+  const data={};
+  document.querySelectorAll("input, textarea, select").forEach(el=>data[el.id]=el.value);
+  data["signature"]=signaturePad.isEmpty()?"":signaturePad.toDataURL();
+  return data;
 }
 
-function enterArchiveMode(){
-  document.getElementById("archiveBanner").style.display="block";
-  document.getElementById("wrapper").classList.add("archive-border");
-  document.querySelectorAll("input, select, textarea, #signature-pad").forEach(el=>{
-    el.disabled=true;
-    el.style.background="#f4f4f4";
+function setFormData(data){
+  Object.keys(data).forEach(k=>{
+    const el=document.getElementById(k);
+    if(el) el.value=data[k];
   });
-  document.getElementById("actionButtons").style.display="none";
+  if(data.signature){
+    signaturePad.fromDataURL(data.signature);
+  }
 }
 
-// PDF funkce
+// 🧠 automatické ukládání
+setInterval(()=>saveDraft(),5000);
+
+async function saveDraft(){
+  const data=getFormData();
+  localStorage.setItem("draft-protokol",JSON.stringify(data));
+  try{
+    const res=await fetch(WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+      message:"Uložený draft z protokolu",
+      content:JSON.stringify([data],null,2)
+    })});
+  }catch(e){console.warn("Nelze odeslat draft:",e.message);}
+}
+
+async function loadDraft(){
+  // z localStorage
+  const local=localStorage.getItem("draft-protokol");
+  if(local){
+    setFormData(JSON.parse(local));
+    document.getElementById("draftBanner").style.display="block";
+  }
+
+  // z Workeru
+  try{
+    const res=await fetch(WORKER_URL);
+    const drafts=await res.json();
+    if(Array.isArray(drafts)&&drafts.length>0){
+      const last=drafts[drafts.length-1];
+      setFormData(last);
+      document.getElementById("draftBanner").style.display="block";
+    }
+  }catch(e){console.warn("Nelze načíst vzdálené drafty:",e.message);}
+}
+
+// PDF funkce (zůstávají stejné)
 function stripDiacritics(str){return (str||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g,"_").replace(/[<>:\"/\\|?*\u0000-\u001F]/g,"-");}
 function buildPdfFileName(){const today=new Date().toISOString().split("T")[0];const customer=stripDiacritics(document.getElementById("customer").value||"neznamy");const claim=stripDiacritics(document.getElementById("claim-number").value||"");const order=stripDiacritics(document.getElementById("order-number").value||"");return `${customer}_${claim}_${order}_${today}.pdf`; }
 function generatePdf(callback){const {jsPDF}=window.jspdf;const doc=new jsPDF("p","mm","a4");const wrapper=document.querySelector(".wrapper");wrapper.classList.add("force-desktop");
@@ -291,4 +242,6 @@ function generatePdf(callback){const {jsPDF}=window.jspdf;const doc=new jsPDF("p
 function downloadPDF(){generatePdf();}
 function saveAndMail(){openMailClient();generatePdf();}
 function openMailClient(){const customer=document.getElementById("customer").value||"";const order=document.getElementById("order-number").value||"";const claim=document.getElementById("claim-number").value||"";const visit=document.getElementById("visit-date").value||"";const email=document.getElementById("email").value||"";const subject=`Reklamace Natuzzi - ${customer} (${order})`;const body=`Dobrý den ${customer},\n\nzasíláme Vám protokol z návštěvy technika.\n\nČíslo reklamace: ${claim}\nDatum návštěvy: ${visit}\n\nSoubor ${lastPdfName} byl uložen – prosím přiložte jej do e-mailu jako přílohu.\n\n=====================\nWHITE GLOVE SERVICE\n=====================\nDo Dubče 364, Běchovice 190 11\n+420 725 965 826\nreklamace-wgs@email.cz`;window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;}
-</
+</script>
+</body>
+</html>
