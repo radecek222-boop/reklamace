@@ -491,7 +491,7 @@ function showPhoto(src) {
 
 
 
- <style>
+<style>
 /* ============================= */
 /* 💬 DETAIL MODAL STYL          */
 /* ============================= */
@@ -683,6 +683,7 @@ function showPhoto(src) {
 .btn-gray   { background: linear-gradient(135deg, #6c757d, #9ca3af); }
 .btn-orange { background: linear-gradient(135deg, #ff9800, #ffc270); color: #222; }
 .btn-red    { background: linear-gradient(135deg, #dc3545, #f87171); }
+.btn-purple { background: linear-gradient(135deg, #6f42c1, #b07bff); }
 
 /* 📱 Mobilní zobrazení */
 @media (max-width: 700px) {
@@ -700,43 +701,32 @@ function showPhoto(src) {
 }
 .blink-today { animation: blinkRed 1.5s infinite; }
 
-/* 🟣 Mapa přes celou obrazovku */
+/* 🗺️ Mapa plánování */
 .map-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.75);
+  background: rgba(0,0,0,0.6);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.25s ease;
+  z-index: 10000;
 }
 .map-overlay.active { opacity: 1; }
-
 .map-modal {
   background: #fff;
-  border-radius: 14px;
-  padding: 20px;
+  border-radius: 16px;
   width: 90%;
-  max-width: 900px;
+  max-width: 850px;
+  padding: 25px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-  text-align: center;
-  animation: zoomIn 0.3s ease;
+  animation: fadeIn 0.3s ease;
 }
-@keyframes zoomIn {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-#route-info { font-weight: 600; }
 </style>
 
-<!-- MAPA + PLÁN DNE -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-
 <script>
-// 🩸 Blikání dnešních termínů
+// 🩸 Automatické blikání dnešních termínů
 function highlightTodayRows() {
   const today = new Date().toISOString().split("T")[0];
   document.querySelectorAll("tbody tr").forEach(row => {
@@ -744,9 +734,12 @@ function highlightTodayRows() {
     if (!index) return;
     const item = dataAll[index];
     if (!item) return;
-    if (item.datum === today && stavy[item.cislo || `radek-${index}`] === "domluveno")
+
+    if (item.datum === today && stavy[item.cislo || `radek-${index}`] === "domluveno") {
       row.classList.add("blink-today");
-    else row.classList.remove("blink-today");
+    } else {
+      row.classList.remove("blink-today");
+    }
   });
 }
 const originalRenderTableBlink = renderTable;
@@ -759,77 +752,114 @@ window.addEventListener("storage", e => {
 });
 setInterval(highlightTodayRows, 30000);
 
-// 🟣 Tlačítko „Plán dne“
-window.addEventListener("DOMContentLoaded", () => {
-  const actions = document.querySelector(".actions");
-  if (actions && !document.getElementById("planBtn")) {
-    const btn = document.createElement("button");
-    btn.id = "planBtn";
-    btn.className = "btn";
-    btn.style.background = "linear-gradient(135deg, #6f42c1, #b280ff)";
-    btn.textContent = "🟣 Plán dne";
-    actions.appendChild(btn);
-    btn.addEventListener("click", openDayPlan);
-  }
-});
-
-// 🗺️ Otevření plánu dne
+// 🟣 Otevření plánu dne
 function openDayPlan() {
-  const dnes = prompt("Zadej datum (YYYY-MM-DD) pro zobrazení trasy:", new Date().toISOString().split("T")[0]);
-  if (!dnes) return;
-
-  const stops = [];
-  dataAll.forEach((r, i) => {
-    const id = r.cislo || `radek-${i}`;
-    if (stavy[id] === "domluveno" && r.datum === dnes && r.adresa)
-      stops.push({ adresa: simplifyAddress(r.adresa), full: r.adresa, zakaznik: r.zakaznik || "", cas: r.cas || "" });
-  });
-  if (!stops.length) { alert("Pro tento den nejsou naplánovány žádné zakázky."); return; }
-
-  const start = "Do Dubče 364, Praha 9 - Běchovice";
-  const allAddresses = [start, ...stops.map(s => s.full), start];
-
   const overlay = document.createElement("div");
   overlay.className = "map-overlay";
   overlay.innerHTML = `
     <div class="map-modal">
-      <h2>🗺️ Plán dne – ${dnes}</h2>
-      <div id="map" style="width:100%;height:65vh;border-radius:12px;margin-bottom:10px;"></div>
-      <div id="route-info" style="font-size:0.9em;color:#333;margin-bottom:15px;text-align:center;">Načítám trasu...</div>
-      <button id="closeMap" class="btn-action btn-gray" style="width:200px;">Zavřít</button>
+      <h2>🟣 Vyber datum pro plán dne</h2>
+      <input type="date" id="datumPlanu" class="term-date" style="margin:15px auto;display:block;">
+      <div id="dayHint" style="text-align:center;font-size:0.9em;color:#555;margin-bottom:10px;"></div>
+      <div class="btn-row">
+        <button id="showPlanBtn" class="btn-action btn-blue">📅 Zobrazit plán</button>
+        <button id="closeMap" class="btn-action btn-gray">❌ Zavřít</button>
+      </div>
     </div>`;
   document.body.appendChild(overlay);
   setTimeout(() => overlay.classList.add("active"), 10);
-  overlay.querySelector("#closeMap").onclick = () => overlay.remove();
 
-  const map = L.map("map").setView([50.08,14.45], 10);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{ attribution:"© OpenStreetMap" }).addTo(map);
+  const close = () => overlay.remove();
+  overlay.querySelector("#closeMap").onclick = close;
 
-  Promise.all(allAddresses.map(a =>
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(a)}&limit=1`)
-      .then(r => r.json()).then(j => j[0] ? [parseFloat(j[0].lat), parseFloat(j[0].lon)] : null)
-  )).then(coords => {
-    const valid = coords.filter(Boolean);
-    if (valid.length < 2) return document.getElementById("route-info").textContent = "Nepodařilo se určit všechny adresy.";
+  // 📅 Zvýraznění dnů, kde už je plán
+  const daysWithPlan = new Set();
+  dataAll.forEach((r, i) => {
+    const id = r.cislo || `radek-${i}`;
+    if (stavy[id] === "domluveno" && r.datum) daysWithPlan.add(r.datum);
+  });
 
-    const line = L.polyline(valid, { color:"#6f42c1", weight:4 }).addTo(map);
-    map.fitBounds(line.getBounds(), { padding:[30,30] });
+  const dateInput = overlay.querySelector("#datumPlanu");
+  dateInput.addEventListener("input", () => {
+    const val = dateInput.value;
+    const hint = overlay.querySelector("#dayHint");
+    if (daysWithPlan.has(val)) {
+      hint.innerHTML = "✅ Na tento den již existují naplánované zakázky.";
+      hint.style.color = "#28a745";
+    } else {
+      hint.innerHTML = "ℹ️ Pro tento den zatím není nic naplánováno.";
+      hint.style.color = "#555";
+    }
+  });
 
-    valid.forEach((p,i)=>{
-      const info = i===0?"Start – WGS Běchovice":i===valid.length-1?"Konec – návrat na sídlo":
-        `${stops[i-1].zakaznik} (${stops[i-1].cas||"čas ?"}) – ${stops[i-1].adresa}`;
-      L.marker(p).addTo(map).bindPopup(info);
+  overlay.querySelector("#showPlanBtn").onclick = () => {
+    const dnes = dateInput.value;
+    if (!dnes) return alert("Vyberte datum pro zobrazení plánu.");
+
+    const stops = [];
+    dataAll.forEach((r, i) => {
+      const id = r.cislo || `radek-${i}`;
+      if (stavy[id] === "domluveno" && r.datum === dnes && r.adresa)
+        stops.push({
+          adresa: simplifyAddress(r.adresa),
+          full: r.adresa,
+          zakaznik: r.zakaznik || "",
+          cas: r.cas || ""
+        });
     });
 
-    const coordsStr = valid.map(c => `${c[1]},${c[0]}`).join(";");
-    fetch(`https://router.project-osrm.org/route/v1/driving/${coordsStr}?overview=false`)
-      .then(r=>r.json()).then(r=>{
-        if(r.routes?.length){
-          const km=(r.routes[0].distance/1000).toFixed(1);
-          const min=Math.round(r.routes[0].duration/60);
-          document.getElementById("route-info").textContent=`🛣️ Celkem ${km} km | ⏱️ cca ${min} min`;
-        } else document.getElementById("route-info").textContent="Trasu se nepodařilo spočítat.";
+    if (!stops.length) {
+      alert("❌ Pro tento den nejsou naplánovány žádné zakázky.");
+      close();
+      return;
+    }
+
+    close();
+    const start = "Do Dubče 364, Praha 9 - Běchovice";
+    const allAddresses = [start, ...stops.map(s => s.full), start];
+
+    const mapOverlay = document.createElement("div");
+    mapOverlay.className = "map-overlay";
+    mapOverlay.innerHTML = `
+      <div class="map-modal">
+        <h2>🗺️ Plán dne – ${dnes}</h2>
+        <div id="map" style="width:100%;height:65vh;border-radius:12px;margin-bottom:10px;"></div>
+        <div id="route-info" style="font-size:0.9em;color:#333;margin-bottom:15px;text-align:center;">Načítám trasu...</div>
+        <button id="closeMap" class="btn-action btn-gray" style="width:200px;">Zavřít</button>
+      </div>`;
+    document.body.appendChild(mapOverlay);
+    setTimeout(() => mapOverlay.classList.add("active"), 10);
+    mapOverlay.querySelector("#closeMap").onclick = () => mapOverlay.remove();
+
+    const map = L.map("map").setView([50.08,14.45], 10);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{ attribution:"© OpenStreetMap" }).addTo(map);
+
+    Promise.all(allAddresses.map(a =>
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(a)}&limit=1`)
+        .then(r => r.json()).then(j => j[0] ? [parseFloat(j[0].lat), parseFloat(j[0].lon)] : null)
+    )).then(coords => {
+      const valid = coords.filter(Boolean);
+      if (valid.length < 2) return document.getElementById("route-info").textContent = "Nepodařilo se určit všechny adresy.";
+
+      const line = L.polyline(valid, { color:"#6f42c1", weight:4 }).addTo(map);
+      map.fitBounds(line.getBounds(), { padding:[30,30] });
+
+      valid.forEach((p,i)=>{
+        const info = i===0?"Start – WGS Běchovice":i===valid.length-1?"Konec – návrat na sídlo":
+          `${stops[i-1].zakaznik} (${stops[i-1].cas||"čas ?"}) – ${stops[i-1].adresa}`;
+        L.marker(p).addTo(map).bindPopup(info);
       });
-  });
+
+      const coordsStr = valid.map(c => `${c[1]},${c[0]}`).join(";");
+      fetch(`https://router.project-osrm.org/route/v1/driving/${coordsStr}?overview=false`)
+        .then(r=>r.json()).then(r=>{
+          if(r.routes?.length){
+            const km=(r.routes[0].distance/1000).toFixed(1);
+            const min=Math.round(r.routes[0].duration/60);
+            document.getElementById("route-info").textContent=`🛣️ Celkem ${km} km | ⏱️ cca ${min} min`;
+          } else document.getElementById("route-info").textContent="Trasu se nepodařilo spočítat.";
+        });
+    });
+  };
 }
 </script>
