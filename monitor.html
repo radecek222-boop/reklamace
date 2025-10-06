@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WGS – API Monitor</title>
+  <style>
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      background: #f6f7fb;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+
+    .wrapper {
+      background: #fff;
+      padding: 30px;
+      margin: 60px 15px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.8em;
+      font-weight: 900;
+      color: #111;
+      margin-bottom: 6px;
+    }
+
+    h2 {
+      font-size: 1em;
+      font-weight: 500;
+      color: #666;
+      margin-bottom: 25px;
+    }
+
+    .status {
+      text-align: left;
+      margin-top: 10px;
+      font-size: 1em;
+      line-height: 1.6;
+      background: #f8f9fc;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: inset 0 0 4px rgba(0,0,0,0.05);
+    }
+
+    .ok {
+      color: #007b00;
+      font-weight: 600;
+    }
+    .error {
+      color: #c00;
+      font-weight: 600;
+    }
+
+    footer {
+      font-size: 0.85em;
+      color: #888;
+      margin-top: 25px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrapper">
+    <h1>WHITE GLOVE SERVICE</h1>
+    <h2>API Status Monitor</h2>
+
+    <div id="status" class="status">Načítám stav...</div>
+    <footer>Aktualizuje se automaticky každých 30 s</footer>
+  </div>
+
+  <script>
+    const STATUS_URL = "https://wgs-token.72nvwf4pb2.workers.dev/status";
+    const statusDiv = document.getElementById("status");
+
+    async function loadStatus() {
+      try {
+        statusDiv.textContent = "Načítám stav...";
+        const res = await fetch(STATUS_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error("Chybná odpověď (" + res.status + ")");
+        const data = await res.json();
+
+        const html = `
+          <div><b>Verze:</b> ${data.version || "?"}</div>
+          <div><b>GitHub:</b> <span class="${data.github === "connected" ? "ok" : "error"}">${data.github || "neznámý"}</span></div>
+          <div><b>Počet záznamů:</b> ${data.count ?? "?"}</div>
+          <div><b>Poslední kontrola:</b> ${new Date(data.timestamp).toLocaleString("cs-CZ")}</div>
+        `;
+
+        statusDiv.innerHTML = html;
+      } catch (err) {
+        statusDiv.innerHTML = `<span class="error">Chyba načítání: ${err.message}</span>`;
+      }
+    }
+
+    loadStatus();
+    setInterval(loadStatus, 30000);
+  </script>
+</body>
+</html>
