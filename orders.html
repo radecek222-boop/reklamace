@@ -1,108 +1,118 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nová reklamace – White Glove Service</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <style>
-    body {
-      font-family: "Inter", system-ui, sans-serif;
-      background: #f6f7fb;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-    }
-    .wrapper {
-      background: #fff;
-      padding: 30px;
-      margin: 40px 15px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 750px;
-      box-sizing: border-box;
-    }
-    h1, h2 { text-align: center; margin: 0 0 20px; }
-    h1 { font-size: 2.4em; font-weight: 900; color: #111; }
-    h2 { font-size: 1.1em; font-weight: 500; color: #666; margin-bottom: 25px; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nová reklamace – White Glove Service</title>
 
-    label { display: block; font-weight: 600; margin-top: 15px; margin-bottom: 5px; }
-    input, textarea, select {
-      width: 100%; padding: 10px; font-size: 1em;
-      border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;
-      transition: border 0.2s;
-    }
-    textarea { height: 100px; resize: vertical; }
-    small { font-size: 0.8em; color: #666; }
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
-    .btn {
-      display: inline-block;
-      text-decoration: none;
-      padding: 12px 28px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1em;
-      border: none;
-      cursor: pointer;
-      color: white;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-      min-width: 150px;
-      transition: transform 0.15s ease-in-out, opacity 0.2s;
-    }
-    .btn:hover { transform: scale(1.04); opacity: 0.9; }
-    .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
-    .btn-send { background: linear-gradient(135deg, #0046ff, #357aff); }
+<style>
+  body {
+    font-family: "Inter", system-ui, sans-serif;
+    background: #f6f7fb;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+  }
+  .wrapper {
+    background: #fff;
+    padding: 30px;
+    margin: 40px 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 720px;
+    box-sizing: border-box;
+  }
+  h1, h2 { text-align: center; margin: 0 0 20px; }
+  h1 { font-size: 2.4em; font-weight: 900; color: #111; }
+  h2 { font-size: 1.1em; font-weight: 500; color: #666; margin-bottom: 25px; }
 
-    .actions {
-      text-align: center; margin-top: 25px;
-      display: flex; justify-content: center; flex-wrap: wrap; gap: 20px;
-    }
+  label { display: block; font-weight: 600; margin-top: 15px; margin-bottom: 5px; }
+  input, textarea, select {
+    width: 100%; padding: 10px; font-size: 1em;
+    border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;
+    transition: border 0.2s;
+  }
+  textarea { height: 100px; resize: vertical; }
+  small { font-size: 0.8em; color: #666; }
 
-    .address-wrapper { position: relative; }
-    .suggestions {
-      position: absolute; top: 100%; left: 0; width: 100%;
-      background: #fff; border: 1px solid #ccc; border-radius: 6px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      max-height: 180px; overflow-y: auto; z-index: 1000;
-    }
-    .suggestions div { padding: 8px; cursor: pointer; }
-    .suggestions div:hover { background: #f0f0f0; }
+  .btn {
+    display: inline-block; text-decoration: none;
+    padding: 12px 28px; border-radius: 8px; font-weight: 600;
+    font-size: 1em; border: none; cursor: pointer;
+    transition: transform 0.15s ease-in-out, opacity 0.2s;
+    color: white; box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    min-width: 140px;
+  }
+  .btn:hover { transform: scale(1.04); opacity: 0.9; }
+  .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
+  .btn-send { background: linear-gradient(135deg, #0046ff, #357aff); }
 
-    #mapPreview {
-      width: 100%; height: 250px; margin-top: 10px;
-      border-radius: 14px; overflow: hidden;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
+  .actions {
+    text-align: center; margin-top: 25px;
+    display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;
+  }
 
-    .preview { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
-    .preview-item {
-      width: 90px; height: 90px; position: relative;
-      border-radius: 8px; overflow: hidden;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
-    .preview-item img { width:100%; height:100%; object-fit:cover; display:block; }
-    .remove-btn {
-      position: absolute; top: 2px; right: 6px;
-      font-weight: 700; font-size: 18px; color: white;
-      text-shadow: 0 0 3px black; cursor: pointer;
-    }
-    .note {
-      position: absolute; bottom: 0; left: 0; right: 0;
-      background: rgba(0,0,0,0.6); color: white;
-      font-size: 10px; text-align: center; padding: 2px 0;
-    }
+  .hidden { display: none; }
 
-    @media (max-width: 600px) {
-      #mapPreview { height: 180px; }
-      .wrapper { padding: 20px; margin: 20px 10px; }
-      h1 { font-size: 2em; }
-    }
-  </style>
+  .address-wrapper { position: relative; }
+  .suggestions {
+    position: absolute; top: 100%; left: 0; width: 100%;
+    background: #fff; border: 1px solid #ccc; border-radius: 6px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    max-height: 180px; overflow-y: auto; z-index: 1000;
+  }
+  .suggestions div { padding: 8px; cursor: pointer; }
+  .suggestions div:hover { background: #f0f0f0; }
+
+  #mapPreview {
+    width: 100%; height: 250px; margin-top: 10px;
+    border-radius: 14px; overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+  #mapPreview:empty { background: #f0f0f0; border: 2px dashed #ccc; }
+
+  /* Náhledy fotek */
+  .preview { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+  .preview-item {
+    width:90px; height:90px; position:relative; border-radius:8px;
+    overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,.15);
+  }
+  .preview-item img { width:100%; height:100%; object-fit:cover; display:block; }
+  .progress-bar {
+    position:absolute; bottom:0; left:0; height:6px; width:0%;
+    background:linear-gradient(90deg,#ffb300,#ff9800);
+    transition: width .4s ease, background .4s ease;
+  }
+  .preview-status {
+    position:absolute; bottom:6px; right:6px;
+    background:rgba(255,255,255,.8);
+    padding:2px 5px; font-size:.7em; font-weight:600;
+    border-radius:4px; color:#333;
+  }
+  .remove-btn {
+    position:absolute; top:4px; right:4px;
+    background:rgba(255,255,255,.85);
+    border:none; border-radius:50%; width:20px; height:20px;
+    font-weight:bold; cursor:pointer; line-height:16px; color:#f00;
+    box-shadow:0 1px 3px rgba(0,0,0,.2);
+  }
+
+  @media (max-width: 600px) {
+    #mapPreview { height: 180px; }
+    .wrapper { padding: 20px; margin: 20px 10px; }
+    h1 { font-size: 2em; }
+  }
+  @keyframes spin {0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+  @keyframes draw {to{stroke-dashoffset:0}}
+</style>
 </head>
 
 <body>
@@ -112,7 +122,7 @@
 
     <form id="reklamaceForm" novalidate>
       <label>Číslo reklamace / objednávky:</label>
-      <input type="text" name="cislo" required />
+      <input type="text" name="cislo" id="cisloInput" required />
 
       <label>Zákazník:</label>
       <input type="text" name="zakaznik" required />
@@ -129,7 +139,7 @@
       <input type="text" id="mesto" name="mesto" required />
 
       <label>PSČ:</label>
-      <input type="text" id="psc" name="psc" required pattern="\\d{3}\\s?\\d{2}" />
+      <input type="text" id="psc" name="psc" required pattern="\d{3}\s?\d{2}" title="PSČ ve tvaru 12345 nebo 123 45" />
 
       <label>Telefon:</label>
       <div style="display:flex; gap:8px;">
@@ -157,8 +167,8 @@
       <textarea name="popis" required></textarea>
 
       <label>Přiložit fotografie (max. 5):</label>
-      <small>Podporované formáty: JPG, PNG, HEIC (max. 5 MB / soubor)</small>
-      <input type="file" id="fotky" accept="image/jpeg,image/png,image/heic" multiple>
+      <small>Podporované formáty: JPG, PNG, HEIC • velké soubory se **automaticky zmenší** (cílově ~1 MB / soubor)</small>
+      <input type="file" id="fotky" accept="image/jpeg,image/png,image/heic" multiple />
       <div id="preview" class="preview"></div>
 
       <label>Objednávku zpracoval:</label>
@@ -191,14 +201,58 @@
       </div>
     </form>
   </div>
+
+  <!-- Loader -->
+  <div id="waitOverlay" style="
+    display:none; position:fixed; inset:0;
+    background:rgba(255,255,255,0.85);
+    backdrop-filter:blur(2px);
+    justify-content:center; align-items:center;
+    flex-direction:column; z-index:2000;
+    font-weight:600; color:#333;">
+    <div style="border:4px solid #ccc;border-top:4px solid #0046ff;border-radius:50%;
+         width:40px;height:40px;animation:spin 1s linear infinite;margin-bottom:10px;"></div>
+    <p>WAIT / prosím čekejte...</p>
+  </div>
+
+  <!-- Fajfka -->
+  <div id="successCheck" style="
+    display:none; position:fixed; inset:0;
+    justify-content:center; align-items:center;
+    background:rgba(255,255,255,0.9); z-index:2100;">
+    <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"
+         style="width:80px;height:80px;stroke-width:3;stroke:#00b86b;fill:none;
+         stroke-dasharray:48;stroke-dashoffset:48;animation:draw 1s ease forwards;">
+      <circle cx="26" cy="26" r="25" fill="none"/>
+      <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
 <script>
 /* ==========================
-   GEOAPIFY AUTOCOMPLETE
+   ZÁKLADNÍ VALIDACE + POMOCNÉ
+========================== */
+const telefonInput = document.getElementById("telefon");
+const predvolba = document.getElementById("predvolba");
+const emailInput = document.getElementById("email");
+const pscInput = document.getElementById("psc");
+const cisloInput = document.getElementById("cisloInput");
+
+function validateTelefon() { return /^[0-9]{8,12}$/.test(telefonInput.value.trim()); }
+function validateEmail()   { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailInput.value.trim()); }
+function validatePSC()     { return /^\d{3}\s?\d{2}$/.test(pscInput.value.trim()); }
+
+// číslo reklamace velkými + bezpečné znaky
+cisloInput.addEventListener("input", () => {
+  cisloInput.value = cisloInput.value.toUpperCase().replace(/[^A-Z0-9._-]/g, "_");
+});
+
+/* ==========================
+   GEOAPIFY AUTOCOMPLETE + MAPA
 ========================== */
 const GEOAPIFY_KEY = "b363199bb14e47189558d03b81ca9ba1";
 const uliceInput = document.getElementById("ulice");
 const mestoInput = document.getElementById("mesto");
-const pscInput = document.getElementById("psc");
 const suggestionContainer = document.getElementById("suggestions");
 let adresaPlatna = false;
 
@@ -214,16 +268,16 @@ async function runAutocomplete() {
   suggestionContainer.innerHTML = "";
   if (query.length < 3) return;
 
+  suggestionContainer.innerHTML = "<div style='padding:8px;color:#888;'>Načítám…</div>";
+
   try {
-    const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(
-      query
-    )}&lang=cs&limit=5&filter=countrycode:cze,svk,aut&apiKey=${GEOAPIFY_KEY}`;
+    const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&lang=cs&limit=5&filter=countrycode:cze,svk,aut&apiKey=${GEOAPIFY_KEY}`;
     const res = await fetch(url);
     const data = await res.json();
-    if (!data.features?.length) return;
+    if (!data.features?.length) throw new Error("no features");
 
     suggestionContainer.innerHTML = "";
-    data.features.forEach((f) => {
+    data.features.forEach(f => {
       const p = f.properties;
       const div = document.createElement("div");
       div.textContent = p.formatted;
@@ -234,42 +288,30 @@ async function runAutocomplete() {
         adresaPlatna = true;
         suggestionContainer.innerHTML = "";
 
-        const lat = p.lat, lon = p.lon;
+        // mapa
         const mapDiv = document.getElementById("mapPreview");
         mapDiv.innerHTML = "";
+        const lat = p.lat, lon = p.lon;
         const map = L.map(mapDiv, { center: [lat, lon], zoom: 16, zoomControl: false, attributionControl: false });
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
         L.marker([lat, lon]).addTo(map);
+        setTimeout(() => map.invalidateSize(), 200);
       };
       suggestionContainer.appendChild(div);
     });
-  } catch (e) {
-    suggestionContainer.innerHTML = "<div style='padding:8px;color:#888;'>Nelze načíst adresy</div>";
+  } catch {
+    suggestionContainer.innerHTML = "<div style='padding:8px;color:#777;'>Žádné výsledky</div>";
   }
 }
 
-document.addEventListener("click", (e) => {
+document.addEventListener("click", e => {
   if (!suggestionContainer.contains(e.target) && e.target !== uliceInput) {
     suggestionContainer.innerHTML = "";
   }
 });
 
 /* ==========================
-   VALIDACE TELEFONU + EMAILU
-========================== */
-const telefonInput = document.getElementById("telefon");
-const predvolba = document.getElementById("predvolba");
-const emailInput = document.getElementById("email");
-
-function validateTelefon() {
-  return /^[0-9]{8,12}$/.test(telefonInput.value.trim());
-}
-function validateEmail() {
-  return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailInput.value.trim());
-}
-
-/* ==========================
-   SEKCE „JINÁ“ (nový zadavatel)
+   SEKCE „JINÁ“ (zadavatel)
 ========================== */
 const selectZpracoval = document.getElementById("zpracoval");
 const jinaSekce = document.getElementById("jinaSekce");
@@ -278,170 +320,176 @@ const jinaInputs = jinaSekce.querySelectorAll("input");
 selectZpracoval.addEventListener("change", () => {
   if (selectZpracoval.value === "Jiná") {
     jinaSekce.classList.remove("hidden");
-    jinaInputs.forEach(i => (i.required = true));
+    jinaInputs.forEach(i => i.required = true);
   } else {
     jinaSekce.classList.add("hidden");
-    jinaInputs.forEach(i => (i.required = false));
+    jinaInputs.forEach(i => i.required = false);
   }
 });
 
 /* ==========================
-   SPRÁVA FOTEK – NÁHLED, ODSTRANĚNÍ, KONTROLA
+   FOTKY – NÁHLED, KOMPRESE, STAV
 ========================== */
 const fotkyInput = document.getElementById("fotky");
 const preview = document.getElementById("preview");
-let validFiles = [];
 
-async function compressImage(file, maxSizeMB = 1.2, maxDim = 1600) {
-  const img = await createImageBitmap(file);
-  const canvas = document.createElement("canvas");
-  let [w, h] = [img.width, img.height];
-  if (w > h && w > maxDim) { h *= maxDim / w; w = maxDim; }
-  else if (h > w && h > maxDim) { w *= maxDim / h; h = maxDim; }
-  canvas.width = w; canvas.height = h;
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(img, 0, 0, w, h);
-  return new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.85));
+// budeme držet záznamy s ID → snadno najdeme jejich box
+let fileEntries = []; // {id, name, blob, box, progressEl, statusEl}
+
+function sanitizeName(prefix, name) {
+  let out = (prefix + "_" + name)
+    .normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  if (/^\./.test(out)) out = "file" + out; // nesmí začínat tečkou
+  if (!/\.[A-Za-z0-9]+$/.test(out)) out += ".jpg"; // jistota přípony
+  return out;
+}
+
+async function compressImage(file, maxSizeMB = 1, maxDim = 1280) {
+  try {
+    const img = await createImageBitmap(file);
+    const canvas = document.createElement("canvas");
+    let [w, h] = [img.width, img.height];
+    if (w >= h && w > maxDim) { h = Math.round(h * (maxDim / w)); w = maxDim; }
+    else if (h > w && h > maxDim) { w = Math.round(w * (maxDim / h)); h = maxDim; }
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, w, h);
+
+    let q = 0.9;
+    let blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", q));
+    while (blob.size / 1024 / 1024 > maxSizeMB && q > 0.4) {
+      q -= 0.1;
+      blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", q));
+    }
+    return blob || file;
+  } catch {
+    // HEIC nebo nepodporovaný formát v prohlížeči → nahrajeme originál
+    return file;
+  }
 }
 
 fotkyInput.addEventListener("change", async () => {
   preview.innerHTML = "";
-  validFiles = [];
+  fileEntries = [];
   const files = Array.from(fotkyInput.files).slice(0, 5);
 
   for (const file of files) {
-    const item = document.createElement("div");
-    item.classList.add("preview-item");
+    if (!file.type.startsWith("image/")) continue;
+
+    const box = document.createElement("div");
+    box.className = "preview-item";
+
     const img = document.createElement("img");
-    const removeBtn = document.createElement("div");
-    removeBtn.textContent = "×";
+    const progressEl = document.createElement("div");
+    progressEl.className = "progress-bar";
+    const statusEl = document.createElement("div");
+    statusEl.className = "preview-status";
+    statusEl.textContent = "Zpracování…";
+    const removeBtn = document.createElement("button");
     removeBtn.className = "remove-btn";
-    const note = document.createElement("div");
-    note.className = "note";
+    removeBtn.textContent = "×";
 
+    removeBtn.onclick = () => {
+      box.remove();
+      fileEntries = fileEntries.filter(en => en.box !== box);
+    };
+
+    box.append(img, progressEl, statusEl, removeBtn);
+    preview.appendChild(box);
+
+    // náhled
     const reader = new FileReader();
-    reader.onload = e => (img.src = e.target.result);
+    reader.onload = e => { img.src = e.target.result; };
     reader.readAsDataURL(file);
-    item.append(img, removeBtn, note);
-    preview.appendChild(item);
 
-    if (file.size > 5 * 1024 * 1024) {
-      note.textContent = "Soubor je příliš velký!";
-      note.style.background = "rgba(200,0,0,0.8)";
-      item.style.opacity = "0.6";
-    } else {
-      note.textContent = "Připraveno";
-      validFiles.push(file);
-    }
+    // komprese
+    const blob = await compressImage(file);
 
-    removeBtn.addEventListener("click", () => {
-      item.remove();
-      validFiles = validFiles.filter(f => f !== file);
-    });
+    // „pruh“ z oranžové → zelená
+    let w = 0;
+    const int = setInterval(() => {
+      w += 10;
+      progressEl.style.width = w + "%";
+      if (w >= 100) clearInterval(int);
+    }, 40);
+    setTimeout(() => {
+      progressEl.style.background = "linear-gradient(90deg,#4caf50,#8bc34a)";
+      statusEl.textContent = "Připraveno";
+    }, 600);
+
+    fileEntries.push({ id: crypto.randomUUID(), name: file.name, blob, box, progressEl, statusEl });
   }
 });
-</script>
-<!-- ====== Loader ====== -->
-<div id="waitOverlay" style="
-  display:none; position:fixed; inset:0;
-  background:rgba(255,255,255,0.85);
-  backdrop-filter:blur(2px);
-  justify-content:center; align-items:center;
-  flex-direction:column; z-index:2000;
-  font-weight:600; color:#333;">
-  <div style="border:4px solid #ccc;border-top:4px solid #0046ff;border-radius:50%;
-       width:40px;height:40px;animation:spin 1s linear infinite;margin-bottom:10px;"></div>
-  <p>WAIT / prosím čekejte...</p>
-</div>
 
-<!-- ====== Fajfka po odeslání ====== -->
-<div id="successCheck" style="
-  display:none;position:fixed;inset:0;
-  justify-content:center;align-items:center;
-  background:rgba(255,255,255,0.9);z-index:2100;">
-  <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"
-       style="width:80px;height:80px;stroke-width:3;stroke:#00b86b;fill:none;
-       stroke-dasharray:48;stroke-dashoffset:48;animation:draw 1s ease forwards;">
-    <circle cx="26" cy="26" r="25" fill="none"/>
-    <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
-</div>
-
-<style>
-@keyframes spin {0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-@keyframes draw {to {stroke-dashoffset:0;}}
-</style>
-
-<script>
 /* ==========================
-   FUNKCE ODESLÁNÍ NA WORKER
+   UPLOAD FOTEK NA WORKER
 ========================== */
-const waitOverlay = document.getElementById("waitOverlay");
-const successCheck = document.getElementById("successCheck");
-
-async function uploadToWorker(path, bodyObj) {
-  const res = await fetch("https://dark-darkness-d89a.72nvwf4pb2.workers.dev/" + path, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(bodyObj),
-  });
-  return await res.json();
-}
-
 async function uploadPhotosToWorker(cislo) {
-  const uploadedNames = [];
-  for (const file of validFiles) {
-    const safeName = `${cislo}_${file.name.replace(/\s+/g, "_")}`;
-    const compressed = await compressImage(file);
-    const formData = new FormData();
-    formData.append("file", compressed, safeName);
+  const baseURL = "https://dark-darkness-d89a.72nvwf4pb2.workers.dev";
+  const uploaded = [];
 
+  for (const en of fileEntries) {
     try {
-      const res = await fetch("https://dark-darkness-d89a.72nvwf4pb2.workers.dev/upload", {
-        method: "POST",
-        body: formData,
-      });
+      en.statusEl.textContent = "Nahrávám…";
+      en.progressEl.style.background = "linear-gradient(90deg,#2196f3,#64b5f6)";
+      en.progressEl.style.width = "60%";
+
+      const safeName = sanitizeName(cislo, en.name);
+      const form = new FormData();
+      form.append("file", en.blob, safeName);
+      form.append("filename", safeName);
+
+      const res = await fetch(`${baseURL}/upload`, { method: "POST", body: form });
       const data = await res.json();
-      if (data.ok) uploadedNames.push(safeName);
-      else console.warn("Nahrání selhalo:", data.message);
+
+      if (data.ok) {
+        en.progressEl.style.width = "100%";
+        en.progressEl.style.background = "linear-gradient(90deg,#4caf50,#8bc34a)";
+        en.statusEl.textContent = "✅ Hotovo";
+        uploaded.push(safeName);
+      } else {
+        en.statusEl.textContent = "❌ Chyba";
+        console.warn("Upload err:", data.message || data.error);
+      }
     } catch (err) {
-      console.error("Chyba uploadu:", err);
+      en.statusEl.textContent = "❌ Selhalo";
+      console.error("Upload exception:", err);
     }
   }
-  return uploadedNames;
+  return uploaded;
 }
 
 /* ==========================
-   ODESLÁNÍ FORMULÁŘE
+   ODESLÁNÍ CELÉ REKLAMACE
 ========================== */
 document.getElementById("reklamaceForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  waitOverlay.style.display = "flex";
+  const wait = document.getElementById("waitOverlay");
+  const success = document.getElementById("successCheck");
+  wait.style.display = "flex";
 
+  // validace
   const f = e.target;
   const fields = f.querySelectorAll("input[required], textarea[required], select[required]");
-  let valid = true;
+  let ok = true;
+  fields.forEach(i => { if (!i.value.trim()) { i.classList.add("invalid"); ok = false; } else i.classList.remove("invalid"); });
+  if (!validateTelefon()) { telefonInput.classList.add("invalid"); ok = false; }
+  if (!validateEmail())   { emailInput.classList.add("invalid"); ok = false; }
+  if (!validatePSC())     { pscInput.classList.add("invalid"); ok = false; }
+  if (!adresaPlatna)      { uliceInput.classList.add("invalid"); ok = false; }
 
-  fields.forEach(i => {
-    if (!i.value.trim()) { i.style.border = "2px solid #ff4d4d"; valid = false; }
-    else i.style.border = "1px solid #ccc";
-  });
-
-  if (!validateTelefon()) { telefonInput.style.border = "2px solid #ff4d4d"; valid = false; }
-  if (!validateEmail()) { emailInput.style.border = "2px solid #ff4d4d"; valid = false; }
-  if (!adresaPlatna) {
-    alert("Vyber prosím adresu z našeptávače.");
-    uliceInput.style.border = "2px solid #ff4d4d";
-    valid = false;
-  }
-
-  if (!valid) {
-    waitOverlay.style.display = "none";
-    alert("Zkontroluj červeně označená pole.");
+  if (!ok) {
+    wait.style.display = "none";
+    alert("Zkontroluj červeně označená pole a vyber adresu z našeptávače.");
     return;
   }
 
+  const baseURL = "https://dark-darkness-d89a.72nvwf4pb2.workers.dev";
   const cislo = f.cislo.value.trim().toUpperCase() || "REK";
+
   const dataObj = {
     typ: "reklamace",
     cislo,
@@ -453,39 +501,35 @@ document.getElementById("reklamaceForm").addEventListener("submit", async (e) =>
     datum_prodeje: f.datum_prodeje.value,
     datum_reklamace: f.datum_reklamace.value,
     popis: f.popis.value,
-    zpracoval: f.zpracoval.value,
-    jinaZadavatel:
-      f.zpracoval.value === "Jiná"
-        ? {
-            jmeno: f.jinaJmeno.value,
-            email: f.jinaEmail.value,
-            telefon: f.jinaTelefon.value,
-          }
-        : null,
-    fotky: [],
+    contract: f.zpracoval.value,
+    jinaZadavatel: f.zpracoval.value === "Jiná"
+      ? { jmeno: f.jinaJmeno.value || "", email: f.jinaEmail.value || "", telefon: f.jinaTelefon.value || "" }
+      : null,
+    fotky: []
   };
 
   try {
-    // Nahrát fotky
+    // 1) upload fotek
     const uploaded = await uploadPhotosToWorker(cislo);
     dataObj.fotky = uploaded;
 
-    // Zapsat data do Workeru
-    const result = await uploadToWorker("orders", dataObj);
+    // 2) zápis objednávky
+    const resp = await fetch(`${baseURL}/orders`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(dataObj)
+    });
+    const out = await resp.json();
+    if (!out.ok) throw new Error(out.error || out.message || "Chyba zápisu dat");
 
-    if (result.ok) {
-      successCheck.style.display = "flex";
-      setTimeout(() => {
-        window.location.href = "index.html";
-      }, 2500);
-      f.reset();
-    } else {
-      alert("Chyba při odesílání: " + (result.message || "Neznámá chyba"));
-    }
+    // úspěch
+    success.style.display = "flex";
+    setTimeout(() => { window.location.href = "index.html"; }, 2500);
+    f.reset();
   } catch (err) {
-    alert("Chyba komunikace: " + err.message);
+    alert("Chyba: " + err.message);
   } finally {
-    waitOverlay.style.display = "none";
+    wait.style.display = "none";
   }
 });
 </script>
