@@ -1,269 +1,201 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pozáruční servis – White Glove Service</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pozáruční servis – White Glove Service</title>
+  <style>
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      background: #f6f7fb;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    .wrapper {
+      background: #fff;
+      padding: 30px;
+      margin-top: 40px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 700px;
+    }
+    h1, h2 {
+      text-align: center;
+      margin: 0 0 20px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-top: 15px;
+      margin-bottom: 5px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    input[readonly] {
+      background: #eee;
+      color: #555;
+      font-weight: 600;
+    }
+    textarea { height: 100px; resize: vertical; }
+    input[type="file"] { margin-top: 5px; }
 
-<!-- Leaflet mapa -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    /* 🔹 jednotné tlačítka */
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1em;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.2s;
+      margin: 10px 5px 0 0;
+      color: #fff;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    }
+    .btn:hover { transform: scale(1.03); opacity: 0.9; }
+    .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
+    .btn-submit { background: linear-gradient(135deg, #0046ff, #357aff); }
+    .actions { text-align: center; margin-top: 25px; }
 
-<style>
-body {
-  font-family: "Inter", system-ui, sans-serif;
-  background: #f6f7fb;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
-}
-.wrapper {
-  background: #fff;
-  padding: 30px;
-  margin: 40px 15px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  width: 100%;
-  max-width: 900px;
-}
-h1 {
-  text-align: center;
-  font-size: 1.8em;
-  font-weight: 900;
-  margin: 0 0 8px;
-}
-h2 {
-  text-align: center;
-  font-size: 1em;
-  font-weight: 600;
-  color: #666;
-  margin: 0 0 25px;
-}
-label {
-  font-weight: 600;
-  font-size: 0.95em;
-  display: block;
-  margin-top: 12px;
-}
-label small {
-  display: block;
-  color: #666;
-  font-weight: normal;
-  font-size: 0.85em;
-}
-input, textarea, select {
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 1em;
-  box-sizing: border-box;
-  margin-top: 6px;
-}
-textarea { min-height: 80px; resize: vertical; }
-button, .btn {
-  display: inline-block;
-  border: none;
-  border-radius: 8px;
-  font-size: 1em;
-  padding: 12px 20px;
-  cursor: pointer;
-  font-weight: 600;
-  color: white;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  margin-top: 20px;
-}
-button:hover { transform: scale(1.03); opacity: 0.9; }
-.btn-green { background: linear-gradient(135deg,#00b36b,#3cd67a); }
-.btn-gray { background: linear-gradient(135deg,#6c757d,#a0a4a7); }
-.actions { text-align: center; margin-top: 30px; }
-.photo-preview {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 10px;
-}
-.photo-preview img {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-}
-#map {
-  width: 100%;
-  height: 220px;
-  border-radius: 8px;
-  margin-top: 10px;
-  z-index: 1;
-}
-.success-message {
-  display: none;
-  text-align: center;
-  padding: 15px;
-  border-radius: 8px;
-  background: #d4edda;
-  color: #155724;
-  font-weight: 600;
-  margin-top: 20px;
-}
-@media (max-width: 768px) {
-  .wrapper { padding: 20px; margin: 20px; }
-}
-</style>
+    /* 🔍 našeptávač */
+    #suggestions {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      position: absolute;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 100%;
+      max-height: 180px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+    }
+    #suggestions li { padding: 8px 10px; cursor: pointer; }
+    #suggestions li:hover { background: #f1f3f5; }
+  </style>
 </head>
-
 <body>
   <div class="wrapper">
     <h1>WHITE GLOVE SERVICE</h1>
-    <h2>Pozáruční servis / Out-of-warranty service</h2>
+    <h2>Pozáruční servis</h2>
 
-    <form id="serviceForm">
-      <label>Jméno zákazníka <small>Customer name</small></label>
-      <input type="text" id="customer" required>
+    <form id="servisForm">
+      <label>Číslo objednávky:</label>
+      <input type="text" name="cislo" value="Pozáruční servis" readonly>
 
-      <label>Adresa <small>Address</small></label>
-      <input type="text" id="address" required>
-      <div id="map"></div>
+      <label>Jméno zadavatele:</label>
+      <input type="text" name="zadavatel" required>
 
-      <label>Telefon <small>Phone number</small></label>
-      <input type="tel" id="phone" required placeholder="+420 …">
+      <label>E-mail zadavatele:</label>
+      <input type="email" name="email" required>
 
-      <label>E-mail <small>Email</small></label>
-      <input type="email" id="email">
+      <label>Telefon zadavatele:</label>
+      <input type="tel" name="telefon" required>
 
-      <label>Popis problému <small>Problem description</small></label>
-      <textarea id="description" required></textarea>
+      <label>Adresa servisu:</label>
+      <div style="position: relative;">
+        <input type="text" name="adresa" id="adresa" placeholder="Zadejte ulici..." autocomplete="off" required>
+        <ul id="suggestions"></ul>
+      </div>
 
-      <label>Odhad ceny opravy <small>Estimated repair cost</small></label>
-      <input type="text" id="price">
+      <label>Model / Název produktu:</label>
+      <input type="text" name="produkt">
 
-      <label>Fotky <small>Photos (optional)</small></label>
-      <input type="file" id="photos" multiple accept="image/*">
-      <div id="photoPreview" class="photo-preview"></div>
+      <label>Popis požadavku:</label>
+      <textarea name="popis" placeholder="Popište požadavek na opravu..."></textarea>
+
+      <label>Přiložit fotografie (max. 3):</label>
+      <input type="file" id="fotky" accept="image/*" multiple>
 
       <div class="actions">
-        <button type="submit" class="btn-green">Odeslat servisní požadavek</button>
-        <a href="index.html" class="btn-gray">Zpět na hlavní stránku</a>
+        <a href="index.html" class="btn btn-back">Zpět</a>
+        <button type="submit" class="btn btn-submit">Odeslat</button>
       </div>
     </form>
-
-    <div id="successMessage" class="success-message">
-      ✅ Servisní požadavek byl úspěšně odeslán.
-    </div>
   </div>
 
-<script>
-// ==== FOTO PREVIEW ====
-const photosInput = document.getElementById("photos");
-const photoPreview = document.getElementById("photoPreview");
-let selectedFiles = [];
-photosInput.addEventListener("change", () => {
-  photoPreview.innerHTML = "";
-  selectedFiles = Array.from(photosInput.files || []);
-  selectedFiles.forEach(file => {
-    const url = URL.createObjectURL(file);
-    const img = document.createElement("img");
-    img.src = url;
-    img.title = file.name;
-    photoPreview.appendChild(img);
-  });
-});
+  <script>
+    const adresaInput = document.getElementById("adresa");
+    const suggestions = document.getElementById("suggestions");
+    let timer = null;
 
-// ==== MAPA + GEO ====
-const map = L.map("map");
-const czCenter = [49.8175, 15.4730];
-map.setView(czCenter, 6);
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  maxZoom: 19, attribution: '&copy; OSM'
-}).addTo(map);
-let marker = L.marker(czCenter).addTo(map);
-const addressInput = document.getElementById("address");
-let geocodeTimer = null;
-addressInput.addEventListener("input", () => {
-  clearTimeout(geocodeTimer);
-  const q = addressInput.value.trim();
-  if (!q) return;
-  geocodeTimer = setTimeout(() => geocodeAddress(q), 500);
-});
-async function geocodeAddress(query) {
-  try {
-    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(query)}`;
-    const res = await fetch(url);
-    if (!res.ok) return;
-    const data = await res.json();
-    if (!data.length) return;
-    const { lat, lon, display_name } = data[0];
-    marker.setLatLng([lat, lon]);
-    map.setView([lat, lon], 14);
-    marker.bindPopup(display_name).openPopup();
-    addressInput.dataset.lat = lat;
-    addressInput.dataset.lon = lon;
-  } catch(e){ console.warn("Geocode error:", e); }
-}
-
-// ==== ODESLÁNÍ NA CLOUDFLARE WORKERA ====
-const form = document.getElementById("serviceForm");
-const successBox = document.getElementById("successMessage");
-
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  successBox.style.display = "none";
-
-  const claimData = {
-    id: Date.now(),
-    DatumVytvoreni: new Date().toISOString(),
-    Zákazník: document.getElementById("customer").value.trim(),
-    Adresa: document.getElementById("address").value.trim(),
-    Telefon: document.getElementById("phone").value.trim(),
-    Email: document.getElementById("email").value.trim(),
-    Popis: document.getElementById("description").value.trim(),
-    Cena: document.getElementById("price").value.trim(),
-    Typ: "Pozáruční servis",
-    Lat: document.getElementById("address").dataset.lat || "",
-    Lon: document.getElementById("address").dataset.lon || ""
-  };
-
-  // Fotky Base64
-  const photoFiles = selectedFiles || [];
-  for (let i = 0; i < photoFiles.length; i++) {
-    const base64 = await toBase64(photoFiles[i]);
-    claimData[`Foto${i + 1}`] = base64;
-  }
-
-  try {
-    const res = await fetch("https://wis-drafts-api.72nvwf4pb2.workers.dev/aftersales", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify([claimData])
+    // 🧠 Našeptávač adres
+    adresaInput.addEventListener("input", () => {
+      adresaInput.dataset.selected = "false";
+      clearTimeout(timer);
+      const query = adresaInput.value.trim();
+      if (query.length < 3) { suggestions.style.display = "none"; return; }
+      timer = setTimeout(() => searchAddress(query), 400);
     });
-    const text = await res.text();
-    console.log("Server:", text);
 
-    if (res.ok) {
-      successBox.style.display = "block";
-      form.reset();
-      selectedFiles = [];
-      photoPreview.innerHTML = "";
-      setTimeout(() => successBox.style.display = "none", 4000);
-    } else alert("❌ Chyba při odeslání: " + text);
-  } catch(err){
-    alert("❌ Chyba připojení: " + err.message);
-  }
-});
+    async function searchAddress(query) {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=cz&q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      showSuggestions(data);
+    }
 
-function toBase64(file){
-  return new Promise((resolve,reject)=>{
-    const r=new FileReader();
-    r.onload=()=>resolve(r.result);
-    r.onerror=reject;
-    r.readAsDataURL(file);
-  });
-}
-</script>
+    function showSuggestions(results) {
+      suggestions.innerHTML = "";
+      if (!results.length) { suggestions.style.display = "none"; return; }
+      results.slice(0, 8).forEach(r => {
+        const li = document.createElement("li");
+        li.textContent = r.display_name;
+        li.onclick = () => selectAddress(r.display_name);
+        suggestions.appendChild(li);
+      });
+      suggestions.style.display = "block";
+    }
+
+    function selectAddress(address) {
+      adresaInput.value = address;
+      adresaInput.dataset.selected = "true";
+      suggestions.style.display = "none";
+    }
+
+    // 🧾 Odeslání formuláře
+    document.getElementById("servisForm").addEventListener("submit", async e => {
+      e.preventDefault();
+
+      // ✅ Ověření výběru adresy
+      if (!adresaInput.dataset.selected || adresaInput.dataset.selected !== "true") {
+        alert("Vyberte adresu z nabídky (našeptávače).");
+        adresaInput.focus();
+        return;
+      }
+
+      const f = e.target;
+      const files = document.getElementById("fotky").files;
+      if (files.length === 0 && !confirm("Odeslat bez fotografií?")) return;
+
+      const dataObj = {
+        typ: "Pozáruční servis",
+        cislo: f.cislo.value,
+        zakaznik: f.zadavatel.value,
+        adresa: f.adresa.value,
+        telefon: f.telefon.value,
+        email: f.email.value,
+        produkt: f.produkt.value,
+        popis: f.popis.value,
+        fotky: Array.from(files).map(f => f.name)
+      };
+
+      alert("✅ Formulář prošel validací. Tady proběhne odeslání na GitHub.");
+    });
+  </script>
 </body>
 </html>
