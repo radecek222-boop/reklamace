@@ -392,7 +392,8 @@ async function uploadFileToWorker(file, name) {
   const formData = new FormData();
   formData.append("file", file, name);
 
-  const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload", {
+const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+
     method: "POST",
     body: formData,
   });
