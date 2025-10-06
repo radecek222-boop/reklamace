@@ -20,7 +20,6 @@ body {
   background:white;
   padding:20px;
   box-shadow:0 0 10px rgba(0,0,0,0.1);
-  position:relative;
 }
 .header {
   text-align:center;
@@ -109,13 +108,12 @@ textarea {
   min-width:300px;
 }
 
-/* podpis */
 #signature-pad {
   border:2px dashed #888;
   width:100%;
   height:200px;
   background:white;
-  touch-action:none;
+  touch-action: none;
 }
 .signature-label {
   font-size:0.9em;
@@ -123,7 +121,7 @@ textarea {
   margin:4px 0 20px;
 }
 
-/* tlačítka */
+/* ✅ gradientní tlačítka */
 .btns {
   margin-top:20px;
   display:grid;
@@ -145,10 +143,21 @@ button:hover {
   transform:scale(1.03);
   opacity:0.9;
 }
-.btn-clear { background: linear-gradient(135deg, #a83232, #ff4d4d); }
-.btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); color:#fff; }
-.btn-pdf { background: linear-gradient(135deg, #0046ff, #357aff); }
-.btn-email { background: linear-gradient(135deg, #00b36b, #3cd67a); }
+
+/* Barvy tlačítek */
+.btn-clear {
+  background: linear-gradient(135deg, #a83232, #ff4d4d);
+}
+.btn-back {
+  background: linear-gradient(135deg, #6c757d, #a0a4a7);
+  color:#fff;
+}
+.btn-pdf {
+  background: linear-gradient(135deg, #0046ff, #357aff);
+}
+.btn-email {
+  background: linear-gradient(135deg, #00b36b, #3cd67a);
+}
 
 @media screen and (max-width:768px){
   .two-col-table, .split-section { flex-direction: column !important; gap:10px; }
@@ -161,30 +170,30 @@ button:hover {
 </style>
 </head>
 <body>
-<div class="wrapper" id="pdf-wrapper">
+<div class="wrapper">
   <div class="header">
     <div>WHITE GLOVE SERVICE</div>
-    <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO 09769684</div>
+    <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
   </div>
-
   <div class="two-col-table">
     <div class="col">
       <table>
         <tr><td class="label">Číslo objednávky<span class="en-label">Order number</span></td><td><input id="order-number"></td></tr>
         <tr><td class="label">Číslo reklamace<span class="en-label">Claim number</span></td><td><input id="claim-number"></td></tr>
         <tr><td class="label">Zákazník<span class="en-label">Customer</span></td><td><input id="customer"></td></tr>
-        <tr><td class="label">Adresa<span class="en-label">Address</span></td><td><input id="address"></td></tr>
+        <tr><td class="label">Adresa zákazníka<span class="en-label">Customer address</span></td><td><input id="address"></td></tr>
         <tr><td class="label">Telefon<span class="en-label">Phone</span></td><td><input id="phone"></td></tr>
-        <tr><td class="label">E-mail<span class="en-label">Email</span></td><td><input id="email"></td></tr>
+        <tr><td class="label">Email<span class="en-label">Email</span></td><td><input id="email"></td></tr>
       </table>
     </div>
+
     <div class="col">
       <table>
         <tr><td class="label">Technik<span class="en-label">Technician</span></td><td>
           <select id="technician">
             <option>Milan Kolín</option>
             <option>Radek Zikmund</option>
-            <option>Kolín / Zikmund</option>
+            <option>Kolín/Zikmund</option>
           </select>
         </td></tr>
         <tr><td class="label">Datum návštěvy<span class="en-label">Visit date</span></td><td><input id="visit-date" type="date"></td></tr>
@@ -198,39 +207,40 @@ button:hover {
 
   <div class="section-title">Zákazník reklamuje<span class="en-label">Customer complaint</span></div>
   <div class="split-section">
-    <textarea id="description-cz" placeholder="CZ"></textarea>
+    <textarea id="description-cz" placeholder="CZ" oninput="autoTranslate('description-cz','description-en')"></textarea>
     <textarea id="description-en" placeholder="EN"></textarea>
   </div>
 
   <div class="section-title">Problém zjištěný technikem<span class="en-label">Detected problem</span></div>
   <div class="split-section">
-    <textarea id="problem-cz" placeholder="CZ"></textarea>
+    <textarea id="problem-cz" placeholder="CZ" oninput="autoTranslate('problem-cz','problem-en')"></textarea>
     <textarea id="problem-en" placeholder="EN"></textarea>
   </div>
 
   <div class="section-title">Návrh opravy<span class="en-label">Repair proposal</span></div>
   <div class="split-section">
-    <textarea id="repair-cz" placeholder="CZ"></textarea>
+    <textarea id="repair-cz" placeholder="CZ" oninput="autoTranslate('repair-cz','repair-en')"></textarea>
     <textarea id="repair-en" placeholder="EN"></textarea>
   </div>
 
   <div class="two-col-table">
     <div class="col">
       <table>
-        <tr><td class="label">Počet opravovaných dílů<span class="en-label">Repaired parts</span></td><td><input id="parts"></td></tr>
+        <tr><td class="label">Počet opravovaných dílů<span class="en-label">Number of repaired parts</span></td><td><input id="parts"></td></tr>
         <tr><td class="label">Cena za práci<span class="en-label">Work cost</span></td><td><input id="price-work"></td></tr>
         <tr><td class="label">Cena za materiál<span class="en-label">Material cost</span></td><td><input id="price-material"></td></tr>
-        <tr><td class="label">Cena za druhého technika<span class="en-label">2nd technician cost</span></td><td><input id="price-second"></td></tr>
+        <tr><td class="label">Cena za druhého technika<span class="en-label">Second technician cost</span></td><td><input id="price-second"></td></tr>
         <tr><td class="label">Cena za dopravu<span class="en-label">Transport cost</span></td><td><input id="price-transport"></td></tr>
         <tr><td class="label">Cena celkem<span class="en-label">Total cost</span></td><td><input id="price-total"></td></tr>
       </table>
     </div>
+
     <div class="col">
       <table>
-        <tr><td class="label">Vyřešeno?<span class="en-label">Solved?</span></td><td><select id="solved"><option>ANO</option><option>NE</option></select></td></tr>
-        <tr><td class="label">Čeká se na prodejce?<span class="en-label">Waiting for dealer?</span></td><td><select id="dealer"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Reklamace vyřešena?<span class="en-label">Complaint solved?</span></td><td><select id="solved"><option>ANO</option><option>NE</option></select></td></tr>
+        <tr><td class="label">Čeká se na vyjádření prodejce?<span class="en-label">Waiting for dealer statement?</span></td><td><select id="dealer"><option>NE</option><option>ANO</option></select></td></tr>
         <tr><td class="label">Poškození technikem?<span class="en-label">Damage by technician?</span></td><td><select id="damage"><option>NE</option><option>ANO</option></select></td></tr>
-        <tr><td class="label">Úhradu provádí zákazník?<span class="en-label">Customer pays?</span></td><td><select id="payment"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Úhradu provede zákazník?<span class="en-label">Customer will pay?</span></td><td><select id="payment"><option>NE</option><option>ANO</option></select></td></tr>
         <tr><td class="label">Datum podpisu<span class="en-label">Signature date</span></td><td><input id="sign-date" type="date"></td></tr>
       </table>
     </div>
@@ -240,94 +250,147 @@ button:hover {
   <canvas id="signature-pad"></canvas>
   <div class="signature-label">Podepište se prstem nebo myší</div>
 
-  <div class="btns" id="buttons">
+  <div class="btns">
     <button class="btn-clear" type="button" onclick="signaturePad.clear()">Vymazat podpis</button>
-    <button class="btn-back" type="button" onclick="window.location.href='seznam.html'">Zpět</button>
+    <button class="btn-back" type="button" onclick="window.location.href='index.html'">Zpět</button>
     <button class="btn-pdf" type="button" onclick="downloadPDF()">Exportovat do PDF</button>
-    <button class="btn-email" type="button" onclick="saveAndMail()">Odeslat e-mail</button>
+    <button class="btn-email" type="button" onclick="saveAndMail()">Odeslat e-mail zákazníkovi</button>
   </div>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
-let signaturePad, lastPdfName = "protokol.pdf";
+let signaturePad;
+let lastPdfName = "protokol.pdf";
 
+/* ===== 🖊️ Inicializace podpisu ===== */
 window.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById("signature-pad");
-  function resizeCanvas(){canvas.width=canvas.offsetWidth;canvas.height=canvas.offsetHeight;}
-  resizeCanvas(); window.addEventListener('resize',resizeCanvas);
-  signaturePad=new SignaturePad(canvas,{backgroundColor:"white"});
-  const today=new Date().toISOString().split("T")[0];
-  document.getElementById("visit-date").value=today;
-  document.getElementById("sign-date").value=today;
+  function resizeCanvas() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+  resizeCanvas();
+  window.addEventListener("resize", resizeCanvas, { passive: true });
+  signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
 
-  // načtení z localStorage
-  const rec=JSON.parse(localStorage.getItem("selectedRecord")||"{}");
-  if(rec){
-    document.getElementById("customer").value=rec["Zákazník"]||"";
-    document.getElementById("address").value=rec["Adresa"]||"";
-    document.getElementById("phone").value=rec["Telefon"]||"";
-    document.getElementById("email").value=rec["Email"]||"";
-    document.getElementById("order-number").value=rec["Číslo objednávky"]||"";
-    document.getElementById("claim-number").value=rec["Číslo reklamace"]||"";
-    document.getElementById("description-cz").value=rec["Popis CZ"]||"";
+  // Dnešní datum do polí
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("visit-date").value = today;
+  document.getElementById("sign-date").value = today;
+
+  // ✅ načtení dat z URL parametrů (předvyplnění z seznam.html)
+  const params = new URLSearchParams(window.location.search);
+  for (const [key, value] of params.entries()) {
+    const el = document.getElementById(key);
+    if (el) el.value = decodeURIComponent(value);
   }
 });
 
-function stripDiacritics(str){return (str||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g,"_").replace(/[<>:"/\\|?*\u0000-\u001F]/g,"-");}
-function buildPdfFileName(){
-  const today=new Date().toISOString().split("T")[0];
-  const c=stripDiacritics(document.getElementById("customer").value||"neznamy");
-  const r=stripDiacritics(document.getElementById("claim-number").value||"bez_claimu");
-  const o=stripDiacritics(document.getElementById("order-number").value||"bez_objednavky");
-  return `${c}_${r}_${o}_${today}.pdf`;
+/* ===== 🔤 Jednoduchý automatický překlad CZ → EN ===== */
+function autoTranslate(srcId, destId) {
+  const src = document.getElementById(srcId);
+  const dest = document.getElementById(destId);
+  if (!dest.value.trim()) dest.value = src.value; // prozatím kopírování textu
 }
 
-async function generatePdf(callback){
-  const { jsPDF } = window.jspdf;
-  const doc=new jsPDF("p","mm","a4");
-  const wrapper=document.querySelector(".wrapper");
-  const btns=document.getElementById("buttons");
-  btns.style.display="none"; // skryj tlačítka
+/* ===== 🧹 Odstranění diakritiky z názvu souboru ===== */
+function stripDiacritics(str){
+  return (str||"")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .replace(/\s+/g,"_")
+    .replace(/[<>:"/\\|?*\u0000-\u001F]/g,"-");
+}
 
-  const sigImg=signaturePad.toDataURL();
-  const sigEl=document.createElement("img");
-  sigEl.src=sigImg; sigEl.style.width="200px"; sigEl.style.marginTop="10px";
-  document.querySelector(".signature-label").appendChild(sigEl);
+/* ===== 🧾 Název PDF souboru ===== */
+function buildPdfFileName(){
+  const today = new Date().toISOString().split("T")[0];
+  const customer = stripDiacritics(document.getElementById("customer").value || "neznamy_zakaznik");
+  const claim = stripDiacritics(document.getElementById("claim-number").value || "bez_claimu");
+  const order = stripDiacritics(document.getElementById("order-number").value || "bez_objednavky");
+  return `${customer}_${claim}_${order}_${today}.pdf`;
+}
+
+/* ===== 📄 Export do PDF (bez tlačítek) ===== */
+function generatePdf(callback){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF("p","mm","a4");
+  const wrapper = document.querySelector(".wrapper");
+  const buttons = document.querySelector(".btns");
 
   wrapper.classList.add("force-desktop");
-  const canvas=await html2canvas(wrapper,{scale:2,scrollX:0,scrollY:0,windowWidth:794,windowHeight:wrapper.scrollHeight});
-  const imgData=canvas.toDataURL("image/jpeg",0.95);
-  const pageW=doc.internal.pageSize.getWidth(), pageH=doc.internal.pageSize.getHeight();
-  const imgProps=doc.getImageProperties(imgData);
-  const ratio=imgProps.width/imgProps.height;
-  let pdfW=pageW, pdfH=pdfW/ratio;
-  if(pdfH>pageH){pdfH=pageH;pdfW=pdfH*ratio;}
-  const x=(pageW-pdfW)/2, y=(pageH-pdfH)/2;
-  doc.addImage(imgData,"JPEG",x,y,pdfW,pdfH);
-  lastPdfName=buildPdfFileName();
-  doc.save(lastPdfName);
+  if (buttons) buttons.style.display = "none"; // skrýt tlačítka
 
-  wrapper.classList.remove("force-desktop");
-  btns.style.display="grid";
-  sigEl.remove();
-  if(callback)callback();
+  html2canvas(wrapper, {
+    scale: 2,
+    scrollX: 0,
+    scrollY: 0,
+    windowWidth: 794,
+    windowHeight: wrapper.scrollHeight
+  }).then(canvas => {
+    const imgData = canvas.toDataURL("image/jpeg", 0.95);
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const imgProps = doc.getImageProperties(imgData);
+    const ratio = imgProps.width / imgProps.height;
+    let pdfWidth = pageW;
+    let pdfHeight = pdfWidth / ratio;
+    if (pdfHeight > pageH) {
+      pdfHeight = pageH;
+      pdfWidth = pdfHeight * ratio;
+    }
+    const x = (pageW - pdfWidth) / 2;
+    const y = (pageH - pdfHeight) / 2;
+    doc.addImage(imgData, "JPEG", x, y, pdfWidth, pdfHeight, "", "FAST");
+
+    lastPdfName = buildPdfFileName();
+    doc.save(lastPdfName);
+
+    if (buttons) buttons.style.display = "grid"; // znovu zobrazit
+    wrapper.classList.remove("force-desktop");
+    if (callback) callback();
+  });
 }
 
-function downloadPDF(){generatePdf();}
-function saveAndMail(){openMailClient();generatePdf();}
+/* ===== 📥 Stažení PDF ===== */
+function downloadPDF(){ generatePdf(); }
+
+/* ===== 📧 Uložení + otevření mailu ===== */
+function saveAndMail(){
+  generatePdf(() => openMailClient());
+}
+
+/* ===== ✉️ Funkce pro otevření e-mailového klienta ===== */
 function openMailClient(){
-  const c=document.getElementById("customer").value||"";
-  const o=document.getElementById("order-number").value||"";
-  const r=document.getElementById("claim-number").value||"";
-  const d=document.getElementById("visit-date").value||"";
-  const e=document.getElementById("email").value||"";
-  const subject=`Reklamace Natuzzi - ${c} (${o})`;
-  const body=`Dobrý den ${c},\n\nzasíláme Vám protokol z návštěvy technika.\n\nČíslo reklamace: ${r}\nDatum návštěvy: ${d}\n\nSoubor ${lastPdfName} byl uložen – prosím přiložte jej do e-mailu.\n\n=====================\nWHITE GLOVE SERVICE\n=====================\nDo Dubče 364, Běchovice 190 11\n+420 725 965 826\nreklamace-wgs@email.cz`;
-  window.location.href=`mailto:${e}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const customer = document.getElementById("customer").value || "";
+  const order = document.getElementById("order-number").value || "";
+  const claim = document.getElementById("claim-number").value || "";
+  const visitDate = document.getElementById("visit-date").value || "";
+  const email = document.getElementById("email").value || "";
+
+  const subject = `Reklamace Natuzzi - ${customer} (${order})`;
+  const body =
+`Dobrý den ${customer},
+
+zasíláme Vám protokol z návštěvy technika.
+
+Číslo reklamace: ${claim}
+Datum návštěvy: ${visitDate}
+
+Soubor ${lastPdfName} byl uložen – prosím přiložte jej do e-mailu jako přílohu.
+
+=====================
+WHITE GLOVE SERVICE
+=====================
+Do Dubče 364, Běchovice 190 11
++420 725 965 826
+reklamace-wgs@email.cz`;
+
+  window.location.href =
+    `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 </script>
 </body>
