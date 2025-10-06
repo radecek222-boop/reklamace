@@ -1,14 +1,11 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nová reklamace – White Glove Service</title>
-
-  <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-
   <style>
     body {
       font-family: "Inter", system-ui, sans-serif;
@@ -27,13 +24,12 @@
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       width: 100%;
-      max-width: 700px;
+      max-width: 750px;
       box-sizing: border-box;
     }
-
     h1, h2 { text-align: center; margin: 0 0 20px; }
-    h1 { font-size: 2.6em; font-weight: 900; color: #111; }
-    h2 { font-size: 1.2em; font-weight: 500; color: #666; margin-bottom: 25px; }
+    h1 { font-size: 2.4em; font-weight: 900; color: #111; }
+    h2 { font-size: 1.1em; font-weight: 500; color: #666; margin-bottom: 25px; }
 
     label { display: block; font-weight: 600; margin-top: 15px; margin-bottom: 5px; }
     input, textarea, select {
@@ -42,19 +38,21 @@
       transition: border 0.2s;
     }
     textarea { height: 100px; resize: vertical; }
-
-    .invalid {
-      border: 2px solid;
-      border-image: linear-gradient(45deg, #ff4d4d, #ff7b7b) 1;
-    }
+    small { font-size: 0.8em; color: #666; }
 
     .btn {
-      display: inline-block; text-decoration: none;
-      padding: 12px 28px; border-radius: 8px; font-weight: 600;
-      font-size: 1em; border: none; cursor: pointer;
+      display: inline-block;
+      text-decoration: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1em;
+      border: none;
+      cursor: pointer;
+      color: white;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+      min-width: 150px;
       transition: transform 0.15s ease-in-out, opacity 0.2s;
-      color: white; box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-      min-width: 140px;
     }
     .btn:hover { transform: scale(1.04); opacity: 0.9; }
     .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
@@ -62,10 +60,8 @@
 
     .actions {
       text-align: center; margin-top: 25px;
-      display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;
+      display: flex; justify-content: center; flex-wrap: wrap; gap: 20px;
     }
-
-    .hidden { display: none; }
 
     .address-wrapper { position: relative; }
     .suggestions {
@@ -80,54 +76,31 @@
     #mapPreview {
       width: 100%; height: 250px; margin-top: 10px;
       border-radius: 14px; overflow: hidden;
-      transition: height 0.3s ease;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
-    .preview { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+    .preview { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
     .preview-item {
       width: 90px; height: 90px; position: relative;
       border-radius: 8px; overflow: hidden;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
-    .preview-item img { width: 100%; height: 100%; object-fit: cover; }
-    .progress-bar {
-      position: absolute; bottom: 0; left: 0; height: 6px;
-      background: linear-gradient(90deg, #ffb300, #ff9800);
-      width: 0%; border-radius: 0 0 6px 6px; transition: width 0.4s;
+    .preview-item img { width:100%; height:100%; object-fit:cover; display:block; }
+    .remove-btn {
+      position: absolute; top: 2px; right: 6px;
+      font-weight: 700; font-size: 18px; color: white;
+      text-shadow: 0 0 3px black; cursor: pointer;
     }
-
-    .wait-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(255,255,255,0.85); backdrop-filter: blur(2px);
-      justify-content: center; align-items: center; z-index: 2000;
-      flex-direction: column; font-weight: 600; color: #333;
+    .note {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: rgba(0,0,0,0.6); color: white;
+      font-size: 10px; text-align: center; padding: 2px 0;
     }
-    .wait-overlay.active { display: flex; }
-    .hourglass {
-      border: 4px solid #ccc; border-top: 4px solid #0046ff;
-      border-radius: 50%; width: 40px; height: 40px;
-      animation: spin 1s linear infinite; margin-bottom: 10px;
-    }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-    .success-check {
-      display: none; position: fixed; inset: 0;
-      justify-content: center; align-items: center;
-      background: rgba(255,255,255,0.9); z-index: 2100;
-    }
-    .success-check.active { display: flex; }
-    .checkmark {
-      width: 80px; height: 80px; stroke-width: 3; stroke: url(#grad1); fill: none;
-      stroke-dasharray: 48; stroke-dashoffset: 48; animation: draw 1s ease forwards;
-    }
-    @keyframes draw { to { stroke-dashoffset: 0; } }
 
     @media (max-width: 600px) {
-      #mapPreview { height: 180px; border-radius: 10px; }
+      #mapPreview { height: 180px; }
       .wrapper { padding: 20px; margin: 20px 10px; }
       h1 { font-size: 2em; }
-      .preview-item { width: 80px; height: 80px; }
     }
   </style>
 </head>
@@ -185,7 +158,7 @@
 
       <label>Přiložit fotografie (max. 5):</label>
       <small>Podporované formáty: JPG, PNG, HEIC (max. 5 MB / soubor)</small>
-      <input type="file" id="fotky" accept="image/jpeg,image/png,image/heic" multiple />
+      <input type="file" id="fotky" accept="image/jpeg,image/png,image/heic" multiple>
       <div id="preview" class="preview"></div>
 
       <label>Objednávku zpracoval:</label>
@@ -218,27 +191,71 @@
       </div>
     </form>
   </div>
-
-  <div class="wait-overlay" id="waitOverlay">
-    <div class="hourglass"></div>
-    <p>Prosím čekejte…</p>
-  </div>
-
-  <div class="success-check" id="successCheck">
-    <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-      <defs>
-        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#00d084;stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#00a86b;stop-opacity:1" />
-        </linearGradient>
-      </defs>
-      <circle cx="26" cy="26" r="25" fill="none"/>
-      <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
 <script>
 /* ==========================
-   VALIDACE TELEFONU A EMAILU
+   GEOAPIFY AUTOCOMPLETE
+========================== */
+const GEOAPIFY_KEY = "b363199bb14e47189558d03b81ca9ba1";
+const uliceInput = document.getElementById("ulice");
+const mestoInput = document.getElementById("mesto");
+const pscInput = document.getElementById("psc");
+const suggestionContainer = document.getElementById("suggestions");
+let adresaPlatna = false;
+
+let suggestTimer;
+uliceInput.addEventListener("input", () => {
+  clearTimeout(suggestTimer);
+  suggestTimer = setTimeout(runAutocomplete, 250);
+});
+
+async function runAutocomplete() {
+  const query = uliceInput.value.trim();
+  adresaPlatna = false;
+  suggestionContainer.innerHTML = "";
+  if (query.length < 3) return;
+
+  try {
+    const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(
+      query
+    )}&lang=cs&limit=5&filter=countrycode:cze,svk,aut&apiKey=${GEOAPIFY_KEY}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!data.features?.length) return;
+
+    suggestionContainer.innerHTML = "";
+    data.features.forEach((f) => {
+      const p = f.properties;
+      const div = document.createElement("div");
+      div.textContent = p.formatted;
+      div.onclick = () => {
+        uliceInput.value = (p.street || "") + " " + (p.housenumber || "");
+        mestoInput.value = p.city || p.town || p.village || "";
+        pscInput.value = p.postcode || "";
+        adresaPlatna = true;
+        suggestionContainer.innerHTML = "";
+
+        const lat = p.lat, lon = p.lon;
+        const mapDiv = document.getElementById("mapPreview");
+        mapDiv.innerHTML = "";
+        const map = L.map(mapDiv, { center: [lat, lon], zoom: 16, zoomControl: false, attributionControl: false });
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+        L.marker([lat, lon]).addTo(map);
+      };
+      suggestionContainer.appendChild(div);
+    });
+  } catch (e) {
+    suggestionContainer.innerHTML = "<div style='padding:8px;color:#888;'>Nelze načíst adresy</div>";
+  }
+}
+
+document.addEventListener("click", (e) => {
+  if (!suggestionContainer.contains(e.target) && e.target !== uliceInput) {
+    suggestionContainer.innerHTML = "";
+  }
+});
+
+/* ==========================
+   VALIDACE TELEFONU + EMAILU
 ========================== */
 const telefonInput = document.getElementById("telefon");
 const predvolba = document.getElementById("predvolba");
@@ -251,174 +268,8 @@ function validateEmail() {
   return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailInput.value.trim());
 }
 
-// Číslo reklamace velkými písmeny
-const cisloInput = document.querySelector('input[name="cislo"]');
-cisloInput.addEventListener("input", () => {
-  cisloInput.value = cisloInput.value.toUpperCase();
-});
-
 /* ==========================
-   GEOAPIFY + FALLBACK NOMINATIM
-========================== */
-const uliceInput = document.getElementById("ulice");
-const mestoInput = document.getElementById("mesto");
-const pscInput = document.getElementById("psc");
-const suggestionContainer = document.getElementById("suggestions");
-let adresaPlatna = false;
-
-const GEOAPIFY_KEY = "b363199bb14e47189558d03b81ca9ba1";
-
-let suggestTimer = null;
-uliceInput.addEventListener("input", () => {
-  clearTimeout(suggestTimer);
-  suggestTimer = setTimeout(runAutocomplete, 250);
-});
-
-async function runAutocomplete() {
-  const query = uliceInput.value.trim();
-  adresaPlatna = false;
-  suggestionContainer.innerHTML = "";
-  if (query.length < 3) return;
-
-  suggestionContainer.innerHTML = "<div style='padding:8px;color:#888;'>Načítám…</div>";
-
-  try {
-    // 1️⃣ Geoapify
-    const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&lang=cs&limit=5&filter=countrycode:cze,svk,aut&apiKey=${GEOAPIFY_KEY}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if (data.features?.length) {
-      const props = data.features.map(f => f.properties);
-      renderSuggestions(props.map(p => ({
-        label: p.formatted,
-        street: p.street,
-        housenumber: p.housenumber,
-        city: p.city || p.town || p.village,
-        postcode: p.postcode,
-        lat: p.lat,
-        lon: p.lon
-      })));
-      return;
-    }
-  } catch {}
-
-  // 2️⃣ fallback Nominatim
-  try {
-    const url2 = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=cz,sk,at&limit=5&q=${encodeURIComponent(query)}`;
-    const res2 = await fetch(url2, { headers: { "Accept-Language": "cs" } });
-    const data2 = await res2.json();
-    if (!data2.length) {
-      suggestionContainer.innerHTML = "<div style='padding:8px;color:#777;'>Žádné výsledky</div>";
-      return;
-    }
-    renderSuggestions(data2.map(n => ({
-      label: n.display_name,
-      street: n.address?.road,
-      housenumber: n.address?.house_number,
-      city: n.address?.city || n.address?.town || n.address?.village,
-      postcode: n.address?.postcode,
-      lat: n.lat,
-      lon: n.lon
-    })));
-  } catch {
-    suggestionContainer.innerHTML = "<div style='padding:8px;color:red;'>Chyba načítání</div>";
-  }
-}
-
-function renderSuggestions(items) {
-  suggestionContainer.innerHTML = "";
-  items.forEach(addr => {
-    const div = document.createElement("div");
-    div.textContent = addr.label;
-    div.addEventListener("click", () => {
-      uliceInput.value = `${addr.street || ""} ${addr.housenumber || ""}`.trim();
-      mestoInput.value = addr.city || "";
-      pscInput.value = addr.postcode || "";
-      adresaPlatna = true;
-      suggestionContainer.innerHTML = "";
-
-      // mapa
-      const mapDiv = document.getElementById("mapPreview");
-      mapDiv.innerHTML = "";
-      const lat = parseFloat(addr.lat);
-      const lon = parseFloat(addr.lon);
-      const map = L.map(mapDiv, { center: [lat, lon], zoom: 16, zoomControl: false, attributionControl: false });
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
-      L.marker([lat, lon]).addTo(map);
-      setTimeout(() => map.invalidateSize(), 200);
-    });
-    suggestionContainer.appendChild(div);
-  });
-}
-
-document.addEventListener("click", e => {
-  if (!suggestionContainer.contains(e.target) && e.target !== uliceInput)
-    suggestionContainer.innerHTML = "";
-});
-
-/* ==========================
-   NÁHLED A KOMPRES FOTEK
-========================== */
-const fotkyInput = document.getElementById("fotky");
-const preview = document.getElementById("preview");
-let compressedFiles = [];
-
-async function compressImage(file, maxSizeMB = 1, maxDim = 1280) {
-  const img = await createImageBitmap(file);
-  const canvas = document.createElement("canvas");
-  let [w, h] = [img.width, img.height];
-
-  if (w > h && w > maxDim) { h *= maxDim / w; w = maxDim; }
-  else if (h >= w && h > maxDim) { w *= maxDim / h; h = maxDim; }
-
-  canvas.width = w; canvas.height = h;
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(img, 0, 0, w, h);
-
-  let quality = 0.9;
-  let blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
-  while (blob.size / 1024 / 1024 > maxSizeMB && quality > 0.4) {
-    quality -= 0.1;
-    blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
-  }
-  return blob;
-}
-
-fotkyInput.addEventListener("change", async () => {
-  preview.innerHTML = "";
-  compressedFiles = [];
-
-  const files = Array.from(fotkyInput.files).slice(0, 5);
-  for (const file of files) {
-    if (!file.type.startsWith("image/")) continue;
-
-    const item = document.createElement("div");
-    item.classList.add("preview-item");
-
-    const img = document.createElement("img");
-    const progress = document.createElement("div");
-    progress.classList.add("progress-bar");
-
-    item.appendChild(progress);
-    preview.appendChild(item);
-
-    const reader = new FileReader();
-    reader.onload = e => { img.src = e.target.result; item.appendChild(img); };
-    reader.readAsDataURL(file);
-
-    const blob = await compressImage(file);
-    compressedFiles.push({ name: file.name, blob, progress });
-    let w = 0;
-    const int = setInterval(() => {
-      w += 10;
-      progress.style.width = w + "%";
-      if (w >= 100) clearInterval(int);
-    }, 40);
-  }
-});
-
-/* ==========================
-   SEKCE "JINÁ"
+   SEKCE „JINÁ“ (nový zadavatel)
 ========================== */
 const selectZpracoval = document.getElementById("zpracoval");
 const jinaSekce = document.getElementById("jinaSekce");
@@ -427,76 +278,172 @@ const jinaInputs = jinaSekce.querySelectorAll("input");
 selectZpracoval.addEventListener("change", () => {
   if (selectZpracoval.value === "Jiná") {
     jinaSekce.classList.remove("hidden");
-    jinaInputs.forEach(i => i.required = true);
+    jinaInputs.forEach(i => (i.required = true));
   } else {
     jinaSekce.classList.add("hidden");
-    jinaInputs.forEach(i => i.required = false);
+    jinaInputs.forEach(i => (i.required = false));
   }
 });
+
 /* ==========================
-   ZVUK + FAJFKA
+   SPRÁVA FOTEK – NÁHLED, ODSTRANĚNÍ, KONTROLA
 ========================== */
-function playSuccessSound() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(880, ctx.currentTime);
-    gain.gain.setValueAtTime(0.1, ctx.currentTime);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.25);
-  } catch {}
+const fotkyInput = document.getElementById("fotky");
+const preview = document.getElementById("preview");
+let validFiles = [];
+
+async function compressImage(file, maxSizeMB = 1.2, maxDim = 1600) {
+  const img = await createImageBitmap(file);
+  const canvas = document.createElement("canvas");
+  let [w, h] = [img.width, img.height];
+  if (w > h && w > maxDim) { h *= maxDim / w; w = maxDim; }
+  else if (h > w && h > maxDim) { w *= maxDim / h; h = maxDim; }
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0, w, h);
+  return new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.85));
 }
 
-function showSuccess() {
-  playSuccessSound();
-  document.getElementById("waitOverlay").classList.remove("active");
-  const s = document.getElementById("successCheck");
-  s.classList.add("active");
-  setTimeout(() => { window.location.href = "index.html"; }, 2500);
+fotkyInput.addEventListener("change", async () => {
+  preview.innerHTML = "";
+  validFiles = [];
+  const files = Array.from(fotkyInput.files).slice(0, 5);
+
+  for (const file of files) {
+    const item = document.createElement("div");
+    item.classList.add("preview-item");
+    const img = document.createElement("img");
+    const removeBtn = document.createElement("div");
+    removeBtn.textContent = "×";
+    removeBtn.className = "remove-btn";
+    const note = document.createElement("div");
+    note.className = "note";
+
+    const reader = new FileReader();
+    reader.onload = e => (img.src = e.target.result);
+    reader.readAsDataURL(file);
+    item.append(img, removeBtn, note);
+    preview.appendChild(item);
+
+    if (file.size > 5 * 1024 * 1024) {
+      note.textContent = "Soubor je příliš velký!";
+      note.style.background = "rgba(200,0,0,0.8)";
+      item.style.opacity = "0.6";
+    } else {
+      note.textContent = "Připraveno";
+      validFiles.push(file);
+    }
+
+    removeBtn.addEventListener("click", () => {
+      item.remove();
+      validFiles = validFiles.filter(f => f !== file);
+    });
+  }
+});
+</script>
+<!-- ====== Loader ====== -->
+<div id="waitOverlay" style="
+  display:none; position:fixed; inset:0;
+  background:rgba(255,255,255,0.85);
+  backdrop-filter:blur(2px);
+  justify-content:center; align-items:center;
+  flex-direction:column; z-index:2000;
+  font-weight:600; color:#333;">
+  <div style="border:4px solid #ccc;border-top:4px solid #0046ff;border-radius:50%;
+       width:40px;height:40px;animation:spin 1s linear infinite;margin-bottom:10px;"></div>
+  <p>WAIT / prosím čekejte...</p>
+</div>
+
+<!-- ====== Fajfka po odeslání ====== -->
+<div id="successCheck" style="
+  display:none;position:fixed;inset:0;
+  justify-content:center;align-items:center;
+  background:rgba(255,255,255,0.9);z-index:2100;">
+  <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"
+       style="width:80px;height:80px;stroke-width:3;stroke:#00b86b;fill:none;
+       stroke-dasharray:48;stroke-dashoffset:48;animation:draw 1s ease forwards;">
+    <circle cx="26" cy="26" r="25" fill="none"/>
+    <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</div>
+
+<style>
+@keyframes spin {0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+@keyframes draw {to {stroke-dashoffset:0;}}
+</style>
+
+<script>
+/* ==========================
+   FUNKCE ODESLÁNÍ NA WORKER
+========================== */
+const waitOverlay = document.getElementById("waitOverlay");
+const successCheck = document.getElementById("successCheck");
+
+async function uploadToWorker(path, bodyObj) {
+  const res = await fetch("https://dark-darkness-d89a.72nvwf4pb2.workers.dev/" + path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(bodyObj),
+  });
+  return await res.json();
+}
+
+async function uploadPhotosToWorker(cislo) {
+  const uploadedNames = [];
+  for (const file of validFiles) {
+    const safeName = `${cislo}_${file.name.replace(/\s+/g, "_")}`;
+    const compressed = await compressImage(file);
+    const formData = new FormData();
+    formData.append("file", compressed, safeName);
+
+    try {
+      const res = await fetch("https://dark-darkness-d89a.72nvwf4pb2.workers.dev/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.ok) uploadedNames.push(safeName);
+      else console.warn("Nahrání selhalo:", data.message);
+    } catch (err) {
+      console.error("Chyba uploadu:", err);
+    }
+  }
+  return uploadedNames;
 }
 
 /* ==========================
-   ODESLÁNÍ NA CLOUDFLARE WORKER
+   ODESLÁNÍ FORMULÁŘE
 ========================== */
 document.getElementById("reklamaceForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const wait = document.getElementById("waitOverlay");
-  wait.classList.add("active");
+  waitOverlay.style.display = "flex";
 
   const f = e.target;
   const fields = f.querySelectorAll("input[required], textarea[required], select[required]");
   let valid = true;
 
   fields.forEach(i => {
-    if (!i.value.trim()) { i.classList.add("invalid"); valid = false; }
-    else i.classList.remove("invalid");
+    if (!i.value.trim()) { i.style.border = "2px solid #ff4d4d"; valid = false; }
+    else i.style.border = "1px solid #ccc";
   });
 
-  if (!validateTelefon()) { telefonInput.classList.add("invalid"); valid = false; }
-  if (!validateEmail()) { emailInput.classList.add("invalid"); valid = false; }
+  if (!validateTelefon()) { telefonInput.style.border = "2px solid #ff4d4d"; valid = false; }
+  if (!validateEmail()) { emailInput.style.border = "2px solid #ff4d4d"; valid = false; }
   if (!adresaPlatna) {
     alert("Vyber prosím adresu z našeptávače.");
-    uliceInput.classList.add("invalid");
+    uliceInput.style.border = "2px solid #ff4d4d";
     valid = false;
   }
 
   if (!valid) {
-    wait.classList.remove("active");
+    waitOverlay.style.display = "none";
     alert("Zkontroluj červeně označená pole.");
     return;
   }
 
-  const baseURL = "https://dark-darkness-d89a.72nvwf4pb2.workers.dev";
   const cislo = f.cislo.value.trim().toUpperCase() || "REK";
-
-  // === JSON objekt reklamace ===
   const dataObj = {
     typ: "reklamace",
-    contract: f.zpracoval.value,
     cislo,
     zakaznik: f.zakaznik.value,
     adresa: `${f.ulice.value}, ${f.mesto.value}, ${f.psc.value}`,
@@ -506,46 +453,39 @@ document.getElementById("reklamaceForm").addEventListener("submit", async (e) =>
     datum_prodeje: f.datum_prodeje.value,
     datum_reklamace: f.datum_reklamace.value,
     popis: f.popis.value,
+    zpracoval: f.zpracoval.value,
+    jinaZadavatel:
+      f.zpracoval.value === "Jiná"
+        ? {
+            jmeno: f.jinaJmeno.value,
+            email: f.jinaEmail.value,
+            telefon: f.jinaTelefon.value,
+          }
+        : null,
     fotky: [],
-    jinaZadavatel: f.zpracoval.value === "Jiná"
-      ? { jmeno: f.jinaJmeno?.value || "", email: f.jinaEmail?.value || "", telefon: f.jinaTelefon?.value || "" }
-      : null
   };
 
   try {
-    // === Upload fotek ===
-    for (const fch of compressedFiles) {
-      const formData = new FormData();
-      formData.append("file", fch.blob, fch.name);
-      formData.append("filename", fch.name);
+    // Nahrát fotky
+    const uploaded = await uploadPhotosToWorker(cislo);
+    dataObj.fotky = uploaded;
 
-      fch.progress.style.width = "40%";
-      fch.progress.style.background = "linear-gradient(90deg,#2196f3,#64b5f6)";
+    // Zapsat data do Workeru
+    const result = await uploadToWorker("orders", dataObj);
 
-      const res = await fetch(`${baseURL}/upload`, { method: "POST", body: formData });
-      const result = await res.json();
-      if (!result.ok) throw new Error(result.error || "Chyba uploadu");
-
-      fch.progress.style.width = "100%";
-      fch.progress.style.background = "linear-gradient(90deg,#4caf50,#8bc34a)";
-      dataObj.fotky.push(result.filename);
+    if (result.ok) {
+      successCheck.style.display = "flex";
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 2500);
+      f.reset();
+    } else {
+      alert("Chyba při odesílání: " + (result.message || "Neznámá chyba"));
     }
-
-    // === Odeslání dat reklamace ===
-    const sendRes = await fetch(`${baseURL}/orders`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(dataObj)
-    });
-
-    const sendResult = await sendRes.json();
-    if (!sendResult.ok) throw new Error(sendResult.error || "Chyba zápisu dat");
-
-    showSuccess();
-    f.reset();
   } catch (err) {
-    wait.classList.remove("active");
-    alert("Chyba: " + err.message);
+    alert("Chyba komunikace: " + err.message);
+  } finally {
+    waitOverlay.style.display = "none";
   }
 });
 </script>
