@@ -20,45 +20,43 @@ body {
   background:white;
   padding:20px;
   box-shadow:0 0 10px rgba(0,0,0,0.1);
-  border:2px solid transparent;
-  transition:border-color 0.3s ease;
-  position:relative;
 }
-.wrapper.archive-border { border-color:#ccc; }
 .header { text-align:center; margin-bottom:20px; }
 .header div:first-child { font-size:28px; font-weight:900; }
 .header div:last-child { font-size:12px; margin-top:4px; font-weight:normal; }
-
-.archive-banner, .draft-banner {
-  position:absolute; top:0; left:0; right:0;
-  padding:10px 0; font-weight:600; text-align:center;
-  border-bottom:1px solid #bbb; box-shadow:0 2px 4px rgba(0,0,0,0.1);
-}
-.archive-banner {
-  background:linear-gradient(135deg,#e0e0e0,#f0f0f0); color:#333; display:none;
-}
-.draft-banner {
-  background:linear-gradient(135deg,#d1f7c4,#e6ffe6); color:#1b6b1b; display:none;
-}
 
 table { width:100%; border-collapse:collapse; margin:10px 0; }
 td { padding:6px; vertical-align:top; }
 .label { font-weight:600; display:block; }
 .label .en-label { display:block; font-size:0.85em; color:#666; font-weight:normal; margin:0; }
 
-input, select, textarea {
-  width:100%; padding:4px 8px; border:1px solid #ccc; border-radius:4px;
-  box-sizing:border-box; font-size:1em; color:#111; background:#fff;
+.section-title { font-weight:700; margin-top:20px; display:flex; flex-direction:column; align-items:flex-start; }
+.section-title .en-label { font-size:0.9em; color:#666; font-weight:normal; margin-top:2px; }
+
+input, select {
+  width:100%; height:36px; line-height:36px;
+  padding:4px 8px; font-size:1em; border:1px solid #ccc; border-radius:4px;
+  box-sizing:border-box; color:#111; background:#fff;
 }
-textarea { min-height:80px; resize:vertical; }
+textarea {
+  width:100%; min-height:80px; resize:vertical; padding:4px 8px;
+  font-size:1em; border:1px solid #ccc; border-radius:4px;
+  box-sizing:border-box; color:#111; background:#fff;
+}
 
 .split-section { display:flex; gap:10px; margin:10px 0; }
 .two-col-table { display:flex; gap:30px; flex-wrap:wrap; }
 .two-col-table .col { flex:1; min-width:300px; }
 
-#signature-pad { border:2px dashed #888; width:100%; height:200px; background:white; touch-action:none; }
+#signature-pad {
+  border:2px dashed #888;
+  width:100%; height:200px;
+  background:white;
+  touch-action: none;
+}
 .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
 
+/* ✅ gradientní tlačítka */
 .btns { margin-top:20px; display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; }
 button {
   height:44px; font-size:0.9em; border:none; border-radius:8px;
@@ -67,30 +65,30 @@ button {
   transition:transform 0.1s ease-in-out, opacity 0.2s;
 }
 button:hover { transform:scale(1.03); opacity:0.9; }
-.btn-clear { background:linear-gradient(135deg,#a83232,#ff4d4d); }
-.btn-back { background:linear-gradient(135deg,#6c757d,#a0a4a7); color:#fff; }
-.btn-pdf { background:linear-gradient(135deg,#0046ff,#357aff); }
-.btn-email { background:linear-gradient(135deg,#00b36b,#3cd67a); }
+
+/* Barvy tlačítek */
+.btn-clear { background: linear-gradient(135deg, #a83232, #ff4d4d); }
+.btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); color:#fff; }
+.btn-pdf { background: linear-gradient(135deg, #0046ff, #357aff); }
+.btn-email { background: linear-gradient(135deg, #00b36b, #3cd67a); }
 
 @media screen and (max-width:768px){
   .two-col-table, .split-section { flex-direction: column !important; gap:10px; }
-  input, select, textarea { font-size:1em; height:36px; }
+  .two-col-table .col, .split-section textarea { min-width:auto; width:100%; }
+  input, select, textarea { font-size:1em; height:36px; box-sizing:border-box; }
+  textarea { min-height:80px; }
   #signature-pad { height:180px; }
 }
 .force-desktop { width:794px !important; max-width:794px !important; }
 </style>
 </head>
 <body>
-<div class="wrapper" id="wrapper">
-  <div id="archiveBanner" class="archive-banner">🗂️ Archivovaný protokol (jen pro zobrazení)</div>
-  <div id="draftBanner" class="draft-banner">💾 Načten rozpracovaný protokol</div>
-
+<div class="wrapper">
   <div class="header">
     <div>WHITE GLOVE SERVICE</div>
     <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684</div>
   </div>
 
-  <!-- FORMULÁŘ -->
   <div class="two-col-table">
     <div class="col">
       <table>
@@ -104,7 +102,13 @@ button:hover { transform:scale(1.03); opacity:0.9; }
     </div>
     <div class="col">
       <table>
-        <tr><td class="label">Technik<span class="en-label">Technician</span></td><td><select id="technician"><option>Milan Kolín</option><option>Radek Zikmund</option><option>Kolín/Zikmund</option></select></td></tr>
+        <tr><td class="label">Technik<span class="en-label">Technician</span></td><td>
+          <select id="technician">
+            <option>Milan Kolín</option>
+            <option>Radek Zikmund</option>
+            <option>Kolín/Zikmund</option>
+          </select>
+        </td></tr>
         <tr><td class="label">Datum návštěvy<span class="en-label">Visit date</span></td><td><input id="visit-date" type="date"></td></tr>
         <tr><td class="label">Datum doručení<span class="en-label">Delivery date</span></td><td><input id="delivery-date" type="date"></td></tr>
         <tr><td class="label">Datum podání reklamace<span class="en-label">Complaint date</span></td><td><input id="claim-date" type="date"></td></tr>
@@ -146,7 +150,7 @@ button:hover { transform:scale(1.03); opacity:0.9; }
     <div class="col">
       <table>
         <tr><td class="label">Reklamace vyřešena?<span class="en-label">Complaint solved?</span></td><td><select id="solved"><option>ANO</option><option>NE</option></select></td></tr>
-        <tr><td class="label">Čeká se na vyjádření prodejce?<span class="en-label">Waiting for dealer statement?</span></td><td><select id="dealer"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Čeká se na vyjádření prodejce?<span class="en-label">Waiting for dealer?</span></td><td><select id="dealer"><option>NE</option><option>ANO</option></select></td></tr>
         <tr><td class="label">Poškození technikem?<span class="en-label">Damage by technician?</span></td><td><select id="damage"><option>NE</option><option>ANO</option></select></td></tr>
         <tr><td class="label">Úhradu provede zákazník?<span class="en-label">Customer will pay?</span></td><td><select id="payment"><option>NE</option><option>ANO</option></select></td></tr>
         <tr><td class="label">Datum podpisu<span class="en-label">Signature date</span></td><td><input id="sign-date" type="date"></td></tr>
@@ -158,7 +162,7 @@ button:hover { transform:scale(1.03); opacity:0.9; }
   <canvas id="signature-pad"></canvas>
   <div class="signature-label">Podepište se prstem nebo myší</div>
 
-  <div class="btns" id="actionButtons">
+  <div class="btns">
     <button class="btn-clear" type="button" onclick="signaturePad.clear()">Vymazat podpis</button>
     <button class="btn-back" type="button" onclick="window.location.href='index.html'">Zpět</button>
     <button class="btn-pdf" type="button" onclick="downloadPDF()">Exportovat do PDF</button>
@@ -169,79 +173,92 @@ button:hover { transform:scale(1.03); opacity:0.9; }
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script>
-const WORKER_URL = "https://wis-drafts-api.72nvwf4pb2.workers.dev/";
-let signaturePad, lastPdfName="protokol.pdf";
 
-window.addEventListener("DOMContentLoaded",()=>{
-  const canvas=document.getElementById("signature-pad");
-  canvas.width=canvas.offsetWidth; canvas.height=canvas.offsetHeight;
-  signaturePad=new SignaturePad(canvas,{backgroundColor:"white"});
-  const today=new Date().toISOString().split("T")[0];
-  document.getElementById("visit-date").value=today;
-  document.getElementById("sign-date").value=today;
-  loadDraft();
+<script>
+let signaturePad;
+let lastPdfName = "protokol.pdf";
+
+window.addEventListener("DOMContentLoaded", () => {
+  const canvas = document.getElementById("signature-pad");
+  function resizeCanvas() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas, { passive: true });
+  signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
+
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("visit-date").value = today;
+  document.getElementById("sign-date").value = today;
 });
 
-function getFormData(){
-  const data={};
-  document.querySelectorAll("input, textarea, select").forEach(el=>data[el.id]=el.value);
-  data["signature"]=signaturePad.isEmpty()?"":signaturePad.toDataURL();
-  return data;
-}
+/* --- AUTOMATICKÉ PŘEDVYPLNĚNÍ --- */
+window.addEventListener("DOMContentLoaded", () => {
+  const saved = localStorage.getItem("selectedRecord");
+  if (!saved) return;
+  try {
+    const data = JSON.parse(saved);
+    if (data["Zákazník"]) document.getElementById("customer").value = data["Zákazník"];
+    if (data["Adresa"]) document.getElementById("address").value = data["Adresa"];
+    if (data["Telefon"]) document.getElementById("phone").value = data["Telefon"];
+    if (data["Email"]) document.getElementById("email").value = data["Email"];
+    if (data["Číslo objednávky"]) document.getElementById("order-number").value = data["Číslo objednávky"];
+    if (data["Číslo reklamace"]) document.getElementById("claim-number").value = data["Číslo reklamace"];
+    if (data["Contract"]) document.getElementById("brand").value = data["Contract"];
+    if (data["Model"]) document.getElementById("model").value = data["Model"];
+    if (data["Popis CZ"] || data["Popis"]) document.getElementById("description-cz").value = data["Popis CZ"] || data["Popis"];
+  } catch (e) { console.error("Chyba při načítání selectedRecord:", e); }
+  localStorage.removeItem("selectedRecord");
+});
 
-function setFormData(data){
-  Object.keys(data).forEach(k=>{
-    const el=document.getElementById(k);
-    if(el) el.value=data[k];
+/* --- PDF generátor --- */
+function stripDiacritics(str){
+  return (str||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g,"_").replace(/[<>:"/\\|?*\u0000-\u001F]/g,"-");
+}
+function buildPdfFileName(){
+  const today = new Date().toISOString().split("T")[0];
+  const customer = stripDiacritics(document.getElementById("customer").value || "neznamy_zakaznik");
+  const claim = stripDiacritics(document.getElementById("claim-number").value || "bez_claimu");
+  const order = stripDiacritics(document.getElementById("order-number").value || "bez_objednavky");
+  return `${customer}_${claim}_${order}_${today}.pdf`;
+}
+function generatePdf(callback){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF("p","mm","a4");
+  const wrapper = document.querySelector(".wrapper");
+  wrapper.classList.add("force-desktop");
+
+  html2canvas(wrapper,{ scale:2, scrollX:0, scrollY:0, windowWidth:794, windowHeight:wrapper.scrollHeight })
+  .then(canvas => {
+    const imgData = canvas.toDataURL("image/jpeg",0.95);
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const imgProps = doc.getImageProperties(imgData);
+    const ratio = imgProps.width / imgProps.height;
+    let pdfWidth = pageW, pdfHeight = pdfWidth / ratio;
+    if(pdfHeight > pageH){ pdfHeight = pageH; pdfWidth = pdfHeight * ratio; }
+    const x = (pageW - pdfWidth) / 2;
+    const y = (pageH - pdfHeight) / 2;
+    doc.addImage(imgData,"JPEG",x,y,pdfWidth,pdfHeight);
+    lastPdfName = buildPdfFileName();
+    doc.save(lastPdfName);
+    wrapper.classList.remove("force-desktop");
+    if(callback) callback();
   });
-  if(data.signature){
-    signaturePad.fromDataURL(data.signature);
-  }
 }
-
-// 🧠 automatické ukládání
-setInterval(()=>saveDraft(),5000);
-
-async function saveDraft(){
-  const data=getFormData();
-  localStorage.setItem("draft-protokol",JSON.stringify(data));
-  try{
-    const res=await fetch(WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-      message:"Uložený draft z protokolu",
-      content:JSON.stringify([data],null,2)
-    })});
-  }catch(e){console.warn("Nelze odeslat draft:",e.message);}
+function downloadPDF(){ generatePdf(); }
+function saveAndMail(){ openMailClient(); generatePdf(); }
+function openMailClient(){
+  const customer = document.getElementById("customer").value || "";
+  const order = document.getElementById("order-number").value || "";
+  const claim = document.getElementById("claim-number").value || "";
+  const visitDate = document.getElementById("visit-date").value || "";
+  const email = document.getElementById("email").value || "";
+  const subject = `Reklamace Natuzzi - ${customer} (${order})`;
+  const body = `Dobrý den ${customer},\n\nzasíláme Vám protokol z návštěvy technika.\n\nČíslo reklamace: ${claim}\nDatum návštěvy: ${visitDate}\n\nSoubor ${lastPdfName} byl uložen – prosím přiložte jej do e-mailu jako přílohu.\n\n=====================\nWHITE GLOVE SERVICE\n=====================\nDo Dubče 364, Běchovice 190 11\n+420 725 965 826\nreklamace-wgs@email.cz`;
+  window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
-
-async function loadDraft(){
-  // z localStorage
-  const local=localStorage.getItem("draft-protokol");
-  if(local){
-    setFormData(JSON.parse(local));
-    document.getElementById("draftBanner").style.display="block";
-  }
-
-  // z Workeru
-  try{
-    const res=await fetch(WORKER_URL);
-    const drafts=await res.json();
-    if(Array.isArray(drafts)&&drafts.length>0){
-      const last=drafts[drafts.length-1];
-      setFormData(last);
-      document.getElementById("draftBanner").style.display="block";
-    }
-  }catch(e){console.warn("Nelze načíst vzdálené drafty:",e.message);}
-}
-
-// PDF funkce (zůstávají stejné)
-function stripDiacritics(str){return (str||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g,"_").replace(/[<>:\"/\\|?*\u0000-\u001F]/g,"-");}
-function buildPdfFileName(){const today=new Date().toISOString().split("T")[0];const customer=stripDiacritics(document.getElementById("customer").value||"neznamy");const claim=stripDiacritics(document.getElementById("claim-number").value||"");const order=stripDiacritics(document.getElementById("order-number").value||"");return `${customer}_${claim}_${order}_${today}.pdf`; }
-function generatePdf(callback){const {jsPDF}=window.jspdf;const doc=new jsPDF("p","mm","a4");const wrapper=document.querySelector(".wrapper");wrapper.classList.add("force-desktop");
-  html2canvas(wrapper,{scale:2,scrollX:0,scrollY:0,windowWidth:794,windowHeight:wrapper.scrollHeight}).then(canvas=>{const imgData=canvas.toDataURL("image/jpeg",0.95);const pageW=doc.internal.pageSize.getWidth();const pageH=doc.internal.pageSize.getHeight();const imgProps=doc.getImageProperties(imgData);const ratio=imgProps.width/imgProps.height;let pdfW=pageW;let pdfH=pdfW/ratio;if(pdfH>pageH){pdfH=pageH;pdfW=pdfH*ratio;}const x=(pageW-pdfW)/2;const y=(pageH-pdfH)/2;doc.addImage(imgData,"JPEG",x,y,pdfW,pdfH);lastPdfName=buildPdfFileName();doc.save(lastPdfName);wrapper.classList.remove("force-desktop");if(callback)callback();});}
-function downloadPDF(){generatePdf();}
-function saveAndMail(){openMailClient();generatePdf();}
-function openMailClient(){const customer=document.getElementById("customer").value||"";const order=document.getElementById("order-number").value||"";const claim=document.getElementById("claim-number").value||"";const visit=document.getElementById("visit-date").value||"";const email=document.getElementById("email").value||"";const subject=`Reklamace Natuzzi - ${customer} (${order})`;const body=`Dobrý den ${customer},\n\nzasíláme Vám protokol z návštěvy technika.\n\nČíslo reklamace: ${claim}\nDatum návštěvy: ${visit}\n\nSoubor ${lastPdfName} byl uložen – prosím přiložte jej do e-mailu jako přílohu.\n\n=====================\nWHITE GLOVE SERVICE\n=====================\nDo Dubče 364, Běchovice 190 11\n+420 725 965 826\nreklamace-wgs@email.cz`;window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;}
 </script>
 </body>
 </html>
