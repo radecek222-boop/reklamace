@@ -329,6 +329,7 @@ function renderSuggestions(items){
   });
 }
 document.addEventListener("click",e=>{if(!suggestionContainer.contains(e.target)&&e.target!==uliceInput)suggestionContainer.innerHTML="";});
+
 // --- Náhled + komprese + mazání ---
 const fotkyInput=document.getElementById("fotky");
 const preview=document.getElementById("preview");
@@ -393,26 +394,27 @@ document.getElementById("reklamaceForm").addEventListener("submit",async e=>{
     fotky:[],
     jinaZadavatel:f.zpracoval.value==="Jiná"?{jmeno:f.jinaJmeno?.value||"",email:f.jinaEmail?.value||"",telefon:f.jinaTelefon?.value||""}:null
   };
+
   try{
     for(const fch of compressedFiles){
       fch.status.textContent="Nahrávám…";
       fch.progress.style.background="linear-gradient(90deg,#2196f3,#64b5f6)";
       const formData=new FormData();
       formData.append("file",fch.blob,fch.file.name);
-      const up=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
-
-",{method:"POST",body:formData});
+      const up=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload",{method:"POST",body:formData});
       if(!up.ok)throw new Error("Upload selhal");
       const r=await up.json();dataObj.fotky.push(r.filename);
       fch.progress.style.background="linear-gradient(90deg,#4caf50,#8bc34a)";
       fch.status.textContent="✅ Hotovo";
     }
-    await fetch("https://wgs-token.72nvwf4pb2.workers.dev
-",{
-      method:"POST",headers:{"Content-Type":"application/json"},
+
+    await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
       body:JSON.stringify(dataObj)
     });
-    document.getElementById("waitOverlay").classList.remove("active");
+
+    wait.classList.remove("active");
     document.getElementById("successCheck").classList.add("active");
     const snd=new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_2d18bdf1d3.mp3?filename=success-1-6297.mp3");
     snd.play();
