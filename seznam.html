@@ -381,5 +381,66 @@ window.addEventListener("DOMContentLoaded", loadData);
       }
     };
   </script>
+      <!-- 🔄 Overlay při dlouhém načítání -->
+  <div id="overlay" style="
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(255,255,255,0.85);
+      backdrop-filter:blur(3px);
+      justify-content:center;
+      align-items:center;
+      font-weight:600;
+      color:#333;
+      z-index:9999;">
+    <div>
+      <div style="
+          border:4px solid #ccc;
+          border-top:4px solid #0046ff;
+          border-radius:50%;
+          width:40px;
+          height:40px;
+          margin:auto;
+          animation:spin 1s linear infinite;"></div>
+      <p>Načítám data…</p>
+    </div>
+  </div>
+
+  <style>
+    @keyframes spin { 
+      0% { transform: rotate(0deg); } 
+      100% { transform: rotate(360deg); } 
+    }
+  </style>
+
+  <script>
+    // 🔁 Overlay při dlouhém načítání
+    const overlay = document.getElementById("overlay");
+    const originalLoadData = loadData;
+
+    loadData = async function() {
+      overlay.style.display = "flex";
+      try {
+        await originalLoadData();
+      } finally {
+        overlay.style.display = "none";
+      }
+    };
+
+    // 🟩 Tlačítko "Hotové reklamace"
+    const actionsDiv = document.querySelector(".actions");
+    if (actionsDiv && !document.getElementById("doneBtn")) {
+      const doneBtn = document.createElement("a");
+      doneBtn.id = "doneBtn";
+      doneBtn.textContent = "Hotové reklamace";
+      doneBtn.href = "hotove.html";
+      doneBtn.className = "btn btn-refresh";
+      doneBtn.style.background = "linear-gradient(135deg, #28a745, #5bd85b)";
+      actionsDiv.appendChild(doneBtn);
+    }
+  </script>
+</body>
+</html>
+
 </body>
 </html>
