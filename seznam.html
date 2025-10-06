@@ -516,6 +516,55 @@ loadData = async function() {
   }
 };
 </script>
+    <style>
+/* 💻 Úprava tabulky pro PC – více prostoru, žádné zalamování */
+@media (min-width: 900px) {
+  table {
+    table-layout: fixed;
+    width: 100%;
+  }
+  th:nth-child(1) { width: 4%; }
+  th:nth-child(2) { width: 10%; }
+  th:nth-child(3) { width: 15%; }
+  th:nth-child(4) { width: 26%; } /* adresa širší */
+  th:nth-child(5) { width: 14%; } /* telefon */
+  th:nth-child(6) { width: 15%; }
+  th:nth-child(7) { width: 10%; }
+  th:nth-child(8) { width: 6%; }
+
+  td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+  }
+  td a {
+    color: #0046ff;
+    text-decoration: none;
+  }
+  td a:hover {
+    text-decoration: underline;
+  }
+}
+
+/* 📱 Menší písmo na mobilu */
+@media (max-width: 700px) {
+  th, td {
+    font-size: 0.75em !important;
+    line-height: 1.2em;
+  }
+}
+</style>
+
+<script>
+// 💡 Ujisti se, že tabulka zůstane širší i po vykreslení
+window.addEventListener("load", () => {
+  document.querySelectorAll("table").forEach(t => {
+    t.style.tableLayout = "fixed";
+  });
+});
+</script>
+
 </body>
 </html>
 
