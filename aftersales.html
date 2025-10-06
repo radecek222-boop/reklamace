@@ -53,7 +53,7 @@
       margin-bottom: 5px;
     }
 
-    input, textarea {
+    input, textarea, select {
       width: 100%;
       padding: 10px;
       font-size: 1em;
@@ -70,6 +70,22 @@
 
     textarea { height: 100px; resize: vertical; }
     input[type="file"] { margin-top: 5px; }
+
+    /* telefonní řádek */
+    .phone-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .phone-row select {
+      flex: 0 0 90px;
+    }
+
+    .phone-icon {
+      font-size: 1.3em;
+      margin-right: 5px;
+    }
 
     /* tlačítka */
     .btn {
@@ -165,7 +181,16 @@
       <input type="email" name="email" required>
 
       <label>Telefon zadavatele:</label>
-      <input type="tel" name="telefon" required>
+      <div class="phone-row">
+        <span class="phone-icon">📞</span>
+        <select id="prefix" required>
+          <option value="+420">🇨🇿 +420</option>
+          <option value="+421">🇸🇰 +421</option>
+          <option value="+48">🇵🇱 +48</option>
+          <option value="+49">🇩🇪 +49</option>
+        </select>
+        <input type="tel" id="telefon" name="telefon" placeholder="Zadejte číslo" required pattern="[0-9]{9,12}">
+      </div>
 
       <label>Adresa servisu:</label>
       <div style="position: relative;">
@@ -196,8 +221,9 @@
     <div>⏳ Odesílám...</div>
     <span>Prosím čekejte na potvrzení</span>
   </div>
+
   <script>
-    // 🧭 Inicializace mapy
+    // 🧭 Mapa + našeptávač
     let map = L.map('map').setView([49.8, 15.5], 7);
     L.tileLayer('https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=6b7a09a8dcfe40c7b4e2f7f2a4c5ef58', {
       attribution: '&copy; Geoapify, OpenStreetMap'
@@ -208,7 +234,6 @@
     const suggestions = document.getElementById("suggestions");
     let timer = null;
 
-    // 🔍 Našeptávač adres (Geoapify)
     adresaInput.addEventListener("input", () => {
       adresaInput.dataset.selected = "false";
       clearTimeout(timer);
@@ -247,7 +272,7 @@
       marker = L.marker([lat, lon]).addTo(map);
     }
 
-    // 🖼️ Náhledy fotek + automatické zmenšení
+    // 🖼️ Náhledy + zmenšení fotek
     const fileInput = document.getElementById("fotky");
     const preview = document.getElementById("preview");
 
@@ -293,6 +318,7 @@
     const soundSend = new Audio("https://cdn.jsdelivr.net/gh/filipelins/alert-sounds/send.mp3");
     const soundDone = new Audio("https://cdn.jsdelivr.net/gh/filipelins/alert-sounds/done.mp3");
     const soundError = new Audio("https://cdn.jsdelivr.net/gh/filipelins/alert-sounds/error.mp3");
+
     // 📨 Odeslání formuláře
     document.getElementById("servisForm").addEventListener("submit", async e => {
       e.preventDefault();
@@ -301,13 +327,22 @@
       soundSend.play();
 
       const f = e.target;
+      const prefix = document.getElementById("prefix").value;
+      const telefon = document.getElementById("telefon").value.trim();
+      const fullPhone = `${prefix}${telefon}`;
 
-      // Kontrola adresy
       if (!adresaInput.dataset.selected || adresaInput.dataset.selected !== "true") {
         overlay.style.display = "none";
         soundError.play();
         alert("❗ Vyberte adresu z nabídky (našeptávače).");
         adresaInput.focus();
+        return;
+      }
+
+      if (telefon.length < 9) {
+        overlay.style.display = "none";
+        soundError.play();
+        alert("❗ Zadejte platné telefonní číslo.");
         return;
       }
 
@@ -324,7 +359,7 @@
         cislo: f.cislo.value,
         zakaznik: f.zadavatel.value,
         adresa: f.adresa.value,
-        telefon: f.telefon.value,
+        telefon: fullPhone,
         email: f.email.value,
         produkt: f.produkt.value,
         popis: f.popis.value,
@@ -333,16 +368,12 @@
       };
 
       try {
-        // 🧾 Uložení JSONu do GitHubu (stejně jako orders)
         const repo = "radecek222-boop";
         const path = "orders.json";
-        const token = "ghp_TVŮJ_TOKEN_SEM"; // 🔒 nezapomeň doplnit svůj GitHub token
+        const token = "ghp_TVŮJ_TOKEN_SEM";
         const apiUrl = `https://api.github.com/repos/${repo}/contents/${path}`;
 
-        // 1️⃣ Načti stávající JSON
-        const getRes = await fetch(apiUrl, {
-          headers: { Authorization: `token ${token}` }
-        });
+        const getRes = await fetch(apiUrl, { headers: { Authorization: `token ${token}` }});
         const getData = await getRes.json();
         const sha = getData.sha;
         let content = [];
@@ -351,16 +382,11 @@
           content = Array.isArray(existing) ? existing : [];
         }
 
-        // 2️⃣ Přidej nový záznam
         content.push(formData);
 
-        // 3️⃣ Ulož zpět
         const updateRes = await fetch(apiUrl, {
           method: "PUT",
-          headers: {
-            Authorization: `token ${token}`,
-            "Content-Type": "application/json"
-          },
+          headers: { Authorization: `token ${token}`, "Content-Type": "application/json" },
           body: JSON.stringify({
             message: `Nový pozáruční servis: ${formData.zakaznik}`,
             content: btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2)))),
@@ -370,17 +396,13 @@
 
         if (!updateRes.ok) throw new Error("Nepodařilo se uložit JSON.");
 
-        // 4️⃣ Ulož fotky
         for (const fz of resizedFiles) {
           const fotoUrl = `https://api.github.com/repos/${repo}/contents/foto/${encodeURIComponent(fz.name)}`;
           const arrayBuffer = await fz.blob.arrayBuffer();
           const base64String = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
           await fetch(fotoUrl, {
             method: "PUT",
-            headers: {
-              Authorization: `token ${token}`,
-              "Content-Type": "application/json"
-            },
+            headers: { Authorization: `token ${token}`, "Content-Type": "application/json" },
             body: JSON.stringify({
               message: `Foto – pozáruční servis: ${formData.zakaznik}`,
               content: base64String
@@ -390,9 +412,7 @@
 
         overlay.innerHTML = "<div>✅ Úspěšně odesláno</div><span>Děkujeme za zadání pozáručního servisu</span>";
         soundDone.play();
-        setTimeout(() => {
-          window.location.href = "index.html";
-        }, 2500);
+        setTimeout(() => window.location.href = "index.html", 2500);
 
       } catch (err) {
         console.error(err);
