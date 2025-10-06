@@ -1,626 +1,241 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nová reklamace – White Glove Service</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Protokol – White Glove Service</title>
+
   <style>
     body {
       font-family: "Inter", system-ui, sans-serif;
       background: #f6f7fb;
       margin: 0;
-      padding: 0;
+      padding: 20px;
       display: flex;
       justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
     }
-
     .wrapper {
       background: #fff;
-      padding: 30px;
-      margin: 40px 15px;
-      border-radius: 10px;
+      padding: 25px;
+      border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       width: 100%;
-      max-width: 700px;
-      position: relative;
+      max-width: 900px;
       box-sizing: border-box;
     }
-
-    h1, h2 {
+    .header {
       text-align: center;
-      margin: 0 0 20px;
+      margin-bottom: 25px;
     }
-
-    h1 {
-      font-size: 2.6em;
+    .header div:first-child {
+      font-size: 26px;
       font-weight: 900;
       color: #111;
     }
-
-    h2 {
-      font-size: 1.2em;
-      font-weight: 500;
+    .header div:last-child {
+      font-size: 13px;
       color: #666;
-      margin-bottom: 25px;
+      margin-top: 4px;
     }
 
-    label {
-      display: block;
-      font-weight: 600;
-      margin-top: 15px;
-      margin-bottom: 5px;
-    }
-
-    input, textarea, select {
+    table {
       width: 100%;
-      padding: 10px;
-      font-size: 1em;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-      transition: border 0.2s;
+      border-collapse: collapse;
+      margin: 15px 0;
     }
-
-    textarea {
-      height: 100px;
-      resize: vertical;
+    td {
+      padding: 6px;
+      vertical-align: top;
+      border-bottom: 1px solid #eee;
     }
-
-    input:invalid, textarea:invalid, select:invalid {
-      border: 2px solid;
-      border-image: linear-gradient(45deg, #ff4d4d, #ff7b7b) 1;
-    }
-
-    small {
-      font-size: 0.8em;
-      color: #666;
-    }
-
-    .btn {
-      display: inline-block;
-      text-decoration: none;
-      padding: 12px 28px;
-      border-radius: 8px;
+    .label {
       font-weight: 600;
-      font-size: 1em;
-      border: none;
-      cursor: pointer;
-      transition: transform 0.15s ease-in-out, opacity 0.2s;
-      color: white;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-      min-width: 140px;
+      color: #111;
+      width: 35%;
     }
 
-    .btn:hover {
-      transform: scale(1.04);
-      opacity: 0.9;
+    .signature-box {
+      margin-top: 25px;
     }
-
-    .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
-    .btn-send { background: linear-gradient(135deg, #0046ff, #357aff); }
+    canvas {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      width: 100%;
+      height: 160px;
+    }
 
     .actions {
       text-align: center;
       margin-top: 25px;
       display: flex;
       justify-content: center;
+      flex-wrap: wrap;
       gap: 20px;
-      flex-wrap: wrap;
     }
 
-    .hidden { display: none; }
-
-    .preview {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .preview-item {
-      width: 80px;
-      height: 80px;
-      position: relative;
-      border-radius: 6px;
-      overflow: hidden;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
-
-    .preview-item img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .progress-bar {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      height: 5px;
-      background: linear-gradient(90deg, #4caf50, #8bc34a);
-      width: 0%;
-      transition: width 0.3s;
-    }
-
-    .invalid {
-      border: 2px solid;
-      border-image: linear-gradient(45deg, #ff4d4d, #ff7b7b) 1;
-    }
-
-    .address-wrapper {
-      position: relative;
-    }
-
-    .suggestions {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      width: 100%;
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      max-height: 180px;
-      overflow-y: auto;
-      z-index: 1000;
-    }
-
-    .suggestions div {
-      padding: 8px;
-      cursor: pointer;
-    }
-
-    .suggestions div:hover {
-      background: #f0f0f0;
-    }
-
-    #mapPreview {
-      width: 100%;
-      height: 230px;
-      margin-top: 10px;
+    .btn {
+      display: inline-block;
+      padding: 12px 26px;
       border-radius: 8px;
-      overflow: hidden;
-      transition: height 0.3s ease;
+      font-weight: 600;
+      font-size: 1em;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      color: white;
+      transition: transform 0.15s ease-in-out, opacity 0.2s;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+      min-width: 150px;
     }
+    .btn:hover { transform: scale(1.04); opacity: 0.9; }
+    .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
+    .btn-pdf { background: linear-gradient(135deg, #0046ff, #357aff); }
 
-    @media (max-width: 600px) {
-      #mapPreview {
-        height: 160px;
-      }
-      .wrapper {
-        padding: 20px;
-        margin: 20px 10px;
-      }
-      h1 {
-        font-size: 2em;
-      }
+    @media (max-width:700px){
+      td { display: block; width: 100%; border: none; padding: 4px 0; }
+      .label { color:#555; font-weight:700; margin-top:10px; }
+      table { border-bottom:1px solid #ddd; }
     }
   </style>
 </head>
 
 <body>
-  <div class="wrapper">
-    <h1>WHITE GLOVE SERVICE</h1>
-    <h2>Nová reklamace</h2>
+  <div class="wrapper" id="protokolWrapper">
+    <div class="header">
+      <div>WHITE GLOVE SERVICE</div>
+      <div>Servisní a reklamační protokol</div>
+    </div>
 
-    <form id="reklamaceForm" novalidate>
-      <label>Číslo reklamace / objednávky:</label>
-      <input type="text" name="cislo" required>
+    <table>
+      <tr><td class="label">Číslo reklamace / objednávky:</td><td id="cislo"></td></tr>
+      <tr><td class="label">Zákazník:</td><td id="zakaznik"></td></tr>
+      <tr><td class="label">Adresa:</td><td id="adresa"></td></tr>
+      <tr><td class="label">Telefon:</td><td id="telefon"></td></tr>
+      <tr><td class="label">E-mail:</td><td id="email"></td></tr>
+      <tr><td class="label">Zadavatel:</td><td id="zadavatel"></td></tr>
+      <tr><td class="label">Produkt:</td><td id="produkt"></td></tr>
+      <tr><td class="label">Datum prodeje:</td><td id="datum_prodeje"></td></tr>
+      <tr><td class="label">Datum reklamace:</td><td id="datum_reklamace"></td></tr>
+      <tr><td class="label">Popis závady:</td><td id="popis"></td></tr>
+    </table>
 
-      <label>Zákazník:</label>
-      <input type="text" name="zakaznik" required>
+    <div class="signature-box">
+      <label>Podpis zákazníka:</label>
+      <canvas id="signaturePad"></canvas>
+      <button id="clearSig" style="margin-top:10px;padding:8px 12px;border:none;border-radius:6px;background:#ccc;cursor:pointer;">Vymazat podpis</button>
+    </div>
 
-      <label>Ulice a číslo popisné:</label>
-      <div class="address-wrapper">
-        <input type="text" id="ulice" name="ulice" required placeholder="např. Vinohradská 120">
-        <div id="suggestions" class="suggestions"></div>
-      </div>
-
-      <div id="mapPreview"></div>
-
-      <label>Město:</label>
-      <input type="text" id="mesto" name="mesto" required>
-
-      <label>PSČ:</label>
-      <input type="text" id="psc" name="psc" required pattern="\\d{3}\\s?\\d{2}">
-
-      <label>Telefon:</label>
-      <div style="display:flex; gap:8px;">
-        <select id="predvolba" style="max-width:130px;">
-          <option value="+420">🇨🇿 +420</option>
-          <option value="+421">🇸🇰 +421</option>
-          <option value="+43">🇦🇹 +43</option>
-        </select>
-        <input type="tel" id="telefon" name="telefon" required placeholder="např. 777123456">
-      </div>
-
-      <label>E-mail:</label>
-      <input type="email" id="email" name="email" required placeholder="např. info@firma.cz">
-
-      <label>Model / Název produktu:</label>
-      <input type="text" name="produkt" required>
-
-      <label>Datum prodeje:</label>
-      <input type="date" name="datum_prodeje" required>
-
-      <label>Datum reklamace:</label>
-      <input type="date" name="datum_reklamace" required>
-
-      <label>Popis závady:</label>
-      <textarea name="popis" required></textarea>
-
-      <label>Přiložit fotografie (max. 5):</label>
-      <small>Podporované formáty: JPG, PNG, HEIC (max. 5 MB / soubor)</small>
-      <input type="file" id="fotky" accept="image/jpeg,image/png,image/heic" multiple>
-      <div id="preview" class="preview"></div>
-
-      <label>Objednávku zpracoval:</label>
-      <select id="zpracoval" name="zpracoval" required>
-        <option value="">Vyber...</option>
-        <option value="Natuzzi Editions - Strejcek">Natuzzi Editions - Strejcek</option>
-        <option value="Natuzzi Editions - Vimrova">Natuzzi Editions - Vimrova</option>
-        <option value="Natuzzi Italia - Bratislava">Natuzzi Italia - Bratislava</option>
-        <option value="Natuzzi Italia - Jama">Natuzzi Italia - Jama</option>
-        <option value="Natuzzi Italia - River">Natuzzi Italia - River</option>
-        <option value="Natuzzi Italia - SOHO">Natuzzi Italia - SOHO</option>
-        <option value="Softaly - SOHO">Softaly - SOHO</option>
-        <option value="Phase - Klucarova">Phase - Klucarova</option>
-        <option value="Phase - Jancova">Phase - Jancova</option>
-        <option value="Jiná">Jiná</option>
-      </select>
-
-      <div id="jinaSekce" class="hidden">
-        <label>Zadej nový zápis zadavatele:</label>
-        <input type="text" id="jinaJmeno" name="jinaJmeno">
-        <label>E-mail zadavatele:</label>
-        <input type="email" id="jinaEmail" name="jinaEmail">
-        <label>Telefon zadavatele:</label>
-        <input type="tel" id="jinaTelefon" name="jinaTelefon">
-      </div>
-
-      <div class="actions">
-        <a href="index.html" class="btn btn-back">Zpět</a>
-        <button type="submit" class="btn btn-send">Odeslat</button>
-      </div>
-    </form>
-  </div>
-
-  <!-- Overlay s přesýpacími hodinami -->
-  <div class="wait-overlay" id="waitOverlay">
-    <div class="wait-content">
-      <div class="hourglass"></div>
-      <p>WAIT / prosím čekejte...</p>
+    <div class="actions">
+      <a href="seznam.html" class="btn btn-back">Zpět</a>
+      <button id="exportPDF" class="btn btn-pdf">Exportovat PDF</button>
     </div>
   </div>
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+<script>
+/* ==========================
+   NAČTENÍ DAT Z LOCALSTORAGE
+========================== */
+window.addEventListener("DOMContentLoaded", () => {
+  const record = JSON.parse(localStorage.getItem("selectedRecord") || "{}");
+  if (!record || !record.cislo) {
+    alert("Nebyl nalezen žádný záznam k zobrazení.");
+    window.location.href = "seznam.html";
+    return;
+  }
 
-  <!-- Fajfka po odeslání -->
-  <div class="success-check" id="successCheck">
-    <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-      <defs>
-        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#00d084;stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#00a86b;stop-opacity:1" />
-        </linearGradient>
-      </defs>
-      <circle cx="26" cy="26" r="25" fill="none"/>
-      <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
-  <script>
-    // === Velká písmena pro číslo objednávky ===
-    const cisloInput = document.querySelector('input[name="cislo"]');
-    cisloInput.addEventListener("input", () => {
-      cisloInput.value = cisloInput.value.toUpperCase();
-    });
+  document.getElementById("cislo").textContent = record.cislo || "";
+  document.getElementById("zakaznik").textContent = record.zakaznik || "";
+  document.getElementById("adresa").textContent = record.adresa || "";
+  document.getElementById("telefon").textContent = record.telefon || "";
+  document.getElementById("email").textContent = record.email || "";
+  document.getElementById("zadavatel").textContent =
+    record.contract || record.jinaZadavatel?.jmeno || "";
+  document.getElementById("produkt").textContent = record.produkt || "";
+  document.getElementById("datum_prodeje").textContent = record.datum_prodeje || "";
+  document.getElementById("datum_reklamace").textContent = record.datum_reklamace || "";
+  document.getElementById("popis").textContent = record.popis || "";
 
-    // === Geoapify našeptávač (CZ, SK, AT) ===
-    const uliceInput = document.getElementById("ulice");
-    const mestoInput = document.getElementById("mesto");
-    const pscInput = document.getElementById("psc");
-    const suggestionContainer = document.getElementById("suggestions");
-    let adresaPlatna = false;
+  initSignaturePad();
+});
 
-    const apiKey = "b363199bb14e47189558d03b81ca9ba1";
+/* ==========================
+   SIGNATURE PAD
+========================== */
+let signaturePad;
 
-    uliceInput.addEventListener("input", async () => {
-      const query = uliceInput.value.trim();
-      adresaPlatna = false;
-      suggestionContainer.innerHTML = "";
-      if (query.length < 2) return;
+function initSignaturePad() {
+  const canvas = document.getElementById("signaturePad");
+  resizeCanvas(canvas);
+  signaturePad = new SignaturePad(canvas, {
+    backgroundColor: "rgb(255,255,255)",
+    penColor: "rgb(0,0,0)"
+  });
 
-      try {
-        const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&lang=cs&limit=5&filter=countrycode:cze,svk,aut&apiKey=${apiKey}`;
-        const res = await fetch(url);
-        const data = await res.json();
-        if (!data.features || !data.features.length) return;
+  document.getElementById("clearSig").addEventListener("click", () => {
+    signaturePad.clear();
+  });
 
-        data.features.forEach(item => {
-          const p = item.properties;
-          const div = document.createElement("div");
-          div.textContent = p.formatted;
+  window.addEventListener("resize", () => resizeCanvas(canvas));
+}
 
-          div.addEventListener("click", () => {
-            uliceInput.value = (p.street || "") + " " + (p.housenumber || "");
-            mestoInput.value = p.city || p.town || p.village || "";
-            pscInput.value = p.postcode || "";
-            adresaPlatna = true;
-            suggestionContainer.innerHTML = "";
+function resizeCanvas(canvas) {
+  const ratio = Math.max(window.devicePixelRatio || 1, 1);
+  canvas.width = canvas.offsetWidth * ratio;
+  canvas.height = canvas.offsetHeight * ratio;
+  canvas.getContext("2d").scale(ratio, ratio);
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+/* ==========================
+   EXPORT DO PDF
+========================== */
+document.getElementById("exportPDF").addEventListener("click", async () => {
+  const wrapper = document.getElementById("protokolWrapper");
 
-            // Mapa
-            const mapDiv = document.getElementById("mapPreview");
-            mapDiv.innerHTML = "";
-            const lat = parseFloat(p.lat);
-            const lon = parseFloat(p.lon);
-            const map = L.map(mapDiv, { center: [lat, lon], zoom: 16, zoomControl: false, attributionControl: false });
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
-            L.marker([lat, lon]).addTo(map);
-          });
-          suggestionContainer.appendChild(div);
-        });
-      } catch (err) {
-        console.error("Chyba Geoapify:", err);
-      }
-    });
+  // Skryj tlačítka při exportu
+  const actions = document.querySelector(".actions");
+  actions.style.display = "none";
 
-    document.addEventListener("click", e => {
-      if (!suggestionContainer.contains(e.target) && e.target !== uliceInput)
-        suggestionContainer.innerHTML = "";
-    });
+  // Ujisti se, že podpis existuje (i prázdný)
+  let podpisData = "";
+  if (signaturePad && !signaturePad.isEmpty()) {
+    podpisData = signaturePad.toDataURL("image/png");
+    const img = document.createElement("img");
+    img.src = podpisData;
+    img.style.width = "250px";
+    img.style.marginTop = "15px";
+    document.querySelector(".signature-box").appendChild(img);
+  }
 
-    // === Validace telefonu a e-mailu ===
-    const telefonInput = document.getElementById("telefon");
-    const predvolba = document.getElementById("predvolba");
-    const emailInput = document.getElementById("email");
+  // Vykreslení HTML do canvasu
+  const canvas = await html2canvas(wrapper, { scale: 2 });
+  const imgData = canvas.toDataURL("image/png");
 
-    function validateTelefon() {
-      return /^[0-9]{8,12}$/.test(telefonInput.value.trim());
-    }
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("p", "mm", "a4");
 
-    function validateEmail() {
-      return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailInput.value.trim());
-    }
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const imgWidth = pageWidth - 20;
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+  pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
 
-    // === Komprese obrázků ===
-    async function compressImage(file, maxSizeMB = 1, maxDim = 1280) {
-      const img = await createImageBitmap(file);
-      const canvas = document.createElement("canvas");
-      let [w, h] = [img.width, img.height];
+  // název PDF: Protokol_[Číslo]_[Zákazník].pdf
+  const cislo = document.getElementById("cislo").textContent.trim().replace(/\s+/g, "_");
+  const zak = document.getElementById("zakaznik").textContent.trim().replace(/\s+/g, "_");
+  const fileName = `Protokol_${cislo}_${zak || "zakaznik"}.pdf`;
 
-      if (w > h && w > maxDim) {
-        h *= maxDim / w;
-        w = maxDim;
-      } else if (h > w && h > maxDim) {
-        w *= maxDim / h;
-        h = maxDim;
-      }
+  pdf.save(fileName);
 
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, w, h);
-
-      let quality = 0.9;
-      let blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
-
-      while (blob.size / 1024 / 1024 > maxSizeMB && quality > 0.4) {
-        quality -= 0.1;
-        blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
-      }
-
-      return blob;
-    }
-
-    const fotkyInput = document.getElementById("fotky");
-    const preview = document.getElementById("preview");
-    let compressedFiles = [];
-
-    fotkyInput.addEventListener("change", async () => {
-      preview.innerHTML = "";
-      compressedFiles = [];
-
-      const files = Array.from(fotkyInput.files).slice(0, 5);
-
-      for (const file of files) {
-        if (!file.type.startsWith("image/")) continue;
-
-        const item = document.createElement("div");
-        item.classList.add("preview-item");
-
-        const img = document.createElement("img");
-        const progress = document.createElement("div");
-        progress.classList.add("progress-bar");
-
-        item.appendChild(progress);
-        preview.appendChild(item);
-
-        const reader = new FileReader();
-        reader.onload = e => {
-          img.src = e.target.result;
-          item.appendChild(img);
-        };
-        reader.readAsDataURL(file);
-
-        const blob = await compressImage(file);
-        compressedFiles.push({ name: file.name, blob });
-
-        let w = 0;
-        const int = setInterval(() => {
-          w += 10;
-          progress.style.width = w + "%";
-          if (w >= 100) clearInterval(int);
-        }, 40);
-      }
-    });
-
-    // === Sekce Jiná ===
-    const selectZpracoval = document.getElementById("zpracoval");
-    const jinaSekce = document.getElementById("jinaSekce");
-    const jinaInputs = jinaSekce.querySelectorAll("input");
-
-    selectZpracoval.onchange = () => {
-      if (selectZpracoval.value === "Jiná") {
-        jinaSekce.classList.remove("hidden");
-        jinaInputs.forEach(i => i.required = true);
-      } else {
-        jinaSekce.classList.add("hidden");
-        jinaInputs.forEach(i => i.required = false);
-      }
-    };
-
-    // === Zvuk a fajfka ===
-    function playSuccessSound() {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        o.type = "sine";
-        o.frequency.setValueAtTime(880, ctx.currentTime);
-        g.gain.setValueAtTime(0.1, ctx.currentTime);
-        o.connect(g);
-        g.connect(ctx.destination);
-        o.start();
-        o.stop(ctx.currentTime + 0.25);
-      } catch {}
-    }
-
-    function showSuccess() {
-      playSuccessSound();
-      document.getElementById("waitOverlay").classList.remove("active");
-      const s = document.getElementById("successCheck");
-      s.classList.add("active");
-      setTimeout(() => { window.location.href = "index.html"; }, 2500);
-    }
-
-    // === Upload na GitHub ===
-    async function uploadToGitHub(owner, repo, path, blob, message, token) {
-      const base64Data = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result.split(",")[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-
-      const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
-        method: "PUT",
-        headers: {
-          "Authorization": `token ${token}`,
-          "Accept": "application/vnd.github.v3+json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          message,
-          content: base64Data,
-          branch: "main"
-        })
-      });
-
-      if (!res.ok) throw new Error(await res.text());
-    }
-
-    async function submitToGitHub(dataObj, owner, repo, path, message, token) {
-      const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-      const res = await fetch(url, {
-        headers: {
-          "Authorization": `token ${token}`,
-          "Accept": "application/vnd.github.v3+json"
-        }
-      });
-
-      let content = "[]", sha = null;
-      if (res.ok) {
-        const json = await res.json();
-        content = atob(json.content.replace(/\n/g, ""));
-        sha = json.sha;
-      }
-
-      const arr = JSON.parse(content);
-      arr.push(dataObj);
-      const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(arr, null, 2))));
-      const body = { message, content: newContent, branch: "main" };
-      if (sha) body.sha = sha;
-
-      const put = await fetch(url, {
-        method: "PUT",
-        headers: {
-          "Authorization": `token ${token}`,
-          "Accept": "application/vnd.github.v3+json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-      });
-
-      if (!put.ok) throw new Error(await put.text());
-    }
-
-    // === Odeslání formuláře ===
-    document.getElementById("reklamaceForm").addEventListener("submit", async e => {
-      e.preventDefault();
-      document.getElementById("waitOverlay").classList.add("active");
-
-      const f = e.target;
-      const fields = f.querySelectorAll("input[required], textarea[required], select[required]");
-      let valid = true;
-
-      fields.forEach(i => {
-        if (!i.value.trim()) { i.classList.add("invalid"); valid = false; }
-        else i.classList.remove("invalid");
-      });
-
-      if (!validateTelefon()) { telefonInput.classList.add("invalid"); valid = false; }
-      if (!validateEmail()) { emailInput.classList.add("invalid"); valid = false; }
-      if (!adresaPlatna) {
-        alert("Vyber prosím adresu z našeptávače.");
-        uliceInput.classList.add("invalid");
-        valid = false;
-      }
-
-      if (!valid) {
-        document.getElementById("waitOverlay").classList.remove("active");
-        alert("Zkontroluj červeně označená pole.");
-        return;
-      }
-
-      const owner = "radecek222-boop", repo = "reklamace";
-      const token = prompt("Zadej GitHub token:");
-      const cislo = f.cislo.value.trim().toUpperCase() || "REK";
-
-      const dataObj = {
-        typ: "reklamace",
-        contract: f.zpracoval.value,
-        cislo,
-        zakaznik: f.zakaznik.value,
-        adresa: `${f.ulice.value}, ${f.mesto.value}, ${f.psc.value}`,
-        telefon: `${predvolba.value} ${f.telefon.value}`,
-        email: f.email.value,
-        produkt: f.produkt.value,
-        datum_prodeje: f.datum_prodeje.value,
-        datum_reklamace: f.datum_reklamace.value,
-        popis: f.popis.value,
-        fotky: [],
-        jinaZadavatel: f.zpracoval.value === "Jiná"
-          ? { jmeno: f.jinaJmeno.value, email: f.jinaEmail.value, telefon: f.jinaTelefon.value }
-          : null
-      };
-
-      try {
-        for (const fch of compressedFiles) {
-          const safe = `${cislo}_${fch.name.replace(/\s+/g, "_")}`;
-          await uploadToGitHub(owner, repo, `foto/${safe}`, fch.blob, `Nová fotka k reklamaci ${cislo}`, token);
-          dataObj.fotky.push(safe);
-        }
-
-        await submitToGitHub(dataObj, owner, repo, "orders.json", `Nová reklamace ${cislo}`, token);
-        showSuccess();
-        f.reset();
-      } catch (err) {
-        document.getElementById("waitOverlay").classList.remove("active");
-        alert("Chyba: " + err.message);
-      }
-    });
-  </script>
+  // Vrátit stránku zpět do původního stavu
+  actions.style.display = "flex";
+  if (podpisData) {
+    const imgEl = document.querySelector(".signature-box img");
+    if (imgEl) imgEl.remove();
+  }
+});
+</script>
 </body>
 </html>
