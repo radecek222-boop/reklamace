@@ -130,8 +130,9 @@
     <input type="text" id="search" placeholder="🔍 Hledat podle jména, čísla nebo zadavatele...">
 
     <div id="tableContainer" class="loading">Načítám data...</div>
+
 <script>
-const API_URL = "https://dark-darkness-d89a.72nvwf4pb2.workers.dev/orders";
+const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";  // ✅ nový Worker
 const tableContainer = document.getElementById("tableContainer");
 const searchInput = document.getElementById("search");
 const reloadBtn = document.getElementById("reloadBtn");
@@ -143,16 +144,21 @@ async function loadData() {
   tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
 
   try {
-    const res = await fetch(API_URL);
-    if (!res.ok) throw new Error("Chyba při načítání dat");
-    const data = await res.json();
-    if (!Array.isArray(data)) throw new Error("Neplatný formát dat");
+    const res = await fetch(API_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
 
+    // pokus o převod na JSON (kvůli případné chybě v kódování)
+    let data;
+    try { data = JSON.parse(text); } 
+    catch { throw new Error("Neplatný formát dat nebo chyba v JSON."); }
+
+    if (!Array.isArray(data)) throw new Error("Neočekávaná struktura dat.");
     dataAll = data.reverse(); // nejnovější nahoře
     renderTable(dataAll);
   } catch (err) {
-    console.error(err);
-    tableContainer.innerHTML = `<div class='loading' style='color:red;'>Chyba načítání: ${err.message}</div>`;
+    console.error("❌ Chyba načítání:", err);
+    tableContainer.innerHTML = `<div class='loading' style='color:red;'>Chyba načítání dat: ${err.message}</div>`;
   }
 }
 
@@ -229,9 +235,9 @@ reloadBtn.addEventListener("click", loadData);
 /* ============ Automatické načtení při startu ============ */
 window.addEventListener("DOMContentLoaded", loadData);
 </script>
-  </div> <!-- konec .wrapper -->
+  </div>
 
-  <!-- Jednoduchý overlay pro případ dlouhého načítání -->
+  <!-- Overlay při načítání -->
   <div id="overlay" style="
       display:none;
       position:fixed;
