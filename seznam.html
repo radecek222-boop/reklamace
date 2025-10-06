@@ -403,8 +403,7 @@ function showPhoto(src) {
 
 
 
-
-  <style>
+<style>
 /* ============================= */
 /* 💬 DETAIL MODAL STYL          */
 /* ============================= */
@@ -605,6 +604,17 @@ function showPhoto(src) {
   .foto-container img { width: 90px; height: 90px; }
 }
 
+/* 🩸 Blikání dnešních termínů */
+@keyframes blinkRed {
+  0%   { background-color: #ffe0e0; }
+  50%  { background-color: #ffb3b3; }
+  100% { background-color: #ffe0e0; }
+}
+.blink-today {
+  animation: blinkRed 1.5s infinite;
+}
+</style>
+
 <script>
 // 🩸 Automatické blikání dnešních termínů
 function highlightTodayRows() {
@@ -618,6 +628,7 @@ function highlightTodayRows() {
     // 🔍 Má záznam uložené datum a stav domluveno?
     if (item.datum === today && stavy[item.cislo || `radek-${index}`] === "domluveno") {
       row.classList.add("blink-today");
+      row.querySelector("td:last-child").innerHTML = "🔵 Domluveno – dnes";
     } else {
       row.classList.remove("blink-today");
     }
@@ -639,3 +650,5 @@ window.addEventListener("storage", e => {
 // 🔁 Pro jistotu i periodická kontrola každých 30 sekund
 setInterval(highlightTodayRows, 30000);
 </script>
+</body>
+</html>
