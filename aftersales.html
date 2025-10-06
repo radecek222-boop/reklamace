@@ -34,11 +34,23 @@
     h1 { font-size: 1.8em; font-weight: 900; }
     h2 { font-size: 1.2em; color: #666; margin-top: 8px; margin-bottom: 25px; }
 
-    label { display: block; font-weight: 600; margin-top: 15px; margin-bottom: 5px; }
+    label { display: block; font-weight: 600; margin-top: 15px; margin-bottom: 3px; }
+
+    .en-label {
+      display: block;
+      font-size: 0.8em;
+      color: #777;
+      font-weight: 400;
+      margin-bottom: 6px;
+    }
 
     input, textarea, select {
-      width: 100%; padding: 10px; font-size: 1em;
-      border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
     }
 
     input[readonly] { background: #eee; color: #555; font-weight: 600; }
@@ -90,19 +102,23 @@
 <body>
   <div class="wrapper">
     <h1>WHITE GLOVE SERVICE</h1>
-    <h2>Pozáruční servis</h2>
+    <h2>Pozáruční servis<br><span style="font-size:0.9em; color:#777;">After-sales service</span></h2>
 
     <form id="servisForm">
       <label>Číslo objednávky:</label>
+      <span class="en-label">Order number</span>
       <input type="text" name="cislo" value="Pozáruční servis" readonly>
 
       <label>Jméno zadavatele:</label>
+      <span class="en-label">Customer name</span>
       <input type="text" name="zadavatel" required>
 
       <label>E-mail zadavatele:</label>
+      <span class="en-label">Customer e-mail</span>
       <input type="email" name="email" required>
 
       <label>Telefon zadavatele:</label>
+      <span class="en-label">Customer phone</span>
       <div class="phone-row">
         <span class="phone-icon">📞</span>
         <select id="prefix" required>
@@ -111,48 +127,52 @@
           <option value="+48">🇵🇱 +48</option>
           <option value="+49">🇩🇪 +49</option>
         </select>
-        <input type="tel" id="telefon" name="telefon" placeholder="Zadejte číslo" required pattern="[0-9]{9,12}">
+        <input type="tel" id="telefon" name="telefon" placeholder="Zadejte číslo / Enter number" required pattern="[0-9]{9,12}">
       </div>
 
       <label>Adresa servisu:</label>
+      <span class="en-label">Service address</span>
       <div style="position: relative;">
-        <input type="text" name="adresa" id="adresa" placeholder="Zadejte ulici..." autocomplete="off" required>
+        <input type="text" name="adresa" id="adresa" placeholder="Zadejte ulici / Enter street" autocomplete="off" required>
         <ul id="suggestions"></ul>
       </div>
 
       <div id="map"></div>
 
       <label>Model / Název produktu:</label>
+      <span class="en-label">Product model / name</span>
       <input type="text" name="produkt">
 
       <label>Popis požadavku:</label>
-      <textarea name="popis" placeholder="Popište požadavek na opravu..."></textarea>
+      <span class="en-label">Service request description</span>
+      <textarea name="popis" placeholder="Popište požadavek / Describe the request"></textarea>
 
       <label>Přiložit fotografie (max. 5, automaticky zmenšeno):</label>
+      <span class="en-label">Attach photos (max. 5, auto-resized)</span>
       <input type="file" id="fotky" accept="image/*" multiple>
       <div class="preview-container" id="preview"></div>
 
       <div class="actions">
-        <a href="index.html" class="btn btn-back">Zpět</a>
-        <button type="submit" class="btn btn-submit">Odeslat</button>
+        <a href="index.html" class="btn btn-back">Zpět<br><span class="en-label">Back</span></a>
+        <button type="submit" class="btn btn-submit">Odeslat<br><span class="en-label">Submit</span></button>
       </div>
     </form>
   </div>
 
   <div id="overlay">
     <div>⏳ Odesílám...</div>
-    <span>Prosím čekejte na potvrzení</span>
+    <span>Prosím čekejte na potvrzení / Please wait for confirmation</span>
   </div>
 
   <script>
-    // 🗺️ Mapa (Leaflet)
+    // 🗺️ Mapa (Leaflet + Nominatim)
     let map = L.map('map').setView([49.8, 15.5], 7);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap přispěvatelé'
     }).addTo(map);
     let marker = null;
 
-    // ⚡ Rychlý našeptávač (Nominatim)
+    // ⚡ Našeptávač (Nominatim)
     const adresaInput = document.getElementById("adresa");
     const suggestions = document.getElementById("suggestions");
     let timer = null;
@@ -249,11 +269,13 @@
 
       if (!adresaInput.dataset.selected || adresaInput.dataset.selected !== "true") {
         overlay.style.display = "none"; soundError.play();
-        alert("❗ Vyberte adresu z nabídky."); return;
+        alert("❗ Vyberte adresu z nabídky (Select address from suggestions).");
+        return;
       }
       if (telefon.length < 9) {
         overlay.style.display = "none"; soundError.play();
-        alert("❗ Zadejte platné telefonní číslo."); return;
+        alert("❗ Zadejte platné telefonní číslo (Enter valid phone number).");
+        return;
       }
 
       const files = Array.from(document.getElementById("fotky").files).slice(0, 5);
@@ -319,17 +341,17 @@
           });
         }
 
-        overlay.innerHTML = "<div>✅ Úspěšně odesláno</div><span>Děkujeme za zadání pozáručního servisu</span>";
+        overlay.innerHTML = "<div>✅ Úspěšně odesláno</div><span>Děkujeme / Thank you</span>";
         soundDone.play();
         setTimeout(() => window.location.href = "index.html", 2500);
 
       } catch (err) {
         console.error(err);
         soundError.play();
-        overlay.innerHTML = "<div>❌ Chyba při odesílání</div><span>Zkuste to prosím znovu</span>";
+        overlay.innerHTML = "<div>❌ Chyba / Error</div><span>Zkuste znovu / Please try again</span>";
         setTimeout(() => {
           overlay.style.display = "none";
-          overlay.innerHTML = "<div>⏳ Odesílám...</div><span>Prosím čekejte na potvrzení</span>";
+          overlay.innerHTML = "<div>⏳ Odesílám...</div><span>Prosím čekejte / Please wait</span>";
         }, 2500);
       }
     });
