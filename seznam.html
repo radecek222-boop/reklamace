@@ -4,221 +4,162 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Seznam reklamací – White Glove Service</title>
-
 <style>
-body {
-  font-family: "Inter", system-ui, sans-serif;
-  background: #f6f7fb;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
-}
-.wrapper {
-  background: #fff;
-  padding: 25px;
-  margin: 40px 15px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  width: 100%;
-  max-width: 1200px;
-  position: relative;
-  box-sizing: border-box;
-}
-h1 {
-  text-align: center;
-  font-size: 2.2em;
-  font-weight: 900;
-  color: #111;
-  margin: 0 0 8px;
-}
-h2 {
-  text-align: center;
-  font-size: 1.1em;
-  font-weight: 500;
-  color: #666;
-  margin: 0 0 25px;
-}
-.actions {
-  text-align: center;
-  margin-bottom: 20px;
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-.btn {
-  display: inline-block;
-  text-decoration: none;
-  padding: 10px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 1em;
-  border: none;
-  cursor: pointer;
-  transition: transform 0.15s ease-in-out, opacity 0.2s;
-  color: white;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-  min-width: 140px;
-}
-.btn:hover { transform: scale(1.04); opacity: 0.9; }
-.btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
-.btn-refresh { background: linear-gradient(135deg, #0046ff, #357aff); }
-.btn-green { background: linear-gradient(135deg, #28a745, #5bd85b); }
+  body {
+    font-family: "Inter", system-ui, sans-serif;
+    background: #f6f7fb;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+  }
 
-#search {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 1em;
-  box-sizing: border-box;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-th, td {
-  padding: 10px 8px;
-  border-bottom: 1px solid #eee;
-  text-align: left;
-  font-size: 0.95em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-th {
-  background: #f8f8f8;
-  font-weight: 700;
-}
-tr:hover {
-  background: #f1f6ff;
-  cursor: pointer;
-}
+  .wrapper {
+    background: #fff;
+    padding: 25px;
+    margin: 40px 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 900px;
+    position: relative;
+    box-sizing: border-box;
+  }
 
-/* 🔹 Stavy */
-.stav-novy { animation: blikani 1s infinite alternate; background: #fffbe6 !important; }
-.stav-domluveno { background: #e7f0ff !important; }
-.stav-zruseno { background: #ffeaea !important; }
-.stav-nezveda { background: #fff4e1 !important; }
-@keyframes blikani {
-  from { background-color: #fff3c4; }
-  to { background-color: #fffbe6; }
-}
+  h1 {
+    text-align: center;
+    font-size: 2.2em;
+    font-weight: 900;
+    color: #111;
+    margin: 0 0 8px;
+  }
+  h2 {
+    text-align: center;
+    font-size: 1.1em;
+    font-weight: 500;
+    color: #666;
+    margin: 0 0 25px;
+  }
 
-/* 💬 Modal */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.65);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  transition: opacity 0.25s ease;
-}
-.modal {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-  padding: 25px;
-  width: 80%;
-  max-width: 900px;
-  max-height: 85vh;
-  overflow-y: auto;
-}
-.modal.show { animation: fadeIn 0.3s ease; }
-@keyframes fadeIn { from {opacity:0; transform:scale(0.95);} to {opacity:1; transform:scale(1);} }
+  .actions {
+    text-align: center;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
 
-.thumb-img {
-  width: 80px; height: 80px;
-  object-fit: cover;
-  border-radius: 6px;
-  margin: 3px;
-  cursor: pointer;
-  transition: transform .2s;
-}
-.thumb-img:hover { transform: scale(1.05); }
+  .btn {
+    display: inline-block;
+    text-decoration: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1em;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease-in-out, opacity 0.2s;
+    color: white;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    min-width: 140px;
+  }
 
-.fullscreen {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.9);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-}
-.fullscreen img {
-  max-width: 90%;
-  max-height: 85%;
-  border-radius: 8px;
-  box-shadow: 0 0 20px rgba(255,255,255,0.2);
-}
-.nav-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 2em;
-  color: white;
-  cursor: pointer;
-  user-select: none;
-}
-.nav-btn.left { left: 30px; }
-.nav-btn.right { right: 30px; }
-.nav-btn:hover { color: #4da3ff; }
+  .btn:hover { transform: scale(1.04); opacity: 0.9; }
+  .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
+  .btn-refresh { background: linear-gradient(135deg, #0046ff, #357aff); }
 
-@media (max-width:700px){
-  th, td { font-size: 0.8em; padding: 5px; }
-  .modal { width: 94%; padding: 18px; }
-}
+  #search {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+    box-sizing: border-box;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+
+  th, td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    font-size: 0.95em;
+  }
+
+  th {
+    background: #f8f8f8;
+    font-weight: 700;
+  }
+
+  tr:hover {
+    background: #f1f6ff;
+    cursor: pointer;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 30px;
+    color: #666;
+  }
+
+  @media (max-width:700px){
+    th, td { font-size: 0.85em; }
+    .btn { min-width: 120px; padding: 8px 18px; font-size: 0.9em; }
+  }
 </style>
 </head>
+
 <body>
-<div class="wrapper">
-  <h1>WHITE GLOVE SERVICE</h1>
-  <h2>Seznam reklamací a servisních požadavků</h2>
+  <div class="wrapper">
+    <h1>WHITE GLOVE SERVICE</h1>
+    <h2>Seznam reklamací a servisních požadavků</h2>
 
-  <div class="actions">
-    <a href="index.html" class="btn btn-back">Zpět</a>
-    <button id="reloadBtn" class="btn btn-refresh">Načíst znovu</button>
-    <a href="hotove.html" class="btn btn-green">Hotové reklamace</a>
-  </div>
+    <div class="actions">
+      <a href="index.html" class="btn btn-back">Zpět</a>
+      <button id="reloadBtn" class="btn btn-refresh">Načíst znovu</button>
+    </div>
 
-  <input type="text" id="search" placeholder="🔍 Hledat podle jména, čísla nebo zadavatele...">
-  <div id="tableContainer" class="loading">Načítám data...</div>
-</div>
+    <input type="text" id="search" placeholder="🔍 Hledat podle jména, čísla nebo zadavatele...">
 
+    <div id="tableContainer" class="loading">Načítám data...</div>
 <script>
-const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
-let dataAll = [];
-let stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
+const API_URL = "https://dark-darkness-d89a.72nvwf4pb2.workers.dev/orders";
 const tableContainer = document.getElementById("tableContainer");
+const searchInput = document.getElementById("search");
+const reloadBtn = document.getElementById("reloadBtn");
+
+let dataAll = [];
+
 /* ============ Načtení dat z Workeru ============ */
 async function loadData() {
   tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
+
   try {
     const res = await fetch(API_URL);
     if (!res.ok) throw new Error("Chyba při načítání dat");
     const data = await res.json();
     if (!Array.isArray(data)) throw new Error("Neplatný formát dat");
 
-    dataAll = data.reverse();
+    dataAll = data.reverse(); // nejnovější nahoře
     renderTable(dataAll);
   } catch (err) {
     console.error(err);
-    tableContainer.innerHTML = `<div style='color:red;'>Chyba načítání: ${err.message}</div>`;
+    tableContainer.innerHTML = `<div class='loading' style='color:red;'>Chyba načítání: ${err.message}</div>`;
   }
 }
 
-/* ============ Vykreslení tabulky ============ */
+/* ============ Zobrazení tabulky ============ */
 function renderTable(arr) {
   if (!arr.length) {
-    tableContainer.innerHTML = "<p>Žádné záznamy k zobrazení</p>";
+    tableContainer.innerHTML = "<div class='loading'>Žádné záznamy k zobrazení</div>";
     return;
   }
 
@@ -233,26 +174,21 @@ function renderTable(arr) {
           <th>Telefon</th>
           <th>Zadavatel</th>
           <th>Typ</th>
-          <th>Stav</th>
         </tr>
       </thead>
       <tbody>
   `;
 
   arr.forEach((r, i) => {
-    const id = r.cislo || `radek-${i}`;
-    const stav = stavy[id] || "novy";
-    const trClass = `stav-${stav}`;
     html += `
-      <tr class="${trClass}" data-index="${i}" data-id="${id}">
+      <tr data-index="${i}">
         <td>${i + 1}</td>
         <td>${r.cislo || ""}</td>
         <td>${r.zakaznik || ""}</td>
         <td>${r.adresa || ""}</td>
-        <td><a href="tel:${r.telefon || ""}">${r.telefon || ""}</a></td>
-        <td>${r.contract || r.jinaZadavatel?.jmeno || ""}</td>
+        <td>${r.telefon || ""}</td>
+        <td>${r.contract || (r.jinaZadavatel?.jmeno || "")}</td>
         <td>${r.typ || ""}</td>
-        <td style="font-weight:600;">${stav}</td>
       </tr>
     `;
   });
@@ -260,257 +196,83 @@ function renderTable(arr) {
   html += "</tbody></table>";
   tableContainer.innerHTML = html;
 
+  // Kliknutí na řádek → otevření protokolu
   document.querySelectorAll("tbody tr").forEach(row => {
     row.addEventListener("click", () => {
       const index = row.getAttribute("data-index");
-      openModal(index);
+      const item = dataAll[index];
+      if (!item) return;
+      localStorage.setItem("selectedRecord", JSON.stringify(item));
+      window.location.href = "protokol.html";
     });
   });
 }
 
-/* ============ Otevření detailu ============ */
-function openModal(index) {
-  const item = dataAll[index];
-  if (!item) return;
+/* ============ Filtrování ============ */
+searchInput.addEventListener("input", () => {
+  const q = searchInput.value.trim().toLowerCase();
+  if (!q) return renderTable(dataAll);
 
-  const overlay = document.createElement("div");
-  overlay.className = "modal-overlay";
-  overlay.style.display = "flex";
+  const filtered = dataAll.filter(r =>
+    (r.zakaznik || "").toLowerCase().includes(q) ||
+    (r.cislo || "").toLowerCase().includes(q) ||
+    (r.contract || "").toLowerCase().includes(q) ||
+    (r.adresa || "").toLowerCase().includes(q) ||
+    (r.typ || "").toLowerCase().includes(q)
+  );
+  renderTable(filtered);
+});
 
-  const fotoHtml = (item.foto || [])
-    .map((src, i) => `<img src="${src}" class="thumb-img" onclick="openFullscreen(${index}, ${i})">`)
-    .join("") || "–";
+/* ============ Znovu načtení ============ */
+reloadBtn.addEventListener("click", loadData);
 
-  overlay.innerHTML = `
-    <div class="modal show">
-      <h3>Reklamace – ${item.zakaznik || "Neznámý zákazník"}</h3>
-      <p><strong>Číslo:</strong> ${item.cislo || ""}</p>
-      <p><strong>Adresa:</strong> ${item.adresa || ""}</p>
-      <p><strong>Telefon:</strong> <a href="tel:${item.telefon || ""}">${item.telefon || ""}</a></p>
-      <p><strong>E-mail:</strong> ${item.email || "–"}</p>
-      <p><strong>Zadavatel:</strong> ${item.contract || ""}</p>
-      <p><strong>Popis:</strong> ${item.popis || "–"}</p>
-      <p><strong>Typ:</strong> ${item.typ || "–"}</p>
-      <p><strong>Datum:</strong> ${item.datum || "–"} ${item.cas || ""}</p>
-      <p><strong>Fotky:</strong></p>
-      <div>${fotoHtml}</div>
-
-      <div class="btn-row" style="margin-top:20px;">
-        <button class="btn-action btn-blue" id="termBtn">🔵 Domluvit / změnit termín</button>
-        <button class="btn-action btn-green" id="protoBtn">🟢 Vytvořit protokol</button>
-        <button class="btn-action btn-gray" id="closeBtn">❌ Zavřít</button>
-      </div>
-
-      <div id="termSection" style="display:none;margin-top:20px;border-top:1px solid #ddd;padding-top:15px;">
-        <p style="font-weight:600;">Zadej termín návštěvy:</p>
-        <input type="date" id="datumTerminu" value="${item.datum || ""}">
-        <input type="time" id="casTerminu" value="${item.cas || ""}">
-        <div class="btn-row" style="margin-top:10px;">
-          <button class="btn-action btn-orange" id="noAnswerBtn">🟠 Nezvedá to</button>
-          <button class="btn-action btn-red" id="cancelBtn">🔴 Zákazník zrušil</button>
-          <button class="btn-action btn-blue" id="saveTermBtn">🟢 Uložit termín</button>
-        </div>
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(overlay);
-
-  const termSection = overlay.querySelector("#termSection");
-  overlay.querySelector("#termBtn").onclick = () => {
-    termSection.style.display = termSection.style.display === "none" ? "block" : "none";
-  };
-
-  overlay.querySelector("#closeBtn").onclick = () => overlay.remove();
-
-  overlay.querySelector("#protoBtn").onclick = () => {
-    localStorage.setItem("selectedRecord", JSON.stringify(item));
-    window.location.href = "protokol.html";
-  };
-
-  // 🟠 Nezvedá to
-  overlay.querySelector("#noAnswerBtn").onclick = () => {
-    const id = item.cislo || `radek-${index}`;
-    stavy[id] = "nezveda";
-    localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
-    overlay.remove();
-    renderTable(dataAll);
-  };
-
-  // 🔴 Zákazník zrušil
-  overlay.querySelector("#cancelBtn").onclick = () => {
-    const id = item.cislo || `radek-${index}`;
-    stavy[id] = "zruseno";
-    localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
-    overlay.remove();
-    renderTable(dataAll);
-  };
-
-  // 🟢 Uložit termín
-  overlay.querySelector("#saveTermBtn").onclick = () => {
-    const datum = overlay.querySelector("#datumTerminu").value;
-    const cas = overlay.querySelector("#casTerminu").value;
-    if (!datum || !cas) return alert("Vyplň datum i čas!");
-    const id = item.cislo || `radek-${index}`;
-    item.datum = datum; item.cas = cas;
-    stavy[id] = "domluveno";
-    localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
-    overlay.remove();
-    renderTable(dataAll);
-  };
-}
-
-/* 🖼️ Zobrazení fullscreen fotek */
-function openFullscreen(index, startIdx = 0) {
-  const item = dataAll[index];
-  if (!item?.foto?.length) return;
-  let current = startIdx;
-
-  const overlay = document.createElement("div");
-  overlay.className = "fullscreen";
-
-  const img = document.createElement("img");
-  img.src = item.foto[current];
-  overlay.appendChild(img);
-
-  const left = document.createElement("div");
-  left.className = "nav-btn left";
-  left.textContent = "❮";
-  left.onclick = () => {
-    current = (current - 1 + item.foto.length) % item.foto.length;
-    img.src = item.foto[current];
-  };
-
-  const right = document.createElement("div");
-  right.className = "nav-btn right";
-  right.textContent = "❯";
-  right.onclick = () => {
-    current = (current + 1) % item.foto.length;
-    img.src = item.foto[current];
-  };
-
-  overlay.appendChild(left);
-  overlay.appendChild(right);
-  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
-  document.body.appendChild(overlay);
-}
-/* 🔥 Zvýraznění dnešních termínů */
-function highlightTodayRows() {
-  const today = new Date().toISOString().split("T")[0];
-  document.querySelectorAll("tbody tr[data-index]").forEach(row => {
-    const item = dataAll[row.dataset.index];
-    if (!item?.datum) return;
-    if (item.datum === today && stavy[item.cislo || `radek-${row.dataset.index}`] === "domluveno") {
-      row.classList.add("blink-today");
-    } else {
-      row.classList.remove("blink-today");
-    }
-  });
-}
-
-/* 🌀 Přebalení renderTable pro kontrolu dnešních termínů */
-const origRender = renderTable;
-renderTable = function(arr) {
-  origRender(arr);
-  highlightTodayRows();
-};
-
-/* ✨ Styl blikání dnešních termínů */
-const blinkStyle = document.createElement("style");
-blinkStyle.textContent = `
-@keyframes blinkRed {
-  0% { background-color: #ffe0e0; }
-  50% { background-color: #ffb3b3; }
-  100% { background-color: #ffe0e0; }
-}
-.blink-today {
-  animation: blinkRed 1.5s infinite;
-}
-.thumb-img {
-  width: 90px;
-  height: 90px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin: 4px;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-.thumb-img:hover {
-  transform: scale(1.05);
-}
-.fullscreen {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.9);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-}
-.fullscreen img {
-  max-width: 90%;
-  max-height: 85%;
-  border-radius: 12px;
-  box-shadow: 0 0 20px rgba(255,255,255,0.3);
-}
-.nav-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  color: white;
-  font-size: 2.5em;
-  cursor: pointer;
-  padding: 10px 15px;
-  user-select: none;
-}
-.nav-btn.left { left: 5%; }
-.nav-btn.right { right: 5%; }
-`;
-document.head.appendChild(blinkStyle);
-
-/* 🌀 Overlay indikátor načítání */
-const overlay = document.createElement("div");
-overlay.id = "overlay";
-overlay.style = `
-  display:none;position:fixed;inset:0;background:rgba(255,255,255,0.85);
-  backdrop-filter:blur(3px);
-  justify-content:center;align-items:center;
-  font-weight:600;color:#333;z-index:9999;
-`;
-overlay.innerHTML = `
-  <div>
-    <div style="
-      border:4px solid #ccc;
-      border-top:4px solid #0046ff;
-      border-radius:50%;
-      width:40px;height:40px;margin:auto;
-      animation:spin 1s linear infinite;"></div>
-    <p>Načítám data…</p>
-  </div>`;
-document.body.appendChild(overlay);
-
-const spinStyle = document.createElement("style");
-spinStyle.textContent = `
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}`;
-document.head.appendChild(spinStyle);
-
-/* 🧩 Zobrazení overlay při načítání */
-const originalLoadData = loadData;
-loadData = async function() {
-  overlay.style.display = "flex";
-  try {
-    await originalLoadData();
-  } finally {
-    overlay.style.display = "none";
-  }
-};
-
-/* 🚀 Start aplikace */
+/* ============ Automatické načtení při startu ============ */
 window.addEventListener("DOMContentLoaded", loadData);
 </script>
+  </div> <!-- konec .wrapper -->
 
+  <!-- Jednoduchý overlay pro případ dlouhého načítání -->
+  <div id="overlay" style="
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(255,255,255,0.85);
+      backdrop-filter:blur(3px);
+      justify-content:center;
+      align-items:center;
+      font-weight:600;
+      color:#333;
+      z-index:9999;">
+    <div>
+      <div style="
+          border:4px solid #ccc;
+          border-top:4px solid #0046ff;
+          border-radius:50%;
+          width:40px;
+          height:40px;
+          margin:auto;
+          animation:spin 1s linear infinite;"></div>
+      <p>Načítám data…</p>
+    </div>
+  </div>
+
+  <style>
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+
+  <script>
+    // Zobrazení / skrytí overlay při dlouhém načítání
+    const overlay = document.getElementById("overlay");
+    const originalLoadData = loadData;
+
+    loadData = async function() {
+      overlay.style.display = "flex";
+      try {
+        await originalLoadData();
+      } finally {
+        overlay.style.display = "none";
+      }
+    };
+  </script>
 </body>
 </html>
