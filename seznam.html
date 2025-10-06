@@ -927,6 +927,47 @@ fadeAnim.textContent = `
 }`;
 document.head.appendChild(fadeAnim);
 </script>
+<script>
+// 🔥 Blikání záznamů, které mají termín = dnešní datum
+function highlightTodayRows() {
+  const today = new Date().toISOString().split("T")[0];
+  const rows = document.querySelectorAll("tbody tr[data-index]");
+
+  rows.forEach(row => {
+    const index = row.getAttribute("data-index");
+    const item = dataAll[index];
+    if (!item || !item.datum) return;
+
+    // pokud má záznam datum = dnešní, zvýrazní se červeným blikáním
+    if (item.datum === today && stavy[item.cislo || `radek-${index}`] === "domluveno") {
+      row.classList.add("blink-today");
+    } else {
+      row.classList.remove("blink-today");
+    }
+  });
+}
+
+// 🔁 Sleduj, kdy se tabulka vykreslí
+const origRenderTable = renderTable;
+renderTable = function(arr) {
+  origRenderTable(arr);
+  highlightTodayRows();
+};
+
+// ✨ Styl blikání
+const blinkStyle = document.createElement("style");
+blinkStyle.textContent = `
+@keyframes blinkRed {
+  0% { background-color: #ffe0e0; }
+  50% { background-color: #ffb3b3; }
+  100% { background-color: #ffe0e0; }
+}
+.blink-today {
+  animation: blinkRed 1.5s infinite;
+}
+`;
+document.head.appendChild(blinkStyle);
+</script>
 
 </body>
 </html>
