@@ -796,6 +796,137 @@ renderTable = function(arr) {
   });
 };
 </script>
+<script>
+// 🧩 Otevření detailového modalu s možností změny termínu
+function openModal(index) {
+  const item = dataAll[index];
+  if (!item) return;
+
+  // Pokud už modal existuje, odstraníme ho
+  const oldModal = document.getElementById("wgsModal");
+  if (oldModal) oldModal.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "wgsModal";
+  overlay.style = `
+    position:fixed;inset:0;background:rgba(0,0,0,0.65);
+    display:flex;justify-content:center;align-items:center;z-index:9999;
+  `;
+
+  const hasTerm = item.datum && item.cas;
+
+  overlay.innerHTML = `
+    <div style="
+      background:white;
+      width:90%;
+      max-width:600px;
+      border-radius:16px;
+      padding:25px;
+      box-shadow:0 5px 20px rgba(0,0,0,0.3);
+      animation:fadeIn .25s ease;">
+      <h2 style="margin-top:0;text-align:center;">${item.zakaznik || "Záznam"}</h2>
+      <p style="font-size:0.9em;text-align:center;color:#555;">${item.adresa || ""}</p>
+
+      <div id="termSection" style="margin-top:20px;text-align:center;">
+        <button id="domluvitBtn" class="btnGradient" style="background:linear-gradient(135deg,#007bff,#4da3ff);color:white;border:none;padding:10px 20px;border-radius:8px;font-weight:600;cursor:pointer;">
+          ${hasTerm ? "🔵 Změnit termín" : "🔵 Domluvit termín"}
+        </button>
+
+        <div id="termInputs" style="display:${hasTerm ? "block" : "none"};margin-top:15px;">
+          <label for="datumInput">Datum:</label><br>
+          <input type="date" id="datumInput" style="padding:6px;border-radius:6px;border:1px solid #ccc;"><br><br>
+          <label for="casInput">Čas:</label><br>
+          <input type="time" id="casInput" style="padding:6px;border-radius:6px;border:1px solid #ccc;width:140px;font-size:1em;"><br><br>
+
+          <button id="nezvedaBtn" style="background:#ff9800;color:white;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;margin:5px;">🟠 Nezvedá to</button>
+          <button id="zrusilBtn" style="background:#dc3545;color:white;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;margin:5px;">🔴 Zákazník zrušil</button>
+          <button id="ulozitBtn" style="background:#007bff;color:white;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;margin:5px;">
+            ${hasTerm ? "🟢 Uložit změnu" : "🟢 Uložit termín"}
+          </button>
+        </div>
+
+        ${
+          hasTerm
+            ? `<p style="margin-top:10px;color:#444;">Aktuálně domluveno: <strong>${item.datum} ${item.cas}</strong></p>`
+            : ""
+        }
+      </div>
+
+      <div style="margin-top:20px;text-align:center;">
+        <button id="vytvoritBtn" style="background:#28a745;color:white;border:none;padding:10px 20px;border-radius:8px;font-weight:600;cursor:pointer;">🟢 Vytvořit protokol</button>
+        <button id="zavritBtn" style="background:#6c757d;color:white;border:none;padding:10px 20px;border-radius:8px;font-weight:600;cursor:pointer;margin-left:10px;">✖ Zavřít</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  // 💾 Předvyplnění, pokud existuje termín
+  if (item.datum) document.getElementById("datumInput").value = item.datum.split("T")[0];
+  if (item.cas) document.getElementById("casInput").value = item.cas;
+
+  // 🟦 Zobrazení/skrývání sekce s datem
+  document.getElementById("domluvitBtn").onclick = () => {
+    const section = document.getElementById("termInputs");
+    section.style.display = section.style.display === "none" ? "block" : "none";
+  };
+
+  // 🟠 Nezvedá to
+  document.getElementById("nezvedaBtn").onclick = () => {
+    const id = item.cislo || `radek-${index}`;
+    stavy[id] = "nezveda";
+    localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+    overlay.remove();
+    renderTable(dataAll);
+  };
+
+  // 🔴 Zákazník zrušil
+  document.getElementById("zrusilBtn").onclick = () => {
+    const id = item.cislo || `radek-${index}`;
+    stavy[id] = "zruseno";
+    localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+    overlay.remove();
+    renderTable(dataAll);
+  };
+
+  // 🟢 Uložit termín nebo změnu
+  document.getElementById("ulozitBtn").onclick = () => {
+    const datum = document.getElementById("datumInput").value;
+    const cas = document.getElementById("casInput").value;
+    if (!datum || !cas) {
+      alert("Vyplň datum a čas!");
+      return;
+    }
+
+    const id = item.cislo || `radek-${index}`;
+    stavy[id] = "domluveno";
+    item.datum = datum;
+    item.cas = cas;
+
+    localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+    overlay.remove();
+    renderTable(dataAll);
+  };
+
+  // 🟢 Vytvořit protokol
+  document.getElementById("vytvoritBtn").onclick = () => {
+    localStorage.setItem("selectedRecord", JSON.stringify(item));
+    window.location.href = "protokol.html";
+  };
+
+  // ✖ Zavřít
+  document.getElementById("zavritBtn").onclick = () => overlay.remove();
+}
+
+// 🌀 Animace otevření
+const fadeAnim = document.createElement("style");
+fadeAnim.textContent = `
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}`;
+document.head.appendChild(fadeAnim);
+</script>
 
 </body>
 </html>
