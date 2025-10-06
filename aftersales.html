@@ -170,11 +170,11 @@
       <input type="text" name="typ" value="Pozáruční servis" readonly />
 
       <label>Jméno a příjmení zákazníka:</label>
-      <input type="text" name="zakaznik" required placeholder="např. Jan Novák" title="Uveďte celé jméno zákazníka" />
+      <input type="text" name="zakaznik" required placeholder="např. Jan Novák" />
 
       <label>Ulice a číslo popisné:</label>
       <div class="address-wrapper">
-        <input type="text" id="ulice" name="ulice" required placeholder="např. Vinohradská 120" title="Zadejte ulici a číslo domu" />
+        <input type="text" id="ulice" name="ulice" required placeholder="např. Vinohradská 120" />
         <div id="suggestions" class="suggestions"></div>
       </div>
       <div id="mapPreview"></div>
@@ -183,7 +183,7 @@
       <input type="text" id="mesto" name="mesto" required placeholder="např. Praha" />
 
       <label>PSČ:</label>
-      <input type="text" id="psc" name="psc" required pattern="\\d{3}\\s?\\d{2}" placeholder="např. 110 00" title="Zadejte platné PSČ" />
+      <input type="text" id="psc" name="psc" required pattern="\\d{3}\\s?\\d{2}" placeholder="např. 110 00" />
 
       <label>Telefon:</label>
       <div style="display:flex; gap:8px;">
@@ -192,17 +192,17 @@
           <option value="+421">🇸🇰 +421</option>
           <option value="+43">🇦🇹 +43</option>
         </select>
-        <input type="tel" id="telefon" name="telefon" required placeholder="např. 777123456" title="Zadejte pouze číslice bez mezer" />
+        <input type="tel" id="telefon" name="telefon" required placeholder="např. 777123456" />
       </div>
 
       <label>E-mail:</label>
-      <input type="email" id="email" name="email" required placeholder="např. info@firma.cz" title="Zadejte platný e-mail" />
+      <input type="email" id="email" name="email" required placeholder="např. info@firma.cz" />
 
       <label>Model / Název produktu:</label>
-      <input type="text" name="produkt" required placeholder="např. C142" title="Uveďte přesný název nebo kód produktu" />
+      <input type="text" name="produkt" required placeholder="např. C142" />
 
       <label>Popis závady / požadavku:</label>
-      <textarea name="popis" required placeholder="Popište problém nebo požadavek..." title="Zadejte detailní popis problému"></textarea>
+      <textarea name="popis" required placeholder="Popište problém nebo požadavek..."></textarea>
 
       <label>Přiložit fotografie (max. 5):</label>
       <small>Podporované formáty: JPG, PNG, HEIC (max 5 MB / soubor)</small>
@@ -215,7 +215,7 @@
       </div>
     </form>
   </div>
-  <!-- ====== Načítání, mapa a náhled fotek ====== -->
+
   <div class="wait-overlay" id="waitOverlay">
     <div class="hourglass"></div>
     <p>Prosím čekejte…</p>
@@ -235,9 +235,6 @@
   </div>
 
 <script>
-/* ==========================
-   GEOAPIFY + FALLBACK NOMINATIM
-==========================*/
 const GEOAPIFY_KEY = "b363199bb14e47189558d03b81ca9ba1";
 const uliceInput = document.getElementById("ulice");
 const mestoInput = document.getElementById("mesto");
@@ -256,8 +253,6 @@ async function runAutocomplete() {
   adresaPlatna = false;
   suggestionContainer.innerHTML = "";
   if (query.length < 3) return;
-
-  suggestionContainer.innerHTML = "<div style='padding:8px;color:#888;'>Načítám…</div>";
   try {
     const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&lang=cs&limit=5&filter=countrycode:cze,svk,aut&apiKey=${GEOAPIFY_KEY}`;
     const res = await fetch(url);
@@ -265,22 +260,18 @@ async function runAutocomplete() {
     if (!data.features?.length) throw new Error("No results");
     renderSuggestions(data.features.map(f => f.properties));
   } catch {
-    try {
-      const url2 = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=cz,sk,at&limit=5&q=${encodeURIComponent(query)}`;
-      const res2 = await fetch(url2, { headers: { "Accept-Language": "cs" } });
-      const data2 = await res2.json();
-      renderSuggestions(data2.map(n => ({
-        formatted: n.display_name,
-        street: n.address?.road,
-        housenumber: n.address?.house_number,
-        city: n.address?.city || n.address?.town || n.address?.village,
-        postcode: n.address?.postcode,
-        lat: n.lat,
-        lon: n.lon
-      })));
-    } catch {
-      suggestionContainer.innerHTML = "<div style='padding:8px;color:red'>Chyba načítání</div>";
-    }
+    const url2 = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=cz,sk,at&limit=5&q=${encodeURIComponent(query)}`;
+    const res2 = await fetch(url2, { headers: { "Accept-Language": "cs" } });
+    const data2 = await res2.json();
+    renderSuggestions(data2.map(n => ({
+      formatted: n.display_name,
+      street: n.address?.road,
+      housenumber: n.address?.house_number,
+      city: n.address?.city || n.address?.town || n.address?.village,
+      postcode: n.address?.postcode,
+      lat: n.lat,
+      lon: n.lon
+    })));
   }
 }
 
@@ -315,9 +306,6 @@ document.addEventListener("click", e => {
     suggestionContainer.innerHTML = "";
 });
 
-/* ==========================
-   NÁHLED + KOMPRES + MAZÁNÍ FOTEK
-==========================*/
 const fotkyInput = document.getElementById("fotky");
 const preview = document.getElementById("preview");
 let compressedFiles = [];
@@ -331,11 +319,11 @@ async function compressImage(file, maxSizeMB = 1.2, maxDim = 800) {
   canvas.width = w; canvas.height = h;
   const ctx = canvas.getContext("2d");
   ctx.drawImage(img, 0, 0, w, h);
-  let quality = 0.9;
-  let blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
-  while (blob.size / 1024 / 1024 > maxSizeMB && quality > 0.4) {
-    quality -= 0.1;
-    blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
+  let q = 0.9;
+  let blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", q));
+  while (blob.size / 1024 / 1024 > maxSizeMB && q > 0.4) {
+    q -= 0.1;
+    blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", q));
   }
   return blob;
 }
@@ -346,64 +334,42 @@ fotkyInput.addEventListener("change", async () => {
   const files = Array.from(fotkyInput.files).slice(0, 5);
   for (const file of files) {
     if (!file.type.startsWith("image/")) continue;
-    if (file.size / 1024 / 1024 > 5) {
-      alert(`Soubor ${file.name} je větší než 5 MB a nebude nahrán.`);
-      continue;
-    }
-
     const item = document.createElement("div");
     item.classList.add("preview-item");
-
     const img = document.createElement("img");
-    const removeBtn = document.createElement("button");
-    removeBtn.textContent = "×";
-    removeBtn.classList.add("remove-btn");
-
     const progress = document.createElement("div");
     progress.classList.add("progress-bar");
-
     const status = document.createElement("div");
     status.classList.add("preview-status");
-    status.textContent = "Kompres…";
-
-    item.append(img, progress, status, removeBtn);
+    status.textContent = "Kompres...";
+    const remove = document.createElement("button");
+    remove.classList.add("remove-btn");
+    remove.textContent = "×";
+    remove.onclick = () => { item.remove(); compressedFiles = compressedFiles.filter(f => f.file !== file); };
+    item.append(img, progress, status, remove);
     preview.append(item);
-
-    removeBtn.onclick = () => {
-      preview.removeChild(item);
-      compressedFiles = compressedFiles.filter(f => f.name !== file.name);
-    };
-
     const reader = new FileReader();
     reader.onload = e => img.src = e.target.result;
     reader.readAsDataURL(file);
-
     const blob = await compressImage(file);
-    compressedFiles.push({ name: file.name, blob, progress, status });
+    compressedFiles.push({ file, blob, progress, status });
     progress.style.width = "100%";
-    progress.style.background = "linear-gradient(90deg, #4caf50, #8bc34a)";
+    progress.style.background = "linear-gradient(90deg,#4caf50,#8bc34a)";
     status.textContent = "✅ Připraveno";
   }
 });
-/* ==========================
-   ODESLÁNÍ NA WORKER (WGS TOKEN)
-==========================*/
+
 async function uploadFileToWorker(file, name) {
   const formData = new FormData();
   formData.append("file", file, name);
-
-const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
-
-    method: "POST",
-    body: formData,
-  });
+  const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", { method: "POST", body: formData });
   if (!res.ok) throw new Error(await res.text());
   const r = await res.json();
   return r.filename || name;
 }
 
 async function submitToWorker(dataObj) {
-  const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/aftersales", {
+  const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(dataObj),
@@ -411,9 +377,6 @@ async function submitToWorker(dataObj) {
   if (!res.ok) throw new Error(await res.text());
 }
 
-/* ==========================
-   ZVUK + Fajfka po odeslání
-==========================*/
 function playSuccessSound() {
   const snd = new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_2d18bdf1d3.mp3?filename=success-1-6297.mp3");
   snd.play().catch(() => {});
@@ -427,33 +390,22 @@ function showSuccess() {
   setTimeout(() => (window.location.href = "index.html"), 2500);
 }
 
-/* ==========================
-   ODESLÁNÍ FORMULÁŘE
-==========================*/
 document.getElementById("servisForm").addEventListener("submit", async e => {
   e.preventDefault();
   const wait = document.getElementById("waitOverlay");
   wait.classList.add("active");
-
   const f = e.target;
   const fields = f.querySelectorAll("input[required], textarea[required]");
   let valid = true;
-
   fields.forEach(i => {
-    if (!i.value.trim()) {
-      i.classList.add("invalid");
-      valid = false;
-    } else {
-      i.classList.remove("invalid");
-    }
+    if (!i.value.trim()) { i.classList.add("invalid"); valid = false; }
+    else i.classList.remove("invalid");
   });
-
   if (!adresaPlatna) {
     alert("Vyber prosím adresu z našeptávače.");
     wait.classList.remove("active");
     return;
   }
-
   const dataObj = {
     typ: "Pozáruční servis",
     zakaznik: f.zakaznik.value,
@@ -464,18 +416,16 @@ document.getElementById("servisForm").addEventListener("submit", async e => {
     popis: f.popis.value,
     fotky: [],
   };
-
   try {
     for (const fch of compressedFiles) {
       fch.status.textContent = "Nahrávám…";
       fch.progress.style.background = "linear-gradient(90deg,#2196f3,#64b5f6)";
-      const safe = `${Date.now()}_${fch.name.replace(/\s+/g, "_")}`;
+      const safe = `${Date.now()}_${fch.file.name.replace(/\s+/g, "_")}`;
       const uploaded = await uploadFileToWorker(fch.blob, safe);
       fch.progress.style.background = "linear-gradient(90deg,#4caf50,#8bc34a)";
       fch.status.textContent = "✅ Hotovo";
       dataObj.fotky.push(uploaded);
     }
-
     await submitToWorker(dataObj);
     showSuccess();
     f.reset();
