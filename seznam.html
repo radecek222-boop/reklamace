@@ -603,7 +603,9 @@ function openDetail(index) {
 
 
 
-    <script>
+
+
+<script>
 // 🩸 Automatické blikání dnešních termínů
 function highlightTodayRows() {
   const today = new Date().toISOString().split("T")[0];
@@ -620,7 +622,6 @@ function highlightTodayRows() {
   });
 }
 
-// 🧠 Spouštíme po načtení dat i po každém přerenderování tabulky
 const originalRenderTableBlink = renderTable;
 renderTable = function(arr) {
   originalRenderTableBlink(arr);
@@ -657,7 +658,10 @@ const mapModalHTML = `
 <div id="planModal" class="detail-overlay">
   <div class="detail-modal">
     <h2>🗺️ Plán dne</h2>
-    <input type="date" id="planDate" class="term-date"/>
+    <div style="text-align:center;">
+      <input type="date" id="planDate" class="term-date"/>
+      <div id="calendarHint" style="font-size:0.9em;color:#555;margin-top:6px;">🔵 Označené dny mají naplánované reklamace</div>
+    </div>
     <div id="map" style="height:450px;border-radius:12px;margin:15px 0;"></div>
     <button class="btn-action btn-gray" id="closeMap">Zavřít</button>
   </div>
@@ -665,9 +669,10 @@ const mapModalHTML = `
 document.body.insertAdjacentHTML("beforeend", mapModalHTML);
 
 let map, routeLayer, markersLayer;
-function showPlanMap(date) {
+async function showPlanMap(date) {
   const modal = document.getElementById("planModal");
   modal.classList.add("active");
+
   if (!map) {
     map = L.map("map").setView([50.0755, 14.4378], 9);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -703,46 +708,68 @@ function showPlanMap(date) {
     return null;
   };
 
-  (async () => {
-    for (const addr of adresses) {
-      const c = await fetchCoords(addr);
-      if (c) coords.push(c);
-    }
+  for (const addr of adresses) {
+    const c = await fetchCoords(addr);
+    if (c) coords.push(c);
+  }
 
-    // Start & konec (sídlo firmy)
-    const start = [50.049, 14.523]; // White Glove Service – Běchovice
-    coords = [start, ...coords, start];
+  // Start & konec (sídlo firmy)
+  const start = [50.049, 14.523]; // White Glove Service – Běchovice
+  coords = [start, ...coords, start];
 
-    markersLayer.clearLayers();
-    coords.forEach(c => L.marker(c).addTo(markersLayer));
+  markersLayer.clearLayers();
+  coords.forEach(c => L.marker(c).addTo(markersLayer));
 
-    const coordStr = coords.map(c => c[1] + "," + c[0]).join(";");
-    const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson`);
-    const data = await res.json();
-    const route = data.routes[0];
-    if (route) {
-      const line = L.geoJSON(route.geometry, {color: "purple", weight: 5});
-      routeLayer.setLatLngs(line.getLatLngs());
-      map.fitBounds(line.getBounds());
-      const km = (route.distance / 1000).toFixed(1);
-      const h = (route.duration / 3600).toFixed(1);
-      L.popup().setLatLng(line.getBounds().getCenter())
-        .setContent(`🚗 Délka trasy: <b>${km} km</b><br>⏱️ Čas jízdy: <b>${h} h</b>`)
-        .openOn(map);
-    }
-  })();
+  const coordStr = coords.map(c => c[1] + "," + c[0]).join(";");
+  const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson`);
+  const data = await res.json();
+  const route = data.routes[0];
+  if (route) {
+    const line = L.geoJSON(route.geometry, {color: "purple", weight: 5});
+    routeLayer.setLatLngs(line.getLatLngs());
+    map.fitBounds(line.getBounds());
+    const km = (route.distance / 1000).toFixed(1);
+    const h = (route.duration / 3600).toFixed(1);
+    L.popup()
+      .setLatLng(line.getBounds().getCenter())
+      .setContent(`🚗 Délka trasy: <b>${km} km</b><br>⏱️ Čas jízdy: <b>${h} h</b>`)
+      .openOn(map);
+  }
 }
 
-// 💜 Fialové tlačítko v horním panelu
+/* 💜 Fialové tlačítko v horním panelu */
 const planBtn = document.createElement("button");
 planBtn.className = "btn";
 planBtn.style.background = "linear-gradient(135deg,#8000ff,#b366ff)";
 planBtn.textContent = "Plán dne 🗺️";
 document.querySelector(".actions").appendChild(planBtn);
+
+// 🗓️ Označení naplánovaných dní
+function markCalendarDays(input) {
+  const terminy = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
+  const days = terminy.map(t => t.datum);
+  input.addEventListener("focus", () => {
+    setTimeout(() => {
+      const picker = document.querySelector('input[type="date"]');
+      if (!picker) return;
+      const style = document.createElement("style");
+      style.textContent = days.map(d => `
+        input[type="date"]::-webkit-datetime-edit-year-field,
+        input[type="date"][value="${d}"] {
+          background: rgba(128,0,255,0.1);
+          border-radius: 4px;
+        }
+      `).join("");
+      document.head.appendChild(style);
+    }, 100);
+  });
+}
+
 planBtn.onclick = () => {
   const modal = document.getElementById("planModal");
   modal.classList.add("active");
   const input = modal.querySelector("#planDate");
+  markCalendarDays(input);
   input.onchange = () => {
     modal.classList.remove("active");
     showPlanMap(input.value);
@@ -752,3 +779,5 @@ document.getElementById("closeMap").onclick = () =>
   document.getElementById("planModal").classList.remove("active");
 </script>
 
+
+    
