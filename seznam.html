@@ -602,6 +602,14 @@ function showPhoto(src) {
   .btn-row { flex-direction: column; }
   .btn-action { width: 100%; font-size: 0.95em; }
   .foto-container img { width: 90px; height: 90px; }
+
+  /* Zápisy ve 2 řádcích */
+  table td {
+    white-space: normal !important;
+    line-height: 1.4em !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+  }
 }
 
 /* 🩸 Blikání dnešních termínů */
@@ -625,10 +633,8 @@ function highlightTodayRows() {
     const item = dataAll[index];
     if (!item) return;
 
-    // 🔍 Má záznam uložené datum a stav domluveno?
     if (item.datum === today && stavy[item.cislo || `radek-${index}`] === "domluveno") {
       row.classList.add("blink-today");
-      row.querySelector("td:last-child").innerHTML = "🔵 Domluveno – dnes";
     } else {
       row.classList.remove("blink-today");
     }
@@ -648,6 +654,57 @@ window.addEventListener("storage", e => {
 });
 
 // 🔁 Pro jistotu i periodická kontrola každých 30 sekund
+setInterval(highlightTodayRows, 30000);
+</script>
+
+<script>
+// 🔹 Mapování PSČ na městské části Prahy
+const pragueDistricts = {
+  "100": "Praha 10", "101": "Praha 10", "102": "Praha 10",
+  "103": "Praha 10", "104": "Praha 10", "106": "Praha 10",
+  "107": "Praha 10", "108": "Praha 10",
+  "110": "Praha 1", "118": "Praha 1", "119": "Praha 1",
+  "120": "Praha 2", "121": "Praha 2", "128": "Praha 2",
+  "130": "Praha 3", "131": "Praha 3", "139": "Praha 3",
+  "140": "Praha 4", "141": "Praha 4", "142": "Praha 4",
+  "143": "Praha 4", "147": "Praha 4", "148": "Praha 4",
+  "149": "Praha 4", "150": "Praha 5", "151": "Praha 5",
+  "152": "Praha 5", "153": "Praha 5", "154": "Praha 5",
+  "155": "Praha 5", "158": "Praha 5", "159": "Praha 5",
+  "160": "Praha 6", "161": "Praha 6", "162": "Praha 6",
+  "163": "Praha 6", "164": "Praha 6", "165": "Praha 6",
+  "166": "Praha 6", "167": "Praha 6",
+  "170": "Praha 7", "171": "Praha 7", "172": "Praha 7",
+  "173": "Praha 7",
+  "180": "Praha 8", "181": "Praha 8", "182": "Praha 8",
+  "183": "Praha 8", "184": "Praha 8", "185": "Praha 8",
+  "186": "Praha 8",
+  "190": "Praha 9", "193": "Praha 9", "198": "Praha 9",
+  "199": "Praha 9",
+  "200": "Praha 10", "201": "Praha 10",
+  "250": "Praha-východ", "252": "Praha-západ",
+  "253": "Praha-západ", "254": "Praha-západ"
+};
+
+// 🔹 Funkce pro převod PSČ → Praha X
+function simplifyAddress(addr) {
+  if (!addr) return "";
+  let upravena = addr.trim();
+
+  if (upravena.toLowerCase().includes("hlavní město praha")) {
+    const matchPsc = upravena.match(/\b(\d{3})\s?\d{2}\b/);
+    if (matchPsc) {
+      const prefix = matchPsc[1];
+      if (pragueDistricts[prefix]) return pragueDistricts[prefix];
+    }
+    const matchPraha = upravena.match(/Praha\s*\d*/i);
+    return matchPraha ? matchPraha[0] : "Praha";
+  }
+
+  return upravena.replace(/\d{3}\s?\d{2}$/, "").trim();
+}
+</script>
+
 setInterval(highlightTodayRows, 30000);
 </script>
 </body>
