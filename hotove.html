@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WHITE GLOVE SERVICE – Hotové reklamace</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 :root { font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:#111; }
 body { margin:0; padding:20px; background:#f6f7fb; }
@@ -17,7 +18,6 @@ h2 { text-align:center; font-size:1.1em; font-weight:600; margin:0 0 20px; color
   transition:transform 0.15s ease-in-out, opacity 0.2s; margin:4px;
 }
 .btn-gradient:hover { transform:scale(1.04); opacity:0.9; }
-.btn-green { background:linear-gradient(135deg,#00b36b,#3cd67a); }
 .btn-gray { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
 .btn-blue { background:linear-gradient(135deg,#0046ff,#357aff); }
 
@@ -28,32 +28,25 @@ h2 { text-align:center; font-size:1.1em; font-weight:600; margin:0 0 20px; color
 }
 
 table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; }
-th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #ddd; font-size:0.95em; }
+th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #ddd; font-size:0.95em; vertical-align:middle; }
 th { background:#eee; font-weight:700; }
 tr:hover { background:#f1f3f5; cursor:pointer; }
 
-.row-hotovo { background:linear-gradient(135deg,#a3e6b3,#66cc99); }
-.badge-poz {
-  background:#6c757d; color:white; font-size:0.8em; padding:2px 6px; border-radius:6px; margin-right:6px;
-}
+.icon-phone { color:#00b36b; }
+.icon-waze { color:#357aff; }
 
-#detailModal, #photoView {
-  position:fixed; top:0; left:0; width:100%; height:100%;
-  background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center;
-  padding:20px; z-index:1000;
-}
-.modal-box {
-  background:white; border-radius:10px; padding:20px; max-width:600px; width:100%;
-  max-height:85vh; overflow-y:auto; box-shadow:0 4px 15px rgba(0,0,0,0.2);
-}
-.photo-gallery { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:10px; }
-.photo-gallery img { max-width:100px; border-radius:6px; cursor:pointer; transition:transform 0.2s ease; }
-.photo-gallery img:hover { transform:scale(1.1); }
-#photoView img { max-width:90%; max-height:90%; border-radius:10px; }
+a.link-icon { text-decoration:none; color:inherit; font-weight:500; display:flex; align-items:center; gap:5px; }
+a.link-icon:hover { opacity:0.8; }
 
-@media(max-width:768px){
-  .modal-box{max-width:90%;height:90vh;}
+.action-btn {
+  background:linear-gradient(135deg,#00b36b,#3cd67a);
+  color:white; border:none; border-radius:6px; padding:6px 12px;
+  cursor:pointer; font-weight:600; font-size:0.85em; display:flex; align-items:center; gap:6px;
+  justify-content:center;
 }
+.action-btn:hover { opacity:0.9; }
+
+@media (max-width:768px){ th:nth-child(n+5), td:nth-child(n+5){display:none;} }
 </style>
 </head>
 <body>
@@ -61,109 +54,64 @@ tr:hover { background:#f1f3f5; cursor:pointer; }
 <h2>Hotové reklamace</h2>
 
 <div class="top-actions">
-  <a href="seznam.html" class="btn-gradient btn-gray">Zpět na seznam</a>
-  <a href="index.html" class="btn-gradient btn-blue">Hlavní stránka</a>
+  <a href="index.html" class="btn-gradient btn-gray"><i class="fa-solid fa-house"></i> Zpět na hlavní stránku</a>
+  <a href="seznam.html" class="btn-gradient btn-blue"><i class="fa-solid fa-list"></i> Zpět na seznam</a>
 </div>
 
 <input type="text" id="searchInput" class="searchbox" placeholder="Hledat podle jména, adresy nebo telefonu...">
 
 <table id="dataTable">
 <thead>
-<tr><th>ZÁKAZNÍK</th><th>ADRESA</th><th>TELEFON</th><th>DATUM</th></tr>
+<tr><th>JMÉNO</th><th>ADRESA</th><th>TELEFON</th><th>STAV</th><th>AKCE</th></tr>
 </thead>
-<tbody id="tableBody"><tr><td colspan="4" style="text-align:center;padding:20px;">Načítání dat...</td></tr></tbody>
+<tbody id="tableBody"><tr><td colspan="5" style="text-align:center;padding:20px;">Načítání dat...</td></tr></tbody>
 </table>
 
-<!-- DETAIL -->
-<div id="detailModal"><div class="modal-box">
-  <h3 id="dName"></h3>
-  <p id="dInfo"></p>
-  <div id="photoGallery" class="photo-gallery"></div>
-  <div style="text-align:center;margin-top:20px;">
-    <button class="btn-gradient btn-green" onclick="openProtocol()">Otevřít protokol</button>
-    <button class="btn-gradient btn-gray" onclick="closeDetail()">Zavřít</button>
-  </div>
-</div></div>
-
-<!-- FOTKY -->
-<div id="photoView" onclick="this.style.display='none'">
-  <img id="photoLarge" src="">
-</div>
-
 <script>
-const GITHUB_USER="radecek222-boop",REPO="reklamace";
-let allData=[], currentItem=null;
+const GITHUB_USER="radecek222-boop", REPO="reklamace";
+const FILE="hotove.json";
 
 async function loadHotove(){
-  const tbody=document.getElementById("tableBody");
-  tbody.innerHTML=`<tr><td colspan="4" style="text-align:center;padding:20px;">Načítání...</td></tr>`;
+  document.getElementById("tableBody").innerHTML="<tr><td colspan='5' style='text-align:center;padding:20px;'>Načítání...</td></tr>";
   try{
-    const res=await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/hotove.json?${Date.now()}`);
+    const res=await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${FILE}?${Date.now()}`);
     const data=await res.json();
-    allData=data;
     renderTable(data);
   }catch(e){
-    tbody.innerHTML=`<tr><td colspan="4" style="color:red;text-align:center;">Chyba: ${e.message}</td></tr>`;
+    document.getElementById("tableBody").innerHTML=`<tr><td colspan='5' style='text-align:center;color:red;'>Chyba: ${e.message}</td></tr>`;
   }
 }
 
 function renderTable(data){
-  const tbody=document.getElementById("tableBody");
-  tbody.innerHTML="";
-  const search=document.getElementById("searchInput").value.toLowerCase();
-
-  const filtered=data.filter(d=>
-    (d["Zákazník"]||"").toLowerCase().includes(search) ||
-    (d["Adresa"]||"").toLowerCase().includes(search) ||
-    (d["Telefon"]||"").toLowerCase().includes(search)
-  );
-
-  if(filtered.length===0){
-    tbody.innerHTML=`<tr><td colspan="4" style="text-align:center;padding:20px;">Žádné výsledky</td></tr>`;
-    return;
-  }
-
-  filtered.forEach(item=>{
+  const tbody=document.getElementById("tableBody");tbody.innerHTML="";
+  const query=document.getElementById("searchInput").value.toLowerCase();
+  data.filter(x=>{
+    return !query || (x["Zákazník"]||"").toLowerCase().includes(query)
+    || (x["Adresa"]||"").toLowerCase().includes(query)
+    || (x["Telefon"]||"").toLowerCase().includes(query);
+  }).forEach((item)=>{
     const tr=document.createElement("tr");
-    tr.classList.add("row-hotovo");
-    let nameCell=item["Zákazník"]||"";
-    if(item.source==="aftersales") nameCell=`<span class="badge-poz">POZ</span>${nameCell}`;
-    const waze=item["Adresa"]?`<a href="https://waze.com/ul?q=${encodeURIComponent(item["Adresa"])}" target="_blank">${item["Adresa"]}</a>`:"";
-    const phone=item["Telefon"]?`<a href="tel:${item["Telefon"].replace(/\s+/g,'')}" style="text-decoration:none;color:#0046ff;">📞 ${item["Telefon"]}</a>`:"";
-    tr.innerHTML=`<td>${nameCell}</td><td>${waze}</td><td>${phone}</td><td>${item["Datum vytvoření"]||""}</td>`;
-    tr.addEventListener("click",()=>openDetail(item));
+    const addr=item["Adresa"]?`<a class="link-icon" href="https://waze.com/ul?ll=&q=${encodeURIComponent(item["Adresa"])}" target="_blank"><i class='fa-brands fa-waze icon-waze'></i>${item["Adresa"]}</a>`:"";
+    const tel=item["Telefon"]?`<a class="link-icon" href="tel:${item["Telefon"]}"><i class='fa-solid fa-phone icon-phone'></i>${item["Telefon"]}</a>`:"";
+
+    tr.innerHTML=`
+      <td>${item["Zákazník"]||"Neznámý"}</td>
+      <td>${addr}</td>
+      <td>${tel}</td>
+      <td>${item["Stav"]||"Hotovo"}</td>
+      <td><button class="action-btn" onclick='openProtocol(${JSON.stringify(item)})'><i class="fa-regular fa-file-lines"></i> Otevřít protokol</button></td>
+    `;
     tbody.appendChild(tr);
   });
 }
 
-function openDetail(item){
-  currentItem=item;
-  document.getElementById("detailModal").style.display="flex";
-  document.getElementById("dName").textContent=item["Zákazník"]||"Neznámý zákazník";
-  document.getElementById("dInfo").innerHTML=`
-    <p><b>Adresa:</b> ${item["Adresa"]||""}</p>
-    <p><b>Telefon:</b> ${item["Telefon"]||""}</p>
-    <p><b>E-mail:</b> ${item["Email"]||""}</p>
-    <p><b>Popis:</b> ${item["Popis CZ"]||""}</p>
-    <p><b>Vyřešeno:</b> ${item["Vyřešeno"]||"ANO"}</p>
-  `;
-  const gal=document.getElementById("photoGallery");gal.innerHTML="";
-  ["Foto1","Foto2","Foto3","Foto4"].forEach(k=>{
-    if(item[k]){const img=document.createElement("img");img.src=item[k];img.onclick=()=>openPhoto(img.src);gal.appendChild(img);}
-  });
+function openProtocol(item){
+  item["Stav"]="Hotovo";
+  localStorage.setItem("selectedCustomer",JSON.stringify(item));
+  window.location.href="protokol.html";
 }
 
-function closeDetail(){document.getElementById("detailModal").style.display="none";}
-function openPhoto(src){document.getElementById("photoLarge").src=src;document.getElementById("photoView").style.display="flex";}
-
-// Přenos dat do protokolu
-function openProtocol(){
-  if(!currentItem) return;
-  localStorage.setItem("selectedCustomer", JSON.stringify(currentItem));
-  window.location.href = "protokol.html";
-}
-
-document.getElementById("searchInput").addEventListener("input",()=>renderTable(allData));
+document.getElementById("searchInput").addEventListener("input",loadHotove);
 window.addEventListener("pageshow",loadHotove);
 loadHotove();
 </script>
