@@ -160,14 +160,14 @@
   <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
 
   <script>
-  const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";  // 🔥 Nový Worker
+  const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
   const tableContainer = document.getElementById("tableContainer");
   const searchInput = document.getElementById("search");
   const reloadBtn = document.getElementById("reloadBtn");
   const overlay = document.getElementById("overlay");
   let dataAll = [];
 
-  // Načtení dat z Workeru
+  // --- Načtení dat z Workeru ---
   async function loadData() {
     overlay.style.display = "flex";
     tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
@@ -176,7 +176,22 @@
       if (!res.ok) throw new Error("Chyba při načítání dat");
       const data = await res.json();
       if (!Array.isArray(data)) throw new Error("Neplatný formát dat");
-      dataAll = data.reverse();
+
+      // ✅ Dekódování českých znaků (UTF-8)
+      dataAll = data.map(item => {
+        const decode = str => {
+          try { return decodeURIComponent(escape(str)); } catch { return str; }
+        };
+        return {
+          ...item,
+          zakaznik: decode(item.zakaznik || ""),
+          adresa: decode(item.adresa || ""),
+          contract: decode(item.contract || ""),
+          cislo: decode(item.cislo || ""),
+          typ: decode(item.typ || ""),
+        };
+      }).reverse();
+
       renderTable(dataAll);
     } catch (err) {
       console.error(err);
@@ -186,7 +201,7 @@
     }
   }
 
-  // Zobrazení tabulky
+  // --- Zobrazení tabulky ---
   function renderTable(arr) {
     if (!arr.length) {
       tableContainer.innerHTML = "<div class='loading'>Žádné záznamy k zobrazení</div>";
@@ -211,11 +226,11 @@
       html += `
         <tr data-index="${i}">
           <td>${i + 1}</td>
-          <td>${decodeURIComponent(r.cislo || "")}</td>
-          <td>${decodeURIComponent(r.zakaznik || "")}</td>
-          <td>${decodeURIComponent(r.adresa || "")}</td>
+          <td>${r.cislo}</td>
+          <td>${r.zakaznik}</td>
+          <td>${r.adresa}</td>
           <td>${r.telefon || ""}</td>
-          <td>${decodeURIComponent(r.contract || (r.jinaZadavatel?.jmeno || ""))}</td>
+          <td>${r.contract || (r.jinaZadavatel?.jmeno || "")}</td>
           <td>${r.typ || ""}</td>
         </tr>`;
     });
@@ -234,7 +249,7 @@
     });
   }
 
-  // Vyhledávání
+  // --- Vyhledávání ---
   searchInput.addEventListener("input", () => {
     const q = searchInput.value.trim().toLowerCase();
     if (!q) return renderTable(dataAll);
@@ -249,7 +264,12 @@
   });
 
   reloadBtn.addEventListener("click", loadData);
+
+  // --- Automatické načtení při startu ---
   window.addEventListener("DOMContentLoaded", loadData);
+
+  // --- 🔄 Automatická aktualizace každých 30 s ---
+  setInterval(loadData, 30000);
   </script>
 </body>
 </html>
