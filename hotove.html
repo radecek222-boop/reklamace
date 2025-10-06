@@ -32,36 +32,28 @@ th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #ddd; font-
 th { background:#eee; font-weight:700; }
 tr:hover { background:#f1f3f5; cursor:pointer; }
 
-@media (max-width:768px){ th:nth-child(n+5), td:nth-child(n+5){display:none;} }
+.row-hotovo { background:linear-gradient(135deg,#a3e6b3,#66cc99); }
+.badge-poz {
+  background:#6c757d; color:white; font-size:0.8em; padding:2px 6px; border-radius:6px; margin-right:6px;
+}
 
-#detailModal {
+#detailModal, #photoView {
   position:fixed; top:0; left:0; width:100%; height:100%;
   background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center;
   padding:20px; z-index:1000;
 }
-#detailContent {
+.modal-box {
   background:white; border-radius:10px; padding:20px; max-width:600px; width:100%;
   max-height:85vh; overflow-y:auto; box-shadow:0 4px 15px rgba(0,0,0,0.2);
 }
-#detailButtons { text-align:center; margin-top:20px; }
-#detailButtons button {
-  margin:5px; padding:10px 16px; border:none; border-radius:8px;
-  cursor:pointer; color:#fff; font-weight:600;
-  transition:transform 0.15s ease, opacity 0.2s;
-}
-#detailButtons button:hover { transform:scale(1.05); opacity:0.9; }
-.btn-close { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
-.btn-delete { background:linear-gradient(135deg,#d9534f,#f45d5a); }
-
 .photo-gallery { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:10px; }
 .photo-gallery img { max-width:100px; border-radius:6px; cursor:pointer; transition:transform 0.2s ease; }
 .photo-gallery img:hover { transform:scale(1.1); }
-
-#photoView {
-  display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-  background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:1100;
-}
 #photoView img { max-width:90%; max-height:90%; border-radius:10px; }
+
+@media(max-width:768px){
+  .modal-box{max-width:90%;height:90vh;}
+}
 </style>
 </head>
 <body>
@@ -69,135 +61,109 @@ tr:hover { background:#f1f3f5; cursor:pointer; }
 <h2>Hotové reklamace</h2>
 
 <div class="top-actions">
-  <a href="index.html" class="btn-gradient btn-gray">Zpět na hlavní stránku</a>
-  <a href="seznam.html" class="btn-gradient btn-blue">Zpět na seznam</a>
-  <button onclick="loadHotove()" class="btn-gradient btn-green">Načíst znovu</button>
+  <a href="seznam.html" class="btn-gradient btn-gray">Zpět na seznam</a>
+  <a href="index.html" class="btn-gradient btn-blue">Hlavní stránka</a>
 </div>
 
 <input type="text" id="searchInput" class="searchbox" placeholder="Hledat podle jména, adresy nebo telefonu...">
 
 <table id="dataTable">
 <thead>
-<tr><th>#</th><th>OBJEDNÁVKA</th><th>JMÉNO</th><th>ADRESA</th><th>TELEFON</th><th>E-MAIL</th><th>POPIS</th><th>STAV</th></tr>
+<tr><th>ZÁKAZNÍK</th><th>ADRESA</th><th>TELEFON</th><th>DATUM</th></tr>
 </thead>
-<tbody id="tableBody"><tr><td colspan="8" style="text-align:center;padding:20px;">Načítání dat...</td></tr></tbody>
+<tbody id="tableBody"><tr><td colspan="4" style="text-align:center;padding:20px;">Načítání dat...</td></tr></tbody>
 </table>
 
-<div id="detailModal">
-  <div id="detailContent">
-    <h3 id="detailName" style="margin-top:0;"></h3>
-    <div id="detailInfo"></div>
-    <div class="photo-gallery" id="photoGallery"></div>
-    <div id="detailButtons">
-      <button id="deletePhotos" class="btn-delete">Smazat fotky nyní</button>
-      <button id="closeDetail" class="btn-close">Zavřít</button>
-    </div>
+<!-- DETAIL -->
+<div id="detailModal"><div class="modal-box">
+  <h3 id="dName"></h3>
+  <p id="dInfo"></p>
+  <div id="photoGallery" class="photo-gallery"></div>
+  <div style="text-align:center;margin-top:20px;">
+    <button class="btn-gradient btn-green" onclick="openProtocol()">Otevřít protokol</button>
+    <button class="btn-gradient btn-gray" onclick="closeDetail()">Zavřít</button>
   </div>
+</div></div>
+
+<!-- FOTKY -->
+<div id="photoView" onclick="this.style.display='none'">
+  <img id="photoLarge" src="">
 </div>
 
-<div id="photoView"><img id="photoLarge" src=""></div>
-
 <script>
-const GITHUB_USER="radecek222-boop",REPO="reklamace",TOKEN="TVŮJ_TOKEN",HOTOVE_FILE="hotove.json";
+const GITHUB_USER="radecek222-boop",REPO="reklamace";
+let allData=[], currentItem=null;
 
 async function loadHotove(){
- try{
-  const res=await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${HOTOVE_FILE}?${Date.now()}`);
-  const data=await res.json();
-  await autoDeleteExpiredPhotos(data);
-  renderTable(data);
- }catch(e){document.getElementById("tableBody").innerHTML=`<tr><td colspan="8" style="text-align:center;color:red;">Chyba: ${e.message}</td></tr>`;}
+  const tbody=document.getElementById("tableBody");
+  tbody.innerHTML=`<tr><td colspan="4" style="text-align:center;padding:20px;">Načítání...</td></tr>`;
+  try{
+    const res=await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/hotove.json?${Date.now()}`);
+    const data=await res.json();
+    allData=data;
+    renderTable(data);
+  }catch(e){
+    tbody.innerHTML=`<tr><td colspan="4" style="color:red;text-align:center;">Chyba: ${e.message}</td></tr>`;
+  }
 }
 
 function renderTable(data){
- const tbody=document.getElementById("tableBody");tbody.innerHTML="";
- data.forEach((item,i)=>{
-  const tr=document.createElement("tr");
-  tr.innerHTML=`<td>${i+1}</td><td>${item["Číslo objednávky"]||""}</td><td>${item["Zákazník"]||""}</td>
-  <td>${item["Adresa"]||""}</td><td>${item["Telefon"]||""}</td><td>${item["Email"]||""}</td>
-  <td>${item["Popis CZ"]||""}</td><td>${item["Stav"]||"Hotovo"}</td>`;
-  tr.addEventListener("click",()=>openDetail(item));
-  tbody.appendChild(tr);
- });
+  const tbody=document.getElementById("tableBody");
+  tbody.innerHTML="";
+  const search=document.getElementById("searchInput").value.toLowerCase();
+
+  const filtered=data.filter(d=>
+    (d["Zákazník"]||"").toLowerCase().includes(search) ||
+    (d["Adresa"]||"").toLowerCase().includes(search) ||
+    (d["Telefon"]||"").toLowerCase().includes(search)
+  );
+
+  if(filtered.length===0){
+    tbody.innerHTML=`<tr><td colspan="4" style="text-align:center;padding:20px;">Žádné výsledky</td></tr>`;
+    return;
+  }
+
+  filtered.forEach(item=>{
+    const tr=document.createElement("tr");
+    tr.classList.add("row-hotovo");
+    let nameCell=item["Zákazník"]||"";
+    if(item.source==="aftersales") nameCell=`<span class="badge-poz">POZ</span>${nameCell}`;
+    const waze=item["Adresa"]?`<a href="https://waze.com/ul?q=${encodeURIComponent(item["Adresa"])}" target="_blank">${item["Adresa"]}</a>`:"";
+    const phone=item["Telefon"]?`<a href="tel:${item["Telefon"].replace(/\s+/g,'')}" style="text-decoration:none;color:#0046ff;">📞 ${item["Telefon"]}</a>`:"";
+    tr.innerHTML=`<td>${nameCell}</td><td>${waze}</td><td>${phone}</td><td>${item["Datum vytvoření"]||""}</td>`;
+    tr.addEventListener("click",()=>openDetail(item));
+    tbody.appendChild(tr);
+  });
 }
 
 function openDetail(item){
- const modal=document.getElementById("detailModal");modal.style.display="flex";
- document.getElementById("detailName").textContent=item["Zákazník"]||"Neznámý zákazník";
- document.getElementById("detailInfo").innerHTML=`
-  <p><b>Adresa:</b> ${item["Adresa"]||""}</p>
-  <p><b>Telefon:</b> ${item["Telefon"]||""}</p>
-  <p><b>E-mail:</b> ${item["Email"]||""}</p>
-  <p><b>Popis:</b> ${item["Popis CZ"]||""}</p>
-  <p><b>Vyřešeno:</b> ${item["Vyřešeno"]||"ANO"}</p>`;
- const gallery=document.getElementById("photoGallery");gallery.innerHTML="";
- ["Foto1","Foto2","Foto3"].forEach(k=>{
-  if(item[k]){const img=document.createElement("img");img.src=item[k];img.onclick=()=>openPhoto(img.src);gallery.appendChild(img);}
- });
- document.getElementById("deletePhotos").onclick=()=>deletePhotosNow(item);
+  currentItem=item;
+  document.getElementById("detailModal").style.display="flex";
+  document.getElementById("dName").textContent=item["Zákazník"]||"Neznámý zákazník";
+  document.getElementById("dInfo").innerHTML=`
+    <p><b>Adresa:</b> ${item["Adresa"]||""}</p>
+    <p><b>Telefon:</b> ${item["Telefon"]||""}</p>
+    <p><b>E-mail:</b> ${item["Email"]||""}</p>
+    <p><b>Popis:</b> ${item["Popis CZ"]||""}</p>
+    <p><b>Vyřešeno:</b> ${item["Vyřešeno"]||"ANO"}</p>
+  `;
+  const gal=document.getElementById("photoGallery");gal.innerHTML="";
+  ["Foto1","Foto2","Foto3","Foto4"].forEach(k=>{
+    if(item[k]){const img=document.createElement("img");img.src=item[k];img.onclick=()=>openPhoto(img.src);gal.appendChild(img);}
+  });
 }
 
-function openPhoto(src){const v=document.getElementById("photoView");const i=document.getElementById("photoLarge");i.src=src;v.style.display="flex";v.onclick=()=>v.style.display="none";}
-document.getElementById("closeDetail").onclick=()=>document.getElementById("detailModal").style.display="none";
+function closeDetail(){document.getElementById("detailModal").style.display="none";}
+function openPhoto(src){document.getElementById("photoLarge").src=src;document.getElementById("photoView").style.display="flex";}
 
-// 🕓 Automatické mazání po 48 h
-async function autoDeleteExpiredPhotos(data){
- let changed=false;
- const now=new Date();
- for(const item of data){
-  if(item["SmazatFotkyPo"] && new Date(item["SmazatFotkyPo"])<=now){
-    await deletePhotos(item);
-    delete item["Foto1"]; delete item["Foto2"]; delete item["Foto3"];
-    delete item["SmazatFotkyPo"];
-    changed=true;
-  }
- }
- if(changed){ await updateFile(HOTOVE_FILE,JSON.stringify(data,null,2)); }
+// Přenos dat do protokolu
+function openProtocol(){
+  if(!currentItem) return;
+  localStorage.setItem("selectedCustomer", JSON.stringify(currentItem));
+  window.location.href = "protokol.html";
 }
 
-async function deletePhotosNow(item){
- if(!confirm("Opravdu smazat všechny fotky této reklamace?"))return;
- await deletePhotos(item);
- ["Foto1","Foto2","Foto3"].forEach(k=>delete item[k]);
- delete item["SmazatFotkyPo"];
- await updateFile(HOTOVE_FILE,JSON.stringify(await getHotoveData(),null,2));
- alert("Fotky byly smazány.");
- document.getElementById("detailModal").style.display="none";
- loadHotove();
-}
-
-async function deletePhotos(item){
- for(const key of ["Foto1","Foto2","Foto3"]){
-  if(item[key]){
-   const url=item[key];
-   const path=url.split("main/")[1];
-   try{
-    const meta=await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${path}`,{headers:{Authorization:`token ${TOKEN}`}});
-    const metaData=await meta.json();
-    await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${path}`,{
-      method:"DELETE",
-      headers:{Authorization:`token ${TOKEN}`,"Content-Type":"application/json"},
-      body:JSON.stringify({message:`Smazána fotka ${path}`,sha:metaData.sha})
-    });
-   }catch(e){console.warn("Nelze smazat fotku:",path);}
-  }
- }
-}
-
-async function getHotoveData(){
- const res=await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${HOTOVE_FILE}?${Date.now()}`);
- return await res.json();
-}
-
-async function updateFile(filename,content){
- const metaRes=await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`,{headers:{Authorization:`token ${TOKEN}`}});
- const meta=await metaRes.json();
- await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`,{
-  method:"PUT",headers:{Authorization:`token ${TOKEN}`,"Content-Type":"application/json"},
-  body:JSON.stringify({message:`Aktualizace ${filename}`,content:btoa(unescape(encodeURIComponent(content))),sha:meta.sha})
- });
-}
-
+document.getElementById("searchInput").addEventListener("input",()=>renderTable(allData));
 window.addEventListener("pageshow",loadHotove);
 loadHotove();
 </script>
