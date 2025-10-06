@@ -608,7 +608,7 @@ function openDetail(index) {
 <style>
 /* 💜 Modal plánovače dne */
 #planModal {
-  display: none;
+  display: none; /* 🔧 výchozí stav = skrytý */
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.6);
@@ -630,6 +630,11 @@ function openDetail(index) {
   padding: 20px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.3);
   overflow: hidden;
+}
+#planModal h2 {
+  text-align: center;
+  font-size: 1.4em;
+  font-weight: 700;
 }
 #planModal .btn-action {
   margin-top: 10px;
@@ -696,9 +701,9 @@ const mapModalHTML = `
 <div id="planModal">
   <div class="detail-modal">
     <h2>🗺️ Plán dne</h2>
-    <div style="text-align:center;">
+    <div style="text-align:center;margin-bottom:10px;">
       <input type="date" id="planDate" class="term-date"/>
-      <p style="font-size:0.9em;color:#555;margin-top:5px;">🔵 Označené dny mají naplánované reklamace</p>
+      <p style="font-size:0.9em;color:#555;margin-top:5px;">🔵 Dny s plánem jsou zvýrazněné</p>
     </div>
     <div id="map" style="height:450px;border-radius:12px;margin:15px 0;"></div>
     <div style="text-align:center;">
@@ -776,38 +781,22 @@ async function showPlanMap(date) {
   }
 }
 
-/* 🗓️ Označení dnů */
-function markCalendarDays(input) {
-  const terminy = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
-  const days = terminy.map(t => t.datum);
-  input.addEventListener("focus", () => {
-    setTimeout(() => {
-      const style = document.createElement("style");
-      style.textContent = days.map(d => `
-        input[type="date"][value="${d}"] {
-          background-color: rgba(128,0,255,0.15);
-          border-radius: 6px;
-        }
-      `).join("");
-      document.head.appendChild(style);
-    }, 100);
-  });
-}
-
 /* 🟪 Otevření kalendáře */
 planBtn.onclick = () => {
   const modal = document.getElementById("planModal");
-  modal.classList.add("active");
+  modal.style.display = "flex"; // ukážeme modal
+  setTimeout(() => modal.classList.add("active"), 10);
   const input = modal.querySelector("#planDate");
-  markCalendarDays(input);
+  input.value = new Date().toISOString().split("T")[0];
   input.onchange = () => {
-    modal.classList.remove("active");
     showPlanMap(input.value);
   };
 };
 
-/* ❌ Zavření */
+/* ❌ Zavření modalu */
 document.getElementById("closeMap").onclick = () => {
-  document.getElementById("planModal").classList.remove("active");
+  const modal = document.getElementById("planModal");
+  modal.classList.remove("active");
+  setTimeout(() => (modal.style.display = "none"), 250);
 };
 </script>
