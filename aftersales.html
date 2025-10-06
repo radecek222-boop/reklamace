@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pozáruční servis – White Glove Service</title>
 
-  <!-- Leaflet (mapa) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
@@ -31,136 +30,59 @@
       max-width: 700px;
     }
 
-    h1 {
-      text-align: center;
-      margin: 0;
-      font-size: 1.8em;
-      font-weight: 900;
-    }
+    h1, h2 { text-align: center; margin: 0; }
+    h1 { font-size: 1.8em; font-weight: 900; }
+    h2 { font-size: 1.2em; color: #666; margin-top: 8px; margin-bottom: 25px; }
 
-    h2 {
-      text-align: center;
-      margin: 6px 0 25px 0;
-      font-size: 1.2em;
-      color: #666;
-      font-weight: 500;
-    }
-
-    label {
-      display: block;
-      font-weight: 600;
-      margin-top: 15px;
-      margin-bottom: 5px;
-    }
+    label { display: block; font-weight: 600; margin-top: 15px; margin-bottom: 5px; }
 
     input, textarea, select {
-      width: 100%;
-      padding: 10px;
-      font-size: 1em;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
+      width: 100%; padding: 10px; font-size: 1em;
+      border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;
     }
 
-    input[readonly] {
-      background: #eee;
-      color: #555;
-      font-weight: 600;
-    }
-
+    input[readonly] { background: #eee; color: #555; font-weight: 600; }
     textarea { height: 100px; resize: vertical; }
     input[type="file"] { margin-top: 5px; }
 
-    /* telefonní řádek */
-    .phone-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .phone-row { display: flex; align-items: center; gap: 8px; }
+    .phone-row select { flex: 0 0 90px; }
+    .phone-icon { font-size: 1.3em; margin-right: 5px; }
 
-    .phone-row select {
-      flex: 0 0 90px;
-    }
-
-    .phone-icon {
-      font-size: 1.3em;
-      margin-right: 5px;
-    }
-
-    /* tlačítka */
     .btn {
-      display: inline-block;
-      text-decoration: none;
-      padding: 12px 28px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1em;
-      border: none;
-      cursor: pointer;
-      transition: transform 0.15s ease, opacity 0.2s;
-      margin: 10px 5px 0 0;
-      color: #fff;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+      display: inline-block; text-decoration: none; padding: 12px 28px;
+      border-radius: 8px; font-weight: 600; font-size: 1em;
+      border: none; cursor: pointer; transition: 0.15s;
+      margin: 10px 5px 0 0; color: #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.15);
     }
     .btn:hover { transform: scale(1.03); opacity: 0.9; }
     .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
     .btn-submit { background: linear-gradient(135deg, #0046ff, #357aff); }
     .actions { text-align: center; margin-top: 25px; }
 
-    /* našeptávač */
     #suggestions {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      position: absolute;
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      width: 100%;
-      max-height: 180px;
-      overflow-y: auto;
-      z-index: 1000;
-      display: none;
+      list-style: none; margin: 0; padding: 0; position: absolute;
+      background: white; border: 1px solid #ccc; border-radius: 6px;
+      width: 100%; max-height: 180px; overflow-y: auto; z-index: 1000; display: none;
     }
     #suggestions li { padding: 8px 10px; cursor: pointer; }
     #suggestions li:hover { background: #f1f3f5; }
 
-    /* mapa */
-    #map {
-      width: 100%;
-      height: 250px;
-      border-radius: 8px;
-      margin-top: 10px;
-    }
+    #map { width: 100%; height: 250px; border-radius: 8px; margin-top: 10px; }
 
-    /* náhledy fotek */
     .preview-container {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 10px;
+      display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;
     }
     .preview-container img {
-      width: 100px;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 6px;
-      border: 1px solid #ddd;
+      width: 100px; height: 100px; object-fit: cover;
+      border-radius: 6px; border: 1px solid #ddd;
     }
 
-    /* overlay při odesílání */
     #overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(255,255,255,0.9);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      z-index: 2000;
-      font-size: 1.2em;
-      color: #333;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(255,255,255,0.9); display: none;
+      justify-content: center; align-items: center; flex-direction: column;
+      z-index: 2000; font-size: 1.2em; color: #333;
     }
     #overlay span { margin-top: 15px; font-weight: 600; }
   </style>
@@ -223,15 +145,17 @@
   </div>
 
   <script>
-    // 🧭 Mapa + našeptávač
+    // 🌍 Mapa
     let map = L.map('map').setView([49.8, 15.5], 7);
     L.tileLayer('https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=6b7a09a8dcfe40c7b4e2f7f2a4c5ef58', {
       attribution: '&copy; Geoapify, OpenStreetMap'
     }).addTo(map);
     let marker = null;
 
+    // ⚡ Rychlejší našeptávač s cache
     const adresaInput = document.getElementById("adresa");
     const suggestions = document.getElementById("suggestions");
+    const cache = new Map();
     let timer = null;
 
     adresaInput.addEventListener("input", () => {
@@ -239,13 +163,15 @@
       clearTimeout(timer);
       const query = adresaInput.value.trim();
       if (query.length < 3) { suggestions.style.display = "none"; return; }
-      timer = setTimeout(() => searchAddress(query), 400);
+      timer = setTimeout(() => searchAddress(query), 250);
     });
 
     async function searchAddress(query) {
+      if (cache.has(query)) return showSuggestions(cache.get(query));
       const key = "6b7a09a8dcfe40c7b4e2f7f2a4c5ef58";
-      const res = await fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&lang=cs&limit=8&type=street&filter=countrycode:cz&apiKey=${key}`);
+      const res = await fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&lang=cs&limit=5&type=street&filter=countrycode:cz&apiKey=${key}`);
       const data = await res.json();
+      cache.set(query, data.features);
       showSuggestions(data.features);
     }
 
@@ -298,11 +224,8 @@
           img.onload = () => {
             const canvas = document.createElement("canvas");
             let [w, h] = [img.width, img.height];
-            if (w > h) {
-              if (w > maxWidth) { h *= maxWidth / w; w = maxWidth; }
-            } else {
-              if (h > maxHeight) { w *= maxHeight / h; h = maxHeight; }
-            }
+            if (w > h) { if (w > maxWidth) { h *= maxWidth / w; w = maxWidth; } }
+            else { if (h > maxHeight) { w *= maxHeight / h; h = maxHeight; } }
             canvas.width = w; canvas.height = h;
             const ctx = canvas.getContext("2d");
             ctx.drawImage(img, 0, 0, w, h);
@@ -319,7 +242,7 @@
     const soundDone = new Audio("https://cdn.jsdelivr.net/gh/filipelins/alert-sounds/done.mp3");
     const soundError = new Audio("https://cdn.jsdelivr.net/gh/filipelins/alert-sounds/error.mp3");
 
-    // 📨 Odeslání formuláře
+    // 📨 Odesílání formuláře
     document.getElementById("servisForm").addEventListener("submit", async e => {
       e.preventDefault();
       const overlay = document.getElementById("overlay");
@@ -332,23 +255,18 @@
       const fullPhone = `${prefix}${telefon}`;
 
       if (!adresaInput.dataset.selected || adresaInput.dataset.selected !== "true") {
-        overlay.style.display = "none";
-        soundError.play();
+        overlay.style.display = "none"; soundError.play();
         alert("❗ Vyberte adresu z nabídky (našeptávače).");
-        adresaInput.focus();
-        return;
+        adresaInput.focus(); return;
       }
 
       if (telefon.length < 9) {
-        overlay.style.display = "none";
-        soundError.play();
-        alert("❗ Zadejte platné telefonní číslo.");
-        return;
+        overlay.style.display = "none"; soundError.play();
+        alert("❗ Zadejte platné telefonní číslo."); return;
       }
 
       const files = Array.from(document.getElementById("fotky").files).slice(0, 5);
       const resizedFiles = [];
-
       for (const file of files) {
         const resized = await resizeImage(file);
         resizedFiles.push({ name: file.name, blob: resized });
