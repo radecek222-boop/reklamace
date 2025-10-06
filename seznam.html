@@ -160,38 +160,24 @@
   <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
 
   <script>
-  const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
+  const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";  // ✅ Nový Worker (root JSON)
   const tableContainer = document.getElementById("tableContainer");
   const searchInput = document.getElementById("search");
   const reloadBtn = document.getElementById("reloadBtn");
   const overlay = document.getElementById("overlay");
   let dataAll = [];
 
-  // --- Načtení dat z Workeru ---
+  // 📦 Načtení dat z Workeru
   async function loadData() {
     overlay.style.display = "flex";
     tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
+
     try {
-      const res = await fetch(API_URL, { cache: "no-store" });
+      const res = await fetch(API_URL + "?t=" + Date.now(), { cache: "no-store" });
       if (!res.ok) throw new Error("Chyba při načítání dat");
       const data = await res.json();
       if (!Array.isArray(data)) throw new Error("Neplatný formát dat");
-
-      // ✅ Dekódování českých znaků (UTF-8)
-      dataAll = data.map(item => {
-        const decode = str => {
-          try { return decodeURIComponent(escape(str)); } catch { return str; }
-        };
-        return {
-          ...item,
-          zakaznik: decode(item.zakaznik || ""),
-          adresa: decode(item.adresa || ""),
-          contract: decode(item.contract || ""),
-          cislo: decode(item.cislo || ""),
-          typ: decode(item.typ || ""),
-        };
-      }).reverse();
-
+      dataAll = data.reverse();
       renderTable(dataAll);
     } catch (err) {
       console.error(err);
@@ -201,12 +187,13 @@
     }
   }
 
-  // --- Zobrazení tabulky ---
+  // 🧾 Zobrazení tabulky
   function renderTable(arr) {
     if (!arr.length) {
       tableContainer.innerHTML = "<div class='loading'>Žádné záznamy k zobrazení</div>";
       return;
     }
+
     let html = `
       <table>
         <thead>
@@ -222,22 +209,24 @@
         </thead>
         <tbody>
     `;
+
     arr.forEach((r, i) => {
       html += `
         <tr data-index="${i}">
           <td>${i + 1}</td>
-          <td>${r.cislo}</td>
-          <td>${r.zakaznik}</td>
-          <td>${r.adresa}</td>
+          <td>${r.cislo || ""}</td>
+          <td>${r.zakaznik || ""}</td>
+          <td>${r.adresa || ""}</td>
           <td>${r.telefon || ""}</td>
           <td>${r.contract || (r.jinaZadavatel?.jmeno || "")}</td>
           <td>${r.typ || ""}</td>
         </tr>`;
     });
+
     html += "</tbody></table>";
     tableContainer.innerHTML = html;
 
-    // Kliknutí na řádek -> přesměrování na protokol
+    // Kliknutí na řádek -> otevření protokolu
     document.querySelectorAll("tbody tr").forEach(row => {
       row.addEventListener("click", () => {
         const index = row.getAttribute("data-index");
@@ -249,10 +238,11 @@
     });
   }
 
-  // --- Vyhledávání ---
+  // 🔍 Filtrování
   searchInput.addEventListener("input", () => {
     const q = searchInput.value.trim().toLowerCase();
     if (!q) return renderTable(dataAll);
+
     const filtered = dataAll.filter(r =>
       (r.zakaznik || "").toLowerCase().includes(q) ||
       (r.cislo || "").toLowerCase().includes(q) ||
@@ -263,13 +253,9 @@
     renderTable(filtered);
   });
 
+  // 🔁 Znovu načtení
   reloadBtn.addEventListener("click", loadData);
-
-  // --- Automatické načtení při startu ---
   window.addEventListener("DOMContentLoaded", loadData);
-
-  // --- 🔄 Automatická aktualizace každých 30 s ---
-  setInterval(loadData, 30000);
   </script>
 </body>
 </html>
