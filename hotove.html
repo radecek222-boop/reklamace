@@ -1,186 +1,217 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="cs">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>WHITE GLOVE SERVICE – Hotové reklamace</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hotové reklamace – White Glove Service</title>
 <style>
-:root { font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:#111; }
-body { margin:0; padding:20px; background:#f6f7fb; }
-h1 { text-align:center; font-size:2em; font-weight:900; margin:0 0 10px; }
-h2 { text-align:center; font-size:1.1em; font-weight:600; margin:0 0 20px; color:#555; }
+  body {
+    font-family: "Inter", system-ui, sans-serif;
+    background: #f6f7fb;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+  }
 
-.btn-gradient {
-  display:inline-block; text-decoration:none; padding:10px 22px; border-radius:8px;
-  font-weight:600; font-size:1em; color:#fff; border:none; cursor:pointer;
-  box-shadow:0 2px 8px rgba(0,0,0,0.15);
-  transition:transform 0.15s ease-in-out, opacity 0.2s; margin:4px;
-}
-.btn-gradient:hover { transform:scale(1.04); opacity:0.9; }
-.btn-gray { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
-.btn-blue { background:linear-gradient(135deg,#0046ff,#357aff); }
+  .wrapper {
+    background: #fff;
+    padding: 25px;
+    margin: 40px 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 900px;
+    position: relative;
+    box-sizing: border-box;
+  }
 
-.top-actions { text-align:center; margin-bottom:20px; }
-.searchbox {
-  width:100%; max-width:400px; margin:0 auto 20px; display:block;
-  padding:10px; border:1px solid #ccc; border-radius:8px; font-size:1em; background:#fff;
-}
+  h1 {
+    text-align: center;
+    font-size: 2.2em;
+    font-weight: 900;
+    color: #111;
+    margin: 0 0 8px;
+  }
+  h2 {
+    text-align: center;
+    font-size: 1.1em;
+    font-weight: 500;
+    color: #666;
+    margin: 0 0 25px;
+  }
 
-table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; }
-th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #ddd; font-size:0.95em; }
-th { background:#eee; font-weight:700; }
-tr:hover { background:#f1f3f5; cursor:pointer; }
+  .actions {
+    text-align: center;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
 
-@media (max-width:768px){ th:nth-child(n+5), td:nth-child(n+5){display:none;} }
+  .btn {
+    display: inline-block;
+    text-decoration: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1em;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease-in-out, opacity 0.2s;
+    color: white;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    min-width: 140px;
+  }
 
-#detailModal {
-  position:fixed; top:0; left:0; width:100%; height:100%;
-  background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center;
-  padding:20px; z-index:1000;
-}
-#detailContent {
-  background:white; border-radius:10px; padding:20px; max-width:600px; width:100%;
-  max-height:85vh; overflow-y:auto; box-shadow:0 4px 15px rgba(0,0,0,0.2);
-}
-.photo-gallery { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:10px; }
-.photo-gallery img { max-width:100px; border-radius:6px; cursor:pointer; transition:transform 0.2s ease; }
-.photo-gallery img:hover { transform:scale(1.1); }
+  .btn:hover { transform: scale(1.04); opacity: 0.9; }
+  .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
+  .btn-refresh { background: linear-gradient(135deg, #00b36b, #3cd67a); }
 
-#photoView {
-  display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-  background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:1100;
-}
-#photoView img { max-width:90%; max-height:90%; border-radius:10px; }
+  #search {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+    box-sizing: border-box;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+
+  th, td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    font-size: 0.95em;
+  }
+
+  th {
+    background: #f8f8f8;
+    font-weight: 700;
+  }
+
+  tr:hover {
+    background: #f1f6ff;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 30px;
+    color: #666;
+  }
+
+  @media (max-width:700px){
+    th, td { font-size: 0.85em; }
+    .btn { min-width: 120px; padding: 8px 18px; font-size: 0.9em; }
+  }
 </style>
 </head>
+
 <body>
-<h1>WHITE GLOVE SERVICE</h1>
-<h2>Hotové reklamace a servisní požadavky</h2>
+  <div class="wrapper">
+    <h1>WHITE GLOVE SERVICE</h1>
+    <h2>Hotové reklamace</h2>
 
-<div class="top-actions">
-  <a href="seznam.html" class="btn-gradient btn-gray">Zpět na seznam</a>
-  <button onclick="loadData()" class="btn-gradient btn-blue">Načíst znovu</button>
-</div>
-
-<input type="text" id="searchInput" class="searchbox" placeholder="Hledat podle jména, adresy nebo telefonu...">
-
-<table id="dataTable">
-<thead>
-<tr><th>#</th><th>Jméno</th><th>Adresa</th><th>Telefon</th><th>Stav</th></tr>
-</thead>
-<tbody id="tableBody"><tr><td colspan="5" style="text-align:center;padding:20px;">Načítání dat...</td></tr></tbody>
-</table>
-
-<div id="detailModal">
-  <div id="detailContent">
-    <h3 id="detailName" style="margin-top:0;"></h3>
-    <div id="detailInfo"></div>
-    <div class="photo-gallery" id="photoGallery"></div>
-    <div style="text-align:center;margin-top:15px;">
-      <button onclick="closeModal()" class="btn-gradient btn-gray">Zavřít</button>
+    <div class="actions">
+      <a href="seznam.html" class="btn btn-back">Zpět</a>
+      <button id="reloadBtn" class="btn btn-refresh">Načíst znovu</button>
     </div>
-  </div>
-</div>
 
-<div id="photoView"><img id="photoLarge" src=""></div>
+    <input type="text" id="search" placeholder="🔍 Hledat podle jména, čísla nebo zadavatele...">
+
+    <div id="tableContainer" class="loading">Načítám data...</div>
 
 <script>
-const API = "https://wis-drafts-api.72nvwf4pb2.workers.dev";
-const tableBody = document.getElementById("tableBody");
-const searchInput = document.getElementById("searchInput");
-let allData = [];
+const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/hotove";
+const tableContainer = document.getElementById("tableContainer");
+const searchInput = document.getElementById("search");
+const reloadBtn = document.getElementById("reloadBtn");
+let dataAll = [];
 
 async function loadData() {
-  tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;">Načítání dat...</td></tr>`;
+  tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
   try {
-    const res = await fetch(`${API}/hotove?${Date.now()}`);
-    allData = await res.json();
-    renderTable(allData);
-  } catch (e) {
-    tableBody.innerHTML = `<tr><td colspan="5" style="color:red;text-align:center;">Chyba načítání: ${e.message}</td></tr>`;
+    const res = await fetch(API_URL);
+    if (!res.ok) throw new Error("Chyba při načítání dat");
+    const data = await res.json();
+    if (!Array.isArray(data)) throw new Error("Neplatný formát dat");
+
+    dataAll = data.reverse();
+    renderTable(dataAll);
+  } catch (err) {
+    console.error(err);
+    tableContainer.innerHTML = `<div class='loading' style='color:red;'>Chyba načítání: ${err.message}</div>`;
   }
 }
 
-function renderTable(data) {
-  const query = searchInput.value.trim().toLowerCase();
-  tableBody.innerHTML = "";
-
-  data
-    .filter(item => {
-      if (!query) return true;
-      return (
-        (item["Zákazník"] || "").toLowerCase().includes(query) ||
-        (item["Adresa"] || "").toLowerCase().includes(query) ||
-        (item["Telefon"] || "").toLowerCase().includes(query)
-      );
-    })
-    .forEach((item, i) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${i+1}</td>
-        <td>${item["Zákazník"] || ""}</td>
-        <td>${item["Adresa"] || ""}</td>
-        <td><a href="tel:${item["Telefon"] || ""}" onclick="event.stopPropagation()">${item["Telefon"] || ""}</a></td>
-        <td>${item["Stav"] || "Hotovo"}</td>
-      `;
-      tr.addEventListener("click", () => openDetail(item));
-      tableBody.appendChild(tr);
-    });
-
-  if (!tableBody.innerHTML) {
-    tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;">Žádné záznamy</td></tr>`;
+function renderTable(arr) {
+  if (!arr.length) {
+    tableContainer.innerHTML = "<div class='loading'>Žádné hotové reklamace k zobrazení</div>";
+    return;
   }
-}
 
-function openDetail(item) {
-  const modal = document.getElementById("detailModal");
-  const detailName = document.getElementById("detailName");
-  const detailInfo = document.getElementById("detailInfo");
-  const gallery = document.getElementById("photoGallery");
-
-  modal.style.display = "flex";
-  document.body.style.overflow = "hidden";
-  detailName.textContent = item["Zákazník"] || "Neznámý zákazník";
-
-  detailInfo.innerHTML = `
-    <p><b>Adresa:</b> ${item["Adresa"] || ""}</p>
-    <p><b>Telefon:</b> ${item["Telefon"] || ""}</p>
-    <p><b>E-mail:</b> ${item["Email"] || ""}</p>
-    <p><b>Popis:</b> ${item["Popis CZ"] || item["Popis"] || ""}</p>
-    <p><b>Vyřešeno:</b> ${item["Vyřešeno"] || "ANO"}</p>
-    <p><b>Smazat fotky po:</b> ${item["SmazatFotkyPo"] ? new Date(item["SmazatFotkyPo"]).toLocaleString("cs-CZ") : "-"}</p>
+  let html = `
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Číslo</th>
+          <th>Zákazník</th>
+          <th>Adresa</th>
+          <th>Telefon</th>
+          <th>Zadavatel</th>
+          <th>Typ</th>
+          <th>Datum</th>
+        </tr>
+      </thead>
+      <tbody>
   `;
 
-  gallery.innerHTML = "";
-  Object.keys(item).forEach(k => {
-    if (k.startsWith("Foto") && item[k]) {
-      const img = document.createElement("img");
-      img.src = item[k];
-      img.onclick = () => openPhoto(img.src);
-      gallery.appendChild(img);
-    }
+  arr.forEach((r, i) => {
+    const datum = new Date(r.datum || "").toLocaleDateString("cs-CZ") || "";
+    html += `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${r.cislo || ""}</td>
+        <td>${r.zakaznik || ""}</td>
+        <td>${r.adresa || ""}</td>
+        <td>${r.telefon || ""}</td>
+        <td>${r.contract || (r.jinaZadavatel?.jmeno || "")}</td>
+        <td>${r.typ || ""}</td>
+        <td>${datum}</td>
+      </tr>
+    `;
   });
+
+  html += "</tbody></table>";
+  tableContainer.innerHTML = html;
 }
 
-function closeModal() {
-  const modal = document.getElementById("detailModal");
-  modal.style.display = "none";
-  document.body.style.overflow = "";
-}
+searchInput.addEventListener("input", () => {
+  const q = searchInput.value.trim().toLowerCase();
+  if (!q) return renderTable(dataAll);
+  const filtered = dataAll.filter(r =>
+    (r.zakaznik || "").toLowerCase().includes(q) ||
+    (r.cislo || "").toLowerCase().includes(q) ||
+    (r.contract || "").toLowerCase().includes(q) ||
+    (r.adresa || "").toLowerCase().includes(q) ||
+    (r.typ || "").toLowerCase().includes(q)
+  );
+  renderTable(filtered);
+});
 
-function openPhoto(src) {
-  const view = document.getElementById("photoView");
-  const img = document.getElementById("photoLarge");
-  img.src = src;
-  view.style.display = "flex";
-}
-document.getElementById("photoView").onclick = () => {
-  document.getElementById("photoView").style.display = "none";
-  document.getElementById("photoLarge").src = "";
-};
-
-searchInput.addEventListener("input", () => renderTable(allData));
+reloadBtn.addEventListener("click", loadData);
 window.addEventListener("DOMContentLoaded", loadData);
 </script>
+  </div>
 </body>
 </html>
