@@ -593,30 +593,37 @@ function showPhoto(src) {
   .foto-container img { width: 90px; height: 90px; }
 }
 
-/* 🩸 Blikání dnešních termínů */
-@keyframes blinkRed {
-  0% { background-color: #ffe0e0; }
-  50% { background-color: #ffb3b3; }
-  100% { background-color: #ffe0e0; }
+<script>
+// 🩸 Automatické blikání dnešních termínů
+function highlightTodayRows() {
+  const today = new Date().toISOString().split("T")[0];
+  document.querySelectorAll("tbody tr").forEach(row => {
+    const index = row.dataset.index;
+    if (!index) return;
+    const item = dataAll[index];
+    if (!item) return;
+
+    // 🔍 Má záznam uložené datum a stav domluveno?
+    if (item.datum === today && stavy[item.cislo || `radek-${index}`] === "domluveno") {
+      row.classList.add("blink-today");
+    } else {
+      row.classList.remove("blink-today");
+    }
+  });
 }
-.blink-today { animation: blinkRed 1.5s infinite; }
 
-/* 📱 Mobilní zarovnání */
-@media (max-width: 700px) {
-  td[data-label="Adresa"],
-  td[data-label="Telefon"],
-  td[data-label="Stav"] {
-    text-align: center !important;
-    white-space: normal !important;
-    line-height: 1.3em;
-    word-break: break-word;
-  }
-  td a {
-    display: inline-block;
-    word-break: break-word;
-  }
-}
-</style>
+// 🧠 Spouštíme po načtení dat i po každém přerenderování tabulky
+const originalRenderTableBlink = renderTable;
+renderTable = function(arr) {
+  originalRenderTableBlink(arr);
+  setTimeout(highlightTodayRows, 100);
+};
 
+// 💾 Po uložení termínu z modalu se rovnou aktualizuje tabulka i blikání
+window.addEventListener("storage", e => {
+  if (e.key === "stavyReklamaci") setTimeout(highlightTodayRows, 300);
+});
 
-  
+// 🔁 Pro jistotu i periodická kontrola každých 30 sekund
+setInterval(highlightTodayRows, 30000);
+</script>
