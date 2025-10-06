@@ -4,57 +4,179 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WHITE GLOVE SERVICE – Seznam reklamací</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
-:root { font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:#111; }
-body { margin:0; padding:20px; background:#f6f7fb; }
-h1 { text-align:center; font-size:2em; font-weight:900; margin:0 0 10px; }
-h2 { text-align:center; font-size:1.1em; font-weight:600; margin:0 0 20px; color:#555; }
+:root {
+  font-family: "Inter", system-ui, Segoe UI, Roboto, Arial, sans-serif;
+  color: #111;
+}
+body {
+  margin: 0;
+  padding: 20px;
+  background: #f6f7fb;
+}
+h1 {
+  text-align: center;
+  font-size: 2em;
+  font-weight: 900;
+  margin: 0 0 10px;
+}
+h2 {
+  text-align: center;
+  font-size: 1.1em;
+  font-weight: 600;
+  margin: 0 0 20px;
+  color: #555;
+}
 
+/* --- Tlačítka --- */
 .btn-gradient {
-  display:inline-block; text-decoration:none; padding:10px 22px; border-radius:8px;
-  font-weight:600; font-size:1em; color:#fff; border:none; cursor:pointer;
-  box-shadow:0 2px 8px rgba(0,0,0,0.15);
-  transition:transform 0.15s ease-in-out, opacity 0.2s; margin:4px;
+  display: inline-block;
+  text-decoration: none;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1em;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s ease-in-out, opacity 0.2s;
+  margin: 4px;
 }
-.btn-gradient:hover { transform:scale(1.04); opacity:0.9; }
-.btn-green { background:linear-gradient(135deg,#00b36b,#3cd67a); }
-.btn-gray { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
-.btn-blue { background:linear-gradient(135deg,#0046ff,#357aff); }
+.btn-gradient:hover { transform: scale(1.04); opacity: 0.9; }
+.btn-green { background: linear-gradient(135deg, #00b36b, #3cd67a); }
+.btn-gray { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
+.btn-blue { background: linear-gradient(135deg, #0046ff, #357aff); }
 
-.top-actions { text-align:center; margin-bottom:20px; }
+.top-actions { text-align: center; margin-bottom: 20px; }
+
+/* --- Vyhledávání --- */
 .searchbox {
-  width:100%; max-width:400px; margin:0 auto 20px; display:block;
-  padding:10px; border:1px solid #ccc; border-radius:8px; font-size:1em; background:#fff;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto 20px;
+  display: block;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1em;
+  background: #fff;
 }
 
-table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; }
-th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #ddd; font-size:0.95em; vertical-align:middle; }
-th { background:#eee; font-weight:700; }
-tr:hover { background:#f1f3f5; cursor:pointer; }
-
-.new-blink { animation: blinkYellow 1s infinite alternate; }
-@keyframes blinkYellow { from{background:#fff9c4;} to{background:#fff176;} }
-.orange-blink { animation: blinkOrange 1s infinite alternate; }
-@keyframes blinkOrange { from{background:#ffe0b2;} to{background:#ffb74d;} }
-
-.draft-row { background:linear-gradient(135deg,#eaffea,#d7ffd9); }
-
-.action-btn {
-  background:linear-gradient(135deg,#0046ff,#357aff);
-  color:white; border:none; border-radius:6px; padding:6px 12px;
-  cursor:pointer; font-weight:600; font-size:0.85em; display:flex; align-items:center; gap:6px;
-  justify-content:center;
+/* --- Tabulka --- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
 }
-.action-btn:hover { opacity:0.9; }
+th, td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  font-size: 0.95em;
+}
+th {
+  background: #eee;
+  font-weight: 700;
+}
+tr:hover { background: #f1f3f5; cursor: pointer; }
 
-.icon-phone { color:#00b36b; }
-.icon-waze { color:#357aff; }
+/* --- Barvy stavů --- */
+.new-row {
+  animation: blinkYellow 2s infinite;
+  background: linear-gradient(90deg, #fff6a0, #ffeb3b);
+}
+@keyframes blinkYellow {
+  0%, 100% { background: linear-gradient(90deg, #fff6a0, #ffeb3b); }
+  50% { background: linear-gradient(90deg, #fff176, #ffeb3b); }
+}
 
-a.link-icon { text-decoration:none; color:inherit; font-weight:500; display:flex; align-items:center; gap:5px; }
-a.link-icon:hover { opacity:0.8; }
+.term-row {
+  background: linear-gradient(90deg, #b3e5fc, #81d4fa);
+}
+.noanswer-row {
+  animation: blinkOrange 2s infinite;
+  background: linear-gradient(90deg, #ffc107, #ff9800);
+}
+@keyframes blinkOrange {
+  0%, 100% { background: linear-gradient(90deg, #ffc107, #ff9800); }
+  50% { background: linear-gradient(90deg, #ffe082, #ffb74d); }
+}
+.done-row {
+  background: linear-gradient(90deg, #00b36b, #3cd67a);
+  color: #fff;
+}
 
-@media (max-width:768px){ th:nth-child(n+5), td:nth-child(n+5){display:none;} }
+/* --- Detail modal --- */
+#detailModal {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  z-index: 1000;
+}
+#detailContent {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+#detailButtons { text-align: center; margin-top: 20px; }
+#detailButtons button {
+  margin: 5px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #fff;
+  font-weight: 600;
+  transition: transform 0.15s ease, opacity 0.2s;
+}
+#detailButtons button:hover { transform: scale(1.05); opacity: 0.9; }
+.btn-close { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
+.btn-term { background: linear-gradient(135deg, #0046ff, #357aff); }
+.btn-noanswer { background: linear-gradient(135deg, #ff9800, #ffb74d); }
+.btn-protokol { background: linear-gradient(135deg, #00b36b, #3cd67a); }
+
+.photo-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
+}
+.photo-gallery img {
+  max-width: 100px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.photo-gallery img:hover { transform: scale(1.1); }
+
+#photoView {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.85);
+  justify-content: center;
+  align-items: center;
+  z-index: 1100;
+}
+#photoView img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 10px;
+}
 </style>
 </head>
 <body>
@@ -62,89 +184,188 @@ a.link-icon:hover { opacity:0.8; }
 <h2>Seznam reklamací a servisních požadavků</h2>
 
 <div class="top-actions">
-  <a href="index.html" class="btn-gradient btn-gray"><i class="fa-solid fa-house"></i> Zpět na hlavní stránku</a>
-  <a href="hotove.html" class="btn-gradient btn-green"><i class="fa-solid fa-check"></i> Hotové reklamace</a>
-  <button onclick="loadAll()" class="btn-gradient btn-blue"><i class="fa-solid fa-rotate-right"></i> Načíst znovu</button>
+  <a href="index.html" class="btn-gradient btn-gray">Zpět na hlavní stránku</a>
+  <a href="hotove.html" class="btn-gradient btn-green">Hotové reklamace</a>
+  <button onclick="loadAllData()" class="btn-gradient btn-blue">Načíst znovu</button>
 </div>
 
 <input type="text" id="searchInput" class="searchbox" placeholder="Hledat podle jména, adresy nebo telefonu...">
 
 <table id="dataTable">
-<thead>
-<tr><th>JMÉNO / POZ</th><th>ADRESA</th><th>TELEFON</th><th>STAV</th><th>AKCE</th></tr>
-</thead>
-<tbody id="tableBody"><tr><td colspan="5" style="text-align:center;padding:20px;">Načítání dat...</td></tr></tbody>
+  <thead>
+    <tr><th>ZÁKAZNÍK</th><th>ADRESA</th><th>TELEFON</th><th>STAV</th></tr>
+  </thead>
+  <tbody id="tableBody">
+    <tr><td colspan="4" style="text-align:center;padding:20px;">Načítání dat...</td></tr>
+  </tbody>
 </table>
 
+<!-- Modal s detailem -->
+<div id="detailModal">
+  <div id="detailContent">
+    <h3 id="detailName" style="margin-top:0;text-align:center;"></h3>
+    <div id="detailInfo"></div>
+    <div class="photo-gallery" id="photoGallery"></div>
+    <div id="detailButtons">
+      <button class="btn-term" onclick="markAs('term')">Zapsat termín</button>
+      <button class="btn-noanswer" onclick="markAs('noanswer')">Nezvedá</button>
+      <button class="btn-protokol" onclick="createProtocol()">Vytvořit protokol</button>
+      <button class="btn-close" onclick="closeDetail()">Zavřít</button>
+    </div>
+  </div>
+</div>
+
+<!-- Velké zobrazení fotky -->
+<div id="photoView"><img id="photoLarge" src=""></div>
 <script>
-const GITHUB_USER="radecek222-boop", REPO="reklamace";
-const FILES=["orders.json","aftersales.json","hotove.json"];
-const WORKER_URL="https://wis-drafts-api.72nvwf4pb2.workers.dev/";
+const API_BASE = "https://wis-drafts-api.72nvwf4pb2.workers.dev";
+const SOURCES = ["orders", "aftersales", "drafts"];
 
-async function loadAll(){
-  document.getElementById("tableBody").innerHTML="<tr><td colspan='5' style='text-align:center;padding:20px;'>Načítání...</td></tr>";
-  let all=[];
-  for(const file of FILES){
-    try{
-      const res=await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${file}?${Date.now()}`);
-      const data=await res.json();
-      all=all.concat(data.map(x=>({...x,_source:file})));
-    }catch(e){console.warn("Chyba při načítání",file,e);}
+async function loadAllData() {
+  const tbody = document.getElementById("tableBody");
+  tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px;">Načítání...</td></tr>`;
+
+  try {
+    const results = await Promise.all(SOURCES.map(src => fetch(`${API_BASE}/${src}?${Date.now()}`).then(r => r.json()).catch(()=>[])));
+    const all = [].concat(...results).filter(Boolean);
+
+    renderTable(all);
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:red;">Chyba při načítání: ${e.message}</td></tr>`;
   }
-
-  // Načti rozpracované (drafty)
-  try{
-    const draftRes=await fetch(WORKER_URL);
-    const draftData=await draftRes.json();
-    if(Array.isArray(draftData)){
-      all=all.concat(draftData.map(d=>({...d,_source:"drafts"})));
-    }
-  }catch(e){console.warn("Nelze načíst drafts:",e);}
-
-  renderTable(all);
 }
 
-function renderTable(data){
-  const tbody=document.getElementById("tableBody");tbody.innerHTML="";
-  const query=document.getElementById("searchInput").value.toLowerCase();
-  data.filter(x=>{
-    return !query || (x["Zákazník"]||"").toLowerCase().includes(query)
-    || (x["Adresa"]||"").toLowerCase().includes(query)
-    || (x["Telefon"]||"").toLowerCase().includes(query);
-  }).forEach((item)=>{
-    const tr=document.createElement("tr");
+function renderTable(data) {
+  const tbody = document.getElementById("tableBody");
+  tbody.innerHTML = "";
 
-    // STYL
-    if(item._source==="drafts"){ tr.classList.add("draft-row"); }
-    else if(item["Stav"]?.toLowerCase().includes("nová")){ tr.classList.add("new-blink"); }
-    else if(item["Stav"]==="Nezvedá"){ tr.classList.add("orange-blink"); }
+  const searchValue = document.getElementById("searchInput").value.toLowerCase();
 
-    // HODNOTY
-    const poz=item._source.includes("aftersales")?"POZ":"";
-    const addr=item["Adresa"]?`<a class="link-icon" href="https://waze.com/ul?ll=&q=${encodeURIComponent(item["Adresa"])}" target="_blank"><i class='fa-brands fa-waze icon-waze'></i>${item["Adresa"]}</a>`:"";
-    const tel=item["Telefon"]?`<a class="link-icon" href="tel:${item["Telefon"]}"><i class='fa-solid fa-phone icon-phone'></i>${item["Telefon"]}</a>`:"";
-    const stav=item._source==="drafts"?"Rozpracováno":(item["Stav"]||"Nová reklamace");
-    const btnText=item._source==="drafts"?"Pokračovat":"Otevřít";
+  data
+    .filter(item =>
+      !searchValue ||
+      (item["Zákazník"] || "").toLowerCase().includes(searchValue) ||
+      (item["Adresa"] || "").toLowerCase().includes(searchValue) ||
+      (item["Telefon"] || "").toLowerCase().includes(searchValue)
+    )
+    .forEach(item => {
+      const tr = document.createElement("tr");
 
-    tr.innerHTML=`
-      <td>${item["Zákazník"]||poz||"Neznámý"}</td>
-      <td>${addr}</td>
-      <td>${tel}</td>
-      <td>${stav}</td>
-      <td><button class="action-btn" onclick='openProtocol(${JSON.stringify(item)})'><i class="fa-regular fa-file-lines"></i> ${btnText}</button></td>
-    `;
-    tbody.appendChild(tr);
+      // Rozlišení zdroje
+      const from = item.source || detectSource(item);
+      let stav = item["Stav"] || "Nová reklamace";
+      let cls = "";
+
+      if (stav.toLowerCase().includes("nová")) cls = "new-row";
+      if (stav.toLowerCase().includes("term")) cls = "term-row";
+      if (stav.toLowerCase().includes("nezved")) cls = "noanswer-row";
+      if (stav.toLowerCase().includes("hotov")) cls = "done-row";
+
+      if (from === "aftersales" && !stav) {
+        item["Zákazník"] = "POZ – " + (item["Zákazník"] || "");
+      }
+
+      tr.className = cls;
+      tr.innerHTML = `
+        <td>${item["Zákazník"] || ""}</td>
+        <td><a href="https://waze.com/ul?q=${encodeURIComponent(item["Adresa"] || "")}" target="_blank">${item["Adresa"] || ""}</a></td>
+        <td><a href="tel:${item["Telefon"] || ""}">${item["Telefon"] || ""}</a></td>
+        <td>${stav}</td>
+      `;
+
+      tr.addEventListener("click", () => openDetail(item));
+      tbody.appendChild(tr);
+    });
+
+  if (!tbody.innerHTML.trim()) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px;">Žádné záznamy</td></tr>`;
+  }
+}
+
+function detectSource(item) {
+  if (item["source"]) return item["source"];
+  if (item["Contract"]?.toLowerCase().includes("poz") || item["Typ"]?.toLowerCase().includes("poz")) return "aftersales";
+  if (item["Číslo objednávky"]) return "orders";
+  return "drafts";
+}
+
+document.getElementById("searchInput").addEventListener("input", debounce(loadAllData, 400));
+
+function debounce(fn, delay) {
+  let timer;
+  return function() {
+    clearTimeout(timer);
+    timer = setTimeout(fn, delay);
+  };
+}
+
+window.addEventListener("DOMContentLoaded", loadAllData);
+</script>
+<script>
+let currentItem = null;
+
+function openDetail(item) {
+  currentItem = item;
+  const modal = document.getElementById("detailModal");
+  modal.style.display = "flex";
+
+  document.getElementById("detailName").textContent = item["Zákazník"] || "Neznámý zákazník";
+
+  document.getElementById("detailInfo").innerHTML = `
+    <p><b>Adresa:</b> ${item["Adresa"] || ""}</p>
+    <p><b>Telefon:</b> <a href="tel:${item["Telefon"] || ""}">${item["Telefon"] || ""}</a></p>
+    <p><b>E-mail:</b> ${item["Email"] || ""}</p>
+    <p><b>Popis:</b> ${item["Popis CZ"] || item["Popis"] || ""}</p>
+  `;
+
+  const gallery = document.getElementById("photoGallery");
+  gallery.innerHTML = "";
+
+  ["Foto1", "Foto2", "Foto3", "Foto4"].forEach(k => {
+    if (item[k]) {
+      const img = document.createElement("img");
+      img.src = item[k];
+      img.onclick = () => openPhoto(img.src);
+      gallery.appendChild(img);
+    }
   });
 }
 
-function openProtocol(item){
-  localStorage.setItem("selectedCustomer",JSON.stringify(item));
-  window.location.href="protokol.html";
+function closeDetail() {
+  document.getElementById("detailModal").style.display = "none";
 }
 
-document.getElementById("searchInput").addEventListener("input",loadAll);
-window.addEventListener("pageshow",loadAll);
-loadAll();
+function openPhoto(src) {
+  const v = document.getElementById("photoView");
+  const i = document.getElementById("photoLarge");
+  i.src = src;
+  v.style.display = "flex";
+  v.onclick = () => (v.style.display = "none");
+}
+
+/* --- Označení stavu (jen vizuálně) --- */
+function markAs(type) {
+  const tbody = document.getElementById("tableBody");
+  const rows = [...tbody.querySelectorAll("tr")];
+  const row = rows.find(r => r.cells[0]?.textContent.trim() === currentItem["Zákazník"]);
+
+  if (!row) return;
+
+  if (type === "term") {
+    row.className = "term-row";
+  } else if (type === "noanswer") {
+    row.className = "noanswer-row";
+  }
+
+  closeDetail();
+}
+
+/* --- Předání dat do protokolu --- */
+function createProtocol() {
+  if (!currentItem) return;
+  localStorage.setItem("selectedRecord", JSON.stringify(currentItem));
+  window.location.href = "protokol.html";
+}
 </script>
 </body>
 </html>
