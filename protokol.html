@@ -81,7 +81,27 @@ button {
   padding:10px 20px;
   border:none;
   border-radius:6px;
-  background:linear-gradient(145deg,#666,  <table>
+  background:linear-gradient(145deg,#666,#444);
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+}
+button:hover {
+  background:linear-gradient(145deg,#555,#333);
+}
+@media(max-width:600px){
+  body{padding:10px;}
+  .wrapper{padding:15px;}
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <div>WHITE GLOVE SERVICE</div>
+    <div>Servisní protokol / Service Protocol</div>
+  </div>
+  <table>
     <tr>
       <td><span class="label">Číslo reklamace</span><span class="en-label">Claim number</span></td>
       <td><input id="cisloReklamace" type="text" readonly></td>
@@ -97,7 +117,7 @@ button {
     <tr>
       <td><span class="label">Zákazník</span><span class="en-label">Customer</span></td>
       <td><input id="zakaznik" type="text" readonly></td>
-      <td><span class="label">Typ zakázky</span><span class="en-label">Type of case</span></td>
+      <td><span class="label">Typ zakázky</span><span class="en-label">Type</span></td>
       <td><input id="typ" type="text" readonly></td>
     </tr>
     <tr>
@@ -158,7 +178,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (el && params.has(id)) el.value = decodeURIComponent(params.get(id));
   });
 
-  // Automatické vyplnění dnešního data, pokud není zadáno
+  // Dnešní datum pokud není zadáno
   const dnes = new Date().toISOString().split('T')[0];
   document.getElementById('datum').value = dnes;
 });
@@ -171,6 +191,7 @@ async function exportPDF() {
   exportBtn.style.display = 'none';
   backBtn.style.display = 'none';
 
+  // podpis jako obrázek
   const canvasSig = document.getElementById('signature-pad');
   const sigData = signaturePad.isEmpty() ? null : signaturePad.toDataURL();
 
@@ -186,43 +207,23 @@ async function exportPDF() {
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'pt', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
     const imgWidth = pageWidth - 40;
     const imgHeight = canvas.height * imgWidth / canvas.width;
     pdf.addImage(imgData, 'PNG', 20, 20, imgWidth, imgHeight);
 
+    // název PDF souboru
     const zakaznik = document.getElementById('zakaznik').value.replace(/[^\w\s]/gi, '').replace(/\s+/g, '');
-    const cislo = document.getElementById('cisloReklamace').value || 'bezcisla';
+    const cislo = document.getElementById('cisloReklamace').value || 'bez_cisla';
     const datum = new Date().toISOString().split('T')[0];
     const fileName = `${zakaznik}_${cislo}_${datum}.pdf`;
 
     pdf.save(fileName);
   });
 
-  location.reload(); // obnoví původní stav s tlačítky
+  location.reload(); // obnoví stránku (vrátí tlačítka)
 }
 </script>
 
 </div>
 </body>
 </html>
-#444);
-  color:white;
-  font-weight:600;
-  cursor:pointer;
-}
-button:hover {
-  background:linear-gradient(145deg,#555,#333);
-}
-@media(max-width:600px){
-  body{padding:10px;}
-  .wrapper{padding:15px;}
-}
-</style>
-</head>
-<body>
-<div class="wrapper">
-  <div class="header">
-    <div>WHITE GLOVE SERVICE</div>
-    <div>Servisní protokol / Service Protocol</div>
-  </div>
