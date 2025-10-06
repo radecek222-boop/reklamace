@@ -259,8 +259,14 @@
       <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   </div>
-
   <script>
+    /* ==========================
+       Konstanta: Worker endpointy
+    ===========================*/
+    const WORKER_BASE = "https://dark-darkness-d89a.72nvwf4pb2.workers.dev";
+    const UPLOAD_URL = WORKER_BASE + "/upload";
+    const ORDERS_URL = WORKER_BASE + "/orders";
+
     /* ==========================
        Pomocné validační funkce
     ===========================*/
@@ -282,7 +288,7 @@
     });
 
     /* ==========================
-       Geoapify + fallback Nominatim
+       Geoapify + fallback Nominatim (debounce)
     ===========================*/
     const uliceInput = document.getElementById("ulice");
     const mestoInput = document.getElementById("mesto");
@@ -307,7 +313,7 @@
 
       suggestionContainer.innerHTML = "<div style='padding:8px;color:#888;'>Načítám…</div>";
 
-      // 1) zkus Geoapify
+      // 1) Geoapify
       try {
         const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&lang=cs&limit=5&filter=countrycode:cze,svk,aut&apiKey=${GEOAPIFY_KEY}`;
         const res = await fetch(url);
@@ -323,9 +329,7 @@
           lat: p.lat, lon: p.lon
         })));
         return;
-      } catch (e) {
-        // spadne do fallbacku
-      }
+      } catch (e) { /* fallback níže */ }
 
       // 2) fallback Nominatim (OSM)
       try {
@@ -386,40 +390,49 @@
     ===========================*/
     const fotkyInput = document.getElementById("fotky");
     const preview = document.getElementById("preview");
-    let compressedFiles = [];
+    let preparedFiles = []; // { name, blobOrFile, progress, status }
 
     async function compressImage(file, maxSizeMB = 1, maxDim = 1280) {
-      const img = await createImageBitmap(file);
-      const canvas = document.createElement("canvas");
-      let [w, h] = [img.width, img.height];
-
-      if (w >= h && w > maxDim) {
-        h = Math.round(h * (maxDim / w)); w = maxDim;
-      } else if (h > w && h > maxDim) {
-        w = Math.round(w * (maxDim / h)); h = maxDim;
+      // HEIC a některé formáty nejdou dekódovat -> vrať původní soubor
+      if (!file.type.startsWith("image/") || /heic/i.test(file.type) || /\.heic$/i.test(file.name)) {
+        return file; // pošleme tak jak je
       }
 
-      canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, w, h);
+      try {
+        const img = await createImageBitmap(file);
+        const canvas = document.createElement("canvas");
+        let [w, h] = [img.width, img.height];
 
-      let quality = 0.9;
-      let blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
+        if (w >= h && w > maxDim) {
+          h = Math.round(h * (maxDim / w)); w = maxDim;
+        } else if (h > w && h > maxDim) {
+          w = Math.round(w * (maxDim / h)); h = maxDim;
+        }
 
-      while (blob.size / 1024 / 1024 > maxSizeMB && quality > 0.4) {
-        quality -= 0.1;
-        blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, w, h);
+
+        let quality = 0.9;
+        let blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
+        while (blob && blob.size / 1024 / 1024 > maxSizeMB && quality > 0.4) {
+          quality -= 0.1;
+          blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
+        }
+        // Pokud se blob nepovedl, vrať původní file
+        return blob || file;
+      } catch {
+        return file; // fallback: neposílat kompresi když selže
       }
-      return blob;
     }
 
     fotkyInput.addEventListener("change", async () => {
       preview.innerHTML = "";
-      compressedFiles = [];
+      preparedFiles = [];
 
       const files = Array.from(fotkyInput.files).slice(0, 5);
       for (const file of files) {
-        if (!file.type.startsWith("image/")) continue;
+        if (!file.type) continue;
 
         const item = document.createElement("div");
         item.classList.add("preview-item");
@@ -436,19 +449,21 @@
         item.append(progress, status);
         preview.append(item);
 
-        // ukázat náhled
-        const reader = new FileReader();
-        reader.onload = e => { img.src = e.target.result; item.append(img); };
-        reader.readAsDataURL(file);
+        // náhled
+        try {
+          const reader = new FileReader();
+          reader.onload = e => { img.src = e.target.result; item.append(img); };
+          reader.readAsDataURL(file);
+        } catch {}
 
-        // komprese
-        const blob = await compressImage(file);
-        compressedFiles.push({ name: file.name, blob, progress, status });
+        // komprese / příprava
+        const out = await compressImage(file);
+        preparedFiles.push({ name: file.name, blobOrFile: out, progress, status });
 
-        // vizuální plnění pruhu pro kompresi
+        // vizuální progress komprese
         let w = 0;
         const int = setInterval(() => {
-          w += 10; progress.style.width = w + "%";
+          w += 12; progress.style.width = w + "%";
           if (w >= 100) clearInterval(int);
         }, 40);
 
@@ -497,72 +512,53 @@
       document.getElementById("waitOverlay").classList.remove("active");
       const s = document.getElementById("successCheck");
       s.classList.add("active");
-      setTimeout(() => { window.location.href = "index.html"; }, 2500);
+      setTimeout(() => { window.location.href = "index.html"; }, 2000);
     }
-
     /* ==========================
-       GitHub upload helpery
+       Upload přes Worker + submit
     ===========================*/
-    async function uploadToGitHub(owner, repo, path, blob, message, token) {
-      const base64Data = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result.split(",")[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
 
-      const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
-        method: "PUT",
-        headers: {
-          "Authorization": `token ${token}`,
-          "Accept": "application/vnd.github.v3+json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ message, content: base64Data, branch: "main" })
-      });
-      if (!res.ok) throw new Error(await res.text());
-    }
+    async function uploadViaWorker(fileOrBlob, safeName, onProgress) {
+      const fd = new FormData();
+      // Pozn.: některé prohlížeče ignorují 3. parametr u append, proto přidávám i samostatně "filename"
+      fd.append("file", fileOrBlob, safeName);
+      fd.append("filename", safeName);
 
-    async function submitToGitHub(dataObj, owner, repo, path, message, token) {
-      const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-      const res = await fetch(url, {
-        headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json" }
+      // Simulace progressu (fetch neumí progress nativně)
+      if (onProgress) onProgress(30);
+      const res = await fetch(UPLOAD_URL, {
+        method: "POST",
+        body: fd,
       });
+      if (onProgress) onProgress(90);
 
-      let content = "[]", sha = null;
-      if (res.ok) {
-        const json = await res.json();
-        content = atob(json.content.replace(/\n/g, ""));
-        sha = json.sha;
+      if (!res.ok) {
+        const t = await res.text().catch(() => "");
+        throw new Error("Upload selhal: " + (t || res.status));
       }
-
-      const arr = JSON.parse(content);
-      arr.push(dataObj);
-      const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(arr, null, 2))));
-      const body = { message, content: newContent, branch: "main" };
-      if (sha) body.sha = sha;
-
-      const put = await fetch(url, {
-        method: "PUT",
-        headers: {
-          "Authorization": `token ${token}`,
-          "Accept": "application/vnd.github.v3+json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-      });
-      if (!put.ok) throw new Error(await put.text());
+      const json = await res.json().catch(() => ({}));
+      if (onProgress) onProgress(100);
+      // očekáváme { ok:true, filename:"..." } – když není, použij safeName
+      return json.filename || safeName;
     }
 
-    /* ==========================
-       Odeslání formuláře
-    ===========================*/
+    // Bezpečný název souboru
+    function toSafeName(str) {
+      return String(str).normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "") // odstranění diakritiky
+        .replace(/[^a-zA-Z0-9._-]+/g, "_")
+        .replace(/_+/g, "_")
+        .replace(/^_+|_+$/g, "");
+    }
+
+    // Hlavní submit
     document.getElementById("reklamaceForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const wait = document.getElementById("waitOverlay");
       wait.classList.add("active");
 
       const f = e.target;
+      // základní validace
       const fields = f.querySelectorAll("input[required], textarea[required], select[required]");
       let valid = true;
 
@@ -585,58 +581,67 @@
         return;
       }
 
-      const owner = "radecek222-boop", repo = "reklamace";
-      const token = prompt("Zadej GitHub token:");
-      if (!token) {
-        wait.classList.remove("active");
-        alert("Není zadán GitHub token.");
-        return;
-      }
-
-      const cislo = f.cislo.value.trim().toUpperCase() || "REK";
-      const dataObj = {
-        typ: "reklamace",
-        contract: f.zpracoval.value,
-        cislo,
-        zakaznik: f.zakaznik.value,
-        adresa: `${f.ulice.value}, ${f.mesto.value}, ${f.psc.value}`,
-        telefon: `${predvolba.value} ${f.telefon.value}`,
-        email: f.email.value,
-        produkt: f.produkt.value,
-        datum_prodeje: f.datum_prodeje.value,
-        datum_reklamace: f.datum_reklamace.value,
-        popis: f.popis.value,
-        fotky: [],
-        jinaZadavatel: f.zpracoval.value === "Jiná"
-          ? { jmeno: f.jinaJmeno?.value || "", email: f.jinaEmail?.value || "", telefon: f.jinaTelefon?.value || "" }
-          : null
-      };
+      const cislo = (f.cislo.value.trim().toUpperCase() || "REK");
+      const fotkyNazvy = [];
 
       try {
-        // Upload fotek s vizuálním postupem
-        for (const fch of compressedFiles) {
-          const safe = `${cislo}_${fch.name.replace(/\s+/g, "_")}`;
-          // indikace "upload"
-          fch.status.textContent = "Nahrávám…";
-          fch.progress.style.background = "linear-gradient(90deg, #2196f3, #64b5f6)";
-          fch.progress.style.width = "60%";
+        // 1) Upload fotek na Worker
+        for (const pf of preparedFiles) {
+          const baseName = toSafeName(pf.name);
+          const safe = `${cislo}_${baseName}`;
+          // vizuální indikace
+          pf.status.textContent = "Nahrávám…";
+          pf.progress.style.background = "linear-gradient(90deg, #2196f3, #64b5f6)";
+          pf.progress.style.width = "40%";
 
-          await uploadToGitHub(owner, repo, `foto/${safe}`, fch.blob, `Nová fotka ${cislo}`, token);
+          const resultName = await uploadViaWorker(pf.blobOrFile, safe, (pct) => {
+            pf.progress.style.width = Math.max(40, Math.min(95, pct)) + "%";
+          });
 
-          fch.progress.style.width = "100%";
-          fch.progress.style.background = "linear-gradient(90deg, #4caf50, #8bc34a)";
-          fch.status.textContent = "✅ Hotovo";
-          dataObj.fotky.push(safe);
+          pf.progress.style.width = "100%";
+          pf.progress.style.background = "linear-gradient(90deg, #4caf50, #8bc34a)";
+          pf.status.textContent = "✅ Hotovo";
+          fotkyNazvy.push(resultName);
         }
 
-        // Append do orders.json
-        await submitToGitHub(dataObj, owner, repo, "orders.json", `Nová reklamace ${cislo}`, token);
+        // 2) POST /orders – celý záznam
+        const dataObj = {
+          typ: "reklamace",
+          contract: f.zpracoval.value,
+          cislo,
+          zakaznik: f.zakaznik.value,
+          adresa: `${f.ulice.value}, ${f.mesto.value}, ${f.psc.value}`,
+          telefon: `${predvolba.value} ${f.telefon.value}`,
+          email: f.email.value,
+          produkt: f.produkt.value,
+          datum_prodeje: f.datum_prodeje.value,
+          datum_reklamace: f.datum_reklamace.value,
+          popis: f.popis.value,
+          fotky: fotkyNazvy,
+          jinaZadavatel: f.zpracoval.value === "Jiná"
+            ? { jmeno: f.jinaJmeno?.value || "", email: f.jinaEmail?.value || "", telefon: f.jinaTelefon?.value || "" }
+            : null
+        };
 
+        const res = await fetch(ORDERS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify(dataObj),
+        });
+
+        if (!res.ok) {
+          const t = await res.text().catch(() => "");
+          throw new Error("Chyba při zápisu objednávky: " + (t || res.status));
+        }
+        const out = await res.json().catch(() => ({}));
+        if (!out.ok) throw new Error("Worker vrátil chybu: " + JSON.stringify(out));
+
+        // 3) Hotovo
         showSuccess();
         f.reset();
       } catch (err) {
         wait.classList.remove("active");
-        alert("Chyba: " + err.message);
+        alert("Chyba: " + (err?.message || err));
       }
     });
   </script>
