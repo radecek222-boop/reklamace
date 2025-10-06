@@ -578,3 +578,98 @@ function showPhoto(src) {
   animation: blinkRed 1.5s infinite;
 }
 </style>
+  <style>
+/* 📱 Mobilní zarovnání a vícero řádků */
+@media (max-width: 700px) {
+  td[data-label="Adresa"],
+  td[data-label="Telefon"],
+  td[data-label="Stav"] {
+    text-align: center !important;
+    white-space: normal !important;
+    line-height: 1.3em;
+    word-break: break-word;
+  }
+  td a {
+    display: inline-block;
+    word-break: break-word;
+  }
+}
+</style>
+
+<script>
+// 📱 Úprava zobrazení adresy pro mobilní zařízení
+function simplifyAddress(addr) {
+  if (!addr) return "";
+
+  let upravena = addr;
+
+  // 🏙️ Pokud obsahuje "Hlavní město Praha"
+  if (addr.toLowerCase().includes("hlavní město praha")) {
+    // pokusíme se zjistit číslo městské části (např. "Praha 9")
+    const prahaCislo = addr.match(/Praha\s*\d+/i);
+    upravena = prahaCislo ? prahaCislo[0] : "Praha";
+  } else {
+    // 🧹 odstraníme PSČ (čísla 5–6 míst na konci)
+    upravena = addr.replace(/\d{3}\s?\d{2}$/, "").trim();
+  }
+
+  return upravena;
+}
+
+// 📱 Přepis renderTable pro mobilní verzi s upravenou adresou
+const originalRenderTableForMobile = renderTable;
+renderTable = function(arr) {
+  // použij původní logiku, ale s úpravou adres
+  const isMobile = window.innerWidth < 700;
+  if (!isMobile) {
+    originalRenderTableForMobile(arr);
+    return;
+  }
+
+  if (!arr.length) {
+    tableContainer.innerHTML = "<div class='loading'>Žádné záznamy k zobrazení</div>";
+    return;
+  }
+
+  let html = "<table><tbody>";
+
+  arr.forEach((r, i) => {
+    const id = r.cislo || `radek-${i}`;
+    const stav = stavy[id] || "novy";
+    const stavText = stav.charAt(0).toUpperCase() + stav.slice(1);
+    const wazeLink = r.adresa ? `https://waze.com/ul?q=${encodeURIComponent(r.adresa)}` : "#";
+    const tel = (r.telefon || "").replace(/^\+420\s*/, ""); // odstraní +420
+
+    const adresaZkracena = simplifyAddress(r.adresa);
+
+    html += `
+      <tr data-index="${i}" class="stav-${stav}">
+        <td data-label="Zákazník" style="text-align:center;font-weight:600;">
+          ${r.zakaznik || ""}
+        </td>
+        <td data-label="Adresa" style="text-align:center;">
+          <a href="${wazeLink}" target="_blank">${adresaZkracena}</a>
+        </td>
+        <td data-label="Telefon" style="text-align:center;">
+          <a href="tel:${tel}">${tel}</a>
+        </td>
+        <td data-label="Stav" style="text-align:center;font-weight:600;">
+          ${stavText}
+        </td>
+      </tr>
+    `;
+  });
+
+  html += "</tbody></table>";
+  tableContainer.innerHTML = html;
+
+  // Aktivace kliknutí na detail
+  document.querySelectorAll("tbody tr").forEach(row => {
+    row.addEventListener("click", () => {
+      const index = row.getAttribute("data-index");
+      openModal(index);
+    });
+  });
+};
+</script>
+
