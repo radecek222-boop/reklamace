@@ -647,6 +647,155 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 </script>
+<style>
+/* 📱 Optimalizace pro mobily – zobrazí jen klíčové údaje */
+@media (max-width: 700px) {
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+  thead {
+    display: none;
+  }
+  tr {
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    margin-bottom: 14px;
+    padding: 10px 12px;
+  }
+  td {
+    display: flex;
+    justify-content: space-between;
+    border: none;
+    padding: 5px 0;
+    font-size: 0.85em;
+  }
+  td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #444;
+  }
+  td[data-label="Zákazník"],
+  td[data-label="Adresa"],
+  td[data-label="Telefon"],
+  td[data-label="Stav"] {
+    display: flex;
+  }
+  td[data-label="Adresa"] a,
+  td[data-label="Telefon"] a {
+    color: #0046ff;
+    text-decoration: none;
+  }
+  td[data-label="Adresa"] a:hover,
+  td[data-label="Telefon"] a:hover {
+    text-decoration: underline;
+  }
+}
+</style>
+
+<script>
+// 📱 Upravíme renderTable pro mobilní výpis s Waze, datem a ikonami stavů
+function stavTextSIkonou(stav, datum, dnes = false) {
+  const dtext = datum
+    ? new Date(datum).toLocaleDateString("cs-CZ", { day: "numeric", month: "numeric", year: "numeric" })
+    : null;
+  const fire = dnes ? "🔥 " : "";
+
+  switch (stav) {
+    case "domluveno":
+      return `${fire}🔵 Domluveno${dtext ? " – " + dtext : ""}`;
+    case "hotovo":
+      return `${fire}🟢 Hotovo`;
+    case "zruseno":
+      return `${fire}🔴 Zákazník zrušil`;
+    case "nezveda":
+      return `${fire}🟠 Nezvedá to`;
+    default:
+      return `${fire}⚪ Nový`;
+  }
+}
+
+// 🚨 Kontrola, zda je datum dnešní
+function isToday(dateStr) {
+  if (!dateStr) return false;
+  const today = new Date();
+  const input = new Date(dateStr);
+  return (
+    today.getFullYear() === input.getFullYear() &&
+    today.getMonth() === input.getMonth() &&
+    today.getDate() === input.getDate()
+  );
+}
+
+// 📋 Přepsání renderTable
+const originalRenderTableMobile = renderTable;
+renderTable = function(arr) {
+  tableContainer.innerHTML = "";
+
+  if (!arr.length) {
+    tableContainer.innerHTML = "<div class='loading'>Žádné záznamy k zobrazení</div>";
+    return;
+  }
+
+  let html = `
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Číslo</th>
+        <th>Zákazník</th>
+        <th>Adresa</th>
+        <th>Telefon</th>
+        <th>Zadavatel</th>
+        <th>Typ</th>
+        <th>Stav</th>
+      </tr>
+    </thead>
+    <tbody>
+  `;
+
+  arr.forEach((r, i) => {
+    const id = r.cislo || `radek-${i}`;
+    const stav = stavy[id] || "novy";
+    const trClass = `stav-${stav}`;
+    const dnes = r.datum && isToday(r.datum);
+    const stavText = stavTextSIkonou(stav, r.datum, dnes);
+    const wazeLink = r.adresa ? `https://waze.com/ul?q=${encodeURIComponent(r.adresa)}` : "#";
+
+    html += `
+      <tr class="${trClass}" data-index="${i}" data-id="${id}">
+        <td data-label="#">${i + 1}</td>
+        <td data-label="Číslo">${r.cislo || ""}</td>
+        <td data-label="Zákazník">${r.zakaznik || ""}</td>
+        <td data-label="Adresa"><a href="${wazeLink}" target="_blank">${r.adresa || ""}</a></td>
+        <td data-label="Telefon"><a href="tel:${r.telefon || ""}">${r.telefon || ""}</a></td>
+        <td data-label="Zadavatel">${r.contract || (r.jinaZadavatel?.jmeno || "")}</td>
+        <td data-label="Typ">${r.typ || ""}</td>
+        <td data-label="Stav" style="font-weight:600;">${stavText}</td>
+      </tr>
+    `;
+  });
+
+  html += "</tbody></table>";
+  tableContainer.innerHTML = html;
+
+  // Kliknutí → otevření detailu (modal)
+  document.querySelectorAll("tbody tr").forEach(row => {
+    row.addEventListener("click", () => {
+      const index = row.getAttribute("data-index");
+      openModal(index);
+    });
+  });
+
+  // 🚨 Znovu zvýrazní dnešní termíny
+  document.querySelectorAll("tbody tr").forEach((row, i) => {
+    const item = dataAll[i];
+    if (item && item.datum && isToday(item.datum)) {
+      row.classList.add("stav-dnes");
+    }
+  });
+};
+</script>
 
 </body>
 </html>
