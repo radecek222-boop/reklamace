@@ -1,374 +1,325 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Seznam reklamací – White Glove Service</title>
 <style>
-  body {
-    font-family: "Inter", system-ui, sans-serif;
-    background: #f6f7fb;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-  }
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  background: #f6f7fb;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+}
+.wrapper {
+  background: #fff;
+  padding: 25px;
+  margin: 40px 15px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 1000px;
+  position: relative;
+}
+h1 {
+  text-align: center;
+  font-size: 2.2em;
+  font-weight: 900;
+  color: #111;
+  margin: 0 0 8px;
+}
+h2 {
+  text-align: center;
+  font-size: 1.1em;
+  font-weight: 500;
+  color: #666;
+  margin: 0 0 25px;
+}
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.btn {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: 0.2s;
+}
+.btn:hover { transform: scale(1.05); opacity: 0.9; }
+.btn-back { background: linear-gradient(135deg,#6c757d,#a0a4a7); }
+.btn-refresh { background: linear-gradient(135deg,#0046ff,#357aff); }
+.btn-green { background: linear-gradient(135deg,#28a745,#5bd85b); }
+.btn-gray { background: linear-gradient(135deg,#6c757d,#9ca3af); }
+.btn-blue { background: linear-gradient(135deg,#007bff,#4da3ff); }
+.btn-orange { background: linear-gradient(135deg,#ff9800,#ffb74d); }
+.btn-red { background: linear-gradient(135deg,#dc3545,#f87171); }
 
-  .wrapper {
-    background: #fff;
-    padding: 25px;
-    margin: 40px 15px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    width: 100%;
-    max-width: 900px;
-    position: relative;
-    box-sizing: border-box;
-  }
+#search {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 1em;
+}
 
-  h1 {
-    text-align: center;
-    font-size: 2.2em;
-    font-weight: 900;
-    color: #111;
-    margin: 0 0 8px;
-  }
-  h2 {
-    text-align: center;
-    font-size: 1.1em;
-    font-weight: 500;
-    color: #666;
-    margin: 0 0 25px;
-  }
+/* 📋 Tabulka */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+th { background: #f8f8f8; font-weight: 700; }
+tr:hover { background: #f1f6ff; cursor: pointer; }
 
-  .actions {
-    text-align: center;
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 15px;
-  }
+/* 🩵 Modal */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+.modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 25px;
+  max-width: 800px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
 
-  .btn {
-    display: inline-block;
-    text-decoration: none;
-    padding: 10px 24px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 1em;
-    border: none;
-    cursor: pointer;
-    transition: transform 0.15s ease-in-out, opacity 0.2s;
-    color: white;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-    min-width: 140px;
-  }
+/* 🕓 Rolovací výběr času */
+.custom-time {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+.custom-time select {
+  font-size: 1.3em;
+  font-weight: 600;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: #fff;
+}
 
-  .btn:hover { transform: scale(1.04); opacity: 0.9; }
-  .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
-  .btn-refresh { background: linear-gradient(135deg, #0046ff, #357aff); }
+/* 🔁 Galerie */
+.thumb-img {
+  width: 90px; height: 90px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin: 4px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.thumb-img:hover { transform: scale(1.05); }
+.fullscreen {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+.fullscreen img {
+  max-width: 90%;
+  max-height: 85%;
+  border-radius: 12px;
+}
 
-  #search {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    font-size: 1em;
-    box-sizing: border-box;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-  }
-
-  th, td {
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-    text-align: left;
-    font-size: 0.95em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  th { background: #f8f8f8; font-weight: 700; }
-  tr:hover { background: #f1f6ff; cursor: pointer; }
-
-  .loading { text-align: center; padding: 30px; color: #666; }
-
-  @media (max-width:700px){
-    th, td { font-size: 0.85em; }
-    .btn { min-width: 120px; padding: 8px 18px; font-size: 0.9em; }
-  }
-
-  /* Modal styl */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-  }
-
-  .modal {
-    background: white;
-    border-radius: 12px;
-    padding: 25px;
-    width: 70%;
-    max-width: 800px;
-    max-height: 85vh;
-    overflow-y: auto;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.3);
-    animation: fadeIn 0.3s ease;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-  }
-
-  .modal h3 { margin-top: 0; }
-  .modal p { margin: 5px 0; color: #333; }
-  .modal strong { color: #000; }
-  .btn-row {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 20px;
-  }
-  .btn-action {
-    border: none;
-    border-radius: 8px;
-    padding: 10px 20px;
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.15s;
-  }
-  .btn-action:hover { transform: scale(1.05); }
-  .btn-blue { background: linear-gradient(135deg, #007bff, #399bff); }
-  .btn-green { background: linear-gradient(135deg, #28a745, #5bd85b); }
-  .btn-red { background: linear-gradient(135deg, #dc3545, #f87171); }
-  .btn-orange { background: linear-gradient(135deg, #ff9800, #ffb74d); color:#222; }
-  .btn-gray { background: linear-gradient(135deg, #6c757d, #9ca3af); }
-  .thumb-img {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 8px;
-    margin: 4px;
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
-  .thumb-img:hover { transform: scale(1.05); }
+/* 💡 Blikání dnešních termínů */
+@keyframes blinkRed {
+  0% { background-color: #ffe0e0; }
+  50% { background-color: #ffb3b3; }
+  100% { background-color: #ffe0e0; }
+}
+.blink-today {
+  animation: blinkRed 1.2s infinite;
+}
 </style>
 </head>
 
 <body>
-  <div class="wrapper">
-    <h1>WHITE GLOVE SERVICE</h1>
-    <h2>Seznam reklamací a servisních požadavků</h2>
+<div class="wrapper">
+  <h1>WHITE GLOVE SERVICE</h1>
+  <h2>Seznam reklamací a servisních požadavků</h2>
 
-    <div class="actions">
-      <a href="index.html" class="btn btn-back">Zpět</a>
-      <button id="reloadBtn" class="btn btn-refresh">Načíst znovu</button>
-    </div>
+  <div class="actions">
+    <a href="index.html" class="btn btn-back">Zpět</a>
+    <button id="reloadBtn" class="btn btn-refresh">Načíst znovu</button>
+  </div>
 
-    <input type="text" id="search" placeholder="🔍 Hledat podle jména, čísla nebo zadavatele...">
-    <div id="tableContainer" class="loading">Načítám data...</div>
+  <input type="text" id="search" placeholder="🔍 Hledat zákazníka, adresu nebo číslo...">
+
+  <div id="tableContainer" class="loading">Načítám data...</div>
+</div>
+
 <script>
 const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
-const tableContainer = document.getElementById("tableContainer");
-const searchInput = document.getElementById("search");
-const reloadBtn = document.getElementById("reloadBtn");
 let dataAll = [];
 let stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
 
-/* 🔹 Načtení dat z Workeru */
 async function loadData() {
-  tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
-  try {
-    const res = await fetch(API_URL);
-    if (!res.ok) throw new Error("Chyba při načítání dat");
-    const data = await res.json();
-    dataAll = Array.isArray(data) ? data.reverse() : [];
-    renderTable(dataAll);
-  } catch (err) {
-    tableContainer.innerHTML = `<div class='loading' style='color:red;'>${err.message}</div>`;
-  }
+  const res = await fetch(API_URL);
+  const data = await res.json();
+  dataAll = data.reverse();
+  renderTable(dataAll);
 }
 
-/* 🔹 Zobrazení tabulky */
+/* 🧾 Tabulka se 4 sloupci */
 function renderTable(arr) {
   if (!arr.length) {
     tableContainer.innerHTML = "<div class='loading'>Žádné záznamy</div>";
     return;
   }
-  let html = `<table><thead><tr>
-    <th>#</th><th>Číslo</th><th>Zákazník</th>
-    <th>Adresa</th><th>Telefon</th><th>Zadavatel</th><th>Typ</th></tr></thead><tbody>`;
-  arr.forEach((r, i) => {
+  let html = `
+  <table>
+    <thead><tr><th>#</th><th>Zákazník</th><th>Adresa</th><th>Telefon</th><th>Stav</th></tr></thead>
+    <tbody>`;
+  arr.forEach((r,i)=>{
     const id = r.cislo || `radek-${i}`;
-    const stav = stavy[id] || "novy";
-    html += `<tr data-index="${i}" class="stav-${stav}">
-      <td>${i + 1}</td><td>${r.cislo || ""}</td>
-      <td>${r.zakaznik || ""}</td><td>${r.adresa || ""}</td>
-      <td>${r.telefon || ""}</td><td>${r.contract || ""}</td>
-      <td>${r.typ || ""}</td></tr>`;
+    const stav = stavy[id] || "nový";
+    html += `<tr data-index="${i}" class="${stav==='domluveno' && r.datum===today() ? 'blink-today':''}">
+      <td>${i+1}</td>
+      <td>${r.zakaznik||""}</td>
+      <td>${r.adresa||""}</td>
+      <td><a href="tel:${r.telefon||''}">${r.telefon||""}</a></td>
+      <td>${stav}</td></tr>`;
   });
   html += "</tbody></table>";
   tableContainer.innerHTML = html;
-  document.querySelectorAll("tbody tr").forEach(tr =>
-    tr.addEventListener("click", () => openModal(tr.dataset.index))
-  );
+  document.querySelectorAll("tbody tr").forEach(tr => {
+    tr.addEventListener("click",()=>openDetail(tr.dataset.index));
+  });
 }
 
-/* 🔹 Detailní modal */
-function openModal(index) {
-  const r = dataAll[index];
-  if (!r) return;
-  const overlay = document.createElement("div");
-  overlay.className = "modal-overlay";
-  overlay.style.display = "flex";
+/* 🧭 Dnešní datum */
+function today(){ return new Date().toISOString().split("T")[0]; }
 
-  /* 📸 Galerie fotek */
-  let fotos = "";
-  if (r.foto && r.foto.length) {
-    fotos = `<div id="gallery" style="position:relative;text-align:center;">
-      <img id="galImg" src="${r.foto[0]}" style="max-width:100%;max-height:300px;border-radius:10px;">
-      ${
-        r.foto.length > 1
-          ? `<button id="prev" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:24px;background:none;border:none;cursor:pointer;">❮</button>
-             <button id="next" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:24px;background:none;border:none;cursor:pointer;">❯</button>`
-          : ""
-      }
-    </div>`;
+/* 💬 Detail */
+function openDetail(index){
+  const r=dataAll[index]; if(!r)return;
+  const overlay=document.createElement("div");
+  overlay.className="modal-overlay"; overlay.style.display="flex";
+
+  // 🖼 galerie
+  let photos="";
+  if(r.foto&&r.foto.length){
+    photos=r.foto.map(src=>`<img src="${src}" class="thumb-img" onclick="openFull('${src}')">`).join("");
   }
 
-  overlay.innerHTML = `<div class="modal">
-    <h3>Detail záznamu</h3>
-    <p><strong>Zákazník:</strong> ${r.zakaznik || ""}</p>
-    <p><strong>Adresa:</strong> ${r.adresa || ""}</p>
-    <p><strong>Telefon:</strong> <a href="tel:${r.telefon || ""}">${r.telefon || ""}</a></p>
-    <p><strong>E-mail:</strong> ${r.email || "neuveden"}</p>
-    <p><strong>Zadavatel:</strong> ${r.contract || ""}</p>
-    <p><strong>Typ:</strong> ${r.typ || ""}</p>
-    <p><strong>Popis:</strong> ${r.popis || "—"}</p>
-    <p><strong>Datum vytvoření:</strong> ${r.datum || "—"}</p>
-    ${fotos || ""}
-    <div id="termSection" style="margin-top:15px;text-align:center;">
-      <button id="termBtn" class="btn-action btn-blue">🔵 Domluvit / změnit termín</button>
-      <div id="termInputs" style="display:none;margin-top:10px;">
-        <input type="date" id="datumInput"><br>
-        <input type="time" id="casInput" style="margin-top:8px;"><br><br>
-        <button id="nezvedaBtn" class="btn-action btn-orange">🟠 Nezvedá to</button>
-        <button id="zrusilBtn" class="btn-action btn-red">🔴 Zákazník zrušil</button>
-        <button id="ulozitBtn" class="btn-action btn-green">🟢 Uložit termín</button>
-      </div>
+  overlay.innerHTML=`
+  <div class="modal">
+    <h2 style="text-align:center;margin-top:0;">${r.zakaznik||"Zákazník"}</h2>
+    <p><strong>Adresa:</strong> ${r.adresa||""}</p>
+    <p><strong>Telefon:</strong> <a href="tel:${r.telefon||""}">${r.telefon||""}</a></p>
+    <p><strong>E-mail:</strong> ${r.email||"neuveden"}</p>
+    <p><strong>Zadavatel:</strong> ${r.contract||""}</p>
+    <p><strong>Typ:</strong> ${r.typ||""}</p>
+    <p><strong>Popis:</strong> ${r.popis||"—"}</p>
+    <div style="margin:10px 0;text-align:center;">${photos}</div>
+
+    <div class="actions" style="margin-top:25px;">
+      <button id="termBtn" class="btn btn-blue">🔵 Domluvit termín</button>
+      <button id="protoBtn" class="btn btn-green">🟢 Přejít na protokol</button>
+      <button id="closeBtn" class="btn btn-gray">✖ Zavřít</button>
     </div>
-    <div class="btn-row">
-      <button id="protoBtn" class="btn-action btn-green">🟢 Vytvořit protokol</button>
-      <button id="closeBtn" class="btn-action btn-gray">✖ Zavřít</button>
+
+    <div id="termSection" style="display:none;margin-top:20px;border-top:1px solid #ddd;padding-top:15px;">
+      <p><strong>Zadej termín návštěvy:</strong></p>
+      <input type="date" id="datumTerminu">
+      <div class="custom-time" id="casPicker"></div>
+      <div class="actions" style="margin-top:15px;">
+        <button id="saveBtn" class="btn btn-green">🟢 Uložit termín</button>
+        <button id="noBtn" class="btn btn-orange">🟠 Nezvedá to</button>
+        <button id="cancelBtn" class="btn btn-red">🔴 Zákazník zrušil</button>
+        <button id="backBtn" class="btn btn-gray">↩ Zpět</button>
+      </div>
     </div>
   </div>`;
 
   document.body.appendChild(overlay);
 
-  /* 🎞 galerie – přepínání */
-  if (r.foto && r.foto.length > 1) {
-    let current = 0;
-    const img = overlay.querySelector("#galImg");
-    overlay.querySelector("#prev").onclick = () => {
-      current = (current - 1 + r.foto.length) % r.foto.length;
-      img.src = r.foto[current];
-    };
-    overlay.querySelector("#next").onclick = () => {
-      current = (current + 1) % r.foto.length;
-      img.src = r.foto[current];
-    };
-  }
+  /* Hodiny rolovací */
+  const casPicker=document.getElementById("casPicker");
+  const hours=document.createElement("select");
+  const mins=document.createElement("select");
+  for(let h=0;h<24;h++) hours.innerHTML+=`<option>${String(h).padStart(2,"0")}</option>`;
+  for(let m=0;m<60;m+=5) mins.innerHTML+=`<option>${String(m).padStart(2,"0")}</option>`;
+  casPicker.append(hours,document.createTextNode(":"),mins);
 
-  /* 🔘 Termín sekce */
-  const termBtn = overlay.querySelector("#termBtn");
-  const termInputs = overlay.querySelector("#termInputs");
-  termBtn.onclick = () => {
-    termInputs.style.display = termInputs.style.display === "none" ? "block" : "none";
+  const section=document.getElementById("termSection");
+  document.getElementById("termBtn").onclick=()=>section.style.display="block";
+  document.getElementById("backBtn").onclick=()=>section.style.display="none";
+
+  document.getElementById("saveBtn").onclick=()=>{
+    const d=document.getElementById("datumTerminu").value;
+    const t=`${hours.value}:${mins.value}`;
+    if(!d)return alert("Vyplň datum!");
+    const id=r.cislo||`radek-${index}`;
+    stavy[id]="domluveno"; r.datum=d; r.cas=t;
+    localStorage.setItem("stavyReklamaci",JSON.stringify(stavy));
+    overlay.remove(); renderTable(dataAll);
   };
-
-  overlay.querySelector("#nezvedaBtn").onclick = () => updateStav(index, "nezveda", overlay);
-  overlay.querySelector("#zrusilBtn").onclick = () => updateStav(index, "zruseno", overlay);
-  overlay.querySelector("#ulozitBtn").onclick = () => {
-    const d = overlay.querySelector("#datumInput").value;
-    const t = overlay.querySelector("#casInput").value;
-    if (!d || !t) return alert("Zadej datum i čas!");
-    const id = r.cislo || `radek-${index}`;
-    stavy[id] = "domluveno";
-    r.datum = d;
-    r.cas = t;
-    saveLocal();
-    overlay.remove();
-    renderTable(dataAll);
+  document.getElementById("noBtn").onclick=()=>{updateStav(index,"nezveda");overlay.remove();};
+  document.getElementById("cancelBtn").onclick=()=>{updateStav(index,"zruseno");overlay.remove();};
+  document.getElementById("protoBtn").onclick=()=>{
+    localStorage.setItem("selectedRecord",JSON.stringify(r));
+    window.location.href="protokol.html";
   };
-
-  overlay.querySelector("#protoBtn").onclick = () => {
-    localStorage.setItem("selectedRecord", JSON.stringify(r));
-    window.location.href = "protokol.html";
-  };
-
-  overlay.querySelector("#closeBtn").onclick = () => overlay.remove();
+  document.getElementById("closeBtn").onclick=()=>overlay.remove();
 }
 
-/* 🔹 Pomocné funkce */
-function updateStav(index, s, overlay) {
-  const id = dataAll[index].cislo || `radek-${index}`;
-  stavy[id] = s;
-  saveLocal();
-  overlay.remove();
-  renderTable(dataAll);
-}
-function saveLocal() {
-  localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+/* 📸 Zvětšení fotky */
+function openFull(src){
+  const full=document.createElement("div");
+  full.className="fullscreen";
+  full.innerHTML=`<img src="${src}" alt=""><button style="position:absolute;top:20px;right:20px;font-size:2em;color:white;background:none;border:none;">✖</button>`;
+  document.body.appendChild(full);
+  full.querySelector("button").onclick=()=>full.remove();
 }
 
-/* 🔹 Filtrování */
-searchInput.addEventListener("input", () => {
-  const q = searchInput.value.toLowerCase();
-  if (!q) return renderTable(dataAll);
-  const f = dataAll.filter(r =>
-    [r.zakaznik, r.cislo, r.contract, r.adresa, r.typ]
-      .join(" ").toLowerCase().includes(q)
-  );
+/* 🔁 Stav */
+function updateStav(i,s){
+  const id=dataAll[i].cislo||`radek-${i}`;
+  stavy[id]=s; localStorage.setItem("stavyReklamaci",JSON.stringify(stavy)); renderTable(dataAll);
+}
+
+/* 🔍 Vyhledávání */
+search.addEventListener("input",()=>{
+  const q=search.value.toLowerCase();
+  const f=dataAll.filter(r=>(r.zakaznik||"").toLowerCase().includes(q)||(r.adresa||"").toLowerCase().includes(q)||(r.telefon||"").includes(q));
   renderTable(f);
 });
 
-/* 🔹 Načti znovu */
-reloadBtn.onclick = loadData;
-window.addEventListener("DOMContentLoaded", loadData);
-
-/* 🔥 Blikání dnešních termínů */
-function highlightToday() {
-  const today = new Date().toISOString().split("T")[0];
-  document.querySelectorAll("tbody tr").forEach(tr => {
-    const r = dataAll[tr.dataset.index];
-    if (r && r.datum === today && stavy[r.cislo || `radek-${tr.dataset.index}`] === "domluveno")
-      tr.classList.add("blink-today");
-  });
-}
-const blink = document.createElement("style");
-blink.textContent = `
-@keyframes blinkRed{0%{background:#ffe0e0;}50%{background:#ffb3b3;}100%{background:#ffe0e0;}}
-.blink-today{animation:blinkRed 1.5s infinite;}
-`;
-document.head.appendChild(blink);
+reloadBtn.onclick=loadData;
+window.addEventListener("DOMContentLoaded",loadData);
 </script>
 </body>
 </html>
