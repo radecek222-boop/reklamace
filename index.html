@@ -201,8 +201,9 @@
     </div>
   </div>
 
-  <!-- 🔹 Nenápadný odkaz na monitor -->
-  <a href="monitor.html" target="_blank" style="
+  <!-- 🩺 Monitor – zobrazuje se pouze po přihlášení -->
+  <a href="monitor.html" target="_blank" id="monitorLink" style="
+    display:none;
     position: fixed;
     bottom: 10px;
     right: 15px;
@@ -222,6 +223,7 @@ const INACTIVITY_MINUTES = 5;
 let inactivityTimer, countdownTimer, remainingTime = EXPIRATION_MINUTES * 60;
 const listButton = document.getElementById("adminListButton");
 const adminButton = document.getElementById("adminButton");
+const monitorLink = document.getElementById("monitorLink");
 
 function showCheckmark() {
   const overlay = document.createElement("div");
@@ -246,11 +248,13 @@ function showCheckmark() {
 
 function showAdminList() {
   listButton.style.display = "inline-block";
+  monitorLink.style.display = "block";
   startCountdown();
 }
 
 function hideAdminList() {
   listButton.style.display = "none";
+  monitorLink.style.display = "none";
   stopCountdown();
   adminButton.textContent = "ADMIN";
   adminButton.classList.remove("blink");
