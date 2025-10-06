@@ -20,6 +20,9 @@ h2 { text-align:center; font-size:1.1em; font-weight:600; margin:0 0 20px; color
 .btn-green { background:linear-gradient(135deg,#00b36b,#3cd67a); }
 .btn-gray { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
 .btn-blue { background:linear-gradient(135deg,#0046ff,#357aff); }
+.btn-orange { background:linear-gradient(135deg,#ff9933,#ffcc66); }
+.btn-yellow { background:linear-gradient(135deg,#ffcc00,#ffe680); }
+.btn-lightblue { background:linear-gradient(135deg,#66b3ff,#99ccff); }
 
 .top-actions { text-align:center; margin-bottom:20px; }
 .searchbox {
@@ -44,9 +47,23 @@ tr:hover { background:#f1f3f5; cursor:pointer; }
   background:#6c757d; color:white; font-size:0.8em; padding:2px 6px; border-radius:6px; margin-right:6px;
 }
 
-@media (max-width:768px){ th:nth-child(n+5), td:nth-child(n+5){display:none;} }
+#detailModal, #photoView, #actionModal, #calendarModal {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center;
+  padding:20px; z-index:1000;
+}
+.modal-box {
+  background:white; border-radius:10px; padding:20px; max-width:600px; width:100%;
+  max-height:85vh; overflow-y:auto; box-shadow:0 4px 15px rgba(0,0,0,0.2);
+}
+.photo-gallery { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:10px; }
+.photo-gallery img { max-width:100px; border-radius:6px; cursor:pointer; transition:transform 0.2s ease; }
+.photo-gallery img:hover { transform:scale(1.1); }
+#photoView img { max-width:90%; max-height:90%; border-radius:10px; }
 
-#detailModal { display:none; }
+@media(max-width:768px){
+  .modal-box{max-width:90%;height:90vh;}
+}
 </style>
 </head>
 <body>
@@ -68,9 +85,46 @@ tr:hover { background:#f1f3f5; cursor:pointer; }
 <tbody id="tableBody"><tr><td colspan="4" style="text-align:center;padding:20px;">Načítání dat...</td></tr></tbody>
 </table>
 
+<!-- detail -->
+<div id="detailModal"><div class="modal-box">
+  <h3 id="dName"></h3>
+  <p id="dInfo"></p>
+  <div id="photoGallery" class="photo-gallery"></div>
+  <div style="text-align:center;margin-top:20px;">
+    <button class="btn-gradient btn-gray" onclick="closeDetail()">Zavřít</button>
+  </div>
+</div></div>
+
+<!-- fotky -->
+<div id="photoView" onclick="this.style.display='none'">
+  <img id="photoLarge" src="">
+</div>
+
+<!-- akce po telefonu -->
+<div id="actionModal"><div class="modal-box" style="text-align:center;">
+  <h3>Akce</h3>
+  <div style="margin-top:10px;">
+    <button class="btn-gradient btn-lightblue" onclick="openCalendar()">Zapsat termín</button>
+    <button class="btn-gradient btn-orange" onclick="setStatus('Nezvedá')">Nezvedá</button>
+    <button class="btn-gradient btn-green" onclick="setStatus('Hotovo')">Vytvořit protokol</button>
+    <button class="btn-gradient btn-gray" onclick="closeActions()">Zavřít</button>
+  </div>
+</div></div>
+
+<!-- kalendář -->
+<div id="calendarModal"><div class="modal-box" style="text-align:center;">
+  <h3>Zapsat termín</h3>
+  <input type="datetime-local" id="termDate" style="padding:8px;border-radius:8px;border:1px solid #ccc;font-size:1em;">
+  <div style="margin-top:15px;">
+    <button class="btn-gradient btn-lightblue" onclick="confirmTerm()">Potvrdit</button>
+    <button class="btn-gradient btn-gray" onclick="closeCalendar()">Zavřít</button>
+  </div>
+</div></div>
+
 <script>
 const GITHUB_USER="radecek222-boop",REPO="reklamace";
 const FILES=["orders.json","aftersales.json","hotove.json"];
+let currentItem=null,allData=[];
 
 async function fetchJson(file){
   try{
@@ -78,73 +132,87 @@ async function fetchJson(file){
     if(!res.ok) throw new Error(res.statusText);
     const data=await res.json();
     return data.map(x=>({...x,source:file.replace('.json','')}));
-  }catch(e){
-    console.error("Chyba při načítání",file,e);
-    return [];
-  }
+  }catch{ return []; }
 }
 
 async function loadAll(){
   const tbody=document.getElementById("tableBody");
   tbody.innerHTML=`<tr><td colspan="4" style="text-align:center;padding:20px;">Načítání...</td></tr>`;
-  try{
-    const results=await Promise.all(FILES.map(f=>fetchJson(f)));
-    let all=results.flat();
-
-    // seřadit podle času (pokud mají datum)
-    all.sort((a,b)=>(new Date(b["Datum vytvoření"]||0))-(new Date(a["Datum vytvoření"]||0)));
-
-    renderTable(all);
-  }catch(e){
-    tbody.innerHTML=`<tr><td colspan="4" style="color:red;text-align:center;">Chyba: ${e.message}</td></tr>`;
-  }
+  const results=await Promise.all(FILES.map(f=>fetchJson(f)));
+  allData=results.flat();
+  renderTable(allData);
 }
 
 function renderTable(data){
-  const tbody=document.getElementById("tableBody");
-  tbody.innerHTML="";
-
+  const tbody=document.getElementById("tableBody");tbody.innerHTML="";
   const search=document.getElementById("searchInput").value.toLowerCase();
-
-  const filtered=data.filter(d=>{
-    return (
-      (d["Zákazník"]||"").toLowerCase().includes(search) ||
-      (d["Adresa"]||"").toLowerCase().includes(search) ||
-      (d["Telefon"]||"").toLowerCase().includes(search)
-    );
-  });
-
-  if(filtered.length===0){
-    tbody.innerHTML=`<tr><td colspan="4" style="text-align:center;padding:20px;">Žádné výsledky</td></tr>`;
-    return;
-  }
+  const filtered=data.filter(d=>
+    (d["Zákazník"]||"").toLowerCase().includes(search) ||
+    (d["Adresa"]||"").toLowerCase().includes(search) ||
+    (d["Telefon"]||"").toLowerCase().includes(search)
+  );
+  if(filtered.length===0){tbody.innerHTML=`<tr><td colspan="4" style="text-align:center;padding:20px;">Žádné výsledky</td></tr>`;return;}
 
   filtered.forEach(item=>{
     const tr=document.createElement("tr");
     const stav=(item["Stav"]||"").toLowerCase();
-
     if(stav.includes("nezvedá")) tr.classList.add("row-nezveda");
     else if(stav.includes("termín")) tr.classList.add("row-termin");
     else if(stav.includes("hotovo")) tr.classList.add("row-hotovo");
     else tr.classList.add("row-new");
 
-    let nameCell=item["Zákazník"]||"";
-    if(item.source==="aftersales") nameCell=`<span class="badge-poz">POZ</span>${nameCell}`;
-
-    const wazeLink=item["Adresa"]?`<a href="https://waze.com/ul?q=${encodeURIComponent(item["Adresa"])}" target="_blank">${item["Adresa"]}</a>`:"";
-    const phoneLink=item["Telefon"]?`<a href="tel:${item["Telefon"].replace(/\s+/g,'')}" style="text-decoration:none;color:#0046ff;">📞 ${item["Telefon"]}</a>`:"";
-
-    tr.innerHTML=`
-      <td>${nameCell}</td>
-      <td>${wazeLink}</td>
-      <td>${phoneLink}</td>
-      <td>${item["Stav"]||"Nová"}</td>
-    `;
+    let nameCell=item["Zákazník"]||""; if(item.source==="aftersales") nameCell=`<span class="badge-poz">POZ</span>${nameCell}`;
+    const waze=item["Adresa"]?`<a href="https://waze.com/ul?q=${encodeURIComponent(item["Adresa"])}" target="_blank">${item["Adresa"]}</a>`:"";
+    const phone=item["Telefon"]?`<a href="tel:${item["Telefon"].replace(/\s+/g,'')}" onclick="event.preventDefault();openActions('${item["Číslo reklamace"]||item["Číslo objednávky"]}')">📞 ${item["Telefon"]}</a>`:"";
+    tr.innerHTML=`<td>${nameCell}</td><td>${waze}</td><td>${phone}</td><td>${item["Stav"]||"Nová"}</td>`;
+    tr.addEventListener("click",()=>openDetail(item));
     tbody.appendChild(tr);
   });
 }
 
-document.getElementById("searchInput").addEventListener("input",()=>loadAll());
+function openDetail(item){
+  currentItem=item;
+  document.getElementById("detailModal").style.display="flex";
+  document.getElementById("dName").textContent=item["Zákazník"]||"Neznámý zákazník";
+  document.getElementById("dInfo").innerHTML=`
+    <p><b>Adresa:</b> ${item["Adresa"]||""}</p>
+    <p><b>Telefon:</b> ${item["Telefon"]||""}</p>
+    <p><b>E-mail:</b> ${item["Email"]||""}</p>
+    <p><b>Popis:</b> ${item["Popis CZ"]||""}</p>
+  `;
+  const gal=document.getElementById("photoGallery");gal.innerHTML="";
+  ["Foto1","Foto2","Foto3","Foto4"].forEach(k=>{
+    if(item[k]){const img=document.createElement("img");img.src=item[k];img.onclick=()=>openPhoto(img.src);gal.appendChild(img);}
+  });
+}
+function closeDetail(){document.getElementById("detailModal").style.display="none";}
+function openPhoto(src){document.getElementById("photoLarge").src=src;document.getElementById("photoView").style.display="flex";}
+
+// ---- Telefon akce ----
+function openActions(id){currentItem=allData.find(x=>x["Číslo reklamace"]===id||x["Číslo objednávky"]===id);document.getElementById("actionModal").style.display="flex";}
+function closeActions(){document.getElementById("actionModal").style.display="none";}
+
+// ---- Kalendář ----
+function openCalendar(){document.getElementById("calendarModal").style.display="flex";}
+function closeCalendar(){document.getElementById("calendarModal").style.display="none";}
+function confirmTerm(){
+  const dt=document.getElementById("termDate").value;
+  if(!dt)return;
+  setStatus("Termín: "+dt);
+  closeCalendar();
+}
+
+// ---- Nastavení stavu (lokálně prozatím) ----
+function setStatus(status){
+  if(!currentItem)return;
+  currentItem["Stav"]=status;
+  renderTable(allData);
+  closeActions();
+  closeCalendar();
+}
+
+// ---- Vyhledávání ----
+document.getElementById("searchInput").addEventListener("input",()=>renderTable(allData));
 window.addEventListener("pageshow",loadAll);
 loadAll();
 </script>
