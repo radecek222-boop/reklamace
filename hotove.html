@@ -35,6 +35,7 @@
     color: #111;
     margin: 0 0 8px;
   }
+
   h2 {
     text-align: center;
     font-size: 1.1em;
@@ -66,20 +67,9 @@
     box-shadow: 0 3px 8px rgba(0,0,0,0.15);
     min-width: 140px;
   }
-
   .btn:hover { transform: scale(1.04); opacity: 0.9; }
   .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
-  .btn-refresh { background: linear-gradient(135deg, #009944, #00b85c); }
-
-  #search {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    font-size: 1em;
-    box-sizing: border-box;
-  }
+  .btn-refresh { background: linear-gradient(135deg, #28a745, #5bd85b); }
 
   table {
     width: 100%;
@@ -100,8 +90,7 @@
   }
 
   tr:hover {
-    background: #e9f9ef;
-    cursor: pointer;
+    background: #f1f6ff;
   }
 
   .loading {
@@ -127,140 +116,66 @@
       <button id="reloadBtn" class="btn btn-refresh">Načíst znovu</button>
     </div>
 
-    <input type="text" id="search" placeholder="🔍 Hledat podle jména, čísla nebo zadavatele...">
-
     <div id="tableContainer" class="loading">Načítám data...</div>
+
+    <script>
+      function loadDone() {
+        const stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
+        const dataAll = JSON.parse(localStorage.getItem("dataAll") || "[]");
+
+        // Pokud se ukládá do seznamu – doplníme i do localStorage
+        if (!dataAll.length) {
+          document.getElementById("tableContainer").innerHTML = "<div class='loading'>Žádné uložené záznamy</div>";
+          return;
+        }
+
+        const hotove = dataAll.filter(r => {
+          const id = r.cislo || r.zakaznik;
+          return stavy[id] === "hotovo";
+        });
+
+        if (!hotove.length) {
+          document.getElementById("tableContainer").innerHTML = "<div class='loading'>Žádné hotové reklamace</div>";
+          return;
+        }
+
+        let html = `
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Číslo</th>
+                <th>Zákazník</th>
+                <th>Adresa</th>
+                <th>Telefon</th>
+                <th>Zadavatel</th>
+                <th>Typ</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        hotove.forEach((r, i) => {
+          html += `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${r.cislo || ""}</td>
+              <td>${r.zakaznik || ""}</td>
+              <td>${r.adresa || ""}</td>
+              <td><a href="tel:${r.telefon || ""}">${r.telefon || ""}</a></td>
+              <td>${r.contract || (r.jinaZadavatel?.jmeno || "")}</td>
+              <td>${r.typ || ""}</td>
+            </tr>
+          `;
+        });
+
+        html += "</tbody></table>";
+        document.getElementById("tableContainer").innerHTML = html;
+      }
+
+      document.getElementById("reloadBtn").addEventListener("click", loadDone);
+      window.addEventListener("DOMContentLoaded", loadDone);
+    </script>
   </div>
-
-  <!-- Overlay při dlouhém načítání -->
-  <div id="overlay" style="
-      display:none;
-      position:fixed;
-      inset:0;
-      background:rgba(255,255,255,0.85);
-      backdrop-filter:blur(3px);
-      justify-content:center;
-      align-items:center;
-      font-weight:600;
-      color:#333;
-      z-index:9999;">
-    <div>
-      <div style="
-          border:4px solid #ccc;
-          border-top:4px solid #009944;
-          border-radius:50%;
-          width:40px;
-          height:40px;
-          margin:auto;
-          animation:spin 1s linear infinite;"></div>
-      <p>Načítám data…</p>
-    </div>
-  </div>
-
-  <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
-
-  <script>
-  const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/hotove";
-  const tableContainer = document.getElementById("tableContainer");
-  const searchInput = document.getElementById("search");
-  const reloadBtn = document.getElementById("reloadBtn");
-  const overlay = document.getElementById("overlay");
-  let dataAll = [];
-
-  async function loadData() {
-    overlay.style.display = "flex";
-    tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
-    try {
-      const res = await fetch(API_URL, { cache: "no-store" });
-      if (!res.ok) throw new Error("Chyba při načítání dat");
-      const data = await res.json();
-      if (!Array.isArray(data)) throw new Error("Neplatný formát dat");
-
-      dataAll = data.map(item => {
-        const decode = str => {
-          try { return decodeURIComponent(escape(str)); } catch { return str; }
-        };
-        return {
-          ...item,
-          zakaznik: decode(item.zakaznik || ""),
-          adresa: decode(item.adresa || ""),
-          contract: decode(item.contract || ""),
-          cislo: decode(item.cislo || ""),
-          typ: decode(item.typ || ""),
-        };
-      }).reverse();
-
-      renderTable(dataAll);
-    } catch (err) {
-      console.error(err);
-      tableContainer.innerHTML = `<div class='loading' style='color:red;'>Chyba načítání: ${err.message}</div>`;
-    } finally {
-      overlay.style.display = "none";
-    }
-  }
-
-  function renderTable(arr) {
-    if (!arr.length) {
-      tableContainer.innerHTML = "<div class='loading'>Žádné hotové záznamy</div>";
-      return;
-    }
-    let html = `
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Číslo</th>
-            <th>Zákazník</th>
-            <th>Adresa</th>
-            <th>Telefon</th>
-            <th>Zadavatel</th>
-            <th>Typ</th>
-          </tr>
-        </thead>
-        <tbody>
-    `;
-    arr.forEach((r, i) => {
-      html += `
-        <tr data-index="${i}">
-          <td>${i + 1}</td>
-          <td>${r.cislo}</td>
-          <td>${r.zakaznik}</td>
-          <td>${r.adresa}</td>
-          <td>${r.telefon || ""}</td>
-          <td>${r.contract || (r.jinaZadavatel?.jmeno || "")}</td>
-          <td>${r.typ || ""}</td>
-        </tr>`;
-    });
-    html += "</tbody></table>";
-    tableContainer.innerHTML = html;
-
-    document.querySelectorAll("tbody tr").forEach(row => {
-      row.addEventListener("click", () => {
-        const index = row.getAttribute("data-index");
-        const item = dataAll[index];
-        if (!item) return;
-        localStorage.setItem("selectedRecord", JSON.stringify(item));
-        window.location.href = "protokol.html";
-      });
-    });
-  }
-
-  searchInput.addEventListener("input", () => {
-    const q = searchInput.value.trim().toLowerCase();
-    if (!q) return renderTable(dataAll);
-    const filtered = dataAll.filter(r =>
-      (r.zakaznik || "").toLowerCase().includes(q) ||
-      (r.cislo || "").toLowerCase().includes(q) ||
-      (r.contract || "").toLowerCase().includes(q) ||
-      (r.adresa || "").toLowerCase().includes(q) ||
-      (r.typ || "").toLowerCase().includes(q)
-    );
-    renderTable(filtered);
-  });
-
-  reloadBtn.addEventListener("click", loadData);
-  window.addEventListener("DOMContentLoaded", loadData);
-  setInterval(loadData, 30000);
-  </script>
 </body>
 </html>
