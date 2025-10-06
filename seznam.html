@@ -605,8 +605,39 @@ function openDetail(index) {
 
 
 
+<style>
+/* 💜 Modal plánovače dne */
+#planModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+#planModal.active {
+  display: flex;
+  opacity: 1;
+}
+#planModal .detail-modal {
+  width: 90%;
+  max-width: 800px;
+  background: white;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+#planModal .btn-action {
+  margin-top: 10px;
+}
+</style>
+
 <script>
-// 🩸 Automatické blikání dnešních termínů
+// 🩸 Blikání dnešních termínů
 function highlightTodayRows() {
   const today = new Date().toISOString().split("T")[0];
   document.querySelectorAll("tbody tr").forEach(row => {
@@ -632,19 +663,7 @@ window.addEventListener("storage", e => {
 });
 setInterval(highlightTodayRows, 30000);
 
-/* 🕓 Kontrola překryvu termínu */
-function checkOverlap(datum, cas) {
-  const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
-  const nove = new Date(`${datum}T${cas}`);
-  return ulozene.filter(z => {
-    if (z.datum !== datum) return false;
-    const exist = new Date(`${z.datum}T${z.cas}`);
-    const diff = Math.abs((exist - nove) / 36e5);
-    return diff < 2; // překryv 2 h
-  });
-}
-
-/* 💾 Uložení všech termínů */
+// 💾 Uložení termínů
 function ulozTermin(zaznam) {
   let data = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
   const id = zaznam.cislo || zaznam.id;
@@ -653,17 +672,38 @@ function ulozTermin(zaznam) {
   localStorage.setItem("stavyReklamaciData", JSON.stringify(data));
 }
 
-/* 🗺️ Mapový plánovač dne */
+// 🕓 Kontrola překryvu (2h)
+function checkOverlap(datum, cas) {
+  const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
+  const nove = new Date(`${datum}T${cas}`);
+  return ulozene.filter(z => {
+    if (z.datum !== datum) return false;
+    const exist = new Date(`${z.datum}T${z.cas}`);
+    const diff = Math.abs((exist - nove) / 36e5);
+    return diff < 2;
+  });
+}
+
+/* 💜 Fialové tlačítko – plán dne */
+const planBtn = document.createElement("button");
+planBtn.className = "btn";
+planBtn.style.background = "linear-gradient(135deg,#8000ff,#b366ff)";
+planBtn.textContent = "Plán dne 🗺️";
+document.querySelector(".actions").appendChild(planBtn);
+
+/* 📅 Modal HTML */
 const mapModalHTML = `
-<div id="planModal" class="detail-overlay">
+<div id="planModal">
   <div class="detail-modal">
     <h2>🗺️ Plán dne</h2>
     <div style="text-align:center;">
       <input type="date" id="planDate" class="term-date"/>
-      <div id="calendarHint" style="font-size:0.9em;color:#555;margin-top:6px;">🔵 Označené dny mají naplánované reklamace</div>
+      <p style="font-size:0.9em;color:#555;margin-top:5px;">🔵 Označené dny mají naplánované reklamace</p>
     </div>
     <div id="map" style="height:450px;border-radius:12px;margin:15px 0;"></div>
-    <button class="btn-action btn-gray" id="closeMap">Zavřít</button>
+    <div style="text-align:center;">
+      <button id="closeMap" class="btn-action btn-gray">Zavřít</button>
+    </div>
   </div>
 </div>`;
 document.body.insertAdjacentHTML("beforeend", mapModalHTML);
@@ -713,8 +753,7 @@ async function showPlanMap(date) {
     if (c) coords.push(c);
   }
 
-  // Start & konec (sídlo firmy)
-  const start = [50.049, 14.523]; // White Glove Service – Běchovice
+  const start = [50.049, 14.523]; // sídlo WGS Běchovice
   coords = [start, ...coords, start];
 
   markersLayer.clearLayers();
@@ -737,27 +776,17 @@ async function showPlanMap(date) {
   }
 }
 
-/* 💜 Fialové tlačítko v horním panelu */
-const planBtn = document.createElement("button");
-planBtn.className = "btn";
-planBtn.style.background = "linear-gradient(135deg,#8000ff,#b366ff)";
-planBtn.textContent = "Plán dne 🗺️";
-document.querySelector(".actions").appendChild(planBtn);
-
-// 🗓️ Označení naplánovaných dní
+/* 🗓️ Označení dnů */
 function markCalendarDays(input) {
   const terminy = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
   const days = terminy.map(t => t.datum);
   input.addEventListener("focus", () => {
     setTimeout(() => {
-      const picker = document.querySelector('input[type="date"]');
-      if (!picker) return;
       const style = document.createElement("style");
       style.textContent = days.map(d => `
-        input[type="date"]::-webkit-datetime-edit-year-field,
         input[type="date"][value="${d}"] {
-          background: rgba(128,0,255,0.1);
-          border-radius: 4px;
+          background-color: rgba(128,0,255,0.15);
+          border-radius: 6px;
         }
       `).join("");
       document.head.appendChild(style);
@@ -765,6 +794,7 @@ function markCalendarDays(input) {
   });
 }
 
+/* 🟪 Otevření kalendáře */
 planBtn.onclick = () => {
   const modal = document.getElementById("planModal");
   modal.classList.add("active");
@@ -775,9 +805,9 @@ planBtn.onclick = () => {
     showPlanMap(input.value);
   };
 };
-document.getElementById("closeMap").onclick = () =>
+
+/* ❌ Zavření */
+document.getElementById("closeMap").onclick = () => {
   document.getElementById("planModal").classList.remove("active");
+};
 </script>
-
-
-    
