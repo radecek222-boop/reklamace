@@ -4,18 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Seznam reklamací – White Glove Service</title>
+
 <style>
   body {
     font-family: "Inter", system-ui, sans-serif;
     background: #f6f7fb;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
+    margin: 0; padding: 0;
+    display: flex; justify-content: center; align-items: flex-start;
     min-height: 100vh;
   }
-
   .wrapper {
     background: #fff;
     padding: 25px;
@@ -27,21 +24,8 @@
     position: relative;
     box-sizing: border-box;
   }
-
-  h1 {
-    text-align: center;
-    font-size: 2.2em;
-    font-weight: 900;
-    color: #111;
-    margin: 0 0 8px;
-  }
-  h2 {
-    text-align: center;
-    font-size: 1.1em;
-    font-weight: 500;
-    color: #666;
-    margin: 0 0 25px;
-  }
+  h1 { text-align:center; font-size:2.2em; font-weight:900; color:#111; margin:0 0 8px; }
+  h2 { text-align:center; font-size:1.1em; font-weight:500; color:#666; margin:0 0 25px; }
 
   .actions {
     text-align: center;
@@ -51,7 +35,6 @@
     flex-wrap: wrap;
     gap: 15px;
   }
-
   .btn {
     display: inline-block;
     text-decoration: none;
@@ -91,7 +74,7 @@
     text-align: left;
     font-size: 0.95em;
   }
-  th { background: #f8f8f8; font-weight: 700; }
+  th { background: #f8f8f8; font-weight:700; }
   tr:hover { background: #f1f6ff; cursor: pointer; }
 
   /* 🟢 STAVY REKLAMACÍ */
@@ -99,70 +82,69 @@
   .stav-domluveno { background: #e7f0ff !important; }
   .stav-zruseno { background: #ffeaea !important; }
   .stav-hotovo { background: #eaffea !important; }
+  .stav-nezveda { background: #fff4e1 !important; }
 
-  @keyframes blikani {
-    from { background-color: #fff3c4; }
-    to { background-color: #fffbe6; }
-  }
+  @keyframes blikani { from {background:#fff3c4;} to {background:#fffbe6;} }
 
-  /* 📱 Mobilní režim */
-  @media (max-width:700px){
-    table, thead, tbody, th, td, tr { display: block; }
-    th { display: none; }
-    tr { margin-bottom: 15px; border-radius: 8px; padding: 10px; background: #fafafa; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-    td { border: none; padding: 4px 0; }
-    td::before {
-      content: attr(data-label);
-      font-weight: 600;
-      color: #555;
-      display: block;
-    }
-  }
-
-  /* 🔍 Detaily */
-  .detail {
+  /* 💬 MODAL DETAIL */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
     display: none;
-    background: #f9f9f9;
-    padding: 20px;
-    border-radius: 10px;
-    margin-top: 15px;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
   }
-  .detail.active { display: block; }
-
-  .detail img {
-    width: 100px; height: 100px;
-    object-fit: cover;
-    margin: 5px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: transform .2s;
+  .modal {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    padding: 25px;
+    width: 66%;
+    max-width: 800px;
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: popin .25s ease;
   }
-  .detail img:hover { transform: scale(1.05); }
-
-  .status-btns {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 15px;
+  @keyframes popin {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
   }
-
-  .status-btn {
+  .modal h3 { font-size:1.3em; margin-top:0; }
+  .modal input[type="date"], .modal input[type="time"] {
+    padding: 8px; margin: 6px 0;
+    border: 1px solid #ccc; border-radius: 6px;
+    width: calc(50% - 5px);
+  }
+  .modal .btn-row {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;
+  }
+  .btn-action {
     flex: 1;
-    min-width: 120px;
-    padding: 8px 12px;
+    text-align: center;
+    padding: 10px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-weight: 600;
     color: white;
     cursor: pointer;
+    transition: transform .15s ease-in-out;
   }
-  .status-btn.novy { background:#ffc107; color:#333; }
-  .status-btn.domluveno { background:#007bff; }
-  .status-btn.zruseno { background:#dc3545; }
-  .status-btn.hotovo { background:#28a745; }
+  .btn-action:hover { transform: scale(1.05); }
+
+  .btn-blue { background: linear-gradient(135deg, #007bff, #399bff); }
+  .btn-green { background: linear-gradient(135deg, #28a745, #5bd85b); }
+  .btn-gray  { background: linear-gradient(135deg, #6c757d, #9ca3af); }
+  .btn-orange { background: linear-gradient(135deg, #ff9800, #ffb74d); color:#222; }
+  .btn-red { background: linear-gradient(135deg, #dc3545, #f87171); }
+
+  @media (max-width:700px){
+    .modal { width:94%; padding:20px; }
+    .modal .btn-row { flex-direction: column; }
+    .modal .btn-action { width: 100%; }
+  }
 </style>
 </head>
-
 <body>
   <div class="wrapper">
     <h1>WHITE GLOVE SERVICE</h1>
@@ -175,25 +157,48 @@
 
     <input type="text" id="search" placeholder="🔍 Hledat podle jména, čísla nebo zadavatele...">
     <div id="tableContainer" class="loading">Načítám data...</div>
+  </div>
+
+  <!-- 💬 MODAL DETAIL -->
+  <div id="modalOverlay" class="modal-overlay">
+    <div class="modal" id="detailModal">
+      <h3 id="modalTitle">Detail reklamace</h3>
+      <div id="modalContent"></div>
+      <div class="btn-row" id="mainBtns">
+        <button class="btn-action btn-blue" id="termBtn">Domluvit termín</button>
+        <button class="btn-action btn-green" id="protoBtn">Vytvořit protokol</button>
+        <button class="btn-action btn-gray" id="closeBtn">Zavřít</button>
+      </div>
+      <div id="termSection" style="display:none; margin-top:15px;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <input type="date" id="datumTerminu">
+          <input type="time" id="casTerminu">
+        </div>
+        <div class="btn-row" style="margin-top:10px;">
+          <button class="btn-action btn-orange" id="noAnswerBtn">Nezvedá to</button>
+          <button class="btn-action btn-red" id="cancelBtn">Zákazník zrušil</button>
+          <button class="btn-action btn-green" id="saveTermBtn">Uložit termín</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <script>
 const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
 const tableContainer = document.getElementById("tableContainer");
 const searchInput = document.getElementById("search");
 const reloadBtn = document.getElementById("reloadBtn");
-
 let dataAll = [];
 let stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
 
 /* ============ Načtení dat z Workeru ============ */
 async function loadData() {
   tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
-
   try {
     const res = await fetch(API_URL);
     if (!res.ok) throw new Error("Chyba při načítání dat");
     const data = await res.json();
     if (!Array.isArray(data)) throw new Error("Neplatný formát dat");
-
     dataAll = data.reverse();
     renderTable(dataAll);
   } catch (err) {
@@ -202,10 +207,10 @@ async function loadData() {
   }
 }
 
-/* ============ Zobrazení tabulky ============ */
+/* ============ Tabulka ============ */
 function renderTable(arr) {
   if (!arr.length) {
-    tableContainer.innerHTML = "<div class='loading'>Žádné záznamy k zobrazení</div>";
+    tableContainer.innerHTML = "<div class='loading'>Žádné záznamy</div>";
     return;
   }
 
@@ -213,109 +218,106 @@ function renderTable(arr) {
   <table>
     <thead>
       <tr>
-        <th>#</th>
-        <th>Číslo</th>
-        <th>Zákazník</th>
-        <th>Adresa</th>
-        <th>Telefon</th>
-        <th>Zadavatel</th>
-        <th>Typ</th>
-        <th>Stav</th>
+        <th>#</th><th>Číslo</th><th>Zákazník</th><th>Adresa</th>
+        <th>Telefon</th><th>Zadavatel</th><th>Typ</th><th>Stav</th>
       </tr>
     </thead>
-    <tbody>
-  `;
+    <tbody>`;
 
   arr.forEach((r, i) => {
     const id = r.cislo || `radek-${i}`;
     const stav = stavy[id] || "novy";
     const trClass = `stav-${stav}`;
-
     html += `
-      <tr class="${trClass}" data-index="${i}" data-id="${id}">
-        <td data-label="#">${i + 1}</td>
-        <td data-label="Číslo">${r.cislo || ""}</td>
-        <td data-label="Zákazník">${r.zakaznik || ""}</td>
-        <td data-label="Adresa">${r.adresa || ""}</td>
-        <td data-label="Telefon"><a href="tel:${r.telefon || ""}">${r.telefon || ""}</a></td>
-        <td data-label="Zadavatel">${r.contract || (r.jinaZadavatel?.jmeno || "")}</td>
-        <td data-label="Typ">${r.typ || ""}</td>
-        <td data-label="Stav" style="font-weight:600;text-transform:capitalize;">${stav}</td>
-      </tr>
-      <tr class="detail" id="detail-${i}">
-        <td colspan="8">
-          <div><strong>Popis:</strong> ${r.popis || "neuvedeno"}</div>
-          <div><strong>E-mail:</strong> ${r.email || ""}</div>
-          <div><strong>Datum:</strong> ${r.datum || ""}</div>
-          <div class="status-btns">
-            <button class="status-btn novy" data-stav="novy">Nový</button>
-            <button class="status-btn domluveno" data-stav="domluveno">Domluveno</button>
-            <button class="status-btn zruseno" data-stav="zruseno">Zrušeno</button>
-            <button class="status-btn hotovo" data-stav="hotovo">Hotovo</button>
-          </div>
-          <div style="margin-top:12px;">
-            <strong>Fotky:</strong><br>
-            ${(r.foto || [])
-              .map(f => `<img src="${f}" alt="foto" onclick="showImage('${f}')">`)
-              .join("") || "–"}
-          </div>
-          <div style="margin-top:15px;">
-            <button onclick="openProtokol(${i})" class="btn btn-refresh">Otevřít protokol</button>
-          </div>
-        </td>
-      </tr>
-    `;
+      <tr class="${trClass}" onclick="openModal(${i})">
+        <td>${i + 1}</td>
+        <td>${r.cislo || ""}</td>
+        <td>${r.zakaznik || ""}</td>
+        <td>${r.adresa || ""}</td>
+        <td><a href="tel:${r.telefon || ""}">${r.telefon || ""}</a></td>
+        <td>${r.contract || ""}</td>
+        <td>${r.typ || ""}</td>
+        <td style="font-weight:600;text-transform:capitalize;">${stav}</td>
+      </tr>`;
   });
 
   html += "</tbody></table>";
   tableContainer.innerHTML = html;
-
-  // Kliknutí na řádek → otevře / zavře detail
-  document.querySelectorAll("tbody tr[data-index]").forEach(row => {
-    row.addEventListener("click", () => {
-      const index = row.getAttribute("data-index");
-      const detail = document.getElementById(`detail-${index}`);
-      detail.classList.toggle("active");
-    });
-  });
-
-  // Změna stavu
-  document.querySelectorAll(".status-btn").forEach(btn => {
-    btn.addEventListener("click", e => {
-      e.stopPropagation();
-      const newStav = btn.dataset.stav;
-      const tr = btn.closest("tr.detail").previousElementSibling;
-      const id = tr.dataset.id;
-
-      stavy[id] = newStav;
-      localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
-      renderTable(dataAll);
-    });
-  });
 }
+/* ============ MODAL LOGIKA ============ */
+const modalOverlay = document.getElementById("modalOverlay");
+const modalContent = document.getElementById("modalContent");
+const termSection = document.getElementById("termSection");
 
-/* ============ Náhled obrázku ============ */
-function showImage(url) {
-  const overlay = document.createElement("div");
-  overlay.style = `
-    position:fixed;inset:0;background:rgba(0,0,0,0.8);
-    display:flex;justify-content:center;align-items:center;z-index:9999;
+let selectedItemIndex = null;
+
+// 🟢 Otevření modalu
+function openModal(index) {
+  selectedItemIndex = index;
+  const item = dataAll[index];
+  if (!item) return;
+  modalContent.innerHTML = `
+    <div><strong>Zákazník:</strong> ${item.zakaznik || ""}</div>
+    <div><strong>Adresa:</strong> ${item.adresa || ""}</div>
+    <div><strong>Telefon:</strong> <a href="tel:${item.telefon || ""}">${item.telefon || ""}</a></div>
+    <div><strong>Popis:</strong> ${item.popis || "neuvedeno"}</div>
   `;
-  overlay.innerHTML = `<img src="${url}" style="max-width:90%;max-height:90%;border-radius:10px;">
-                       <span style="position:absolute;top:20px;right:30px;font-size:30px;color:white;cursor:pointer;">×</span>`;
-  overlay.querySelector("span").onclick = () => overlay.remove();
-  document.body.appendChild(overlay);
+  termSection.style.display = "none";
+  modalOverlay.style.display = "flex";
 }
 
-/* ============ Otevření protokolu ============ */
-function openProtokol(i) {
-  const item = dataAll[i];
+// 🔘 Zavření modalu
+document.getElementById("closeBtn").onclick = () => {
+  modalOverlay.style.display = "none";
+};
+
+// 🔵 Domluvit termín → rozbalí sekci
+document.getElementById("termBtn").onclick = () => {
+  termSection.style.display = termSection.style.display === "none" ? "block" : "none";
+};
+
+// 🟠 Nezvedá to
+document.getElementById("noAnswerBtn").onclick = () => {
+  const id = dataAll[selectedItemIndex].cislo || `radek-${selectedItemIndex}`;
+  stavy[id] = "nezveda";
+  localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+  modalOverlay.style.display = "none";
+  renderTable(dataAll);
+};
+
+// 🔴 Zákazník zrušil
+document.getElementById("cancelBtn").onclick = () => {
+  const id = dataAll[selectedItemIndex].cislo || `radek-${selectedItemIndex}`;
+  stavy[id] = "zruseno";
+  localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+  modalOverlay.style.display = "none";
+  renderTable(dataAll);
+};
+
+// 🟢 Uložit termín
+document.getElementById("saveTermBtn").onclick = () => {
+  const datum = document.getElementById("datumTerminu").value;
+  const cas = document.getElementById("casTerminu").value;
+  if (!datum || !cas) {
+    alert("Vyplňte datum i čas termínu");
+    return;
+  }
+  const id = dataAll[selectedItemIndex].cislo || `radek-${selectedItemIndex}`;
+  stavy[id] = "domluveno";
+  localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+  modalOverlay.style.display = "none";
+  renderTable(dataAll);
+};
+
+// 🟢 Vytvořit protokol
+document.getElementById("protoBtn").onclick = () => {
+  const item = dataAll[selectedItemIndex];
   if (!item) return;
   localStorage.setItem("selectedRecord", JSON.stringify(item));
   window.location.href = "protokol.html";
-}
+};
 
-/* ============ Filtrování ============ */
+// 🔁 Filtrování
 searchInput.addEventListener("input", () => {
   const q = searchInput.value.trim().toLowerCase();
   if (!q) return renderTable(dataAll);
@@ -329,118 +331,106 @@ searchInput.addEventListener("input", () => {
   renderTable(filtered);
 });
 
-/* ============ Znovu načtení ============ */
+// 🔁 Znovu načtení
 reloadBtn.addEventListener("click", loadData);
 
-/* ============ Start ============ */
+// 🚀 Start
 window.addEventListener("DOMContentLoaded", loadData);
 </script>
-  <!-- 🔄 Overlay při dlouhém načítání -->
-  <div id="overlay" style="
-      display:none;
-      position:fixed;
-      inset:0;
-      background:rgba(255,255,255,0.85);
-      backdrop-filter:blur(3px);
-      justify-content:center;
-      align-items:center;
-      font-weight:600;
-      color:#333;
-      z-index:9999;">
-    <div>
-      <div style="
-          border:4px solid #ccc;
-          border-top:4px solid #0046ff;
-          border-radius:50%;
-          width:40px;
-          height:40px;
-          margin:auto;
-          animation:spin 1s linear infinite;"></div>
-      <p>Načítám data…</p>
-    </div>
+
+<!-- 🌀 Overlay při dlouhém načítání -->
+<div id="overlay" style="
+    display:none; position:fixed; inset:0;
+    background:rgba(255,255,255,0.85);
+    backdrop-filter:blur(3px);
+    justify-content:center; align-items:center;
+    font-weight:600; color:#333; z-index:9999;">
+  <div>
+    <div style="
+        border:4px solid #ccc;
+        border-top:4px solid #0046ff;
+        border-radius:50%;
+        width:40px;
+        height:40px;
+        margin:auto;
+        animation:spin 1s linear infinite;"></div>
+    <p>Načítám data…</p>
   </div>
+</div>
 
-  <style>
-    @keyframes spin { 
-      0% { transform: rotate(0deg); } 
-      100% { transform: rotate(360deg); } 
-    }
-  </style>
+<style>
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
 
-  <script>
-    // 🔁 zobrazení / skrytí overlay při dlouhém načítání
-    const overlay = document.getElementById("overlay");
-    const originalLoadData = loadData;
-
-    loadData = async function() {
-      overlay.style.display = "flex";
-      try {
-        await originalLoadData();
-      } finally {
-        overlay.style.display = "none";
-      }
-    };
-  </script>
-      <!-- 🔄 Overlay při dlouhém načítání -->
-  <div id="overlay" style="
-      display:none;
-      position:fixed;
-      inset:0;
-      background:rgba(255,255,255,0.85);
-      backdrop-filter:blur(3px);
-      justify-content:center;
-      align-items:center;
-      font-weight:600;
-      color:#333;
-      z-index:9999;">
-    <div>
-      <div style="
-          border:4px solid #ccc;
-          border-top:4px solid #0046ff;
-          border-radius:50%;
-          width:40px;
-          height:40px;
-          margin:auto;
-          animation:spin 1s linear infinite;"></div>
-      <p>Načítám data…</p>
-    </div>
-  </div>
-
-  <style>
-    @keyframes spin { 
-      0% { transform: rotate(0deg); } 
-      100% { transform: rotate(360deg); } 
-    }
-  </style>
-
-  <script>
-    // 🔁 Overlay při dlouhém načítání
-    const overlay = document.getElementById("overlay");
-    const originalLoadData = loadData;
-
-    loadData = async function() {
-      overlay.style.display = "flex";
-      try {
-        await originalLoadData();
-      } finally {
-        overlay.style.display = "none";
-      }
-    };
-
-    // 🟩 Tlačítko "Hotové reklamace"
-    const actionsDiv = document.querySelector(".actions");
-    if (actionsDiv && !document.getElementById("doneBtn")) {
-      const doneBtn = document.createElement("a");
-      doneBtn.id = "doneBtn";
-      doneBtn.textContent = "Hotové reklamace";
-      doneBtn.href = "hotove.html";
-      doneBtn.className = "btn btn-refresh";
-      doneBtn.style.background = "linear-gradient(135deg, #28a745, #5bd85b)";
-      actionsDiv.appendChild(doneBtn);
-    }
-  </script>
-</body>
-</html>
+<script>
+const overlay = document.getElementById("overlay");
+const originalLoadData = loadData;
+loadData = async function() {
+  overlay.style.display = "flex";
+  try {
+    await originalLoadData();
+  } finally {
+    overlay.style.display = "none";
+  }
+};
+</script>
 
 </body>
 </html>
+<style>
+/* ✨ Jemná animace pozadí a modalu */
+.modal-overlay {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.modal-overlay.active {
+  display: flex;
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal {
+  transform: translateY(-10px) scale(0.97);
+  opacity: 0;
+  transition: all 0.25s ease;
+}
+.modal.show {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+</style>
+
+<script>
+function openModal(index) {
+  selectedItemIndex = index;
+  const item = dataAll[index];
+  if (!item) return;
+
+  modalContent.innerHTML = `
+    <div><strong>Zákazník:</strong> ${item.zakaznik || ""}</div>
+    <div><strong>Adresa:</strong> ${item.adresa || ""}</div>
+    <div><strong>Telefon:</strong> <a href="tel:${item.telefon || ""}">${item.telefon || ""}</a></div>
+    <div><strong>Popis:</strong> ${item.popis || "neuvedeno"}</div>
+  `;
+  termSection.style.display = "none";
+  modalOverlay.style.display = "flex";
+
+  // ✨ přidání animace
+  requestAnimationFrame(() => {
+    modalOverlay.classList.add("active");
+    document.getElementById("detailModal").classList.add("show");
+  });
+}
+
+// 🔘 Zavření modalu s fade-out efektem
+document.getElementById("closeBtn").onclick = () => {
+  const modal = document.getElementById("detailModal");
+  modal.classList.remove("show");
+  modalOverlay.classList.remove("active");
+  setTimeout(() => { modalOverlay.style.display = "none"; }, 250);
+};
+</script>
