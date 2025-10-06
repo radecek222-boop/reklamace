@@ -154,7 +154,6 @@
     <form id="reklamaceForm" novalidate>
       <label>Číslo reklamace / objednávky:</label>
       <input type="text" name="cislo" required />
-
       <label>Zákazník:</label>
       <input type="text" name="zakaznik" required />
 
@@ -170,7 +169,7 @@
       <input type="text" id="mesto" name="mesto" required />
 
       <label>PSČ:</label>
-      <input type="text" id="psc" name="psc" required pattern="\\d{3}\\s?\\d{2}" />
+      <input type="text" id="psc" name="psc" required pattern="\d{3}\s?\d{2}" />
 
       <label>Telefon:</label>
       <div style="display:flex; gap:8px;">
@@ -361,7 +360,7 @@ fotkyInput.addEventListener("change",async()=>{
   }
 });
 
-// --- Odeslání přes Worker ---
+// --- Odeslání přes nový Worker ---
 document.getElementById("reklamaceForm").addEventListener("submit",async e=>{
   e.preventDefault();
   const wait=document.getElementById("waitOverlay");
@@ -375,13 +374,10 @@ document.getElementById("reklamaceForm").addEventListener("submit",async e=>{
   if(!adresaPlatna){alert("Vyber prosím adresu z našeptávače.");uliceInput.classList.add("invalid");valid=false;}
   if(!valid){wait.classList.remove("active");alert("Zkontroluj červeně označená pole.");return;}
 
-  // 🔒 Bezpečné číslo reklamace
-  const safeCislo=f.cislo.value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,"_");
-
   const dataObj={
     typ:"reklamace",
     contract:f.zpracoval.value,
-    cislo:safeCislo,
+    cislo:f.cislo.value.trim().toUpperCase(),
     zakaznik:f.zakaznik.value,
     adresa:`${f.ulice.value}, ${f.mesto.value}, ${f.psc.value}`,
     telefon:`${predvolba.value} ${f.telefon.value}`,
@@ -399,24 +395,22 @@ document.getElementById("reklamaceForm").addEventListener("submit",async e=>{
       fch.progress.style.background="linear-gradient(90deg,#2196f3,#64b5f6)";
       const formData=new FormData();
       formData.append("file",fch.blob,fch.file.name);
-      const up=await fetch("https://dark-darkness-d89a.72nvwf4pb2.workers.dev/upload",{method:"POST",body:formData});
+      const up=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload",{method:"POST",body:formData});
       if(!up.ok)throw new Error("Upload selhal");
-      const r=await up.json();dataObj.fotky.push(r.filename);
+      const r=await up.json();dataObj.fotky.push(r.name||fch.file.name);
       fch.progress.style.background="linear-gradient(90deg,#4caf50,#8bc34a)";
       fch.status.textContent="✅ Hotovo";
     }
-    const resp=await fetch("https://dark-darkness-d89a.72nvwf4pb2.workers.dev/orders",{
+    await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders",{
       method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify(dataObj)
     });
-    if(!resp.ok){const t=await resp.text();throw new Error(t);}
     document.getElementById("waitOverlay").classList.remove("active");
     document.getElementById("successCheck").classList.add("active");
     setTimeout(()=>window.location.href="index.html",2500);
   }catch(err){
     wait.classList.remove("active");
     alert("Chyba při odesílání: "+err.message);
-    console.error(err);
   }
 });
 </script>
