@@ -1,229 +1,626 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Protokol - White Glove Service</title>
-<style>
-body {
-  font-family: "Inter", system-ui, sans-serif;
-  background:#f6f7fb;
-  margin:0;
-  padding:20px;
-  font-size:12px;
-  display:flex;
-  justify-content:center;
-}
-.wrapper {
-  width:100%;
-  max-width:900px;
-  background:white;
-  padding:20px;
-  box-shadow:0 0 10px rgba(0,0,0,0.1);
-  border-radius:10px;
-}
-.header {
-  text-align:center;
-  margin-bottom:20px;
-}
-.header div:first-child {
-  font-size:28px;
-  font-weight:900;
-}
-.header div:last-child {
-  font-size:12px;
-  margin-top:4px;
-  font-weight:normal;
-}
-table {
-  width:100%;
-  border-collapse:collapse;
-  margin:10px 0;
-}
-td {
-  padding:6px;
-  vertical-align:top;
-}
-.label {
-  font-weight:600;
-  display:block;
-}
-.en-label {
-  display:block;
-  font-size:11px;
-  font-weight:400;
-  color:#666;
-}
-input, textarea {
-  width:100%;
-  border:1px solid #ddd;
-  border-radius:4px;
-  padding:6px;
-  font-family:inherit;
-  font-size:12px;
-  box-sizing:border-box;
-}
-textarea { resize:vertical; min-height:60px; }
-.signature-pad {
-  border:1px solid #ccc;
-  border-radius:6px;
-  width:100%;
-  height:150px;
-}
-.buttons {
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-  gap:10px;
-  margin-top:20px;
-}
-button {
-  padding:10px 20px;
-  border:none;
-  border-radius:6px;
-  background:linear-gradient(145deg,#666,#444);
-  color:white;
-  font-weight:600;
-  cursor:pointer;
-}
-button:hover {
-  background:linear-gradient(145deg,#555,#333);
-}
-@media(max-width:600px){
-  body{padding:10px;}
-  .wrapper{padding:15px;}
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nová reklamace – White Glove Service</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <style>
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      background: #f6f7fb;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+
+    .wrapper {
+      background: #fff;
+      padding: 30px;
+      margin: 40px 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 700px;
+      position: relative;
+      box-sizing: border-box;
+    }
+
+    h1, h2 {
+      text-align: center;
+      margin: 0 0 20px;
+    }
+
+    h1 {
+      font-size: 2.6em;
+      font-weight: 900;
+      color: #111;
+    }
+
+    h2 {
+      font-size: 1.2em;
+      font-weight: 500;
+      color: #666;
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-top: 15px;
+      margin-bottom: 5px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+      transition: border 0.2s;
+    }
+
+    textarea {
+      height: 100px;
+      resize: vertical;
+    }
+
+    input:invalid, textarea:invalid, select:invalid {
+      border: 2px solid;
+      border-image: linear-gradient(45deg, #ff4d4d, #ff7b7b) 1;
+    }
+
+    small {
+      font-size: 0.8em;
+      color: #666;
+    }
+
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1em;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s ease-in-out, opacity 0.2s;
+      color: white;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+      min-width: 140px;
+    }
+
+    .btn:hover {
+      transform: scale(1.04);
+      opacity: 0.9;
+    }
+
+    .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
+    .btn-send { background: linear-gradient(135deg, #0046ff, #357aff); }
+
+    .actions {
+      text-align: center;
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .hidden { display: none; }
+
+    .preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .preview-item {
+      width: 80px;
+      height: 80px;
+      position: relative;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    .preview-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .progress-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #4caf50, #8bc34a);
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .invalid {
+      border: 2px solid;
+      border-image: linear-gradient(45deg, #ff4d4d, #ff7b7b) 1;
+    }
+
+    .address-wrapper {
+      position: relative;
+    }
+
+    .suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      max-height: 180px;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+
+    .suggestions div {
+      padding: 8px;
+      cursor: pointer;
+    }
+
+    .suggestions div:hover {
+      background: #f0f0f0;
+    }
+
+    #mapPreview {
+      width: 100%;
+      height: 230px;
+      margin-top: 10px;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: height 0.3s ease;
+    }
+
+    @media (max-width: 600px) {
+      #mapPreview {
+        height: 160px;
+      }
+      .wrapper {
+        padding: 20px;
+        margin: 20px 10px;
+      }
+      h1 {
+        font-size: 2em;
+      }
+    }
+  </style>
 </head>
+
 <body>
-<div class="wrapper">
-  <div class="header">
-    <div>WHITE GLOVE SERVICE</div>
-    <div>Servisní protokol / Service Protocol</div>
+  <div class="wrapper">
+    <h1>WHITE GLOVE SERVICE</h1>
+    <h2>Nová reklamace</h2>
+
+    <form id="reklamaceForm" novalidate>
+      <label>Číslo reklamace / objednávky:</label>
+      <input type="text" name="cislo" required>
+
+      <label>Zákazník:</label>
+      <input type="text" name="zakaznik" required>
+
+      <label>Ulice a číslo popisné:</label>
+      <div class="address-wrapper">
+        <input type="text" id="ulice" name="ulice" required placeholder="např. Vinohradská 120">
+        <div id="suggestions" class="suggestions"></div>
+      </div>
+
+      <div id="mapPreview"></div>
+
+      <label>Město:</label>
+      <input type="text" id="mesto" name="mesto" required>
+
+      <label>PSČ:</label>
+      <input type="text" id="psc" name="psc" required pattern="\\d{3}\\s?\\d{2}">
+
+      <label>Telefon:</label>
+      <div style="display:flex; gap:8px;">
+        <select id="predvolba" style="max-width:130px;">
+          <option value="+420">🇨🇿 +420</option>
+          <option value="+421">🇸🇰 +421</option>
+          <option value="+43">🇦🇹 +43</option>
+        </select>
+        <input type="tel" id="telefon" name="telefon" required placeholder="např. 777123456">
+      </div>
+
+      <label>E-mail:</label>
+      <input type="email" id="email" name="email" required placeholder="např. info@firma.cz">
+
+      <label>Model / Název produktu:</label>
+      <input type="text" name="produkt" required>
+
+      <label>Datum prodeje:</label>
+      <input type="date" name="datum_prodeje" required>
+
+      <label>Datum reklamace:</label>
+      <input type="date" name="datum_reklamace" required>
+
+      <label>Popis závady:</label>
+      <textarea name="popis" required></textarea>
+
+      <label>Přiložit fotografie (max. 5):</label>
+      <small>Podporované formáty: JPG, PNG, HEIC (max. 5 MB / soubor)</small>
+      <input type="file" id="fotky" accept="image/jpeg,image/png,image/heic" multiple>
+      <div id="preview" class="preview"></div>
+
+      <label>Objednávku zpracoval:</label>
+      <select id="zpracoval" name="zpracoval" required>
+        <option value="">Vyber...</option>
+        <option value="Natuzzi Editions - Strejcek">Natuzzi Editions - Strejcek</option>
+        <option value="Natuzzi Editions - Vimrova">Natuzzi Editions - Vimrova</option>
+        <option value="Natuzzi Italia - Bratislava">Natuzzi Italia - Bratislava</option>
+        <option value="Natuzzi Italia - Jama">Natuzzi Italia - Jama</option>
+        <option value="Natuzzi Italia - River">Natuzzi Italia - River</option>
+        <option value="Natuzzi Italia - SOHO">Natuzzi Italia - SOHO</option>
+        <option value="Softaly - SOHO">Softaly - SOHO</option>
+        <option value="Phase - Klucarova">Phase - Klucarova</option>
+        <option value="Phase - Jancova">Phase - Jancova</option>
+        <option value="Jiná">Jiná</option>
+      </select>
+
+      <div id="jinaSekce" class="hidden">
+        <label>Zadej nový zápis zadavatele:</label>
+        <input type="text" id="jinaJmeno" name="jinaJmeno">
+        <label>E-mail zadavatele:</label>
+        <input type="email" id="jinaEmail" name="jinaEmail">
+        <label>Telefon zadavatele:</label>
+        <input type="tel" id="jinaTelefon" name="jinaTelefon">
+      </div>
+
+      <div class="actions">
+        <a href="index.html" class="btn btn-back">Zpět</a>
+        <button type="submit" class="btn btn-send">Odeslat</button>
+      </div>
+    </form>
   </div>
-  <table>
-    <tr>
-      <td><span class="label">Číslo reklamace</span><span class="en-label">Claim number</span></td>
-      <td><input id="cisloReklamace" type="text" readonly></td>
-      <td><span class="label">Datum</span><span class="en-label">Date</span></td>
-      <td><input id="datum" type="date"></td>
-    </tr>
-    <tr>
-      <td><span class="label">Zadavatel</span><span class="en-label">Assigned by</span></td>
-      <td><input id="zadavatel" type="text" readonly></td>
-      <td><span class="label">Technik</span><span class="en-label">Technician</span></td>
-      <td><input id="technik" type="text"></td>
-    </tr>
-    <tr>
-      <td><span class="label">Zákazník</span><span class="en-label">Customer</span></td>
-      <td><input id="zakaznik" type="text" readonly></td>
-      <td><span class="label">Typ zakázky</span><span class="en-label">Type</span></td>
-      <td><input id="typ" type="text" readonly></td>
-    </tr>
-    <tr>
-      <td><span class="label">Adresa</span><span class="en-label">Address</span></td>
-      <td colspan="3"><input id="adresa" type="text" readonly></td>
-    </tr>
-    <tr>
-      <td><span class="label">Telefon</span><span class="en-label">Phone</span></td>
-      <td><input id="telefon" type="text" readonly></td>
-      <td><span class="label">E-mail</span><span class="en-label">Email</span></td>
-      <td><input id="email" type="text" readonly></td>
-    </tr>
-    <tr>
-      <td><span class="label">Popis závady / servisního úkonu</span><span class="en-label">Description of issue / service</span></td>
-      <td colspan="3"><textarea id="popis"></textarea></td>
-    </tr>
-    <tr>
-      <td><span class="label">Poznámka technika</span><span class="en-label">Technician note</span></td>
-      <td colspan="3"><textarea id="poznamka"></textarea></td>
-    </tr>
-    <tr>
-      <td><span class="label">Podpis zákazníka</span><span class="en-label">Customer signature</span></td>
-      <td colspan="3">
-        <canvas id="signature-pad" class="signature-pad"></canvas>
-        <div class="buttons" style="margin-top:8px;">
-          <button type="button" onclick="clearSignature()">Vymazat podpis / Clear signature</button>
-        </div>
-      </td>
-    </tr>
-  </table>
 
-  <div class="buttons">
-    <button id="backBtn" onclick="window.location.href='index.html'">⬅ Zpět</button>
-    <button id="exportBtn" onclick="exportPDF()">💾 Export PDF</button>
+  <!-- Overlay s přesýpacími hodinami -->
+  <div class="wait-overlay" id="waitOverlay">
+    <div class="wait-content">
+      <div class="hourglass"></div>
+      <p>WAIT / prosím čekejte...</p>
+    </div>
   </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
 
-<script>
-// === Inicializace podpisu ===
-const canvas = document.getElementById('signature-pad');
-const signaturePad = new SignaturePad(canvas);
+  <!-- Fajfka po odeslání -->
+  <div class="success-check" id="successCheck">
+    <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+      <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#00d084;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#00a86b;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <circle cx="26" cy="26" r="25" fill="none"/>
+      <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <script>
+    // === Velká písmena pro číslo objednávky ===
+    const cisloInput = document.querySelector('input[name="cislo"]');
+    cisloInput.addEventListener("input", () => {
+      cisloInput.value = cisloInput.value.toUpperCase();
+    });
 
-function clearSignature() {
-  signaturePad.clear();
-}
+    // === Geoapify našeptávač (CZ, SK, AT) ===
+    const uliceInput = document.getElementById("ulice");
+    const mestoInput = document.getElementById("mesto");
+    const pscInput = document.getElementById("psc");
+    const suggestionContainer = document.getElementById("suggestions");
+    let adresaPlatna = false;
 
-// === Automatické předvyplnění dat z URL ===
-window.addEventListener('DOMContentLoaded', () => {
-  const params = new URLSearchParams(window.location.search);
-  const fields = [
-    'cisloReklamace', 'zadavatel', 'zakaznik', 'typ',
-    'adresa', 'telefon', 'email', 'popis'
-  ];
-  fields.forEach(id => {
-    const el = document.getElementById(id);
-    if (el && params.has(id)) el.value = decodeURIComponent(params.get(id));
-  });
+    const apiKey = "b363199bb14e47189558d03b81ca9ba1";
 
-  // Dnešní datum pokud není zadáno
-  const dnes = new Date().toISOString().split('T')[0];
-  document.getElementById('datum').value = dnes;
-});
+    uliceInput.addEventListener("input", async () => {
+      const query = uliceInput.value.trim();
+      adresaPlatna = false;
+      suggestionContainer.innerHTML = "";
+      if (query.length < 2) return;
 
-// === Export do PDF ===
-async function exportPDF() {
-  const { jsPDF } = window.jspdf;
-  const exportBtn = document.getElementById('exportBtn');
-  const backBtn = document.getElementById('backBtn');
-  exportBtn.style.display = 'none';
-  backBtn.style.display = 'none';
+      try {
+        const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&lang=cs&limit=5&filter=countrycode:cze,svk,aut&apiKey=${apiKey}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (!data.features || !data.features.length) return;
 
-  // podpis jako obrázek
-  const canvasSig = document.getElementById('signature-pad');
-  const sigData = signaturePad.isEmpty() ? null : signaturePad.toDataURL();
+        data.features.forEach(item => {
+          const p = item.properties;
+          const div = document.createElement("div");
+          div.textContent = p.formatted;
 
-  if (sigData) {
-    const img = document.createElement('img');
-    img.src = sigData;
-    img.style.width = '200px';
-    img.style.marginTop = '10px';
-    canvasSig.replaceWith(img);
-  }
+          div.addEventListener("click", () => {
+            uliceInput.value = (p.street || "") + " " + (p.housenumber || "");
+            mestoInput.value = p.city || p.town || p.village || "";
+            pscInput.value = p.postcode || "";
+            adresaPlatna = true;
+            suggestionContainer.innerHTML = "";
 
-  await html2canvas(document.querySelector('.wrapper'), { scale: 2 }).then(canvas => {
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('p', 'pt', 'a4');
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const imgWidth = pageWidth - 40;
-    const imgHeight = canvas.height * imgWidth / canvas.width;
-    pdf.addImage(imgData, 'PNG', 20, 20, imgWidth, imgHeight);
+            // Mapa
+            const mapDiv = document.getElementById("mapPreview");
+            mapDiv.innerHTML = "";
+            const lat = parseFloat(p.lat);
+            const lon = parseFloat(p.lon);
+            const map = L.map(mapDiv, { center: [lat, lon], zoom: 16, zoomControl: false, attributionControl: false });
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+            L.marker([lat, lon]).addTo(map);
+          });
+          suggestionContainer.appendChild(div);
+        });
+      } catch (err) {
+        console.error("Chyba Geoapify:", err);
+      }
+    });
 
-    // název PDF souboru
-    const zakaznik = document.getElementById('zakaznik').value.replace(/[^\w\s]/gi, '').replace(/\s+/g, '');
-    const cislo = document.getElementById('cisloReklamace').value || 'bez_cisla';
-    const datum = new Date().toISOString().split('T')[0];
-    const fileName = `${zakaznik}_${cislo}_${datum}.pdf`;
+    document.addEventListener("click", e => {
+      if (!suggestionContainer.contains(e.target) && e.target !== uliceInput)
+        suggestionContainer.innerHTML = "";
+    });
 
-    pdf.save(fileName);
-  });
+    // === Validace telefonu a e-mailu ===
+    const telefonInput = document.getElementById("telefon");
+    const predvolba = document.getElementById("predvolba");
+    const emailInput = document.getElementById("email");
 
-  location.reload(); // obnoví stránku (vrátí tlačítka)
-}
-</script>
+    function validateTelefon() {
+      return /^[0-9]{8,12}$/.test(telefonInput.value.trim());
+    }
 
-</div>
+    function validateEmail() {
+      return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailInput.value.trim());
+    }
+
+    // === Komprese obrázků ===
+    async function compressImage(file, maxSizeMB = 1, maxDim = 1280) {
+      const img = await createImageBitmap(file);
+      const canvas = document.createElement("canvas");
+      let [w, h] = [img.width, img.height];
+
+      if (w > h && w > maxDim) {
+        h *= maxDim / w;
+        w = maxDim;
+      } else if (h > w && h > maxDim) {
+        w *= maxDim / h;
+        h = maxDim;
+      }
+
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, w, h);
+
+      let quality = 0.9;
+      let blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
+
+      while (blob.size / 1024 / 1024 > maxSizeMB && quality > 0.4) {
+        quality -= 0.1;
+        blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
+      }
+
+      return blob;
+    }
+
+    const fotkyInput = document.getElementById("fotky");
+    const preview = document.getElementById("preview");
+    let compressedFiles = [];
+
+    fotkyInput.addEventListener("change", async () => {
+      preview.innerHTML = "";
+      compressedFiles = [];
+
+      const files = Array.from(fotkyInput.files).slice(0, 5);
+
+      for (const file of files) {
+        if (!file.type.startsWith("image/")) continue;
+
+        const item = document.createElement("div");
+        item.classList.add("preview-item");
+
+        const img = document.createElement("img");
+        const progress = document.createElement("div");
+        progress.classList.add("progress-bar");
+
+        item.appendChild(progress);
+        preview.appendChild(item);
+
+        const reader = new FileReader();
+        reader.onload = e => {
+          img.src = e.target.result;
+          item.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+
+        const blob = await compressImage(file);
+        compressedFiles.push({ name: file.name, blob });
+
+        let w = 0;
+        const int = setInterval(() => {
+          w += 10;
+          progress.style.width = w + "%";
+          if (w >= 100) clearInterval(int);
+        }, 40);
+      }
+    });
+
+    // === Sekce Jiná ===
+    const selectZpracoval = document.getElementById("zpracoval");
+    const jinaSekce = document.getElementById("jinaSekce");
+    const jinaInputs = jinaSekce.querySelectorAll("input");
+
+    selectZpracoval.onchange = () => {
+      if (selectZpracoval.value === "Jiná") {
+        jinaSekce.classList.remove("hidden");
+        jinaInputs.forEach(i => i.required = true);
+      } else {
+        jinaSekce.classList.add("hidden");
+        jinaInputs.forEach(i => i.required = false);
+      }
+    };
+
+    // === Zvuk a fajfka ===
+    function playSuccessSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = "sine";
+        o.frequency.setValueAtTime(880, ctx.currentTime);
+        g.gain.setValueAtTime(0.1, ctx.currentTime);
+        o.connect(g);
+        g.connect(ctx.destination);
+        o.start();
+        o.stop(ctx.currentTime + 0.25);
+      } catch {}
+    }
+
+    function showSuccess() {
+      playSuccessSound();
+      document.getElementById("waitOverlay").classList.remove("active");
+      const s = document.getElementById("successCheck");
+      s.classList.add("active");
+      setTimeout(() => { window.location.href = "index.html"; }, 2500);
+    }
+
+    // === Upload na GitHub ===
+    async function uploadToGitHub(owner, repo, path, blob, message, token) {
+      const base64Data = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+        method: "PUT",
+        headers: {
+          "Authorization": `token ${token}`,
+          "Accept": "application/vnd.github.v3+json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message,
+          content: base64Data,
+          branch: "main"
+        })
+      });
+
+      if (!res.ok) throw new Error(await res.text());
+    }
+
+    async function submitToGitHub(dataObj, owner, repo, path, message, token) {
+      const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+      const res = await fetch(url, {
+        headers: {
+          "Authorization": `token ${token}`,
+          "Accept": "application/vnd.github.v3+json"
+        }
+      });
+
+      let content = "[]", sha = null;
+      if (res.ok) {
+        const json = await res.json();
+        content = atob(json.content.replace(/\n/g, ""));
+        sha = json.sha;
+      }
+
+      const arr = JSON.parse(content);
+      arr.push(dataObj);
+      const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(arr, null, 2))));
+      const body = { message, content: newContent, branch: "main" };
+      if (sha) body.sha = sha;
+
+      const put = await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Authorization": `token ${token}`,
+          "Accept": "application/vnd.github.v3+json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!put.ok) throw new Error(await put.text());
+    }
+
+    // === Odeslání formuláře ===
+    document.getElementById("reklamaceForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      document.getElementById("waitOverlay").classList.add("active");
+
+      const f = e.target;
+      const fields = f.querySelectorAll("input[required], textarea[required], select[required]");
+      let valid = true;
+
+      fields.forEach(i => {
+        if (!i.value.trim()) { i.classList.add("invalid"); valid = false; }
+        else i.classList.remove("invalid");
+      });
+
+      if (!validateTelefon()) { telefonInput.classList.add("invalid"); valid = false; }
+      if (!validateEmail()) { emailInput.classList.add("invalid"); valid = false; }
+      if (!adresaPlatna) {
+        alert("Vyber prosím adresu z našeptávače.");
+        uliceInput.classList.add("invalid");
+        valid = false;
+      }
+
+      if (!valid) {
+        document.getElementById("waitOverlay").classList.remove("active");
+        alert("Zkontroluj červeně označená pole.");
+        return;
+      }
+
+      const owner = "radecek222-boop", repo = "reklamace";
+      const token = prompt("Zadej GitHub token:");
+      const cislo = f.cislo.value.trim().toUpperCase() || "REK";
+
+      const dataObj = {
+        typ: "reklamace",
+        contract: f.zpracoval.value,
+        cislo,
+        zakaznik: f.zakaznik.value,
+        adresa: `${f.ulice.value}, ${f.mesto.value}, ${f.psc.value}`,
+        telefon: `${predvolba.value} ${f.telefon.value}`,
+        email: f.email.value,
+        produkt: f.produkt.value,
+        datum_prodeje: f.datum_prodeje.value,
+        datum_reklamace: f.datum_reklamace.value,
+        popis: f.popis.value,
+        fotky: [],
+        jinaZadavatel: f.zpracoval.value === "Jiná"
+          ? { jmeno: f.jinaJmeno.value, email: f.jinaEmail.value, telefon: f.jinaTelefon.value }
+          : null
+      };
+
+      try {
+        for (const fch of compressedFiles) {
+          const safe = `${cislo}_${fch.name.replace(/\s+/g, "_")}`;
+          await uploadToGitHub(owner, repo, `foto/${safe}`, fch.blob, `Nová fotka k reklamaci ${cislo}`, token);
+          dataObj.fotky.push(safe);
+        }
+
+        await submitToGitHub(dataObj, owner, repo, "orders.json", `Nová reklamace ${cislo}`, token);
+        showSuccess();
+        f.reset();
+      } catch (err) {
+        document.getElementById("waitOverlay").classList.remove("active");
+        alert("Chyba: " + err.message);
+      }
+    });
+  </script>
 </body>
 </html>
