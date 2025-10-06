@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WHITE GLOVE SERVICE – Seznam reklamací</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 :root { font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; color:#111; }
 body { margin:0; padding:20px; background:#f6f7fb; }
@@ -20,8 +21,6 @@ h2 { text-align:center; font-size:1.1em; font-weight:600; margin:0 0 20px; color
 .btn-green { background:linear-gradient(135deg,#00b36b,#3cd67a); }
 .btn-gray { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
 .btn-blue { background:linear-gradient(135deg,#0046ff,#357aff); }
-.btn-orange { background:linear-gradient(135deg,#ff9933,#ffcc66); }
-.btn-lightblue { background:linear-gradient(135deg,#66b3ff,#99ccff); }
 
 .top-actions { text-align:center; margin-bottom:20px; }
 .searchbox {
@@ -30,39 +29,32 @@ h2 { text-align:center; font-size:1.1em; font-weight:600; margin:0 0 20px; color
 }
 
 table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; }
-th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #ddd; font-size:0.95em; }
+th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #ddd; font-size:0.95em; vertical-align:middle; }
 th { background:#eee; font-weight:700; }
 tr:hover { background:#f1f3f5; cursor:pointer; }
 
-@keyframes blinkYellow { 50% { background:linear-gradient(135deg,#fff8b3,#ffe680); } }
-@keyframes blinkOrange { 50% { background:linear-gradient(135deg,#ffd9b3,#ffcc80); } }
+.new-blink { animation: blinkYellow 1s infinite alternate; }
+@keyframes blinkYellow { from{background:#fff9c4;} to{background:#fff176;} }
 
-.row-new { background:linear-gradient(135deg,#fff7a1,#fff1b0); animation:blinkYellow 1.5s infinite; }
-.row-nezveda { background:linear-gradient(135deg,#ffcc80,#ffb84d); animation:blinkOrange 1.5s infinite; }
-.row-termin { background:linear-gradient(135deg,#cce0ff,#99ccff); }
-.row-hotovo { background:linear-gradient(135deg,#a3e6b3,#66cc99); }
+.orange-blink { animation: blinkOrange 1s infinite alternate; }
+@keyframes blinkOrange { from{background:#ffe0b2;} to{background:#ffb74d;} }
 
-.badge-poz {
-  background:#6c757d; color:white; font-size:0.8em; padding:2px 6px; border-radius:6px; margin-right:6px;
+.action-btn {
+  background:linear-gradient(135deg,#0046ff,#357aff);
+  color:white; border:none; border-radius:6px; padding:6px 12px;
+  cursor:pointer; font-weight:600; font-size:0.85em; display:flex; align-items:center; gap:6px;
+  justify-content:center;
 }
+.action-btn:hover { opacity:0.9; }
 
-#detailModal, #photoView, #actionModal, #calendarModal {
-  position:fixed; top:0; left:0; width:100%; height:100%;
-  background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center;
-  padding:20px; z-index:1000;
-}
-.modal-box {
-  background:white; border-radius:10px; padding:20px; max-width:600px; width:100%;
-  max-height:85vh; overflow-y:auto; box-shadow:0 4px 15px rgba(0,0,0,0.2);
-}
-.photo-gallery { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:10px; }
-.photo-gallery img { max-width:100px; border-radius:6px; cursor:pointer; transition:transform 0.2s ease; }
-.photo-gallery img:hover { transform:scale(1.1); }
-#photoView img { max-width:90%; max-height:90%; border-radius:10px; }
+.icon { font-size:1.1em; margin-right:6px; color:#0046ff; }
+.icon-phone { color:#00b36b; }
+.icon-waze { color:#357aff; }
 
-@media(max-width:768px){
-  .modal-box{max-width:90%;height:90vh;}
-}
+a.link-icon { text-decoration:none; color:inherit; font-weight:500; display:flex; align-items:center; gap:5px; }
+a.link-icon:hover { opacity:0.8; }
+
+@media (max-width:768px){ th:nth-child(n+5), td:nth-child(n+5){display:none;} }
 </style>
 </head>
 <body>
@@ -70,184 +62,73 @@ tr:hover { background:#f1f3f5; cursor:pointer; }
 <h2>Seznam reklamací a servisních požadavků</h2>
 
 <div class="top-actions">
-  <a href="index.html" class="btn-gradient btn-gray">Zpět na hlavní stránku</a>
-  <a href="hotove.html" class="btn-gradient btn-green">Hotové reklamace</a>
-  <button onclick="loadAll()" class="btn-gradient btn-blue">Načíst znovu</button>
+  <a href="index.html" class="btn-gradient btn-gray"><i class="fa-solid fa-house"></i> Zpět na hlavní stránku</a>
+  <a href="hotove.html" class="btn-gradient btn-green"><i class="fa-solid fa-check"></i> Hotové reklamace</a>
+  <button onclick="loadAll()" class="btn-gradient btn-blue"><i class="fa-solid fa-rotate-right"></i> Načíst znovu</button>
 </div>
 
 <input type="text" id="searchInput" class="searchbox" placeholder="Hledat podle jména, adresy nebo telefonu...">
 
 <table id="dataTable">
 <thead>
-<tr><th>ZÁKAZNÍK</th><th>ADRESA</th><th>TELEFON</th><th>STAV</th></tr>
+<tr><th>JMÉNO / POZ</th><th>ADRESA</th><th>TELEFON</th><th>STAV</th><th>AKCE</th></tr>
 </thead>
-<tbody id="tableBody"><tr><td colspan="4" style="text-align:center;padding:20px;">Načítání dat...</td></tr></tbody>
+<tbody id="tableBody"><tr><td colspan="5" style="text-align:center;padding:20px;">Načítání dat...</td></tr></tbody>
 </table>
 
-<!-- detail -->
-<div id="detailModal"><div class="modal-box">
-  <h3 id="dName"></h3>
-  <p id="dInfo"></p>
-  <div id="photoGallery" class="photo-gallery"></div>
-  <div style="text-align:center;margin-top:20px;">
-    <button class="btn-gradient btn-gray" onclick="closeDetail()">Zavřít</button>
-  </div>
-</div></div>
-
-<!-- fotky -->
-<div id="photoView" onclick="this.style.display='none'">
-  <img id="photoLarge" src="">
-</div>
-
-<!-- akce po telefonu -->
-<div id="actionModal"><div class="modal-box" style="text-align:center;">
-  <h3>Akce</h3>
-  <div style="margin-top:10px;">
-    <button class="btn-gradient btn-lightblue" onclick="openCalendar()">Zapsat termín</button>
-    <button class="btn-gradient btn-orange" onclick="setStatus('Nezvedá')">Nezvedá</button>
-    <button class="btn-gradient btn-green" onclick="setStatus('Hotovo')">Vytvořit protokol</button>
-    <button class="btn-gradient btn-gray" onclick="closeActions()">Zavřít</button>
-  </div>
-</div></div>
-
-<!-- kalendář -->
-<div id="calendarModal"><div class="modal-box" style="text-align:center;">
-  <h3>Zapsat termín</h3>
-  <input type="datetime-local" id="termDate" style="padding:8px;border-radius:8px;border:1px solid #ccc;font-size:1em;">
-  <div style="margin-top:15px;">
-    <button class="btn-gradient btn-lightblue" onclick="confirmTerm()">Potvrdit</button>
-    <button class="btn-gradient btn-gray" onclick="closeCalendar()">Zavřít</button>
-  </div>
-</div></div>
-
 <script>
-const GITHUB_USER="radecek222-boop",REPO="reklamace";
-const TOKEN="TVŮJ_TOKEN";
+const GITHUB_USER="radecek222-boop", REPO="reklamace";
 const FILES=["orders.json","aftersales.json","hotove.json"];
-let currentItem=null,allData=[];
-
-async function fetchJson(file){
-  try{
-    const res=await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${file}?${Date.now()}`);
-    if(!res.ok) throw new Error(res.statusText);
-    const data=await res.json();
-    return data.map(x=>({...x,source:file.replace('.json','')}));
-  }catch{ return []; }
-}
+const WORKER_URL="https://wis-drafts-api.72nvwf4pb2.workers.dev/";
 
 async function loadAll(){
-  const tbody=document.getElementById("tableBody");
-  tbody.innerHTML=`<tr><td colspan="4" style="text-align:center;padding:20px;">Načítání...</td></tr>`;
-  const results=await Promise.all(FILES.map(f=>fetchJson(f)));
-  allData=results.flat();
-  renderTable(allData);
+  document.getElementById("tableBody").innerHTML="<tr><td colspan='5' style='text-align:center;padding:20px;'>Načítání...</td></tr>";
+  let all=[];
+  for(const file of FILES){
+    try{
+      const res=await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${file}?${Date.now()}`);
+      const data=await res.json();
+      all=all.concat(data.map(x=>({...x,_source:file})));
+    }catch(e){console.warn("Chyba při načítání",file,e);}
+  }
+  renderTable(all);
 }
 
 function renderTable(data){
   const tbody=document.getElementById("tableBody");tbody.innerHTML="";
-  const search=document.getElementById("searchInput").value.toLowerCase();
-  const filtered=data.filter(d=>
-    (d["Zákazník"]||"").toLowerCase().includes(search) ||
-    (d["Adresa"]||"").toLowerCase().includes(search) ||
-    (d["Telefon"]||"").toLowerCase().includes(search)
-  );
-  if(filtered.length===0){tbody.innerHTML=`<tr><td colspan="4" style="text-align:center;padding:20px;">Žádné výsledky</td></tr>`;return;}
-
-  filtered.forEach(item=>{
+  const query=document.getElementById("searchInput").value.toLowerCase();
+  data.filter(x=>{
+    return !query || (x["Zákazník"]||"").toLowerCase().includes(query)
+    || (x["Adresa"]||"").toLowerCase().includes(query)
+    || (x["Telefon"]||"").toLowerCase().includes(query);
+  }).forEach((item)=>{
     const tr=document.createElement("tr");
-    const stav=(item["Stav"]||"").toLowerCase();
-    if(stav.includes("nezvedá")) tr.classList.add("row-nezveda");
-    else if(stav.includes("termín")) tr.classList.add("row-termin");
-    else if(stav.includes("hotovo")) tr.classList.add("row-hotovo");
-    else tr.classList.add("row-new");
+    const isNew=item["Stav"]?.toLowerCase().includes("nová");
+    const isHotove=item["Stav"]?.toLowerCase().includes("hotovo");
+    if(isNew) tr.classList.add("new-blink");
+    if(item["Stav"]==="Nezvedá") tr.classList.add("orange-blink");
 
-    let nameCell=item["Zákazník"]||""; if(item.source==="aftersales") nameCell=`<span class="badge-poz">POZ</span>${nameCell}`;
-    const waze=item["Adresa"]?`<a href="https://waze.com/ul?q=${encodeURIComponent(item["Adresa"])}" target="_blank">${item["Adresa"]}</a>`:"";
-    const phone=item["Telefon"]?`<a href="tel:${item["Telefon"].replace(/\s+/g,'')}" onclick="event.preventDefault();openActions('${item["Číslo reklamace"]||item["Číslo objednávky"]}')">📞 ${item["Telefon"]}</a>`:"";
-    tr.innerHTML=`<td>${nameCell}</td><td>${waze}</td><td>${phone}</td><td>${item["Stav"]||"Nová"}</td>`;
-    tr.addEventListener("click",()=>openDetail(item));
+    const poz=item._source.includes("aftersales")?"POZ":"";
+    const addr=item["Adresa"]?`<a class="link-icon" href="https://waze.com/ul?ll=&q=${encodeURIComponent(item["Adresa"])}" target="_blank"><i class='fa-brands fa-waze icon-waze'></i>${item["Adresa"]}</a>`:"";
+    const tel=item["Telefon"]?`<a class="link-icon" href="tel:${item["Telefon"]}"><i class='fa-solid fa-phone icon-phone'></i>${item["Telefon"]}</a>`:"";
+
+    tr.innerHTML=`
+      <td>${item["Zákazník"]||poz||"Neznámý"}</td>
+      <td>${addr}</td>
+      <td>${tel}</td>
+      <td>${item["Stav"]||"Nová"}</td>
+      <td><button class="action-btn" onclick='openProtocol(${JSON.stringify(item)})'><i class="fa-regular fa-file-lines"></i> Otevřít</button></td>
+    `;
     tbody.appendChild(tr);
   });
 }
 
-// DETAIL
-function openDetail(item){
-  currentItem=item;
-  document.getElementById("detailModal").style.display="flex";
-  document.getElementById("dName").textContent=item["Zákazník"]||"Neznámý zákazník";
-  document.getElementById("dInfo").innerHTML=`
-    <p><b>Adresa:</b> ${item["Adresa"]||""}</p>
-    <p><b>Telefon:</b> ${item["Telefon"]||""}</p>
-    <p><b>E-mail:</b> ${item["Email"]||""}</p>
-    <p><b>Popis:</b> ${item["Popis CZ"]||""}</p>
-  `;
-  const gal=document.getElementById("photoGallery");gal.innerHTML="";
-  ["Foto1","Foto2","Foto3","Foto4"].forEach(k=>{
-    if(item[k]){const img=document.createElement("img");img.src=item[k];img.onclick=()=>openPhoto(img.src);gal.appendChild(img);}
-  });
-}
-function closeDetail(){document.getElementById("detailModal").style.display="none";}
-function openPhoto(src){document.getElementById("photoLarge").src=src;document.getElementById("photoView").style.display="flex";}
-
-// TELEFON AKCE
-function openActions(id){currentItem=allData.find(x=>x["Číslo reklamace"]===id||x["Číslo objednávky"]===id);document.getElementById("actionModal").style.display="flex";}
-function closeActions(){document.getElementById("actionModal").style.display="none";}
-
-// KALENDÁŘ
-function openCalendar(){document.getElementById("calendarModal").style.display="flex";}
-function closeCalendar(){document.getElementById("calendarModal").style.display="none";}
-function confirmTerm(){
-  const dt=document.getElementById("termDate").value;
-  if(!dt)return;
-  setStatus("Termín: "+dt);
-  closeCalendar();
+function openProtocol(item){
+  localStorage.setItem("selectedCustomer",JSON.stringify(item));
+  window.location.href="protokol.html";
 }
 
-// --- AKTUALIZACE DAT V GITHUBU ---
-async function updateFile(filename,content){
-  const meta=await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`,{
-    headers:{Authorization:`token ${TOKEN}`}
-  }).then(r=>r.json());
-  await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${filename}`,{
-    method:"PUT",
-    headers:{Authorization:`token ${TOKEN}`,"Content-Type":"application/json"},
-    body:JSON.stringify({
-      message:`Aktualizace ${filename}`,
-      content:btoa(unescape(encodeURIComponent(content))),
-      sha:meta.sha
-    })
-  });
-}
-
-// --- ZMĚNA STAVU ---
-async function setStatus(status){
-  if(!currentItem)return;
-  currentItem["Stav"]=status;
-
-  const sourceFile=currentItem.source+".json";
-  const fileUrl=`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/${sourceFile}?${Date.now()}`;
-  let data=await fetch(fileUrl).then(r=>r.json()).catch(()=>[]);
-  
-  // pokud hotovo -> přesun do hotove.json
-  if(status==="Hotovo"){
-    const hotove=await fetch(`https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/hotove.json?${Date.now()}`).then(r=>r.json()).catch(()=>[]);
-    data=data.filter(d=>(d["Číslo reklamace"]!==currentItem["Číslo reklamace"]));
-    hotove.push(currentItem);
-    await updateFile("hotove.json",JSON.stringify(hotove,null,2));
-  } else {
-    const idx=data.findIndex(d=>d["Číslo reklamace"]===currentItem["Číslo reklamace"]);
-    if(idx>-1) data[idx]=currentItem;
-  }
-
-  await updateFile(sourceFile,JSON.stringify(data,null,2));
-  renderTable(allData);
-  closeActions();
-  closeCalendar();
-  alert("Stav aktualizován na: "+status);
-}
-
-// VYHLEDÁVÁNÍ
-document.getElementById("searchInput").addEventListener("input",()=>renderTable(allData));
+document.getElementById("searchInput").addEventListener("input",loadAll);
 window.addEventListener("pageshow",loadAll);
 loadAll();
 </script>
