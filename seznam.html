@@ -63,16 +63,11 @@ h2 {
   box-shadow: 0 3px 8px rgba(0,0,0,0.15);
   min-width: 140px;
 }
-.btn:hover {
-  transform: scale(1.04);
-  opacity: 0.9;
-}
-.btn-back {
-  background: linear-gradient(135deg, #6c757d, #a0a4a7);
-}
-.btn-refresh {
-  background: linear-gradient(135deg, #0046ff, #357aff);
-}
+.btn:hover { transform: scale(1.04); opacity: 0.9; }
+.btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
+.btn-refresh { background: linear-gradient(135deg, #0046ff, #357aff); }
+.btn-green { background: linear-gradient(135deg, #28a745, #5bd85b); }
+
 #search {
   width: 100%;
   padding: 10px;
@@ -109,7 +104,6 @@ tr:hover {
 .stav-novy { animation: blikani 1s infinite alternate; background: #fffbe6 !important; }
 .stav-domluveno { background: #e7f0ff !important; }
 .stav-zruseno { background: #ffeaea !important; }
-.stav-hotovo { background: #eaffea !important; }
 .stav-nezveda { background: #fff4e1 !important; }
 @keyframes blikani {
   from { background-color: #fff3c4; }
@@ -120,179 +114,90 @@ tr:hover {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0,0,0,0.65);
   display: none;
   justify-content: center;
   align-items: center;
   z-index: 9999;
-  opacity: 0;
-  pointer-events: none;
   transition: opacity 0.25s ease;
-}
-.modal-overlay.active {
-  display: flex;
-  opacity: 1;
-  pointer-events: all;
 }
 .modal {
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.3);
   padding: 25px;
-  width: 66%;
-  max-width: 800px;
+  width: 80%;
+  max-width: 900px;
   max-height: 85vh;
   overflow-y: auto;
-  transform: translateY(-10px) scale(0.97);
-  opacity: 0;
-  transition: all 0.25s ease;
 }
-.modal.show {
-  transform: translateY(0) scale(1);
-  opacity: 1;
-}
-.modal h3 {
-  font-size: 1.3em;
-  margin-top: 0;
-}
-.modal input[type="date"],
-.modal input[type="time"] {
-  padding: 8px;
-  margin: 6px 0;
-  border: 1px solid #ccc;
+.modal.show { animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from {opacity:0; transform:scale(0.95);} to {opacity:1; transform:scale(1);} }
+
+.thumb-img {
+  width: 80px; height: 80px;
+  object-fit: cover;
   border-radius: 6px;
-  width: calc(50% - 5px);
+  margin: 3px;
+  cursor: pointer;
+  transition: transform .2s;
 }
-.modal .btn-row {
+.thumb-img:hover { transform: scale(1.05); }
+
+.fullscreen {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 15px;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
 }
-.btn-action {
-  flex: 1;
-  text-align: center;
-  padding: 10px;
-  border: none;
+.fullscreen img {
+  max-width: 90%;
+  max-height: 85%;
   border-radius: 8px;
-  font-weight: 600;
+  box-shadow: 0 0 20px rgba(255,255,255,0.2);
+}
+.nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 2em;
   color: white;
   cursor: pointer;
-  transition: transform 0.15s ease-in-out;
+  user-select: none;
 }
-.btn-action:hover {
-  transform: scale(1.05);
-}
-.btn-blue { background: linear-gradient(135deg, #007bff, #399bff); }
-.btn-green { background: linear-gradient(135deg, #28a745, #5bd85b); }
-.btn-gray { background: linear-gradient(135deg, #6c757d, #9ca3af); }
-.btn-orange { background: linear-gradient(135deg, #ff9800, #ffb74d); color: #222; }
-.btn-red { background: linear-gradient(135deg, #dc3545, #f87171); }
+.nav-btn.left { left: 30px; }
+.nav-btn.right { right: 30px; }
+.nav-btn:hover { color: #4da3ff; }
 
-@media (max-width: 700px) {
-  .wrapper {
-    margin: 15px;
-    padding: 15px;
-  }
-  th, td {
-    font-size: 0.78em;
-    padding: 5px 4px;
-  }
-  .modal {
-    width: 94%;
-    padding: 18px;
-  }
-  .modal .btn-row {
-    flex-direction: column;
-  }
-  .modal .btn-action {
-    width: 100%;
-  }
+@media (max-width:700px){
+  th, td { font-size: 0.8em; padding: 5px; }
+  .modal { width: 94%; padding: 18px; }
 }
 </style>
 </head>
-  <body>
-  <div class="wrapper">
-    <h1>WHITE GLOVE SERVICE</h1>
-    <h2>Seznam reklamací a servisních požadavků</h2>
+<body>
+<div class="wrapper">
+  <h1>WHITE GLOVE SERVICE</h1>
+  <h2>Seznam reklamací a servisních požadavků</h2>
 
-    <div class="actions">
-      <a href="index.html" class="btn btn-back">Zpět</a>
-      <button id="reloadBtn" class="btn btn-refresh">Načíst znovu</button>
-      <a href="hotove.html" class="btn btn-green">Hotové reklamace</a>
-    </div>
-
-    <input type="text" id="search" placeholder="🔍 Hledat podle jména, čísla nebo zadavatele...">
-    <div id="tableContainer" class="loading">Načítám data...</div>
+  <div class="actions">
+    <a href="index.html" class="btn btn-back">Zpět</a>
+    <button id="reloadBtn" class="btn btn-refresh">Načíst znovu</button>
+    <a href="hotove.html" class="btn btn-green">Hotové reklamace</a>
   </div>
 
-  <!-- 💬 MODAL pro akce -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal" id="detailModal">
-      <h3>Detail reklamace</h3>
-      <div id="modalContent"></div>
+  <input type="text" id="search" placeholder="🔍 Hledat podle jména, čísla nebo zadavatele...">
+  <div id="tableContainer" class="loading">Načítám data...</div>
+</div>
 
-      <div class="btn-row" style="margin-top:20px;">
-        <button id="termBtn" class="btn-action btn-blue">🔵 Domluvit termín</button>
-        <button id="protoBtn" class="btn-action btn-green">🟢 Vytvořit protokol</button>
-        <button id="closeBtn" class="btn-action btn-gray">❌ Zavřít</button>
-      </div>
-
-      <div id="termSection" style="display:none; margin-top:20px; border-top:1px solid #ddd; padding-top:15px;">
-        <p style="font-weight:600;">Zadej termín návštěvy:</p>
-
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <input type="date" id="datumTerminu" onchange="this.blur()" />
-          <input type="time" id="casTerminu" />
-        </div>
-
-        <div class="btn-row" style="margin-top:15px;">
-          <button id="noAnswerBtn" class="btn-action btn-orange">🟠 Nezvedá to</button>
-          <button id="cancelBtn" class="btn-action btn-red">🔴 Zákazník zrušil</button>
-          <button id="saveTermBtn" class="btn-action btn-blue">🟢 Uložit termín</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <style>
-  /* 📅 Styl pro vstupy termínu */
-  input[type="date"],
-  input[type="time"] {
-    font-size: 1.2em;
-    font-weight: 600;
-    padding: 8px 12px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background: #fff;
-    color: #333;
-    outline: none;
-    transition: box-shadow 0.2s;
-    flex: 1;
-    min-width: 130px;
-  }
-  input[type="date"]:focus,
-  input[type="time"]:focus {
-    box-shadow: 0 0 0 2px rgba(0, 70, 255, 0.25);
-  }
-
-  /* 🕓 Styl pro iPhone-like čas */
-  input[type="time"] {
-    height: 44px;
-    font-size: 1.4em;
-    text-align: center;
-    -webkit-appearance: none;
-  }
-  </style>
 <script>
 const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
-const tableContainer = document.getElementById("tableContainer");
-const searchInput = document.getElementById("search");
-const reloadBtn = document.getElementById("reloadBtn");
-
 let dataAll = [];
 let stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
-
+const tableContainer = document.getElementById("tableContainer");
 /* ============ Načtení dat z Workeru ============ */
 async function loadData() {
   tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
@@ -306,39 +211,38 @@ async function loadData() {
     renderTable(dataAll);
   } catch (err) {
     console.error(err);
-    tableContainer.innerHTML = `<div class='loading' style='color:red;'>Chyba načítání: ${err.message}</div>`;
+    tableContainer.innerHTML = `<div style='color:red;'>Chyba načítání: ${err.message}</div>`;
   }
 }
 
-/* ============ Zobrazení tabulky ============ */
+/* ============ Vykreslení tabulky ============ */
 function renderTable(arr) {
   if (!arr.length) {
-    tableContainer.innerHTML = "<div class='loading'>Žádné záznamy k zobrazení</div>";
+    tableContainer.innerHTML = "<p>Žádné záznamy k zobrazení</p>";
     return;
   }
 
   let html = `
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Číslo</th>
-        <th>Zákazník</th>
-        <th>Adresa</th>
-        <th>Telefon</th>
-        <th>Zadavatel</th>
-        <th>Typ</th>
-        <th>Stav</th>
-      </tr>
-    </thead>
-    <tbody>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Číslo</th>
+          <th>Zákazník</th>
+          <th>Adresa</th>
+          <th>Telefon</th>
+          <th>Zadavatel</th>
+          <th>Typ</th>
+          <th>Stav</th>
+        </tr>
+      </thead>
+      <tbody>
   `;
 
   arr.forEach((r, i) => {
     const id = r.cislo || `radek-${i}`;
     const stav = stavy[id] || "novy";
     const trClass = `stav-${stav}`;
-
     html += `
       <tr class="${trClass}" data-index="${i}" data-id="${id}">
         <td>${i + 1}</td>
@@ -346,9 +250,9 @@ function renderTable(arr) {
         <td>${r.zakaznik || ""}</td>
         <td>${r.adresa || ""}</td>
         <td><a href="tel:${r.telefon || ""}">${r.telefon || ""}</a></td>
-        <td>${r.contract || (r.jinaZadavatel?.jmeno || "")}</td>
+        <td>${r.contract || r.jinaZadavatel?.jmeno || ""}</td>
         <td>${r.typ || ""}</td>
-        <td style="font-weight:600;text-transform:capitalize;">${stav}</td>
+        <td style="font-weight:600;">${stav}</td>
       </tr>
     `;
   });
@@ -364,515 +268,68 @@ function renderTable(arr) {
   });
 }
 
-/* ============ MODAL LOGIKA ============ */
-const modalOverlay = document.getElementById("modalOverlay");
-const modalContent = document.getElementById("modalContent");
-const termSection = document.getElementById("termSection");
-
-let selectedItemIndex = null;
-
-// 🟢 Otevření modalu
-function openModal(index) {
-  selectedItemIndex = index;
-  const item = dataAll[index];
-  if (!item) return;
-
-  modalContent.innerHTML = `
-    <div><strong>Zákazník:</strong> ${item.zakaznik || ""}</div>
-    <div><strong>Adresa:</strong> ${item.adresa || ""}</div>
-    <div><strong>Telefon:</strong> <a href="tel:${item.telefon || ""}">${item.telefon || ""}</a></div>
-    <div><strong>Popis:</strong> ${item.popis || "neuvedeno"}</div>
-  `;
-
-  termSection.style.display = "none";
-  modalOverlay.style.display = "flex";
-
-  // ✨ animace
-  requestAnimationFrame(() => {
-    modalOverlay.classList.add("active");
-    document.getElementById("detailModal").classList.add("show");
-  });
-}
-
-// 🔘 Zavření modalu s animací
-document.getElementById("closeBtn").onclick = () => {
-  const modal = document.getElementById("detailModal");
-  modal.classList.remove("show");
-  modalOverlay.classList.remove("active");
-  setTimeout(() => { modalOverlay.style.display = "none"; }, 250);
-};
-
-// 🔵 Domluvit termín → rozbalí sekci
-document.getElementById("termBtn").onclick = () => {
-  termSection.style.display = termSection.style.display === "none" ? "block" : "none";
-};
-
-// 🟠 Nezvedá to
-document.getElementById("noAnswerBtn").onclick = () => {
-  const id = dataAll[selectedItemIndex].cislo || `radek-${selectedItemIndex}`;
-  stavy[id] = "nezveda";
-  localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
-  closeModal();
-  renderTable(dataAll);
-};
-
-// 🔴 Zákazník zrušil
-document.getElementById("cancelBtn").onclick = () => {
-  const id = dataAll[selectedItemIndex].cislo || `radek-${selectedItemIndex}`;
-  stavy[id] = "zruseno";
-  localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
-  closeModal();
-  renderTable(dataAll);
-};
-
-// 🟢 Uložit termín
-document.getElementById("saveTermBtn").onclick = () => {
-  const datum = document.getElementById("datumTerminu").value;
-  const cas = document.getElementById("casTerminu").value;
-  if (!datum || !cas) {
-    alert("Vyplňte datum i čas termínu");
-    return;
-  }
-  const id = dataAll[selectedItemIndex].cislo || `radek-${selectedItemIndex}`;
-  stavy[id] = "domluveno";
-  localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
-  closeModal();
-  renderTable(dataAll);
-};
-
-// 🟢 Vytvořit protokol
-document.getElementById("protoBtn").onclick = () => {
-  const item = dataAll[selectedItemIndex];
-  if (!item) return;
-  localStorage.setItem("selectedRecord", JSON.stringify(item));
-  window.location.href = "protokol.html";
-};
-
-// 🧩 Zavření pomocí funkce
-function closeModal() {
-  const modal = document.getElementById("detailModal");
-  modal.classList.remove("show");
-  modalOverlay.classList.remove("active");
-  setTimeout(() => { modalOverlay.style.display = "none"; }, 250);
-}
-
-/* ============ Filtrování ============ */
-searchInput.addEventListener("input", () => {
-  const q = searchInput.value.trim().toLowerCase();
-  if (!q) return renderTable(dataAll);
-  const filtered = dataAll.filter(r =>
-    (r.zakaznik || "").toLowerCase().includes(q) ||
-    (r.cislo || "").toLowerCase().includes(q) ||
-    (r.contract || "").toLowerCase().includes(q) ||
-    (r.adresa || "").toLowerCase().includes(q) ||
-    (r.typ || "").toLowerCase().includes(q)
-  );
-  renderTable(filtered);
-});
-
-/* ============ Znovu načtení ============ */
-reloadBtn.addEventListener("click", loadData);
-
-/* ============ Start ============ */
-window.addEventListener("DOMContentLoaded", loadData);
-</script>
-
-<!-- 🌀 Overlay při dlouhém načítání -->
-<div id="overlay" style="
-    display:none; position:fixed; inset:0;
-    background:rgba(255,255,255,0.85);
-    backdrop-filter:blur(3px);
-    justify-content:center; align-items:center;
-    font-weight:600; color:#333; z-index:9999;">
-  <div>
-    <div style="
-        border:4px solid #ccc;
-        border-top:4px solid #0046ff;
-        border-radius:50%;
-        width:40px;
-        height:40px;
-        margin:auto;
-        animation:spin 1s linear infinite;"></div>
-    <p>Načítám data…</p>
-  </div>
-</div>
-
-<style>
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-</style>
-
-<script>
-const overlay = document.getElementById("overlay");
-const originalLoadData = loadData;
-loadData = async function() {
-  overlay.style.display = "flex";
-  try {
-    await originalLoadData();
-  } finally {
-    overlay.style.display = "none";
-  }
-};
-</script>
-    <style>
-/* 💻 Úprava tabulky pro PC – více prostoru, žádné zalamování */
-@media (min-width: 900px) {
-  table {
-    table-layout: fixed;
-    width: 100%;
-  }
-  th:nth-child(1) { width: 4%; }
-  th:nth-child(2) { width: 10%; }
-  th:nth-child(3) { width: 15%; }
-  th:nth-child(4) { width: 26%; } /* adresa širší */
-  th:nth-child(5) { width: 14%; } /* telefon */
-  th:nth-child(6) { width: 15%; }
-  th:nth-child(7) { width: 10%; }
-  th:nth-child(8) { width: 6%; }
-
-  td {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    vertical-align: middle;
-  }
-  td a {
-    color: #0046ff;
-    text-decoration: none;
-  }
-  td a:hover {
-    text-decoration: underline;
-  }
-}
-
-/* 📱 Menší písmo na mobilu */
-@media (max-width: 700px) {
-  th, td {
-    font-size: 0.75em !important;
-    line-height: 1.2em;
-  }
-}
-</style>
-
-<script>
-// 💡 Ujisti se, že tabulka zůstane širší i po vykreslení
-window.addEventListener("load", () => {
-  document.querySelectorAll("table").forEach(t => {
-    t.style.tableLayout = "fixed";
-  });
-});
-</script>
-<style>
-/* 🕓 Styl pro vlastní rolovací čas */
-.custom-time-picker {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  font-size: 1.4em;
-  margin-top: 10px;
-}
-.custom-time-picker select {
-  appearance: none;
-  -webkit-appearance: none;
-  font-size: 1.2em;
-  font-weight: 600;
-  border-radius: 10px;
-  padding: 8px 12px;
-  background: #fff;
-  border: 1px solid #ccc;
-  text-align: center;
-  outline: none;
-  transition: all 0.2s;
-}
-.custom-time-picker select:focus {
-  border-color: #0046ff;
-  box-shadow: 0 0 0 2px rgba(0,70,255,0.25);
-}
-.custom-time-picker span {
-  font-weight: 700;
-  color: #555;
-}
-</style>
-
-<script>
-/* 🕓 Nahrazení standardního inputu na desktopu za rolovací selektor */
-document.addEventListener("DOMContentLoaded", () => {
-  const timeInput = document.getElementById("casTerminu");
-  if (!timeInput) return;
-
-  // 🔹 Pouze na desktopu
-  if (!/Mobi|Android/i.test(navigator.userAgent)) {
-    const container = document.createElement("div");
-    container.className = "custom-time-picker";
-
-    // Hodiny
-    const hours = document.createElement("select");
-    for (let h = 0; h < 24; h++) {
-      const opt = document.createElement("option");
-      opt.value = String(h).padStart(2, "0");
-      opt.textContent = String(h).padStart(2, "0");
-      hours.appendChild(opt);
-    }
-
-    // Minuty
-    const minutes = document.createElement("select");
-    for (let m = 0; m < 60; m += 5) { // po 5 minutách
-      const opt = document.createElement("option");
-      opt.value = String(m).padStart(2, "0");
-      opt.textContent = String(m).padStart(2, "0");
-      minutes.appendChild(opt);
-    }
-
-    const sep = document.createElement("span");
-    sep.textContent = ":";
-
-    container.appendChild(hours);
-    container.appendChild(sep);
-    container.appendChild(minutes);
-
-    // Nahrazení inputu
-    timeInput.style.display = "none";
-    timeInput.parentNode.insertBefore(container, timeInput.nextSibling);
-
-    // Synchronizace do původního inputu
-    const syncTime = () => {
-      timeInput.value = `${hours.value}:${minutes.value}`;
-    };
-    hours.addEventListener("change", syncTime);
-    minutes.addEventListener("change", syncTime);
-    syncTime();
-  }
-});
-</script>
-<style>
-/* 📱 Optimalizace pro mobily – zobrazí jen klíčové údaje */
-@media (max-width: 700px) {
-  table, thead, tbody, th, td, tr {
-    display: block;
-  }
-  thead {
-    display: none;
-  }
-  tr {
-    border-radius: 10px;
-    background: #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    margin-bottom: 14px;
-    padding: 10px 12px;
-  }
-  td {
-    display: flex;
-    justify-content: space-between;
-    border: none;
-    padding: 5px 0;
-    font-size: 0.85em;
-  }
-  td::before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: #444;
-  }
-  td[data-label="Zákazník"],
-  td[data-label="Adresa"],
-  td[data-label="Telefon"],
-  td[data-label="Stav"] {
-    display: flex;
-  }
-  td[data-label="Adresa"] a,
-  td[data-label="Telefon"] a {
-    color: #0046ff;
-    text-decoration: none;
-  }
-  td[data-label="Adresa"] a:hover,
-  td[data-label="Telefon"] a:hover {
-    text-decoration: underline;
-  }
-}
-</style>
-
-<script>
-// 📱 Upravíme renderTable pro mobilní výpis s Waze, datem a ikonami stavů
-function stavTextSIkonou(stav, datum, dnes = false) {
-  const dtext = datum
-    ? new Date(datum).toLocaleDateString("cs-CZ", { day: "numeric", month: "numeric", year: "numeric" })
-    : null;
-  const fire = dnes ? "🔥 " : "";
-
-  switch (stav) {
-    case "domluveno":
-      return `${fire}🔵 Domluveno${dtext ? " – " + dtext : ""}`;
-    case "hotovo":
-      return `${fire}🟢 Hotovo`;
-    case "zruseno":
-      return `${fire}🔴 Zákazník zrušil`;
-    case "nezveda":
-      return `${fire}🟠 Nezvedá to`;
-    default:
-      return `${fire}⚪ Nový`;
-  }
-}
-
-// 🚨 Kontrola, zda je datum dnešní
-function isToday(dateStr) {
-  if (!dateStr) return false;
-  const today = new Date();
-  const input = new Date(dateStr);
-  return (
-    today.getFullYear() === input.getFullYear() &&
-    today.getMonth() === input.getMonth() &&
-    today.getDate() === input.getDate()
-  );
-}
-
-// 📋 Přepsání renderTable
-const originalRenderTableMobile = renderTable;
-renderTable = function(arr) {
-  tableContainer.innerHTML = "";
-
-  if (!arr.length) {
-    tableContainer.innerHTML = "<div class='loading'>Žádné záznamy k zobrazení</div>";
-    return;
-  }
-
-  let html = `
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Číslo</th>
-        <th>Zákazník</th>
-        <th>Adresa</th>
-        <th>Telefon</th>
-        <th>Zadavatel</th>
-        <th>Typ</th>
-        <th>Stav</th>
-      </tr>
-    </thead>
-    <tbody>
-  `;
-
-  arr.forEach((r, i) => {
-    const id = r.cislo || `radek-${i}`;
-    const stav = stavy[id] || "novy";
-    const trClass = `stav-${stav}`;
-    const dnes = r.datum && isToday(r.datum);
-    const stavText = stavTextSIkonou(stav, r.datum, dnes);
-    const wazeLink = r.adresa ? `https://waze.com/ul?q=${encodeURIComponent(r.adresa)}` : "#";
-
-    html += `
-      <tr class="${trClass}" data-index="${i}" data-id="${id}">
-        <td data-label="#">${i + 1}</td>
-        <td data-label="Číslo">${r.cislo || ""}</td>
-        <td data-label="Zákazník">${r.zakaznik || ""}</td>
-        <td data-label="Adresa"><a href="${wazeLink}" target="_blank">${r.adresa || ""}</a></td>
-        <td data-label="Telefon"><a href="tel:${r.telefon || ""}">${r.telefon || ""}</a></td>
-        <td data-label="Zadavatel">${r.contract || (r.jinaZadavatel?.jmeno || "")}</td>
-        <td data-label="Typ">${r.typ || ""}</td>
-        <td data-label="Stav" style="font-weight:600;">${stavText}</td>
-      </tr>
-    `;
-  });
-
-  html += "</tbody></table>";
-  tableContainer.innerHTML = html;
-
-  // Kliknutí → otevření detailu (modal)
-  document.querySelectorAll("tbody tr").forEach(row => {
-    row.addEventListener("click", () => {
-      const index = row.getAttribute("data-index");
-      openModal(index);
-    });
-  });
-
-  // 🚨 Znovu zvýrazní dnešní termíny
-  document.querySelectorAll("tbody tr").forEach((row, i) => {
-    const item = dataAll[i];
-    if (item && item.datum && isToday(item.datum)) {
-      row.classList.add("stav-dnes");
-    }
-  });
-};
-</script>
-<script>
-// 🧩 Otevření detailového modalu s možností změny termínu
+/* ============ Otevření detailu ============ */
 function openModal(index) {
   const item = dataAll[index];
   if (!item) return;
-
-  // Pokud už modal existuje, odstraníme ho
-  const oldModal = document.getElementById("wgsModal");
-  if (oldModal) oldModal.remove();
 
   const overlay = document.createElement("div");
-  overlay.id = "wgsModal";
-  overlay.style = `
-    position:fixed;inset:0;background:rgba(0,0,0,0.65);
-    display:flex;justify-content:center;align-items:center;z-index:9999;
-  `;
+  overlay.className = "modal-overlay";
+  overlay.style.display = "flex";
 
-  const hasTerm = item.datum && item.cas;
+  const fotoHtml = (item.foto || [])
+    .map((src, i) => `<img src="${src}" class="thumb-img" onclick="openFullscreen(${index}, ${i})">`)
+    .join("") || "–";
 
   overlay.innerHTML = `
-    <div style="
-      background:white;
-      width:90%;
-      max-width:600px;
-      border-radius:16px;
-      padding:25px;
-      box-shadow:0 5px 20px rgba(0,0,0,0.3);
-      animation:fadeIn .25s ease;">
-      <h2 style="margin-top:0;text-align:center;">${item.zakaznik || "Záznam"}</h2>
-      <p style="font-size:0.9em;text-align:center;color:#555;">${item.adresa || ""}</p>
+    <div class="modal show">
+      <h3>Reklamace – ${item.zakaznik || "Neznámý zákazník"}</h3>
+      <p><strong>Číslo:</strong> ${item.cislo || ""}</p>
+      <p><strong>Adresa:</strong> ${item.adresa || ""}</p>
+      <p><strong>Telefon:</strong> <a href="tel:${item.telefon || ""}">${item.telefon || ""}</a></p>
+      <p><strong>E-mail:</strong> ${item.email || "–"}</p>
+      <p><strong>Zadavatel:</strong> ${item.contract || ""}</p>
+      <p><strong>Popis:</strong> ${item.popis || "–"}</p>
+      <p><strong>Typ:</strong> ${item.typ || "–"}</p>
+      <p><strong>Datum:</strong> ${item.datum || "–"} ${item.cas || ""}</p>
+      <p><strong>Fotky:</strong></p>
+      <div>${fotoHtml}</div>
 
-      <div id="termSection" style="margin-top:20px;text-align:center;">
-        <button id="domluvitBtn" class="btnGradient" style="background:linear-gradient(135deg,#007bff,#4da3ff);color:white;border:none;padding:10px 20px;border-radius:8px;font-weight:600;cursor:pointer;">
-          ${hasTerm ? "🔵 Změnit termín" : "🔵 Domluvit termín"}
-        </button>
-
-        <div id="termInputs" style="display:${hasTerm ? "block" : "none"};margin-top:15px;">
-          <label for="datumInput">Datum:</label><br>
-          <input type="date" id="datumInput" style="padding:6px;border-radius:6px;border:1px solid #ccc;"><br><br>
-          <label for="casInput">Čas:</label><br>
-          <input type="time" id="casInput" style="padding:6px;border-radius:6px;border:1px solid #ccc;width:140px;font-size:1em;"><br><br>
-
-          <button id="nezvedaBtn" style="background:#ff9800;color:white;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;margin:5px;">🟠 Nezvedá to</button>
-          <button id="zrusilBtn" style="background:#dc3545;color:white;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;margin:5px;">🔴 Zákazník zrušil</button>
-          <button id="ulozitBtn" style="background:#007bff;color:white;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;margin:5px;">
-            ${hasTerm ? "🟢 Uložit změnu" : "🟢 Uložit termín"}
-          </button>
-        </div>
-
-        ${
-          hasTerm
-            ? `<p style="margin-top:10px;color:#444;">Aktuálně domluveno: <strong>${item.datum} ${item.cas}</strong></p>`
-            : ""
-        }
+      <div class="btn-row" style="margin-top:20px;">
+        <button class="btn-action btn-blue" id="termBtn">🔵 Domluvit / změnit termín</button>
+        <button class="btn-action btn-green" id="protoBtn">🟢 Vytvořit protokol</button>
+        <button class="btn-action btn-gray" id="closeBtn">❌ Zavřít</button>
       </div>
 
-      <div style="margin-top:20px;text-align:center;">
-        <button id="vytvoritBtn" style="background:#28a745;color:white;border:none;padding:10px 20px;border-radius:8px;font-weight:600;cursor:pointer;">🟢 Vytvořit protokol</button>
-        <button id="zavritBtn" style="background:#6c757d;color:white;border:none;padding:10px 20px;border-radius:8px;font-weight:600;cursor:pointer;margin-left:10px;">✖ Zavřít</button>
+      <div id="termSection" style="display:none;margin-top:20px;border-top:1px solid #ddd;padding-top:15px;">
+        <p style="font-weight:600;">Zadej termín návštěvy:</p>
+        <input type="date" id="datumTerminu" value="${item.datum || ""}">
+        <input type="time" id="casTerminu" value="${item.cas || ""}">
+        <div class="btn-row" style="margin-top:10px;">
+          <button class="btn-action btn-orange" id="noAnswerBtn">🟠 Nezvedá to</button>
+          <button class="btn-action btn-red" id="cancelBtn">🔴 Zákazník zrušil</button>
+          <button class="btn-action btn-blue" id="saveTermBtn">🟢 Uložit termín</button>
+        </div>
       </div>
     </div>
   `;
 
   document.body.appendChild(overlay);
 
-  // 💾 Předvyplnění, pokud existuje termín
-  if (item.datum) document.getElementById("datumInput").value = item.datum.split("T")[0];
-  if (item.cas) document.getElementById("casInput").value = item.cas;
+  const termSection = overlay.querySelector("#termSection");
+  overlay.querySelector("#termBtn").onclick = () => {
+    termSection.style.display = termSection.style.display === "none" ? "block" : "none";
+  };
 
-  // 🟦 Zobrazení/skrývání sekce s datem
-  document.getElementById("domluvitBtn").onclick = () => {
-    const section = document.getElementById("termInputs");
-    section.style.display = section.style.display === "none" ? "block" : "none";
+  overlay.querySelector("#closeBtn").onclick = () => overlay.remove();
+
+  overlay.querySelector("#protoBtn").onclick = () => {
+    localStorage.setItem("selectedRecord", JSON.stringify(item));
+    window.location.href = "protokol.html";
   };
 
   // 🟠 Nezvedá to
-  document.getElementById("nezvedaBtn").onclick = () => {
+  overlay.querySelector("#noAnswerBtn").onclick = () => {
     const id = item.cislo || `radek-${index}`;
     stavy[id] = "nezveda";
     localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
@@ -881,7 +338,7 @@ function openModal(index) {
   };
 
   // 🔴 Zákazník zrušil
-  document.getElementById("zrusilBtn").onclick = () => {
+  overlay.querySelector("#cancelBtn").onclick = () => {
     const id = item.cislo || `radek-${index}`;
     stavy[id] = "zruseno";
     localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
@@ -889,57 +346,61 @@ function openModal(index) {
     renderTable(dataAll);
   };
 
-  // 🟢 Uložit termín nebo změnu
-  document.getElementById("ulozitBtn").onclick = () => {
-    const datum = document.getElementById("datumInput").value;
-    const cas = document.getElementById("casInput").value;
-    if (!datum || !cas) {
-      alert("Vyplň datum a čas!");
-      return;
-    }
-
+  // 🟢 Uložit termín
+  overlay.querySelector("#saveTermBtn").onclick = () => {
+    const datum = overlay.querySelector("#datumTerminu").value;
+    const cas = overlay.querySelector("#casTerminu").value;
+    if (!datum || !cas) return alert("Vyplň datum i čas!");
     const id = item.cislo || `radek-${index}`;
+    item.datum = datum; item.cas = cas;
     stavy[id] = "domluveno";
-    item.datum = datum;
-    item.cas = cas;
-
     localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
     overlay.remove();
     renderTable(dataAll);
   };
-
-  // 🟢 Vytvořit protokol
-  document.getElementById("vytvoritBtn").onclick = () => {
-    localStorage.setItem("selectedRecord", JSON.stringify(item));
-    window.location.href = "protokol.html";
-  };
-
-  // ✖ Zavřít
-  document.getElementById("zavritBtn").onclick = () => overlay.remove();
 }
 
-// 🌀 Animace otevření
-const fadeAnim = document.createElement("style");
-fadeAnim.textContent = `
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}`;
-document.head.appendChild(fadeAnim);
-</script>
-<script>
-// 🔥 Blikání záznamů, které mají termín = dnešní datum
+/* 🖼️ Zobrazení fullscreen fotek */
+function openFullscreen(index, startIdx = 0) {
+  const item = dataAll[index];
+  if (!item?.foto?.length) return;
+  let current = startIdx;
+
+  const overlay = document.createElement("div");
+  overlay.className = "fullscreen";
+
+  const img = document.createElement("img");
+  img.src = item.foto[current];
+  overlay.appendChild(img);
+
+  const left = document.createElement("div");
+  left.className = "nav-btn left";
+  left.textContent = "❮";
+  left.onclick = () => {
+    current = (current - 1 + item.foto.length) % item.foto.length;
+    img.src = item.foto[current];
+  };
+
+  const right = document.createElement("div");
+  right.className = "nav-btn right";
+  right.textContent = "❯";
+  right.onclick = () => {
+    current = (current + 1) % item.foto.length;
+    img.src = item.foto[current];
+  };
+
+  overlay.appendChild(left);
+  overlay.appendChild(right);
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
+}
+/* 🔥 Zvýraznění dnešních termínů */
 function highlightTodayRows() {
   const today = new Date().toISOString().split("T")[0];
-  const rows = document.querySelectorAll("tbody tr[data-index]");
-
-  rows.forEach(row => {
-    const index = row.getAttribute("data-index");
-    const item = dataAll[index];
-    if (!item || !item.datum) return;
-
-    // pokud má záznam datum = dnešní, zvýrazní se červeným blikáním
-    if (item.datum === today && stavy[item.cislo || `radek-${index}`] === "domluveno") {
+  document.querySelectorAll("tbody tr[data-index]").forEach(row => {
+    const item = dataAll[row.dataset.index];
+    if (!item?.datum) return;
+    if (item.datum === today && stavy[item.cislo || `radek-${row.dataset.index}`] === "domluveno") {
       row.classList.add("blink-today");
     } else {
       row.classList.remove("blink-today");
@@ -947,14 +408,14 @@ function highlightTodayRows() {
   });
 }
 
-// 🔁 Sleduj, kdy se tabulka vykreslí
-const origRenderTable = renderTable;
+/* 🌀 Přebalení renderTable pro kontrolu dnešních termínů */
+const origRender = renderTable;
 renderTable = function(arr) {
-  origRenderTable(arr);
+  origRender(arr);
   highlightTodayRows();
 };
 
-// ✨ Styl blikání
+/* ✨ Styl blikání dnešních termínů */
 const blinkStyle = document.createElement("style");
 blinkStyle.textContent = `
 @keyframes blinkRed {
@@ -965,10 +426,91 @@ blinkStyle.textContent = `
 .blink-today {
   animation: blinkRed 1.5s infinite;
 }
+.thumb-img {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin: 4px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.thumb-img:hover {
+  transform: scale(1.05);
+}
+.fullscreen {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+.fullscreen img {
+  max-width: 90%;
+  max-height: 85%;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(255,255,255,0.3);
+}
+.nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: white;
+  font-size: 2.5em;
+  cursor: pointer;
+  padding: 10px 15px;
+  user-select: none;
+}
+.nav-btn.left { left: 5%; }
+.nav-btn.right { right: 5%; }
 `;
 document.head.appendChild(blinkStyle);
+
+/* 🌀 Overlay indikátor načítání */
+const overlay = document.createElement("div");
+overlay.id = "overlay";
+overlay.style = `
+  display:none;position:fixed;inset:0;background:rgba(255,255,255,0.85);
+  backdrop-filter:blur(3px);
+  justify-content:center;align-items:center;
+  font-weight:600;color:#333;z-index:9999;
+`;
+overlay.innerHTML = `
+  <div>
+    <div style="
+      border:4px solid #ccc;
+      border-top:4px solid #0046ff;
+      border-radius:50%;
+      width:40px;height:40px;margin:auto;
+      animation:spin 1s linear infinite;"></div>
+    <p>Načítám data…</p>
+  </div>`;
+document.body.appendChild(overlay);
+
+const spinStyle = document.createElement("style");
+spinStyle.textContent = `
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}`;
+document.head.appendChild(spinStyle);
+
+/* 🧩 Zobrazení overlay při načítání */
+const originalLoadData = loadData;
+loadData = async function() {
+  overlay.style.display = "flex";
+  try {
+    await originalLoadData();
+  } finally {
+    overlay.style.display = "none";
+  }
+};
+
+/* 🚀 Start aplikace */
+window.addEventListener("DOMContentLoaded", loadData);
 </script>
 
 </body>
 </html>
-
