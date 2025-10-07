@@ -461,7 +461,7 @@ window.addEventListener("DOMContentLoaded", loadData);
 </script>
 <!-- 🟨 KONEC ČÁSTI 2/10 (finální – Praha bez PSČ + uložené termíny po reloadu) -->
 
-<!-- 🟨 ZAČÁTEK ČÁSTI 3/10 (vylepšený detail zákazníka – kalendář a hodiny po kliknutí) -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 3/10 (Detail zákazníka – přehled 2x2: info, mapa, kalendář, hodiny) -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -473,18 +473,15 @@ function openDetail(index) {
 
   overlay.innerHTML = `
     <div class="detail-modal">
-      <div class="detail-content">
-        <div class="detail-info">
+      <div class="grid-layout">
+        <!-- 🧩 Levý horní blok – detail zákazníka -->
+        <div class="left-top">
           <h2>${item.zakaznik || "Zákazník"}</h2>
           <p><strong>Adresa:</strong>
-            <a href="https://waze.com/ul?q=${encodeURIComponent(adresaUpravena)}" target="_blank">
-              ${adresaUpravena || "Neuvedeno"}
-            </a>
+            <a href="https://waze.com/ul?q=${encodeURIComponent(adresaUpravena)}" target="_blank">${adresaUpravena || "Neuvedeno"}</a>
           </p>
           <p><strong>Telefon:</strong>
-            <a href="tel:${(item.telefon || "").replace("+420","").trim()}">
-              ${(item.telefon || "").replace("+420","").trim()}
-            </a>
+            <a href="tel:${(item.telefon || "").replace("+420","").trim()}">${(item.telefon || "").replace("+420","").trim()}</a>
           </p>
           <p><strong>Email:</strong> ${item.email || "–"}</p>
           <p><strong>Produkt / model:</strong> ${item.produkt || "–"}</p>
@@ -510,30 +507,31 @@ function openDetail(index) {
             <button id="protoBtn" class="btn-action btn-green">Přejít na protokol</button>
             <button id="closeBtn" class="btn-action btn-red">Zavřít</button>
           </div>
-
-          <div id="termSection" class="term-section">
-            <h3>Domluvit / Změnit termín</h3>
-            <div class="term-flex">
-              <div class="calendar-box">
-                <div id="miniCalendar"></div>
-              </div>
-              <div class="time-box">
-                <div class="custom-time-picker">
-                  <select id="hours"></select><span>:</span><select id="minutes"></select>
-                </div>
-                <div class="btn-row time-btns">
-                  <button id="saveTermBtn" class="btn-action btn-green">Uložit / Změnit</button>
-                  <button id="noAnswerBtn" class="btn-action btn-orange">Nezvedá (SMS)</button>
-                  <button id="cancelBtn" class="btn-action btn-gray">Zákazník zrušil</button>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
-        <div class="detail-map">
+        <!-- 🗺️ Pravý horní blok – mapa -->
+        <div class="right-top">
           <div id="mapDetail"></div>
           <div id="mapDistance" class="map-distance"></div>
+        </div>
+
+        <!-- 📅 Levý dolní blok – kalendář -->
+        <div class="left-bottom" id="calendarBox">
+          <div id="miniCalendar"></div>
+        </div>
+
+        <!-- ⏰ Pravý dolní blok – čas + tlačítka -->
+        <div class="right-bottom">
+          <div class="time-box">
+            <div class="custom-time-picker">
+              <select id="hours"></select><span>:</span><select id="minutes"></select>
+            </div>
+            <div class="btn-row time-btns">
+              <button id="saveTermBtn" class="btn-action btn-green">Uložit / Změnit</button>
+              <button id="noAnswerBtn" class="btn-action btn-orange">Nezvedá (SMS)</button>
+              <button id="cancelBtn" class="btn-action btn-gray">Zákazník zrušil</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -548,7 +546,7 @@ function openDetail(index) {
   for (let h = 7; h < 20; h++) hoursSel.innerHTML += `<option>${String(h).padStart(2,"0")}</option>`;
   for (let m = 0; m < 60; m += 5) minsSel.innerHTML += `<option>${String(m).padStart(2,"0")}</option>`;
 
-  /* 🗓️ Mini kalendář – skrytý do zobrazení */
+  // 🗓️ Mini kalendář
   const miniCal = new VanillaCalendar("#miniCalendar", {
     settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
     actions: {
@@ -560,18 +558,42 @@ function openDetail(index) {
   });
   miniCal.init();
 
-  /* 🧭 Tlačítko „Domluvit termín“ zobrazí sekci */
+  // 🗺️ Mapa s trasou WGS ➜ zákazník
+  if (item.adresa) {
+    const wgsCoords = [50.049, 14.523];
+    const map = L.map(overlay.querySelector("#mapDetail")).setView(wgsCoords, 9);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap" }).addTo(map);
+    const wgsMarker = L.marker(wgsCoords, { title: "WGS – Do Dubče" }).addTo(map);
+
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data[0]) {
+          const custCoords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+          const custMarker = L.marker(custCoords, { title: "Zákazník" }).addTo(map);
+          const group = L.featureGroup([wgsMarker, custMarker]);
+          map.fitBounds(group.getBounds().pad(0.3));
+          L.polyline([wgsCoords, custCoords], { color: "#0046ff", weight: 3, opacity: 0.8 }).addTo(map);
+          overlay.querySelector("#mapDistance").innerHTML =
+            `📍 Trasa: WGS → ${item.zakaznik || "Zákazník"}`;
+        }
+      });
+  }
+
+  // 🧭 Zobrazení kalendáře + hodin až po kliknutí
   overlay.querySelector("#termBtn").onclick = () => {
-    overlay.querySelector("#termSection").style.display = "block";
+    overlay.querySelector(".left-bottom").style.display = "block";
+    overlay.querySelector(".right-bottom").style.display = "block";
+    overlay.querySelector("#termBtn").disabled = true;
   };
 
-  /* 🧾 Přejít na protokol */
+  // 🧾 Přechod na protokol
   overlay.querySelector("#protoBtn").onclick = () => {
     localStorage.setItem("selectedRecord", JSON.stringify(item));
     window.location.href = "protokol.html";
   };
 
-  /* 🔚 Zavřít */
+  // 🔚 Zavřít
   overlay.querySelector("#closeBtn").onclick = () => {
     overlay.classList.remove("active");
     setTimeout(() => overlay.remove(), 200);
@@ -580,39 +602,42 @@ function openDetail(index) {
 </script>
 
 <style>
-.term-section {
-  display: none;
-  margin-top: 25px;
-  padding: 15px;
-  border: 1px solid #ccc;
+.grid-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 18px;
+}
+.left-top, .right-top, .left-bottom, .right-bottom {
+  background: #fff;
   border-radius: 10px;
-  background: #f6f7fb;
+  padding: 10px;
 }
-.term-section h3 {
+.left-top h2 { text-align:center; font-size:1.5em; margin-bottom:10px; }
+#mapDetail {
+  height: 260px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+.map-distance {
   text-align: center;
-  margin-bottom: 15px;
-  color: #000;
+  font-size: 0.9em;
+  margin-top: 6px;
 }
-.term-flex {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  justify-content: center;
+.left-bottom {
+  display: none;
+  background: transparent;
+  padding: 0;
 }
-.calendar-box {
-  flex: 1;
-  min-width: 280px;
-  max-width: 350px;
+.right-bottom {
+  display: none;
 }
 .time-box {
-  flex: 1;
-  min-width: 240px;
-  background: #fff;
-  border: 1px solid #ddd;
+  background: #f9f9f9;
+  border: 1px solid #ccc;
   border-radius: 10px;
   padding: 15px;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 .custom-time-picker {
   display: flex;
@@ -627,19 +652,25 @@ function openDetail(index) {
   border-radius: 8px;
   padding: 5px 10px;
   border: 1px solid #ccc;
-  outline: none;
-  color: #000;
 }
-.custom-time-picker select:focus {
-  border-color: #0046ff;
-  box-shadow: 0 0 0 2px rgba(0,70,255,0.2);
+.time-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 .time-btns button {
   width: 100%;
   font-size: 0.95em;
 }
+
+/* 📱 Responsivita */
+@media(max-width:800px){
+  .grid-layout{grid-template-columns:1fr;grid-template-rows:auto;}
+  .left-bottom,.right-bottom{display:block;}
+}
 </style>
 <!-- 🟨 KONEC ČÁSTI 3/10 -->
+
 
 
 
