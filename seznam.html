@@ -106,14 +106,14 @@ th { background: #f8f8f8; font-weight: 700; color:#000; }
 tr:hover { background: #f1f6ff; cursor: pointer; }
 
 /* 🔹 Stavy */
-.stav-nova { animation: blikani 1s infinite alternate; background: #ffeb66 !important; }
+.stav-nova { animation: blikani 1s infinite alternate; background: #fff799 !important; }
 .stav-domluveno { background: #99b3ff !important; }
 .stav-zruseno { background: #ff6666 !important; }
 .stav-nezveda { background: #ffad33 !important; }
 
 @keyframes blikani {
-  from { background-color: #ffe066; }
-  to { background-color: #fff280; }
+  from { background-color: #fff799; }
+  to { background-color: #fffac4; }
 }
 
 /* 📱 Stejná tlačítka na mobilu */
@@ -148,44 +148,45 @@ const tableContainer = document.getElementById("tableContainer");
 const searchInput = document.getElementById("search");
 const reloadBtn = document.getElementById("reloadBtn");
 let dataAll = [];
-let lastDataHash = "";
 let stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
 
-/* 🔄 Automatické načítání každé 2 minuty */
-setInterval(loadData, 120000);
-
-/* 📅 Chytré řazení */
-function sortSmart(data) {
-  const today = new Date().toISOString().split("T")[0];
-  return data.sort((a,b)=>{
-    const sa = stavy[a.cislo] || "nová";
-    const sb = stavy[b.cislo] || "nová";
-    const da = a.datum === today ? 0 : (sa==="zruseno"?2:1);
-    const db = b.datum === today ? 0 : (sb==="zruseno"?2:1);
-    return da-db;
-  });
+/* 🧭 Určení části Prahy podle PSČ */
+function pragueDistrictFromZIP(zip) {
+  const n = parseInt(zip.replace(/\s/g, "").substring(0, 3));
+  if (n >= 100 && n < 110) return "Praha 10";
+  if (n >= 110 && n < 120) return "Praha 1";
+  if (n >= 120 && n < 130) return "Praha 2";
+  if (n >= 130 && n < 140) return "Praha 3";
+  if (n >= 140 && n < 150) return "Praha 4";
+  if (n >= 150 && n < 160) return "Praha 5";
+  if (n >= 160 && n < 170) return "Praha 6";
+  if (n >= 170 && n < 180) return "Praha 7";
+  if (n >= 180 && n < 190) return "Praha 8";
+  if (n >= 190 && n < 200) return "Praha 9";
+  return "Praha";
 }
 
-/* 🧭 Zjednodušení adres – Praha podle PSČ */
+/* 🧩 Zjednodušení adresy */
 function simplifyAddress(addr) {
   if (!addr) return "";
+  let updated = addr;
   const zipMatch = addr.match(/\b\d{3}\s?\d{2}\b/);
   if (zipMatch) {
-    const zip = zipMatch[0].replace(/\s/g, "");
-    const zone = zip.startsWith("1") ? zip[1] : zip[0];
-    if (zone >= 0 && zone <= 9) return `Praha ${zone}`;
+    const zip = zipMatch[0];
+    if (addr.includes("Hlavní město Praha")) {
+      const cast = pragueDistrictFromZIP(zip);
+      updated = addr.replace("Hlavní město Praha", cast);
+    }
   }
-  if (addr.toLowerCase().includes("běchovice")) return "Praha 9";
-  return addr.replace(/\d{3}\s?\d{2}$/, "").trim();
+  return updated.trim();
 }
 
 /* 🗺️ Načtení dat */
 async function loadData() {
-  tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
   try {
     const res = await fetch(API_URL, { mode: "cors", cache: "no-store" });
     const data = await res.json();
-    dataAll = sortSmart(data.reverse());
+    dataAll = data.reverse();
     renderTable(dataAll);
   } catch(err) {
     tableContainer.innerHTML = `<div style='color:red;'>Chyba načítání: ${err.message}</div>`;
@@ -195,28 +196,13 @@ async function loadData() {
 /* 📋 Vykreslení tabulky */
 function renderTable(arr) {
   if (!arr.length) {
-    tableContainer.innerHTML = "<div class='loading'>Žádné záznamy</div>";
+    tableContainer.innerHTML = "<div>Žádné záznamy</div>";
     return;
   }
-
-  let html = `
-    <table>
-      <thead>
-        <tr>
-          <th>Zákazník</th>
-          <th>Adresa</th>
-          <th>Telefon</th>
-          <th>Stav</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
+  let html = `<table><thead><tr><th>Zákazník</th><th>Adresa</th><th>Telefon</th><th>Stav</th></tr></thead><tbody>`;
   arr.forEach((r, i) => {
     const id = r.cislo || `radek-${i}`;
-    let stav = stavy[id];
-    if (!stav) stav = "nová";
-
+    const stav = stavy[id] || "nová";
     const adresa = r.adresa
       ? `<a href="https://waze.com/ul?q=${encodeURIComponent(r.adresa)}" target="_blank" style="color:#000;font-weight:600;">${simplifyAddress(r.adresa)}</a>`
       : "–";
@@ -224,56 +210,28 @@ function renderTable(arr) {
       ? `<a href="tel:${r.telefon.replace('+420','').trim()}" style="color:#000;font-weight:600;">${r.telefon.replace('+420','').trim()}</a>`
       : "–";
 
-    let stavText = "";
+    let stavText = "–";
     if (stav === "domluveno" && r.datum && r.cas) {
       const d = new Date(r.datum);
-      const den = d.toLocaleDateString("cs-CZ", {
-        weekday: "short",
-        day: "numeric",
-        month: "numeric"
-      });
+      const den = d.toLocaleDateString("cs-CZ", { weekday: "short", day: "numeric", month: "numeric" });
       stavText = `${den} ${r.cas}`;
-    } else if (stav === "zruseno") {
-      stavText = "zrušeno";
-    } else if (stav === "nezveda") {
-      stavText = "nezvedá";
-    }
+    } else if (stav === "zruseno") stavText = "zrušeno";
+    else if (stav === "nezveda") stavText = "nezvedá";
+    else if (stav === "nová") stavText = "nová";
 
-    html += `
-      <tr class="stav-${stav.normalize('NFD').replace(/[\u0300-\u036f]/g, '')}" data-index="${i}" data-id="${id}">
-        <td>${r.zakaznik || "–"}</td>
-        <td>${adresa}</td>
-        <td>${telefon}</td>
-        <td>${stavText}</td>
-      </tr>`;
+    html += `<tr class="stav-${stav.normalize('NFD').replace(/[\u0300-\u036f]/g,'')}" data-index="${i}" data-id="${id}">
+      <td>${r.zakaznik || "–"}</td><td>${adresa}</td><td>${telefon}</td><td>${stavText}</td></tr>`;
   });
-
   html += "</tbody></table>";
   tableContainer.innerHTML = html;
-
-  document.querySelectorAll("tbody tr").forEach(row => {
-    row.addEventListener("click", () =>
-      openDetail(row.getAttribute("data-index"))
-    );
-  });
 }
-
-/* 🔍 Vyhledávání */
-searchInput.addEventListener("input",()=>{
-  const q = searchInput.value.trim().toLowerCase();
-  if(!q) return renderTable(dataAll);
-  const filtered = dataAll.filter(r =>
-    (r.zakaznik||"").toLowerCase().includes(q) ||
-    (r.adresa||"").toLowerCase().includes(q)
-  );
-  renderTable(filtered);
-});
 
 reloadBtn.addEventListener("click", loadData);
 window.addEventListener("DOMContentLoaded", loadData);
 </script>
 
 <!-- 🟨 KONEC ČÁSTI 1/10 -->
+
 
 <script>
 const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
