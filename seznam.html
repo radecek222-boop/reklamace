@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Seznam reklamací – White Glove Service</title>
 
-<!-- ✅ Leaflet mapa -->
+<!-- Leaflet mapa -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanilla-calendar@2.8.1/build/vanilla-calendar.min.css">
 <script src="https://cdn.jsdelivr.net/npm/vanilla-calendar@2.8.1/build/vanilla-calendar.min.js"></script>
 
-<!-- ✅ PDF Export -->
+<!-- PDF Export -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
@@ -73,9 +73,11 @@ h2 {
   min-width: 160px;
 }
 .btn:hover { transform: scale(1.04); opacity: 0.9; }
+
+/* 🔘 Barvy tlačítek */
 .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
 .btn-refresh { background: linear-gradient(135deg, #b80000, #ff3838); }
-.btn-green { background: linear-gradient(135deg, #28a745, #60d06a); text-align: center; }
+.btn-green { background: linear-gradient(135deg, #28a745, #60d06a); text-align:center; } /* Vycentrováno */
 .btn-plan { background: linear-gradient(135deg, #0046ff, #357aff); }
 
 #search {
@@ -105,17 +107,17 @@ th { background: #f8f8f8; font-weight: 700; color:#000; }
 tr:hover { background: #f1f6ff; cursor: pointer; }
 
 /* 🔹 Stavy */
-.stav-nová { animation: blikani 0.9s infinite alternate; background: #fff066 !important; }
+.stav-novy { animation: blikani 1s infinite alternate; background: #fff9b1 !important; } /* světlejší žlutá */
 .stav-domluveno { background: #99b3ff !important; }
 .stav-zruseno { background: #ff6666 !important; }
 .stav-nezveda { background: #ffad33 !important; }
 
 @keyframes blikani {
-  from { background-color: #fff066; }
-  to { background-color: #fff8a1; }
+  from { background-color: #fff9b1; }
+  to { background-color: #fff6a0; }
 }
 
-/* 📱 Stejná tlačítka na mobilu */
+/* 📱 Mobilní tlačítka */
 @media (max-width:700px){
   table { display:none; }
   .btn {
@@ -126,7 +128,6 @@ tr:hover { background: #f1f6ff; cursor: pointer; }
 }
 </style>
 </head>
-
 <body>
   <div class="wrapper">
     <h1>WHITE GLOVE SERVICE</h1>
@@ -142,27 +143,7 @@ tr:hover { background: #f1f6ff; cursor: pointer; }
     <input type="text" id="search" placeholder="🔍 Hledat podle jména, adresy nebo zadavatele...">
     <div id="tableContainer" class="loading">Načítám data...</div>
 
-<script>
-/* ✅ API URL – definováno pouze jednou */
-const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
-</script>
-
 <!-- 🟨 KONEC ČÁSTI 1/10 -->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <script>
 const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
 const tableContainer = document.getElementById("tableContainer");
@@ -197,41 +178,21 @@ function hashData(arr) {
 function sortSmart(data) {
   const today = new Date().toISOString().split("T")[0];
   return data.sort((a,b)=>{
-    const sa = stavy[a.cislo] || "nová";
-    const sb = stavy[b.cislo] || "nová";
-    const da = a.datum === today ? 0 : (sa==="zrušeno"?2:1);
-    const db = b.datum === today ? 0 : (sb==="zrušeno"?2:1);
+    const sa = stavy[a.cislo] || "novy";
+    const sb = stavy[b.cislo] || "novy";
+    const da = a.datum === today ? 0 : (sa==="zruseno"?2:1);
+    const db = b.datum === today ? 0 : (sb==="zruseno"?2:1);
     return da-db;
   });
 }
 
-/* 🧭 Zjednodušení adres – odstranění „Hlavní město Praha“ a určení části podle PSČ */
+/* 🧭 Zjednodušení adres (bez „Hlavní město Praha“) */
 function simplifyAddress(addr) {
   if (!addr) return "";
-
-  const pscMatch = addr.match(/\b\d{3}\s?\d{2}\b/);
-  let prahaCast = "";
-  if (pscMatch) {
-    const psc = parseInt(pscMatch[0].replace(/\s+/g,""));
-    if (psc>=10000 && psc<11000) prahaCast = "Praha 10";
-    else if (psc>=11000 && psc<12000) prahaCast = "Praha 1";
-    else if (psc>=12000 && psc<13000) prahaCast = "Praha 2";
-    else if (psc>=13000 && psc<14000) prahaCast = "Praha 3";
-    else if (psc>=14000 && psc<15000) prahaCast = "Praha 4";
-    else if (psc>=15000 && psc<16000) prahaCast = "Praha 5";
-    else if (psc>=16000 && psc<17000) prahaCast = "Praha 6";
-    else if (psc>=17000 && psc<18000) prahaCast = "Praha 7";
-    else if (psc>=18000 && psc<19000) prahaCast = "Praha 8";
-    else if (psc>=19000 && psc<20000) prahaCast = "Praha 9";
-  }
-
-  let upraveno = addr
-    .replace(/Hlavní\s*město\s*Praha/gi, "")
-    .replace(/\s{2,}/g, " ")
-    .trim();
-
-  if (prahaCast) upraveno = upraveno.replace(/\bPraha\b/i, prahaCast);
-  return upraveno;
+  const prahaMatch = addr.match(/Praha\s*\d+/i);
+  if (prahaMatch) return prahaMatch[0];
+  if (addr.toLowerCase().includes("běchovice")) return "Praha 9 Běchovice";
+  return addr.replace(/\d{3}\s?\d{2}$/, "").trim();
 }
 
 /* 🗺️ Načtení dat */
@@ -245,7 +206,18 @@ async function loadData() {
 
     dataAll = sortSmart(data.reverse());
     const newHash = hashData(dataAll);
-    if (lastDataHash && newHash !== lastDataHash) playNotification();
+    if (lastDataHash && newHash !== lastDataHash) {
+      playNotification();
+      const banner = document.createElement("div");
+      banner.textContent = "🆕 Nové reklamace byly načteny";
+      Object.assign(banner.style,{
+        position:"fixed",top:"10px",left:"50%",transform:"translateX(-50%)",
+        background:"#28a745",color:"#fff",padding:"10px 20px",borderRadius:"8px",
+        boxShadow:"0 3px 8px rgba(0,0,0,0.2)",zIndex:"99999"
+      });
+      document.body.appendChild(banner);
+      setTimeout(()=>banner.remove(),3000);
+    }
     lastDataHash = newHash;
     renderTable(dataAll);
   } catch(err) {
@@ -260,21 +232,20 @@ function renderTable(arr) {
     return;
   }
   let html = `
-  <table>
-    <thead>
-      <tr>
-        <th>Zákazník</th>
-        <th>Adresa</th>
-        <th>Telefon</th>
-        <th>Stav</th>
-      </tr>
-    </thead>
-    <tbody>`;
-  
+    <table>
+      <thead>
+        <tr>
+          <th>Zákazník</th>
+          <th>Adresa</th>
+          <th>Telefon</th>
+          <th>Stav</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
   arr.forEach((r,i)=>{
     const id = r.cislo || `radek-${i}`;
-    const stav = stavy[id] || "nová";
-
+    const stav = stavy[id] || "novy";
     const adresa = r.adresa
       ? `<a href="https://waze.com/ul?q=${encodeURIComponent(r.adresa)}" target="_blank" style="color:#000;font-weight:600;">${simplifyAddress(r.adresa)}</a>`
       : "–";
@@ -294,10 +265,9 @@ function renderTable(arr) {
         <td style="color:#000;">${r.zakaznik || "–"}</td>
         <td style="color:#000;">${adresa}</td>
         <td style="color:#000;">${telefon}</td>
-        <td style="color:#000;">${stavText}</td>
+        <td style="font-weight:600;text-transform:capitalize;color:#000;">${stavText}</td>
       </tr>`;
   });
-
   html += "</tbody></table>";
   tableContainer.innerHTML = html;
 
@@ -321,30 +291,7 @@ reloadBtn.addEventListener("click", loadData);
 window.addEventListener("DOMContentLoaded", loadData);
 </script>
 
-<style>
-/* 🟡 Nová reklamace – blikání výraznější žlutou */
-@keyframes blikaniNova {
-  0%   { background-color:#fff166; }
-  50%  { background-color:#ffe600; }
-  100% { background-color:#fff166; }
-}
-tr.stav-nová {
-  animation: blikaniNova 1s infinite;
-}
-</style>
-
 <!-- 🟨 KONEC ČÁSTI 2/10 -->
-
-
-
-
-
-
-
-
-
-
-    
 <script>
 /* ============================= */
 /* 💬 DETAIL MODAL SE ZÁKAZNÍKEM */
@@ -365,11 +312,13 @@ function openDetail(index) {
               ${item.adresa || "Neuvedeno"}
             </a>
           </p>
+
           <p><strong>Telefon:</strong>
             <a href="tel:${(item.telefon || "").replace("+420","").trim()}" style="color:#0046ff;font-weight:600;">
               ${(item.telefon || "").replace("+420","").trim()}
             </a>
           </p>
+
           <p><strong>Email:</strong> ${item.email || "–"}</p>
           <p><strong>Produkt / model:</strong> ${item.produkt || "–"}</p>
           <p><strong>Popis závady:</strong> ${item.popis || "–"}</p>
@@ -406,8 +355,8 @@ function openDetail(index) {
             </div>
 
             <div class="btn-row">
-              <button id="saveTermBtn" class="btn-action btn-green">Uložit termín</button>
-              <button id="noAnswerBtn" class="btn-action btn-orange">Nezvedá to</button>
+              <button id="saveTermBtn" class="btn-action btn-green">Uložit / Změnit</button>
+              <button id="noAnswerBtn" class="btn-action btn-orange">Nezvedá (SMS)</button>
               <button id="cancelBtn" class="btn-action btn-gray">Zákazník zrušil</button>
               <button id="backBtn" class="btn-action btn-red">Zpět</button>
             </div>
@@ -425,87 +374,46 @@ function openDetail(index) {
   document.body.appendChild(overlay);
   setTimeout(() => overlay.classList.add("active"), 10);
 
-  /* 🗺️ Inicializace mapy v detailu */
-  if (item.adresa) {
-    const wgsCoords = [50.049, 14.523]; // WGS – Do Dubče, Praha 9
-    const map = L.map(overlay.querySelector("#mapDetail")).setView(wgsCoords, 9);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "© OpenStreetMap"
-    }).addTo(map);
+  const id = item.cislo || `radek-${index}`;
+  const dateInput = overlay.querySelector("#datumTerminu");
+  const hoursSel = overlay.querySelector("#hours");
+  const minsSel = overlay.querySelector("#minutes");
 
-    const wgsMarker = L.marker(wgsCoords, { title: "WGS – Do Dubče" }).addTo(map)
-      .bindPopup("<b>WGS – Do Dubče, Praha 9</b>");
+  for (let h = 7; h < 20; h++) {
+    hoursSel.innerHTML += `<option value="${String(h).padStart(2,"0")}">${String(h).padStart(2,"0")}</option>`;
+  }
+  for (let m = 0; m < 60; m += 5) {
+    minsSel.innerHTML += `<option value="${String(m).padStart(2,"0")}">${String(m).padStart(2,"0")}</option>`;
+  }
 
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data[0]) {
-          const custCoords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-          const custMarker = L.marker(custCoords, { title: "Zákazník", icon: L.icon({
-            iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png",
-            iconSize: [28, 28],
-            iconAnchor: [14, 28]
-          })}).addTo(map)
-            .bindPopup(`<b>${item.zakaznik || "Zákazník"}</b><br>${item.adresa}`);
-
-          const group = L.featureGroup([wgsMarker, custMarker]);
-          map.fitBounds(group.getBounds().pad(0.3));
-
-          const distanceKm = calcDistanceCoords(
-            wgsCoords[0], wgsCoords[1],
-            custCoords[0], custCoords[1]
-          );
-          overlay.querySelector("#mapDistance").innerHTML =
-            `📍 Vzdálenost od WGS: <b>${distanceKm.toFixed(1)} km</b>`;
+  /* 🗓️ Mini Vanilla kalendář v detailu zákazníka */
+  const miniCal = new VanillaCalendar("#miniCalendar", {
+    settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
+    actions: {
+      clickDay(event, self) {
+        const chosen = event.target.dataset.calendarDay;
+        if (chosen) {
+          dateInput.value = chosen;
+          const d = new Date(chosen);
+          const den = d.toLocaleDateString("cs-CZ", { weekday: "long", day: "numeric", month: "numeric" });
+          const bigDate = overlay.querySelector(".term-center");
+          const existing = overlay.querySelector("#chosenDateDisplay");
+          if (existing) existing.remove();
+          const el = document.createElement("div");
+          el.id = "chosenDateDisplay";
+          el.style.fontSize = "1.5em";
+          el.style.fontWeight = "700";
+          el.style.marginTop = "10px";
+          el.style.color = "#0046ff";
+          el.textContent = den;
+          bigDate.insertBefore(el, bigDate.children[1]);
         }
-      });
-  }
-
-  /* 🔘 Ovládací tlačítka v detailu */
-  overlay.querySelector("#termBtn").onclick = () => {
-    overlay.querySelector("#termSection").style.display = "block";
-  };
-  overlay.querySelector("#backBtn").onclick = () => {
-    overlay.querySelector("#termSection").style.display = "none";
-  };
-  overlay.querySelector("#protoBtn").onclick = () => {
-    localStorage.setItem("selectedRecord", JSON.stringify(item));
-    window.location.href = "protokol.html";
-  };
-  overlay.querySelector("#closeBtn").onclick = closeDetail;
-
-  function closeDetail() {
-    overlay.classList.remove("active");
-    setTimeout(() => overlay.remove(), 200);
-  }
-}
-
-/* 📏 Výpočet vzdálenosti mezi dvěma souřadnicemi */
-function calcDistanceCoords(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-</script>
+      }
+    }
+  });
+  miniCal.init();
 
 <!-- 🟨 KONEC ČÁSTI 3/10 -->
-
-
-
-
-
-
-
-
-
-
-
-
-  
   /* 🗺️ Inicializace mapy v detailu */
   if (item.adresa) {
     const wgsCoords = [50.049, 14.523]; // WGS – Do Dubče Praha 9 Běchovice
@@ -629,17 +537,6 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
 </script>
 
 <!-- 🟨 KONEC ČÁSTI 4/10 -->
-
-
-
-
-
-
-
-
-
-
-    
 <style>
 /* ============================= */
 /* 💬 DETAIL MODAL STYL          */
@@ -832,17 +729,6 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
 </style>
 
 <!-- 🟨 KONEC ČÁSTI 5/10 -->
-
-
-
-
-
-
-
-
-
-
-    
 <style>
 /* ✨ Plán dne – modal */
 #planModal {
@@ -952,16 +838,6 @@ let map, markersLayer, routeLayer;
 const wgsCoords = [50.049, 14.523]; // WGS – Do Dubče, Praha 9 Běchovice
 
 <!-- 🟨 KONEC ČÁSTI 6/10 -->
-
-
-
-
-
-
-
-
-
-  
 /* 🗓️ Inicializace Vanilla kalendáře s označením dnů */
 function initCalendar() {
   const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
@@ -1086,15 +962,6 @@ async function showPlanForDay(date) {
 </script>
 
 <!-- 🟨 KONEC ČÁSTI 7/10 -->
-
-
-
-
-
-
-
-
-    
 <script>
 /* 🧾 Export plánu dne do PDF */
 async function exportPlanToPDF() {
@@ -1213,17 +1080,6 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 
 <!-- 🟨 KONEC ČÁSTI 8/10 -->
-
-
-
-
-
-
-
-
-
-
-    
 <style>
 /* 🔴 Blikání dnešních termínů */
 @keyframes blinkToday {
@@ -1279,16 +1135,6 @@ document.addEventListener("DOMContentLoaded", () => {
 </style>
 
 <!-- 🟨 KONEC ČÁSTI 9/10 -->
-
-
-
-
-
-
-
-
-
-    
 <!-- 📅 Funkční VanillaCalendar knihovna -->
 <link
   rel="stylesheet"
@@ -1302,14 +1148,3 @@ document.addEventListener("DOMContentLoaded", () => {
 </html>
 
 <!-- 🟨 KONEC ČÁSTI 10/10 -->
-
-
-
-
-
-
-
-
-
-
-
