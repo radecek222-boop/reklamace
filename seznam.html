@@ -152,8 +152,7 @@ tr:hover { background: #f1f6ff; cursor: pointer; }
 </body>
 <!-- 🟨 KONEC ČÁSTI 1/10 -->
 
-
-<!-- 🟨 ZAČÁTEK ČÁSTI 2/10 (finální – STAV bez tučného + datum/čas místo „domluveno“) -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 2/10 (finální – Praha bez PSČ + uložené termíny po reloadu) -->
 <script>
 const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
 const tableContainer = document.getElementById("tableContainer");
@@ -196,7 +195,7 @@ function sortSmart(data) {
   });
 }
 
-/* 🧭 Úprava adres – Praha s PSČ */
+/* 🧭 Úprava adres – Praha bez PSČ, ale s městskou částí */
 function normalizePrahaAddress(addr) {
   if (!addr) return "";
   let newAddr = addr.replace(/Hlavní město\s*Praha/gi, "Praha");
@@ -224,19 +223,24 @@ function normalizePrahaAddress(addr) {
     "10000":"Praha 10 Vršovice","10100":"Praha 10 Strašnice","10200":"Praha 10 Hostivař",
     "10400":"Praha 10 Uhříněves","10600":"Praha 10 Záběhlice","10700":"Praha 10 Petrovice",
     "10800":"Praha 10 Malešice","10900":"Praha 10 Horní Měcholupy","11100":"Praha 10 Dubeč",
-    "14800":"Praha 12 Modřany","10300":"Praha 22 Kolovraty","15600":"Praha 5 Zbraslav","16500":"Praha 6 Lysolaje"
+    "14800":"Praha 12 Modřany","10300":"Praha 22 Kolovraty",
+    "15600":"Praha 5 Zbraslav","16500":"Praha 6 Lysolaje"
   };
 
   const doplnek = prahaMap[psc];
   if (doplnek) {
-    newAddr = newAddr.replace(/\bPraha\b\s*\d{0,2}\b/gi, "").trim().replace(/\s*,\s*$/, "");
-    newAddr = newAddr.replace(/,\s*,/g, ",");
+    // odstraní PSČ i duplicitní Praha
+    newAddr = newAddr
+      .replace(/\bPraha\b\s*\d{0,2}\b/gi, "")
+      .replace(/\b\d{5}\b/g, "")
+      .replace(/\s*,\s*$/, "")
+      .trim();
     newAddr += `, ${doplnek}`;
   }
   return newAddr.trim();
 }
 
-/* 🗺️ Načtení dat */
+/* 🗺️ Načtení dat (s propojením uložených termínů) */
 async function loadData() {
   tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
   try {
@@ -244,6 +248,18 @@ async function loadData() {
     if (!res.ok) throw new Error("Chyba při načítání dat");
     const data = await res.json();
     if (!Array.isArray(data)) throw new Error("Neplatný formát dat");
+
+    // 🧠 načteme uložené termíny z localStorage
+    const ulozeneTerminy = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
+
+    // 🧩 propojení dat z API s uloženými termíny (datum + čas)
+    data.forEach(z => {
+      const ulozeny = ulozeneTerminy.find(u => u.cislo === z.cislo);
+      if (ulozeny) {
+        z.datum = ulozeny.datum;
+        z.cas = ulozeny.cas;
+      }
+    });
 
     dataAll = sortSmart(data.reverse());
     const newHash = hashData(dataAll);
@@ -269,19 +285,14 @@ function renderTable(arr) {
     const id = r.cislo || `radek-${i}`;
     const stav = stavy[id] || "novy";
 
-    // upravená adresa
-    let adresaText = normalizePrahaAddress(r.adresa || "");
-    adresaText = adresaText.replace(/\bPraha\b\s*(\d{1,2})\s*Praha/gi, "Praha $1").trim();
-
     const adresa = r.adresa
-      ? `<a href="https://waze.com/ul?q=${encodeURIComponent(r.adresa)}" target="_blank" style="color:#000;font-weight:600;">${adresaText}</a>`
+      ? `<a href="https://waze.com/ul?q=${encodeURIComponent(r.adresa)}" target="_blank" style="color:#000;font-weight:600;">${normalizePrahaAddress(r.adresa)}</a>`
       : "–";
 
     const telefon = r.telefon
       ? `<a href="tel:${r.telefon.replace('+420','').trim()}" style="color:#000;font-weight:600;">${r.telefon.replace('+420','').trim()}</a>`
       : "–";
 
-    // přehledný stav – zobrazí datum + čas, žádné "domluveno"
     let stavText = stav;
     if (stav === "domluveno" && r.datum && r.cas) {
       const d = new Date(r.datum);
@@ -294,7 +305,7 @@ function renderTable(arr) {
       <td>${r.zakaznik || "–"}</td>
       <td>${adresa}</td>
       <td>${telefon}</td>
-      <td style="font-weight:400;text-transform:none;">${stavText}</td>
+      <td style="font-weight:400;">${stavText}</td>
     </tr>`;
   });
 
@@ -318,7 +329,8 @@ searchInput.addEventListener("input",()=>{
 reloadBtn.addEventListener("click", loadData);
 window.addEventListener("DOMContentLoaded", loadData);
 </script>
-<!-- 🟨 KONEC ČÁSTI 2/10 (finální – STAV bez tučného + datum/čas místo „domluveno“) -->
+<!-- 🟨 KONEC ČÁSTI 2/10 (finální – Praha bez PSČ + uložené termíny po reloadu) -->
+
 
 
 <script>
