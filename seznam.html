@@ -261,7 +261,12 @@ function renderTable(arr) {
         <td>${r.zakaznik || "–"}</td>
         <td>${adresa}</td>
         <td>${telefon}</td>
-        <td style="font-weight:600;text-transform:capitalize;">${stav}</td>
+<td style="font-weight:600;text-transform:capitalize;">
+  ${stav}
+  ${stav === "domluveno" && (r.datum || r.cas)
+    ? `<div style='font-size:0.85em;color:#222;margin-top:2px;'>${r.datum || ""} ${r.cas || ""}</div>`
+    : ""}
+</td>
       </tr>
     `;
   });
