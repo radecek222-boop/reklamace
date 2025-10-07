@@ -73,10 +73,10 @@ h2 {
   min-width: 160px;
 }
 .btn:hover { transform: scale(1.04); opacity: 0.9; }
-.btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
-.btn-refresh { background: linear-gradient(135deg, #b80000, #ff3838); }
-.btn-green { background: linear-gradient(135deg, #28a745, #60d06a); }
-.btn-plan { background: linear-gradient(135deg, #0046ff, #357aff); }
+.btn-back { background: linear-gradient(135deg,#6c757d,#a0a4a7); }
+.btn-refresh { background: linear-gradient(135deg,#b80000,#ff3838); }
+.btn-green { background: linear-gradient(135deg,#28a745,#60d06a); }
+.btn-plan { background: linear-gradient(135deg,#0046ff,#357aff); }
 
 #search {
   width: 100%;
@@ -108,32 +108,27 @@ table td a {
   color: #000 !important;
   text-decoration: none;
 }
-table td a:hover {
-  text-decoration: underline;
-}
+table td a:hover { text-decoration: underline; }
 
 /* 🔹 Stavy */
-.stav-novy { animation: blikani 1s infinite alternate; background: #ffdb4d !important; }
-.stav-domluveno { background: #99b3ff !important; }
-.stav-zruseno { background: #ff6666 !important; }
-.stav-nezveda { background: #ffad33 !important; }
+.stav-novy      { animation: blikani 1s infinite alternate; background:#ffdb4d!important; }
+.stav-domluveno { background:#99b3ff!important; }
+.stav-zruseno   { background:#ff6666!important; }
+.stav-nezveda   { background:#ffad33!important; }
 
 @keyframes blikani {
-  from { background-color: #ffe066; }
-  to { background-color: #fff280; }
+  from { background-color:#ffe066; }
+  to   { background-color:#fff280; }
 }
 
 /* 📱 Mobilní verze */
 @media (max-width:700px){
   table { display:none; }
-  .btn {
-    width:100%;
-    min-width:unset;
-    text-align:center;
-  }
+  .btn { width:100%; min-width:unset; text-align:center; }
 }
 </style>
 </head>
+
 <body>
   <div class="wrapper">
     <h1>WHITE GLOVE SERVICE</h1>
@@ -146,9 +141,9 @@ table td a:hover {
       <button id="planBtn" class="btn btn-plan">Plán dne</button>
     </div>
 
-    <input type="text" id="search" placeholder="🔍 Hledat podle jména, adresy nebo zadavatele...">
-    <div id="tableContainer" class="loading">Načítám data...</div>
-
+    <input type="text" id="search"
+           placeholder="🔍 Hledat podle jména, adresy nebo zadavatele…">
+    <div id="tableContainer" class="loading">Načítám data…</div>
 <script>
 const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
 const tableContainer = document.getElementById("tableContainer");
@@ -158,10 +153,8 @@ let dataAll = [];
 let lastDataHash = "";
 let stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
 
-/* 🔄 automatické načítání každé 2 minuty */
+/* 🔄 Automatické načítání každé 2 minuty + zvuk při nových záznamech */
 setInterval(loadData, 120000);
-
-/* 🔔 zvuková notifikace při nových záznamech */
 function playNotification() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -173,65 +166,32 @@ function playNotification() {
     o.start(); o.stop(ctx.currentTime + 0.3);
   } catch(e){}
 }
-
-/* 🧩 hash pro porovnání změn */
 function hashData(arr) {
   return arr.map(r => r.cislo || r.id || "").join("|");
 }
 
-/* 📅 chytré řazení */
+/* 📅 Chytré řazení – dnes → ostatní → zrušené */
 function sortSmart(data) {
   const today = new Date().toISOString().split("T")[0];
   return data.sort((a,b)=>{
     const sa = stavy[a.cislo] || "novy";
     const sb = stavy[b.cislo] || "novy";
-    const da = a.datum === today ? 0 : (sa==="zruseno"?2:1);
-    const db = b.datum === today ? 0 : (sb==="zruseno"?2:1);
+    const da = a.datum===today ? 0 : (sa==="zruseno"?2:1);
+    const db = b.datum===today ? 0 : (sb==="zruseno"?2:1);
     return da-db;
   });
 }
 
-/* 🧭 zjednodušení adres */
+/* 🧭 Zjednodušení adresy – např. „Praha 9“ místo ulice */
 function simplifyAddress(addr) {
   if (!addr) return "";
-  const prahaMatch = addr.match(/Praha\s*\d+/i);
-  if (prahaMatch) return prahaMatch[0];
+  const praha = addr.match(/Praha\s*\d+/i);
+  if (praha) return praha[0];
   if (addr.toLowerCase().includes("běchovice")) return "Praha 9";
   return addr.replace(/\d{3}\s?\d{2}$/, "").trim();
 }
-</script>
-/* 🗺️ Načtení dat a vykreslení tabulky */
-async function loadData() {
-  tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
-  try {
-    const res = await fetch(API_URL, { mode: "cors", cache: "no-store" });
-    if (!res.ok) throw new Error("Chyba při načítání dat");
-    const data = await res.json();
-    if (!Array.isArray(data)) throw new Error("Neplatný formát dat");
 
-    dataAll = sortSmart(data.reverse());
-    const newHash = hashData(dataAll);
-    if (lastDataHash && newHash !== lastDataHash) {
-      playNotification();
-      const banner = document.createElement("div");
-      banner.textContent = "🆕 Nové reklamace byly načteny";
-      Object.assign(banner.style, {
-        position:"fixed",top:"10px",left:"50%",transform:"translateX(-50%)",
-        background:"#28a745",color:"#fff",padding:"10px 20px",borderRadius:"8px",
-        boxShadow:"0 3px 8px rgba(0,0,0,0.2)",zIndex:"99999"
-      });
-      document.body.appendChild(banner);
-      setTimeout(()=>banner.remove(),3000);
-    }
-    lastDataHash = newHash;
-    renderTable(dataAll);
-  } catch(err) {
-    tableContainer.innerHTML =
-      `<div class='loading' style='color:red;'>Chyba načítání: ${err.message}</div>`;
-  }
-}
-
-/* 📅 převod na CZ formát bez roku (např. „St 09.10. 13:00“) */
+/* 🕒 Formát „Po 07.10. 13:00“ */
 function formatCzDateShort(dateStr, timeStr) {
   if (!dateStr) return "";
   const d = new Date(dateStr + "T" + (timeStr || "00:00"));
@@ -243,7 +203,39 @@ function formatCzDateShort(dateStr, timeStr) {
   return `${dayName} ${day}.${month}. ${time}`;
 }
 
-/* 📋 Vykreslení tabulky s klikem na detail */
+/* 🗺️ Načtení dat a vykreslení tabulky */
+async function loadData() {
+  tableContainer.innerHTML = "<div class='loading'>Načítám data…</div>";
+  try {
+    const res = await fetch(API_URL, {mode:"cors", cache:"no-store"});
+    if (!res.ok) throw new Error("Chyba při načítání dat");
+    const data = await res.json();
+    if (!Array.isArray(data)) throw new Error("Neplatný formát dat");
+
+    dataAll = sortSmart(data.reverse());
+    const newHash = hashData(dataAll);
+
+    /* 🆕 Detekce nových záznamů – zvuk + banner */
+    if (lastDataHash && newHash !== lastDataHash) {
+      playNotification();
+      const banner = document.createElement("div");
+      banner.textContent = "🆕 Nové reklamace byly načteny";
+      Object.assign(banner.style,{
+        position:"fixed",top:"10px",left:"50%",transform:"translateX(-50%)",
+        background:"#28a745",color:"#fff",padding:"10px 20px",borderRadius:"8px",
+        boxShadow:"0 3px 8px rgba(0,0,0,0.2)",zIndex:"99999"
+      });
+      document.body.appendChild(banner);
+      setTimeout(()=>banner.remove(),3000);
+    }
+    lastDataHash = newHash;
+    renderTable(dataAll);
+  } catch(err) {
+    tableContainer.innerHTML = `<div style='color:red;'>${err.message}</div>`;
+  }
+}
+
+/* 📋 Vykreslení tabulky + klik na detail */
 function renderTable(arr) {
   if (!arr.length) {
     tableContainer.innerHTML = "<div class='loading'>Žádné záznamy</div>";
@@ -259,40 +251,31 @@ function renderTable(arr) {
           <th>Stav</th>
         </tr>
       </thead>
-      <tbody>
-  `;
+      <tbody>`;
   arr.forEach((r,i)=>{
     const id = r.cislo || `radek-${i}`;
     const stav = stavy[id] || "novy";
     const adresa = r.adresa
-      ? `<a href="https://waze.com/ul?q=${encodeURIComponent(r.adresa)}"
-           target="_blank">${simplifyAddress(r.adresa)}</a>`
+      ? `<a href="https://waze.com/ul?q=${encodeURIComponent(r.adresa)}" target="_blank">${simplifyAddress(r.adresa)}</a>`
       : "–";
     const telefon = r.telefon
-      ? `<a href="tel:${r.telefon.replace('+420','').trim()}">
-           ${r.telefon.replace('+420','').trim()}
-         </a>`
+      ? `<a href="tel:${r.telefon.replace('+420','').trim()}">${r.telefon.replace('+420','').trim()}</a>`
       : "–";
-
     let stavText = stav;
-    if (stav === "domluveno" && r.datum)
-      stavText = `Domluveno – ${formatCzDateShort(r.datum, r.cas)}`;
-
+    if (stav==="domluveno" && r.datum)
+      stavText = `Domluveno – ${formatCzDateShort(r.datum,r.cas)}`;
     html += `
       <tr class="stav-${stav}" data-index="${i}" data-id="${id}">
         <td>${r.zakaznik || "–"}</td>
         <td>${adresa}</td>
         <td>${telefon}</td>
-        <td style="font-weight:600;text-transform:none;">${stavText}</td>
+        <td style="font-weight:600;">${stavText}</td>
       </tr>`;
   });
   html += "</tbody></table>";
   tableContainer.innerHTML = html;
-
   document.querySelectorAll("tbody tr").forEach(row=>{
-    row.addEventListener("click",()=>{
-      openDetail(row.getAttribute("data-index"));
-    });
+    row.addEventListener("click",()=>openDetail(row.dataset.index));
   });
 }
 
@@ -308,13 +291,13 @@ searchInput.addEventListener("input",()=>{
   renderTable(filtered);
 });
 
-/* ♻️ Tlačítko načíst znovu + první načtení */
+/* ♻️ Tlačítko Načíst znovu + první načtení */
 reloadBtn.addEventListener("click", loadData);
 window.addEventListener("DOMContentLoaded", loadData);
 </script>
 <script>
 /* ============================= */
-/* 💬 DETAIL ZÁKAZNÍKA (modal)   */
+/* 💬 DETAIL ZÁKAZNÍKA (MODAL)   */
 /* ============================= */
 function openDetail(index) {
   const item = dataAll[index];
@@ -325,8 +308,7 @@ function openDetail(index) {
   overlay.innerHTML = `
     <div class="detail-modal">
       <div class="detail-content">
-
-        <!-- 🧾 Levý sloupec – informace -->
+        <!-- Levý sloupec – informace -->
         <div class="detail-info">
           <h2>${item.zakaznik || "Zákazník"}</h2>
           <p><strong>Adresa:</strong>
@@ -344,16 +326,23 @@ function openDetail(index) {
           <p><strong>Popis závady:</strong> ${item.popis || "–"}</p>
           <p><strong>Typ:</strong> ${item.typ || "–"}</p>
 
-          ${ item.typ && item.typ.toLowerCase().includes("pozáruční")
-            ? "" 
-            : `<p><strong>Datum prodeje:</strong> ${item.datum_prodeje || "–"} | 
-                 <strong>Datum reklamace:</strong> ${item.datum_reklamace || "–"}</p>` }
+          ${
+            item.typ && item.typ.toLowerCase().includes("pozáruční")
+              ? ""
+              : `<p><strong>Datum prodeje:</strong> ${item.datum_prodeje || "–"} |
+                   <strong>Datum reklamace:</strong> ${item.datum_reklamace || "–"}</p>`
+          }
 
-          ${ item.fotky && item.fotky.length
-              ? `<div class="foto-container">
-                   ${item.fotky.map(f=>`<img src="foto/${f}" alt="${f}" onclick="showPhoto(this.src)" />`).join("")}
-                 </div>`
-              : `<p style="color:#777;">📷 Žádné přiložené fotky</p>` }
+          ${
+            item.fotky && item.fotky.length
+              ? `
+                <div class="foto-container">
+                  ${item.fotky.map(f => `
+                    <img src="foto/${f}" alt="${f}" onclick="showPhoto(this.src)" />
+                  `).join("")}
+                </div>`
+              : `<p style="color:#777;">📷 Žádné přiložené fotky</p>`
+          }
 
           <div class="btn-row">
             <button id="termBtn" class="btn-action btn-blue">Domluvit / Změnit termín</button>
@@ -361,10 +350,8 @@ function openDetail(index) {
             <button id="closeBtn" class="btn-action btn-red">Zavřít</button>
           </div>
 
-          <!-- 🗓️ Sekce termínu -->
           <div id="termSection" class="term-section">
             <h3>Domluvit / Změnit termín</h3>
-
             <div id="detailCalendar"></div>
 
             <div class="term-center">
@@ -383,7 +370,7 @@ function openDetail(index) {
           </div>
         </div>
 
-        <!-- 🗺️ Pravý sloupec – mapa -->
+        <!-- Pravý sloupec – mapa -->
         <div class="detail-map">
           <div id="mapDetail"></div>
           <div id="mapDistance" class="map-distance"></div>
@@ -391,47 +378,61 @@ function openDetail(index) {
       </div>
     </div>
   `;
+
   document.body.appendChild(overlay);
-  setTimeout(()=>overlay.classList.add("active"),10);
+  setTimeout(() => overlay.classList.add("active"), 10);
 
   const id = item.cislo || `radek-${index}`;
   const dateInput = overlay.querySelector("#datumTerminu");
   const hoursSel  = overlay.querySelector("#hours");
   const minsSel   = overlay.querySelector("#minutes");
 
-  for (let h=7; h<20; h++) hoursSel.innerHTML += `<option>${String(h).padStart(2,"0")}</option>`;
-  for (let m=0; m<60; m+=5) minsSel.innerHTML += `<option>${String(m).padStart(2,"0")}</option>`;
+  for (let h = 7; h < 20; h++) {
+    hoursSel.innerHTML += `<option value="${String(h).padStart(2,"0")}">${String(h).padStart(2,"0")}</option>`;
+  }
+  for (let m = 0; m < 60; m += 5) {
+    minsSel.innerHTML += `<option value="${String(m).padStart(2,"0")}">${String(m).padStart(2,"0")}</option>`;
+  }
 
   /* 🗓️ Kalendář celého měsíce */
   const cal = new VanillaCalendar("#detailCalendar", {
     settings:{lang:"cs",visibility:{theme:"light"}},
-    actions:{clickDay(ev){ 
+    actions:{clickDay(ev){
       const d = ev.target.dataset.calendarDay;
       if (d) dateInput.value = d;
     }}
   });
   cal.init();
 
-  /* 🗺️ Mapa a vzdálenost */
+  /* 🗺️ Mapa a výpočet vzdálenosti */
   if (item.adresa) {
-    const wgsCoords = [50.049,14.523];
-    const map = L.map(overlay.querySelector("#mapDetail")).setView(wgsCoords,9);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);
-    const wgsMarker = L.marker(wgsCoords,{title:"WGS – Do Dubče"}).addTo(map)
-      .bindPopup("<b>WGS – Do Dubče, Praha 9</b>");
+    const wgsCoords = [50.049, 14.523];
+    const map = L.map(overlay.querySelector("#mapDetail")).setView(wgsCoords, 9);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap"
+    }).addTo(map);
+
+    const wgsMarker = L.marker(wgsCoords, { title: "WGS – Do Dubče" })
+      .addTo(map).bindPopup("<b>WGS – Do Dubče, Praha 9</b>");
 
     fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(item.adresa)}`)
-      .then(r=>r.json())
-      .then(data=>{
+      .then(r => r.json())
+      .then(data => {
         if (data[0]) {
-          const cust=[+data[0].lat,+data[0].lon];
-          const mark=L.marker(cust,{
-            icon:L.icon({iconUrl:"https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png",iconSize:[28,28],iconAnchor:[14,28]})
-          }).addTo(map).bindPopup(`<b>${item.zakaznik||"Zákazník"}</b><br>${item.adresa}`);
-          const group=L.featureGroup([wgsMarker,mark]);
+          const cust = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+          const mark = L.marker(cust, {
+            icon: L.icon({
+              iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png",
+              iconSize: [28, 28],
+              iconAnchor: [14, 28]
+            })
+          }).addTo(map).bindPopup(`<b>${item.zakaznik || "Zákazník"}</b><br>${item.adresa}`);
+
+          const group = L.featureGroup([wgsMarker, mark]);
           map.fitBounds(group.getBounds().pad(0.3));
-          const d=calcDistanceCoords(wgsCoords[0],wgsCoords[1],cust[0],cust[1]);
-          overlay.querySelector("#mapDistance").innerHTML=`📍 Vzdálenost od WGS: <b>${d.toFixed(1)} km</b>`;
+          setTimeout(()=>map.invalidateSize(),300);
+          const d = calcDistanceCoords(wgsCoords[0], wgsCoords[1], cust[0], cust[1]);
+          overlay.querySelector("#mapDistance").innerHTML = `📍 Vzdálenost od WGS: <b>${d.toFixed(1)} km</b>`;
         }
       });
   }
@@ -439,9 +440,10 @@ function openDetail(index) {
 </script>
 <script>
 /* ============================= */
-/* 💾 AKCE V DETAILU ZÁKAZNÍKA  */
+/* 💾 AKCE V DETAILU ZÁKAZNÍKA   */
 /* ============================= */
 
+/* 🕓 Kontrola překryvu termínů (2 h rozdíl) */
 function checkOverlap(datum, cas) {
   const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
   const nove = new Date(`${datum}T${cas}`);
@@ -458,14 +460,13 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) ** 2 +
-            Math.cos(lat1 * Math.PI / 180) *
-            Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
+            Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-/* 🧠 Uložení termínu do LocalStorage */
+/* 💾 Uložení termínu do LocalStorage */
 function ulozTermin(zaznam) {
   let data = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
   const id = zaznam.cislo || zaznam.id;
@@ -477,21 +478,21 @@ function ulozTermin(zaznam) {
 /* ============================= */
 /* 🧭 OVLÁDÁNÍ TLAČÍTEK V DETAILU */
 /* ============================= */
-document.addEventListener("click", async (e) => {
+document.addEventListener("click", (e) => {
   const btn = e.target.closest("button");
   if (!btn) return;
 
   const overlay = btn.closest(".detail-overlay");
   if (!overlay) return;
 
-  const index = overlay.querySelector(".detail-modal")?.dataset?.index;
-  const item = index ? dataAll[index] : null;
+  const index = overlay.querySelector(".detail-modal")?.dataset?.index || null;
+  const item = index !== null ? dataAll[index] : null;
   if (!item) return;
 
   const id = item.cislo || `radek-${index}`;
   const dateInput = overlay.querySelector("#datumTerminu");
-  const hoursSel = overlay.querySelector("#hours");
-  const minsSel = overlay.querySelector("#minutes");
+  const hoursSel  = overlay.querySelector("#hours");
+  const minsSel   = overlay.querySelector("#minutes");
 
   /* 💾 Uložit termín */
   if (btn.id === "saveTermBtn") {
@@ -501,8 +502,8 @@ document.addEventListener("click", async (e) => {
 
     const kolize = checkOverlap(datum, cas);
     if (kolize.length) {
-      const seznam = kolize.map(k => `📍 ${k.adresa} (${k.cas})`).join("\\n");
-      if (!confirm(`⚠️ Termín koliduje s jinými záznamy:\\n\\n${seznam}\\n\\nOpravdu uložit?`)) return;
+      const seznam = kolize.map(k => `📍 ${k.adresa} (${k.cas})`).join("\n");
+      if (!confirm(`⚠️ Termín koliduje s jinými záznamy:\n\n${seznam}\n\nOpravdu uložit?`)) return;
     }
 
     stavy[id] = "domluveno";
@@ -512,10 +513,10 @@ document.addEventListener("click", async (e) => {
     localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
     renderTable(dataAll);
 
-    /* ✉️ Automatické odeslání SMS potvrzení */
+    /* 📩 SMS potvrzení termínu */
     if (item.telefon) {
       const t = item.telefon.replace(/\+?420|\s+/g, "");
-      const text = `Dobrý den, potvrzujeme termín návštěvy našeho technika ${datum} v ${cas} na ${item.adresa || ""}. Servisní centrum WGS.`;
+      const text = `Dobrý den, potvrzujeme termín návštěvy technika ${datum} v ${cas} na ${item.adresa||""}. Servisní centrum WGS.`;
       window.location.href = `sms:+420${t}?body=${encodeURIComponent(text)}`;
     }
 
@@ -530,7 +531,7 @@ document.addEventListener("click", async (e) => {
 
     if (item.telefon) {
       const t = item.telefon.replace(/\+?420|\s+/g, "");
-      const text = `Dobrý den, volali jsme Vám ohledně reklamace ${item.cislo || ""}. Prosíme o zpětný kontakt. Servisní centrum WGS.`;
+      const text = `Dobrý den, volali jsme Vám ohledně reklamace ${item.cislo||""}. Prosíme o zpětný kontakt. Servisní centrum WGS.`;
       window.location.href = `sms:+420${t}?body=${encodeURIComponent(text)}`;
     }
 
@@ -552,20 +553,17 @@ document.addEventListener("click", async (e) => {
   }
 
   /* ⬅️ Zpět nebo Zavřít */
-  if (btn.id === "backBtn") {
-    overlay.querySelector("#termSection").style.display = "none";
-  }
-  if (btn.id === "closeBtn") {
-    closeDetail(overlay);
-  }
+  if (btn.id === "backBtn") overlay.querySelector("#termSection").style.display = "none";
+  if (btn.id === "closeBtn") closeDetail(overlay);
 });
 
-/* 🧹 Zavření detailu */
+/* ✖️ Zavření detailu */
 function closeDetail(overlay) {
   overlay.classList.remove("active");
   setTimeout(() => overlay.remove(), 250);
 }
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 /* ============================= */
 /* 🗓️ PLÁN DNE – KALENDÁŘ + MAPA */
@@ -582,6 +580,7 @@ const planModalHTML = `
       <div id="calendar"></div>
       <div id="map"></div>
     </div>
+    <div id="loadingMsg" class="loading-msg" style="display:none;">🕓 Generuji PDF...</div>
     <div class="plan-list" id="planList">Vyberte den v kalendáři…</div>
     <div class="plan-actions">
       <button id="exportPlanPDF" class="btn-action btn-green">Exportovat do PDF</button>
@@ -602,10 +601,17 @@ function initCalendar() {
 
   const calendar = new VanillaCalendar("#calendar", {
     settings: { lang:"cs", visibility:{ theme:"light" } },
-    actions:{ clickDay(event) {
-      const date = event.target.dataset.calendarDay;
-      if (date) showPlanForDay(date);
-    }}
+    actions:{ 
+      clickDay(event) {
+        const date = event.target.dataset.calendarDay;
+        if (date) {
+          showPlanForDay(date);
+          setTimeout(() => {
+            document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 400);
+        }
+      }
+    }
   });
   calendar.init();
 
@@ -614,11 +620,11 @@ function initCalendar() {
     document.querySelectorAll(".vanilla-calendar-day__btn").forEach(btn => {
       const date = btn.dataset.calendarDay;
       if (uniqueDays.includes(date)) {
-        btn.style.background = "#d2e3ff";
+        btn.style.background = "#b3c9ff";
         btn.style.borderRadius = "6px";
       }
     });
-  }, 200);
+  }, 300);
 
   return calendar;
 }
@@ -704,39 +710,92 @@ async function showPlanForDay(date) {
   }
 
   // 💬 Výpis zákazníků pod mapou
-  planList.innerHTML = terminy.map(t => `
-    <div class="plan-entry">
-      <b>${t.zakaznik || "Zákazník"}</b><br>
-      ${t.adresa || ""}<br>
-      <span style="color:#333;">🕒 ${t.cas || ""}</span><br>
-      <span style="color:#555;">${t.produkt || ""}</span>
-    </div>
-  `).join("");
+  planList.innerHTML = `
+    <table class="plan-table">
+      <thead>
+        <tr><th>Zákazník</th><th>Adresa</th><th>Čas</th><th>Model</th><th>Telefon</th></tr>
+      </thead>
+      <tbody>
+        ${terminy.map(t => `
+          <tr>
+            <td>${t.zakaznik || "–"}</td>
+            <td>${t.adresa || "–"}</td>
+            <td>${t.cas || ""}</td>
+            <td>${t.produkt || ""}</td>
+            <td>${t.telefon || ""}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>
+  `;
 }
-
-/* 🧾 Export plánu dne do PDF */
+/* 🧾 Export plánu dne do PDF včetně mapy */
 async function exportPlanToPDF() {
   const { jsPDF } = window.jspdf;
-  const selectedDate = document.querySelector(".vanilla-calendar-day__btn_selected");
-  if (!selectedDate) return alert("Nejprve vyberte den.");
-  const date = selectedDate.dataset.calendarDay;
+  const selected = document.querySelector(".vanilla-calendar-day__btn_selected");
+  if (!selected) return alert("Nejprve vyberte den v kalendáři.");
 
+  const date = selected.dataset.calendarDay;
   const terminy = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]")
     .filter(t => t.datum === date);
   if (!terminy.length) return alert("Na tento den není žádný plán.");
 
-  const doc = new jsPDF();
-  doc.setFontSize(14);
-  doc.text(`Plán dne – ${date}`, 14, 20);
-  doc.setFontSize(11);
-  let y = 30;
-  terminy.forEach(t => {
-    doc.text(`• ${t.zakaznik || "Zákazník"} – ${t.adresa || ""}`, 14, y);
+  document.getElementById("loadingMsg").style.display = "block";
+
+  try {
+    /* 🗺️ screenshot mapy */
+    const canvas = await html2canvas(document.querySelector("#map"), {
+      useCORS: true,
+      scale: 2
+    });
+    const imgData = canvas.toDataURL("image/png");
+
+    const doc = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text("WHITE GLOVE SERVICE", 105, 18, { align: "center" });
+
+    doc.setFontSize(13);
+    doc.text(`Plán dne – ${date}`, 105, 27, { align: "center" });
+    doc.setDrawColor(200,200,200);
+    doc.line(15, 30, 195, 30);
+
+    /* 🧾 Tabulka zákazníků */
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    let y = 40;
+
+    doc.text("Zákazník", 15, y);
+    doc.text("Adresa", 55, y);
+    doc.text("Čas", 125, y);
+    doc.text("Model", 145, y);
+    doc.text("Telefon", 175, y);
     y += 6;
-    doc.text(`  Model: ${t.produkt || ""} | Tel: ${t.telefon || ""} | Čas: ${t.cas || ""}`, 14, y);
-    y += 8;
-  });
-  doc.save(`Plan_${date}.pdf`);
+    doc.setLineWidth(0.1);
+    doc.line(15, y, 195, y);
+    y += 5;
+
+    terminy.forEach(t => {
+      doc.text(t.zakaznik || "-", 15, y);
+      doc.text(doc.splitTextToSize(t.adresa || "-", 60), 55, y);
+      doc.text(t.cas || "", 125, y);
+      doc.text(doc.splitTextToSize(t.produkt || "-", 30), 145, y);
+      doc.text(t.telefon || "", 175, y);
+      y += 7;
+      if (y > 210) { doc.addPage(); y = 20; }
+    });
+
+    /* 🗺️ Obrázek mapy pod seznamem */
+    if (y < 240) y += 8;
+    const imgWidth = 180;
+    const imgHeight = (canvas.height / canvas.width) * imgWidth;
+    doc.addImage(imgData, "PNG", 15, y, imgWidth, imgHeight);
+
+    doc.save(`Plan_${date}.pdf`);
+  } catch (err) {
+    alert("Chyba při generování PDF: " + err.message);
+  } finally {
+    document.getElementById("loadingMsg").style.display = "none";
+  }
 }
 
 /* 🔘 Otevření modalu */
@@ -757,6 +816,7 @@ document.getElementById("closeMap").onclick = () => {
 /* 📤 Export PDF */
 document.getElementById("exportPlanPDF").onclick = exportPlanToPDF;
 </script>
+
 <style>
 /* ============================= */
 /* ✨ STYL – PLÁN DNE MODAL      */
@@ -772,10 +832,8 @@ document.getElementById("exportPlanPDF").onclick = exportPlanToPDF;
   opacity: 0;
   transition: opacity 0.25s ease;
 }
-#planModal.active {
-  display: flex;
-  opacity: 1;
-}
+#planModal.active { display: flex; opacity: 1; }
+
 #planModal .modal-inner {
   background: #fff;
   border-radius: 14px;
@@ -810,6 +868,7 @@ document.getElementById("exportPlanPDF").onclick = exportPlanToPDF;
   border-radius: 10px;
   border: 1px solid #ddd;
   box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  scroll-margin-top: 100px;
 }
 .plan-list {
   max-height: 220px;
@@ -820,14 +879,14 @@ document.getElementById("exportPlanPDF").onclick = exportPlanToPDF;
   border-radius: 10px;
   background: #fafafa;
 }
-.plan-entry {
-  margin-bottom: 6px;
-  padding: 6px 8px;
-  border-bottom: 1px solid #eee;
-  line-height: 1.4em;
+.plan-table {
+  width: 100%;
+  border-collapse: collapse;
 }
-.plan-entry:last-child {
-  border-bottom: none;
+.plan-table th, .plan-table td {
+  border-bottom: 1px solid #eee;
+  padding: 6px 8px;
+  text-align: left;
 }
 .plan-actions {
   display: flex;
@@ -835,30 +894,19 @@ document.getElementById("exportPlanPDF").onclick = exportPlanToPDF;
   gap: 15px;
   flex-wrap: wrap;
 }
-
-/* 📱 Mobilní rozložení */
+.loading-msg {
+  text-align: center;
+  color: #333;
+  font-weight: 600;
+  padding: 6px;
+}
 @media (max-width: 750px) {
-  .plan-content {
-    display: flex;
-    flex-direction: column;
-  }
-  #map {
-    height: 320px;
-  }
-  #planModal .modal-inner {
-    padding: 16px;
-    width: 94%;
-  }
-  .plan-list {
-    max-height: 280px;
-  }
-  #planModal h2 {
-    font-size: 1.2em;
-  }
-  .plan-actions button {
-    width: 100%;
-    font-size: 0.95em;
-  }
+  .plan-content { display: flex; flex-direction: column; }
+  #map { height: 320px; }
+  #planModal .modal-inner { padding: 16px; width: 94%; }
+  .plan-list { max-height: 280px; }
+  #planModal h2 { font-size: 1.2em; }
+  .plan-actions button { width: 100%; font-size: 0.95em; }
 }
 </style>
 <script>
@@ -906,12 +954,13 @@ function showPhoto(src) {
   viewer.onclick = e => { if (e.target === viewer) viewer.remove(); };
 
   // Klávesy ← → a Esc
-  document.addEventListener("keydown", e => {
+  const keyHandler = e => {
     if (!document.body.contains(viewer)) return;
     if (e.key === "ArrowLeft") showImage(currentIndex - 1);
     if (e.key === "ArrowRight") showImage(currentIndex + 1);
     if (e.key === "Escape") viewer.remove();
-  });
+  };
+  document.addEventListener("keydown", keyHandler);
 
   // Swipe (mobil)
   let startX = 0;
@@ -920,6 +969,12 @@ function showPhoto(src) {
     const dx = e.changedTouches[0].clientX - startX;
     if (dx > 50) showImage(currentIndex - 1);
     if (dx < -50) showImage(currentIndex + 1);
+  });
+
+  // Při zavření odstraní event listener
+  const cleanup = () => document.removeEventListener("keydown", keyHandler);
+  viewer.addEventListener("transitionend", () => {
+    if (!document.body.contains(viewer)) cleanup();
   });
 }
 </script>
@@ -986,13 +1041,133 @@ function showPhoto(src) {
   text-shadow: 0 1px 3px rgba(0,0,0,0.8);
 }
 
-/* 🔴 Blikání dnešních termínů */
+/* 📱 Mobilní optimalizace */
+@media (max-width: 600px) {
+  .photo-viewer-inner img {
+    max-width: 95vw;
+    max-height: 75vh;
+  }
+  .photo-controls {
+    top: -40px;
+    font-size: 1em;
+  }
+  .photo-prev, .photo-next, .close-viewer {
+    width: 34px;
+    height: 34px;
+  }
+}
+</style>
+<script>
+/* ============================= */
+/* 🔴 BLINK dnešních termínů     */
+/* ============================= */
+function highlightTodayRows() {
+  const today = new Date().toISOString().split("T")[0];
+  document.querySelectorAll("tbody tr").forEach(row => {
+    const index = row.dataset.index;
+    const item = dataAll[index];
+    if (item && item.datum === today && stavy[item.cislo || `radek-${index}`] === "domluveno") {
+      row.classList.add("blink-today");
+    } else {
+      row.classList.remove("blink-today");
+    }
+  });
+}
+
+/* 🕓 Kontrola blikání každých 30 s + po načtení dat */
+setInterval(highlightTodayRows, 30000);
+window.addEventListener("load", highlightTodayRows);
+window.addEventListener("storage", e => {
+  if (e.key === "stavyReklamaciData") highlightTodayRows();
+});
+
+/* ============================= */
+/* 📤 Rozšířený export PDF včetně mapy */
+/* ============================= */
+async function exportPlanToPDF() {
+  const { jsPDF } = window.jspdf;
+  const selectedDate = document.querySelector(".vanilla-calendar-day__btn_selected");
+  if (!selectedDate) return alert("Nejprve vyberte den.");
+  const date = selectedDate.dataset.calendarDay;
+
+  const terminy = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]")
+    .filter(t => t.datum === date);
+  if (!terminy.length) return alert("Na tento den není žádný plán.");
+
+  /* 📸 Vytvoření mini snímku mapy */
+  const mapCanvas = document.querySelector("#map canvas");
+  let mapImage = null;
+  try { mapImage = mapCanvas ? mapCanvas.toDataURL("image/png") : null; } catch {}
+
+  const doc = new jsPDF("p", "mm", "a4");
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(16);
+  doc.text(`Plán dne – ${date}`, 14, 18);
+  doc.setLineWidth(0.3);
+  doc.line(14, 22, 196, 22);
+  doc.setFontSize(11);
+
+  let y = 30;
+  terminy.forEach((t, i) => {
+    doc.text(`${i + 1}. ${t.zakaznik || "Zákazník"}`, 14, y);
+    y += 6;
+    doc.text(`Adresa: ${t.adresa || ""}`, 18, y);
+    y += 6;
+    doc.text(`Model: ${t.produkt || ""}`, 18, y);
+    y += 6;
+    doc.text(`Čas: ${t.cas || ""} | Tel: ${t.telefon || ""}`, 18, y);
+    y += 8;
+    if (y > 260 && i < terminy.length - 1) { doc.addPage(); y = 30; }
+  });
+
+  /* 🗺️ Vložení mapy pokud existuje */
+  if (mapImage) {
+    const pageHeight = doc.internal.pageSize.getHeight();
+    doc.addPage();
+    doc.setFontSize(13);
+    doc.text("Mapa s trasou plánu dne", 14, 20);
+    doc.addImage(mapImage, "PNG", 14, 28, 180, pageHeight - 40);
+  }
+
+  doc.save(`Plan_${date}.pdf`);
+}
+
+/* ⬇️ Po výběru dne v kalendáři posuň na mapu (v mobilu hlavně) */
+function scrollToMap() {
+  const mapEl = document.getElementById("map");
+  if (mapEl) mapEl.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+/* Připojeno do clickDay v initCalendar */
+const originalInitCalendar = initCalendar;
+initCalendar = function() {
+  const calendar = originalInitCalendar();
+  document.querySelectorAll(".vanilla-calendar-day__btn").forEach(btn => {
+    btn.addEventListener("click", () => setTimeout(scrollToMap, 300));
+  });
+  return calendar;
+};
+</script>
+
+<style>
+/* ============================= */
+/* 💡 STYL DOPLŇKOVÝ             */
+/* ============================= */
 @keyframes blinkToday {
-  0% { background-color: #fff2f2; }
-  50% { background-color: #ffdada; }
-  100% { background-color: #fff2f2; }
+  0%   { background-color: #ffecec; }
+  50%  { background-color: #ffd6d6; }
+  100% { background-color: #ffecec; }
 }
 .blink-today {
   animation: blinkToday 1.4s infinite;
+  mix-blend-mode: multiply;
+}
+
+/* 💅 Jemnější závěrečné styly */
+html, body { scroll-behavior: smooth; }
+.loading { text-align:center; padding:20px; color:#666; }
+.vanilla-calendar-day__btn_selected {
+  border:2px solid #0046ff !important;
+  background:#cce0ff !important;
 }
 </style>
