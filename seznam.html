@@ -73,7 +73,7 @@ h2 {
 /* 🔘 Barvy tlačítek */
 .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
 .btn-refresh { background: linear-gradient(135deg, #b80000, #ff3838); }
-.btn-green { background: linear-gradient(135deg, #28a745, #60d06a); text-align:center; } /* Vycentrováno */
+.btn-green { background: linear-gradient(135deg, #28a745, #60d06a); text-align:center; }
 .btn-plan { background: linear-gradient(135deg, #0046ff, #357aff); }
 
 #search {
@@ -98,12 +98,21 @@ th, td {
   white-space: normal;
   line-height: 1.4em;
   color: #000;
+  font-weight: 400; /* 💡 Vypnuto tučné písmo u všech buněk */
 }
-th { background: #f8f8f8; font-weight: 700; color:#000; }
+th {
+  background: #f8f8f8;
+  font-weight: 700;
+  color: #000;
+}
+td.adresa,
+td.telefon {
+  font-weight: 600; /* 💡 Pouze adresa a telefon zůstanou tučně */
+}
 tr:hover { background: #f1f6ff; cursor: pointer; }
 
 /* 🔹 Stavy */
-.stav-novy { animation: blikani 1s infinite alternate; background: #fff9b1 !important; } /* světlejší žlutá */
+.stav-novy { animation: blikani 1s infinite alternate; background: #fff9b1 !important; }
 .stav-domluveno { background: #99b3ff !important; }
 .stav-zruseno { background: #ff6666 !important; }
 .stav-nezveda { background: #ffad33 !important; }
@@ -113,7 +122,7 @@ tr:hover { background: #f1f6ff; cursor: pointer; }
   to { background-color: #fff6a0; }
 }
 
-/* 📱 Mobilní tlačítka */
+/* 📱 Mobilní zobrazení */
 @media (max-width:700px){
   table { display:none; }
   .btn {
@@ -138,8 +147,12 @@ tr:hover { background: #f1f6ff; cursor: pointer; }
 
     <input type="text" id="search" placeholder="🔍 Hledat podle jména, adresy nebo zadavatele...">
     <div id="tableContainer" class="loading">Načítám data...</div>
+  </div>
+</body>
+</html>
 
 <!-- 🟨 KONEC ČÁSTI 1/10 -->
+
 <script>
 const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
 const tableContainer = document.getElementById("tableContainer");
