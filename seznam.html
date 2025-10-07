@@ -728,19 +728,19 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
 <style>
 /* ✨ Přehled dne – modal */
 #planModal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  justify-content: center;
-  align-items: center;
-  z-index: 99999;
-  opacity: 0;
-  transition: opacity 0.25s ease;
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+  justify-content:center;
+  align-items:center;
+  z-index:99999;
+  opacity:0;
+  transition:opacity 0.25s ease;
 }
-#planModal.active { display:flex; opacity:1; }
-#planModal .modal-inner {
-  background:white;
+#planModal.active{display:flex;opacity:1;}
+#planModal .modal-inner{
+  background:#fff;
   border-radius:14px;
   padding:20px;
   width:95%;
@@ -750,29 +750,29 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   flex-direction:column;
   gap:20px;
 }
-#planModal h2 {
+#planModal h2{
   text-align:center;
   font-size:1.6em;
   font-weight:800;
   margin:5px 0 15px;
   color:#000;
 }
-.plan-content {
+.plan-content{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:20px;
 }
-#calendar {
+#calendar{
   border:1px solid #ddd;
   border-radius:10px;
   overflow:hidden;
   min-height:360px;
 }
-#map {
+#map{
   height:450px;
   border-radius:10px;
 }
-.plan-list {
+.plan-list{
   max-height:220px;
   overflow-y:auto;
   font-size:0.95em;
@@ -781,13 +781,13 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   border-radius:10px;
   color:#000;
 }
-.plan-list div {
+.plan-list div{
   margin-bottom:8px;
   padding:4px 6px;
   border-bottom:1px solid #eee;
 }
-.plan-list b { color:#000; }
-.plan-actions {
+.plan-list b{color:#000;}
+.plan-actions{
   display:flex;
   justify-content:center;
   gap:15px;
@@ -802,12 +802,11 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
 // =============================
 // 🗓️  PŘEHLED DNE – KALENDÁŘ + MAPA
 // =============================
-
 document.addEventListener("DOMContentLoaded", () => {
-  const planBtn = document.getElementById("planBtn");
+  const planBtn=document.getElementById("planBtn");
 
   /* 🔧 HTML struktura modalu Přehled */
-  const planModalHTML = `
+  const planModalHTML=`
   <div id="planModal">
     <div class="modal-inner">
       <h2>Přehled</h2>
@@ -821,139 +820,150 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     </div>
   </div>`;
-  document.body.insertAdjacentHTML("beforeend", planModalHTML);
+  document.body.insertAdjacentHTML("beforeend",planModalHTML);
 
-  const modal = document.getElementById("planModal");
-  const closeBtn = document.getElementById("closeMap");
-  const wgsCoords = [50.049, 14.523];
-  let map, markersLayer, routeLayer;
+  const modal=document.getElementById("planModal");
+  const wgsCoords=[50.049,14.523];
+  let map,markersLayer,routeLayer;
 
   /* 🔘 Otevření modalu */
-  planBtn.addEventListener("click", () => {
-    modal.style.display = "flex";
-    setTimeout(() => {
+  planBtn.addEventListener("click",()=>{
+    modal.style.display="flex";
+    setTimeout(()=>{
       modal.classList.add("active");
       initCalendar();
       initMap();
-    }, 100);
+    },150);
   });
 
-  /* ❌ Zavření modalu */
-  closeBtn.addEventListener("click", () => {
-    modal.classList.remove("active");
-    setTimeout(() => modal.style.display = "none", 250);
-  });
+  /* ❌ Zavření modalu – bezpečné */
+  setTimeout(()=>{
+    const closeMapBtn=document.getElementById("closeMap");
+    if(closeMapBtn){
+      closeMapBtn.onclick=()=>{
+        modal.classList.remove("active");
+        setTimeout(()=>modal.style.display="none",250);
+      };
+    }
+  },400);
 
-  /* 📅 Kalendář */
-  function initCalendar() {
-    const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
-    const dny = ulozene.map(z => z.datum).filter(Boolean);
-    const uniqueDays = [...new Set(dny)];
+  /* 📅 Inicializace kalendáře */
+  function initCalendar(){
+    setTimeout(()=>{
+      const ulozene=JSON.parse(localStorage.getItem("stavyReklamaciData")||"[]");
+      const dny=ulozene.map(z=>z.datum).filter(Boolean);
+      const uniqueDays=[...new Set(dny)];
 
-    const calendar = new VanillaCalendar("#calendar", {
-      settings: { lang: "cs", visibility: { theme: "light" } },
-      actions: {
-        clickDay(event) {
-          const date = event.target.dataset.calendarDay;
-          if (date) showPlanForDay(date);
-        }
-      }
-    });
-    calendar.init();
-
-    setTimeout(() => {
-      document.querySelectorAll(".vanilla-calendar-day__btn").forEach(btn => {
-        const date = btn.dataset.calendarDay;
-        if (uniqueDays.includes(date)) {
-          btn.style.background = "linear-gradient(135deg,#0046ff,#357aff)";
-          btn.style.color = "#fff";
-          btn.style.borderRadius = "50%";
+      const calendar=new VanillaCalendar("#calendar",{
+        settings:{lang:"cs",visibility:{theme:"light"}},
+        actions:{
+          clickDay(event){
+            const date=event.target.dataset.calendarDay;
+            if(date)showPlanForDay(date);
+          }
         }
       });
-    }, 400);
+      calendar.init();
+
+      // zvýraznění dnů s plánem
+      setTimeout(()=>{
+        document.querySelectorAll(".vanilla-calendar-day__btn").forEach(btn=>{
+          const date=btn.dataset.calendarDay;
+          if(uniqueDays.includes(date)){
+            btn.style.background="linear-gradient(135deg,#0046ff,#357aff)";
+            btn.style.color="#fff";
+            btn.style.borderRadius="50%";
+          }
+        });
+      },300);
+    },200);
   }
 
-  /* 🗺️ Mapa */
-  function initMap() {
-    if (!map) {
-      map = L.map("map").setView([50.0755,14.4378], 8);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap"
-      }).addTo(map);
-      markersLayer = L.layerGroup().addTo(map);
-      routeLayer = L.polyline([], { color: "purple", weight: 4 }).addTo(map);
-    }
+  /* 🗺️ Inicializace mapy */
+  function initMap(){
+    setTimeout(()=>{
+      if(!map){
+        map=L.map("map").setView([50.0755,14.4378],8);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+          attribution:"© OpenStreetMap"
+        }).addTo(map);
+        markersLayer=L.layerGroup().addTo(map);
+        routeLayer=L.polyline([], {color:"purple",weight:4}).addTo(map);
+      }
+    },150);
   }
 
-  /* 🔍 Zobrazení plánů v mapě */
-  async function showPlanForDay(date) {
-    const planList = document.getElementById("planList");
-    const terminy = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]")
-      .filter(t => t.datum === date);
+  /* 🔍 Zobrazení naplánovaných reklamací */
+  async function showPlanForDay(date){
+    const planList=document.getElementById("planList");
+    const terminy=JSON.parse(localStorage.getItem("stavyReklamaciData")||"[]")
+      .filter(t=>t.datum===date);
 
-    planList.innerHTML = "";
-    markersLayer.clearLayers();
+    planList.innerHTML="";
+    if(markersLayer)markersLayer.clearLayers();
 
-    if (!terminy.length) {
-      planList.innerHTML = "<div style='color:#777;'>Žádné reklamace pro tento den.</div>";
+    if(!terminy.length){
+      planList.innerHTML="<div style='color:#777;'>Žádné reklamace pro tento den.</div>";
       return;
     }
 
-    const cache = JSON.parse(localStorage.getItem("geoCache") || "{}");
-    let coords = [wgsCoords];
+    const cache=JSON.parse(localStorage.getItem("geoCache")||"{}");
+    let coords=[wgsCoords];
 
-    const fetchCoords = async addr => {
-      if (cache[addr]) return cache[addr];
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}`);
-      const data = await res.json();
-      if (data[0]) {
-        const c = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-        cache[addr] = c;
-        localStorage.setItem("geoCache", JSON.stringify(cache));
+    const fetchCoords=async addr=>{
+      if(cache[addr])return cache[addr];
+      const res=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}`);
+      const data=await res.json();
+      if(data[0]){
+        const c=[parseFloat(data[0].lat),parseFloat(data[0].lon)];
+        cache[addr]=c;
+        localStorage.setItem("geoCache",JSON.stringify(cache));
         return c;
       }
       return null;
     };
 
-    L.marker(wgsCoords, { title:"WGS – Běchovice", icon:L.icon({
+    L.marker(wgsCoords,{title:"WGS – Běchovice",icon:L.icon({
       iconUrl:"https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png",
-      iconSize:[28,28], iconAnchor:[14,28]
-    })}).addTo(markersLayer).bindPopup("<b>WGS – Do Dubče, Praha 9 Běchovice</b>");
+      iconSize:[28,28],iconAnchor:[14,28]
+    })}).addTo(markersLayer)
+    .bindPopup("<b>WGS – Do Dubče, Praha 9 Běchovice</b>");
 
-    for (const t of terminy) {
-      const c = await fetchCoords(t.adresa);
-      if (c) {
+    for(const t of terminy){
+      const c=await fetchCoords(t.adresa);
+      if(c){
         coords.push(c);
-        L.marker(c, { icon:L.icon({
+        L.marker(c,{icon:L.icon({
           iconUrl:"https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png",
-          iconSize:[28,28], iconAnchor:[14,28]
+          iconSize:[28,28],iconAnchor:[14,28]
         })}).addTo(markersLayer)
-          .bindPopup(`<b>${t.zakaznik || "Zákazník"}</b><br>${t.adresa || ""}<br>${t.produkt || ""}`);
+        .bindPopup(`<b>${t.zakaznik||"Zákazník"}</b><br>${t.adresa||""}<br>${t.produkt||""}`);
       }
     }
 
-    if (coords.length > 1) {
-      const coordStr = coords.map(c => c[1] + "," + c[0]).join(";");
-      const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson`);
-      const data = await res.json();
-      if (data.routes && data.routes[0]) {
-        const line = L.geoJSON(data.routes[0].geometry, { color:"purple", weight:5 });
+    if(coords.length>1){
+      const coordStr=coords.map(c=>c[1]+","+c[0]).join(";");
+      const res=await fetch(`https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson`);
+      const data=await res.json();
+      if(data.routes&&data.routes[0]){
+        const line=L.geoJSON(data.routes[0].geometry,{color:"purple",weight:5});
         routeLayer.setLatLngs(line.getLatLngs());
         map.fitBounds(line.getBounds().pad(0.2));
       }
     }
 
-    planList.innerHTML = terminy.map(t => `
+    planList.innerHTML=terminy.map(t=>`
       <div>
-        <b>${t.zakaznik || "Zákazník"}</b><br>
-        📍 ${t.adresa || ""}<br>
-        📞 ${t.telefon || ""}<br>
-        🕐 ${t.cas || ""} 🪑 ${t.produkt || ""}
+        <b>${t.zakaznik||"Zákazník"}</b><br>
+        📍 ${t.adresa||""}<br>
+        📞 ${t.telefon||""}<br>
+        🕐 ${t.cas||""} 🪑 ${t.produkt||""}
       </div>`).join("");
   }
 });
 </script>
 <!-- 🟨 KONEC ČÁSTI 7/10 -->
+
 
 
 
@@ -1132,21 +1142,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
 <!-- 🟨 KONEC ČÁSTI 9/10 -->
 
-
-
-
-    
-
-<!-- 📅 Funkční VanillaCalendar knihovna -->
-<link
-  rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro@2.8.3/build/vanilla-calendar.min.css"
+<!-- 📅 Vanilla Calendar – funkční stabilní verze -->
+<link 
+  rel="stylesheet" 
+  href="https://cdn.jsdelivr.net/npm/vanilla-calendar@2.8.3/build/vanilla-calendar.min.css"
 />
-<script
-  src="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro@2.8.3/build/vanilla-calendar.min.js">
+<script 
+  src="https://cdn.jsdelivr.net/npm/vanilla-calendar@2.8.3/build/vanilla-calendar.min.js">
 </script>
 
 </body>
 </html>
 
 <!-- 🟨 KONEC ČÁSTI 10/10 -->
+
