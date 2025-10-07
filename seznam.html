@@ -656,47 +656,14 @@ function openDetail(index) {
 <!-- 🟨 KONEC ČÁSTI 3/10 (upravená) -->
 
 
-
-  <!-- 🟨 ZAČÁTEK ČÁSTI 4/10 (finální – mapa, akce a plánování termínů) -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 4/10 (uložení termínu + loader) -->
 <script>
-/* 📏 Výpočet vzdálenosti mezi souřadnicemi */
-function calcDistanceCoords(lat1, lon1, lat2, lon2) {
-  const R = 6371; // km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) *
-    Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
+/* ============================== */
+/* ⚙️ FUNKCE A AKCE V DETAILU */
+/* ============================== */
 
-/* 💾 Uložení termínu do localStorage */
-function ulozTermin(zaznam) {
-  let data = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
-  const id = zaznam.cislo || zaznam.id;
-  data = data.filter(z => z.cislo !== id);
-  data.push(zaznam);
-  localStorage.setItem("stavyReklamaciData", JSON.stringify(data));
-}
-
-/* 🕓 Kontrola překryvu termínů (2h tolerance) */
-function checkOverlap(datum, cas) {
-  const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
-  const nove = new Date(`${datum}T${cas}`);
-  return ulozene.filter(z => {
-    if (z.datum !== datum) return false;
-    const exist = new Date(`${z.datum}T${z.cas}`);
-    const diff = Math.abs((exist - nove) / 36e5);
-    return diff < 2;
-  });
-}
-
-/* 🗺️ Inicializace mapy a akce pro detail zákazníka */
-function initMapAndActions(item, overlay, index, id) {
-  if (!item || !overlay) return;
-
+/* 🗺️ Inicializace mapy v detailu */
+if (item.adresa) {
   const wgsCoords = [50.049, 14.523]; // WGS – Do Dubče Praha 9 Běchovice
   const map = L.map(overlay.querySelector("#mapDetail")).setView(wgsCoords, 9);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -707,88 +674,129 @@ function initMapAndActions(item, overlay, index, id) {
     .addTo(map)
     .bindPopup("<b>WGS – Do Dubče, Praha 9 Běchovice</b>");
 
-  // 📍 Vyhledání adresy zákazníka a výpočet vzdálenosti
-  if (item.adresa) {
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data[0]) {
-          const custCoords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-          const custMarker = L.marker(custCoords, {
-            title: "Zákazník",
-            icon: L.icon({
-              iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png",
-              iconSize: [28, 28],
-              iconAnchor: [14, 28]
-            })
-          }).addTo(map)
-            .bindPopup(`<b>${item.zakaznik || "Zákazník"}</b><br>${item.adresa}`);
+  fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data[0]) {
+        const custCoords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+        const custMarker = L.marker(custCoords, {
+          title: "Zákazník",
+          icon: L.icon({
+            iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png",
+            iconSize: [28, 28],
+            iconAnchor: [14, 28]
+          })
+        }).addTo(map)
+          .bindPopup(`<b>${item.zakaznik || "Zákazník"}</b><br>${item.adresa}`);
 
-          const group = L.featureGroup([wgsMarker, custMarker]);
-          map.fitBounds(group.getBounds().pad(0.3));
+        const group = L.featureGroup([wgsMarker, custMarker]);
+        map.fitBounds(group.getBounds().pad(0.3));
 
-          const km = calcDistanceCoords(
-            wgsCoords[0], wgsCoords[1],
-            custCoords[0], custCoords[1]
-          );
-          overlay.querySelector("#mapDistance").innerHTML =
-            `📍 Vzdálenost od WGS: <strong>${km.toFixed(1)} km</strong>`;
-        }
-      });
+        const distanceKm = calcDistanceCoords(
+          wgsCoords[0], wgsCoords[1], custCoords[0], custCoords[1]
+        );
+        overlay.querySelector("#mapDistance").innerHTML = `📍 Vzdálenost od WGS: ${distanceKm.toFixed(1)} km`;
+      }
+    });
+}
+
+/* 💾 Uložit / Změnit termín */
+overlay.querySelector("#saveTermBtn").onclick = async () => {
+  const datum = dateInput.value;
+  const cas = `${hoursSel.value}:${minsSel.value}`;
+  if (!datum || !cas) return alert("Vyberte datum v kalendáři a čas!");
+
+  const kolize = checkOverlap(datum, cas);
+  if (kolize.length > 0) {
+    const seznam = kolize.map(k => `📍 ${k.adresa} (${k.cas})`).join("\\n");
+    if (!confirm(`⚠️ Termín koliduje s jinými záznamy:\\n\\n${seznam}\\n\\nPřesto uložit?`)) return;
   }
 
-  /* 💾 Uložit / Změnit termín + potvrzovací SMS */
-  overlay.querySelector("#saveTermBtn").onclick = () => {
-    const datum = overlay.querySelector("#datumTerminu").value;
-    const cas = `${overlay.querySelector("#hours").value}:${overlay.querySelector("#minutes").value}`;
-    if (!datum || !cas) return alert("Vyberte datum a čas!");
+  // ⏳ Zobrazení přesýpacích hodin během ukládání
+  const loader = document.createElement("div");
+  loader.innerHTML = `
+    <div style="
+      position:fixed;
+      inset:0;
+      background:rgba(255,255,255,0.8);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      z-index:10000;
+      font-size:1.5em;
+      font-weight:700;
+      color:#0046ff;
+    ">
+      ⏳ Ukládám termín...
+    </div>`;
+  document.body.appendChild(loader);
 
-    const kolize = checkOverlap(datum, cas);
-    if (kolize.length > 0) {
-      const seznam = kolize.map(k => `📍 ${k.adresa} (${k.cas})`).join("\n");
-      if (!confirm(`⚠️ Termín koliduje s jinými záznamy:\n\n${seznam}\n\nPřesto uložit?`)) return;
-    }
-
-    stavy[item.cislo || index] = "domluveno";
+  try {
+    stavy[id] = "domluveno";
     item.datum = datum;
     item.cas = cas;
-    ulozTermin(item);
+    await ulozTermin(item); // ⬅️ počká na dokončení zápisu
     localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
-    renderTable(dataAll);
 
-    // 📩 SMS potvrzení
-    if (item.telefon) {
-      const telefonCisty = item.telefon.replace(/\+?420|\s+/g, "");
-      const d = new Date(datum);
-      const den = d.toLocaleDateString("cs-CZ", {
-        weekday: "short", day: "numeric", month: "numeric"
-      });
-      const smsText = `Dobrý den, potvrzujeme termín návštěvy technika WGS – ${den} v ${cas} na adrese ${item.adresa || ""}.`;
-      window.location.href = `sms:+420${telefonCisty}?body=${encodeURIComponent(smsText)}`;
-    }
-  };
+    setTimeout(() => {
+      loader.remove();
+      closeDetail();
+      renderTable(dataAll);
+    }, 1000);
+  } catch (err) {
+    loader.remove();
+    alert("❌ Chyba při ukládání termínu: " + err.message);
+  }
+};
 
-  /* 📵 Nezvedá – SMS upozornění */
-  overlay.querySelector("#noAnswerBtn").onclick = () => {
-    stavy[item.cislo || index] = "nezveda";
-    localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
-    renderTable(dataAll);
-    if (item.telefon) {
-      const tel = item.telefon.replace(/\+?420|\s+/g, "");
-      const sms = `Dobrý den, volali jsme ohledně vaší reklamace ${item.cislo || ""}. Prosím, zavolejte zpět – WGS.`;
-      window.location.href = `sms:+420${tel}?body=${encodeURIComponent(sms)}`;
-    }
-  };
+/* 📵 Nezvedá – odešle SMS */
+overlay.querySelector("#noAnswerBtn").onclick = () => {
+  stavy[id] = "nezveda";
+  localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+  closeDetail();
+  renderTable(dataAll);
 
-  /* ❌ Zákazník zrušil */
-  overlay.querySelector("#cancelBtn").onclick = () => {
-    stavy[item.cislo || index] = "zruseno";
-    localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
-    renderTable(dataAll);
-  };
+  if (item.telefon) {
+    const tel = item.telefon.replace(/\+?420|\s+/g, "");
+    const sms = `Dobrý den, volali jsme ohledně vaší reklamace ${item.cislo || ""}. Prosím zavolejte zpět – WGS.`;
+    window.location.href = `sms:+420${tel}?body=${encodeURIComponent(sms)}`;
+  }
+};
+
+/* ❌ Zákazník zrušil */
+overlay.querySelector("#cancelBtn").onclick = () => {
+  stavy[id] = "zruseno";
+  localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+  closeDetail();
+  renderTable(dataAll);
+};
+
+/* 🧾 Přejít na protokol */
+overlay.querySelector("#protoBtn").onclick = () => {
+  localStorage.setItem("selectedRecord", JSON.stringify(item));
+  window.location.href = "protokol.html";
+};
+
+/* 🔚 Zavření detailu */
+overlay.querySelector("#closeBtn").onclick = closeDetail;
+function closeDetail() {
+  overlay.classList.remove("active");
+  setTimeout(() => overlay.remove(), 200);
+}
+
+/* 📏 Výpočet vzdálenosti mezi souřadnicemi */
+function calcDistanceCoords(lat1, lon1, lat2, lon2) {
+  const R = 6371; // km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
+            Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 </script>
-<!-- 🟨 KONEC ČÁSTI 4/10 -->
+<!-- 🟨 KONEC ČÁSTI 4/10 (uložení termínu + loader) -->
+
 
 
 
