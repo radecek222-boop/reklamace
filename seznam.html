@@ -9,9 +9,9 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
-<!-- ✅ Vanilla Calendar – stabilní mirror (žádné 404 ani nosniff) -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/UmalGhosh/vanilla-calendar-pro@2.8.1/build/vanilla-calendar.min.css" type="text/css">
-<script src="https://cdn.jsdelivr.net/gh/UmalGhosh/vanilla-calendar-pro@2.8.1/build/vanilla-calendar.min.js" type="application/javascript"></script>
+<!-- ✅ Opravený Vanilla Calendar -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanilla-calendar@2.8.1/build/vanilla-calendar.min.css">
+<script src="https://cdn.jsdelivr.net/npm/vanilla-calendar@2.8.1/build/vanilla-calendar.min.js"></script>
 
 <!-- ✅ PDF Export -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -163,15 +163,8 @@ const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
 
 
 
-
-
-
-
-
-
-
-
 <script>
+const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
 const tableContainer = document.getElementById("tableContainer");
 const searchInput = document.getElementById("search");
 const reloadBtn = document.getElementById("reloadBtn");
@@ -206,19 +199,39 @@ function sortSmart(data) {
   return data.sort((a,b)=>{
     const sa = stavy[a.cislo] || "nová";
     const sb = stavy[b.cislo] || "nová";
-    const da = a.datum === today ? 0 : (sa==="zruseno"?2:1);
-    const db = b.datum === today ? 0 : (sb==="zruseno"?2:1);
+    const da = a.datum === today ? 0 : (sa==="zrušeno"?2:1);
+    const db = b.datum === today ? 0 : (sb==="zrušeno"?2:1);
     return da-db;
   });
 }
 
-/* 🧭 Zjednodušení adres (bez „Hlavní město Praha“) */
+/* 🧭 Zjednodušení adres – odstranění „Hlavní město Praha“ a určení části podle PSČ */
 function simplifyAddress(addr) {
   if (!addr) return "";
-  const prahaMatch = addr.match(/Praha\s*\d+/i);
-  if (prahaMatch) return prahaMatch[0];
-  if (addr.toLowerCase().includes("běchovice")) return "Praha 9 Běchovice";
-  return addr.replace(/\d{3}\s?\d{2}$/, "").trim();
+
+  const pscMatch = addr.match(/\b\d{3}\s?\d{2}\b/);
+  let prahaCast = "";
+  if (pscMatch) {
+    const psc = parseInt(pscMatch[0].replace(/\s+/g,""));
+    if (psc>=10000 && psc<11000) prahaCast = "Praha 10";
+    else if (psc>=11000 && psc<12000) prahaCast = "Praha 1";
+    else if (psc>=12000 && psc<13000) prahaCast = "Praha 2";
+    else if (psc>=13000 && psc<14000) prahaCast = "Praha 3";
+    else if (psc>=14000 && psc<15000) prahaCast = "Praha 4";
+    else if (psc>=15000 && psc<16000) prahaCast = "Praha 5";
+    else if (psc>=16000 && psc<17000) prahaCast = "Praha 6";
+    else if (psc>=17000 && psc<18000) prahaCast = "Praha 7";
+    else if (psc>=18000 && psc<19000) prahaCast = "Praha 8";
+    else if (psc>=19000 && psc<20000) prahaCast = "Praha 9";
+  }
+
+  let upraveno = addr
+    .replace(/Hlavní\s*město\s*Praha/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+  if (prahaCast) upraveno = upraveno.replace(/\bPraha\b/i, prahaCast);
+  return upraveno;
 }
 
 /* 🗺️ Načtení dat */
@@ -232,18 +245,7 @@ async function loadData() {
 
     dataAll = sortSmart(data.reverse());
     const newHash = hashData(dataAll);
-    if (lastDataHash && newHash !== lastDataHash) {
-      playNotification();
-      const banner = document.createElement("div");
-      banner.textContent = "🆕 Nové reklamace byly načteny";
-      Object.assign(banner.style,{
-        position:"fixed",top:"10px",left:"50%",transform:"translateX(-50%)",
-        background:"#28a745",color:"#fff",padding:"10px 20px",borderRadius:"8px",
-        boxShadow:"0 3px 8px rgba(0,0,0,0.2)",zIndex:"99999"
-      });
-      document.body.appendChild(banner);
-      setTimeout(()=>banner.remove(),3000);
-    }
+    if (lastDataHash && newHash !== lastDataHash) playNotification();
     lastDataHash = newHash;
     renderTable(dataAll);
   } catch(err) {
@@ -258,20 +260,21 @@ function renderTable(arr) {
     return;
   }
   let html = `
-    <table>
-      <thead>
-        <tr>
-          <th>Zákazník</th>
-          <th>Adresa</th>
-          <th>Telefon</th>
-          <th>Stav</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
+  <table>
+    <thead>
+      <tr>
+        <th>Zákazník</th>
+        <th>Adresa</th>
+        <th>Telefon</th>
+        <th>Stav</th>
+      </tr>
+    </thead>
+    <tbody>`;
+  
   arr.forEach((r,i)=>{
     const id = r.cislo || `radek-${i}`;
     const stav = stavy[id] || "nová";
+
     const adresa = r.adresa
       ? `<a href="https://waze.com/ul?q=${encodeURIComponent(r.adresa)}" target="_blank" style="color:#000;font-weight:600;">${simplifyAddress(r.adresa)}</a>`
       : "–";
@@ -291,9 +294,10 @@ function renderTable(arr) {
         <td style="color:#000;">${r.zakaznik || "–"}</td>
         <td style="color:#000;">${adresa}</td>
         <td style="color:#000;">${telefon}</td>
-        <td style="font-weight:600;text-transform:capitalize;color:#000;">${stavText}</td>
+        <td style="color:#000;">${stavText}</td>
       </tr>`;
   });
+
   html += "</tbody></table>";
   tableContainer.innerHTML = html;
 
@@ -317,7 +321,20 @@ reloadBtn.addEventListener("click", loadData);
 window.addEventListener("DOMContentLoaded", loadData);
 </script>
 
+<style>
+/* 🟡 Nová reklamace – blikání výraznější žlutou */
+@keyframes blikaniNova {
+  0%   { background-color:#fff166; }
+  50%  { background-color:#ffe600; }
+  100% { background-color:#fff166; }
+}
+tr.stav-nová {
+  animation: blikaniNova 1s infinite;
+}
+</style>
+
 <!-- 🟨 KONEC ČÁSTI 2/10 -->
+
 
 
 
