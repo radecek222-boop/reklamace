@@ -250,12 +250,15 @@ function renderTable(arr) {
       : "–";
 
     let stavText = stav;
-    if (stav === "domluveno" && r.datum && r.cas) {
-      const d = new Date(r.datum);
-      const den = d.toLocaleDateString("cs-CZ", { weekday: "short", day: "numeric", month: "numeric" });
-      stavText = `domluveno — ${den} ${r.cas}`;
+   if (stav === "domluveno" && r.datum && r.cas) {
+  const d = new Date(r.datum);
+  const den = d.toLocaleDateString("cs-CZ", {
+    weekday: "short",
+    day: "numeric",
+    month: "numeric"
+  }).replace(/\s*\d{4}/, ""); // odstraní případný rok, kdyby se objevil
+  stavText = `domluveno — ${den} ${r.cas}`;
     }
-
     html += `
       <tr class="stav-${stav}" data-index="${i}" data-id="${id}">
         <td style="color:#000;">${r.zakaznik || "–"}</td>
