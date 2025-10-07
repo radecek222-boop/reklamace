@@ -152,7 +152,7 @@ tr:hover { background: #f1f6ff; cursor: pointer; }
 </html>
 
 <!-- 🟨 KONEC ČÁSTI 1/10 -->
-<!-- 🟨 ZAČÁTEK ČÁSTI 2/10 (upravená – přesná adresa Praha podle PSČ) -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 2/10 (finální verze) -->
 <script>
 const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
 const tableContainer = document.getElementById("tableContainer");
@@ -181,6 +181,18 @@ function playNotification() {
 /* 🧩 Hash pro porovnání změn */
 function hashData(arr) {
   return arr.map(r => r.cislo || r.id || "").join("|");
+}
+
+/* 📅 Chytré řazení – dnešní, nové a zrušené */
+function sortSmart(data) {
+  const today = new Date().toISOString().split("T")[0];
+  return data.sort((a,b)=>{
+    const sa = stavy[a.cislo] || "novy";
+    const sb = stavy[b.cislo] || "novy";
+    const da = a.datum === today ? 0 : (sa==="zruseno"?2:1);
+    const db = b.datum === today ? 0 : (sb==="zruseno"?2:1);
+    return da - db;
+  });
 }
 
 /* 🧭 Přesné zjednodušení adres – Praha s PSČ */
@@ -364,7 +376,8 @@ searchInput.addEventListener("input",()=>{
 reloadBtn.addEventListener("click", loadData);
 window.addEventListener("DOMContentLoaded", loadData);
 </script>
-<!-- 🟨 KONEC ČÁSTI 2/10 (upravená) -->
+<!-- 🟨 KONEC ČÁSTI 2/10 (finální verze) -->
+
 
 <!-- 🟨 ZAČÁTEK ČÁSTI 3/10 (upravená – adresa v detailu podle PSČ) -->
 <script>
