@@ -462,7 +462,7 @@ window.addEventListener("DOMContentLoaded", loadData);
 <!-- 🟨 KONEC ČÁSTI 2/10 (finální – Praha bez PSČ + uložené termíny po reloadu) -->
 
 
-<!-- 🟩 ZAČÁTEK ČÁSTI 3/10 (Detail zákazníka – s infoboxem pod kalendářem) -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 3/10 (Detail zákazníka – finální layout pro PC i mobil) -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -475,223 +475,162 @@ function openDetail(index) {
   overlay.innerHTML = `
     <div class="detail-modal">
       <div class="grid-layout">
-        <!-- 🧩 Levý panel – detail + kalendář + infobox -->
+
+        <!-- 🧭 VLEVO – kalendář, čas, info-box -->
         <div class="left-panel">
-          <h2>${item.zakaznik || "Zákazník"}</h2>
-          <p><strong>Adresa:</strong>
-            <a href="https://waze.com/ul?q=${encodeURIComponent(adresaUpravena)}" target="_blank">${adresaUpravena || "Neuvedeno"}</a>
-          </p>
-          <p><strong>Telefon:</strong>
-            <a href="tel:${(item.telefon || "").replace("+420","").trim()}">${(item.telefon || "").replace("+420","").trim()}</a>
-          </p>
-          <p><strong>Email:</strong> ${item.email || "–"}</p>
-          <p><strong>Produkt / model:</strong> ${item.produkt || "–"}</p>
-          <p><strong>Popis závady:</strong> ${item.popis || "–"}</p>
+          <div id="miniCalendar"></div>
 
-          <div class="calendar-wrapper">
-            <div id="miniCalendar"></div>
-            <div class="term-info-box" id="termInfoBox">📅 Vyberte datum a čas</div>
+          <div class="custom-time-picker">
+            <select id="hours"></select><span>:</span><select id="minutes"></select>
           </div>
+
+          <div class="term-info-box" id="termInfoBox">📅 Vyberte datum a čas</div>
+
+          <button id="saveTermBtn" class="btn-action btn-green">Uložit / Změnit</button>
         </div>
 
-        <!-- 🗺️ Pravý panel – mapa + čas + tlačítka -->
+        <!-- 🧾 VPRAVO – detail zákazníka, vzdálenost, mapa -->
         <div class="right-panel">
-          <div id="mapDetail"></div>
-          <div id="mapDistance"></div>
+          <div class="customer-info">
+            <h2>${item.zakaznik || "Zákazník"}</h2>
+            <p><strong>Adresa:</strong> <a href="https://waze.com/ul?q=${encodeURIComponent(adresaUpravena)}" target="_blank">${adresaUpravena}</a></p>
+            <p><strong>Telefon:</strong> <a href="tel:${(item.telefon||"").replace("+420","").trim()}">${(item.telefon||"").replace("+420","").trim()}</a></p>
+            <p><strong>Email:</strong> ${item.email||"–"}</p>
+            <p><strong>Produkt / model:</strong> ${item.produkt||"–"}</p>
+            <p><strong>Popis závady:</strong> ${item.popis||"–"}</p>
+          </div>
 
-          <div class="time-box">
-            <div class="custom-time-picker">
-              <select id="hours"></select>
-              <span>:</span>
-              <select id="minutes"></select>
-            </div>
-            <div class="btn-row">
-              <button id="saveTermBtn" class="btn-action btn-green">Uložit / Změnit</button>
-              <button id="cancelBtn" class="btn-action btn-red">Zákazník zrušil</button>
-              <button id="closeBtn" class="btn-action btn-gray">Zavřít</button>
-            </div>
+          <div class="distance-banner" id="mapDistance">📍 Vzdálenost od WGS – počítám...</div>
+          <div id="mapDetail"></div>
+
+          <div class="btn-row">
+            <button id="cancelBtn" class="btn-action btn-red">Zákazník zrušil</button>
+            <button id="closeBtn" class="btn-action btn-gray">Zavřít</button>
           </div>
         </div>
+
       </div>
     </div>
   `;
+
   document.body.appendChild(overlay);
-  setTimeout(() => overlay.classList.add("active"), 10);
+  setTimeout(()=>overlay.classList.add("active"),10);
 
   const id = item.cislo || `radek-${index}`;
   const infoBox = overlay.querySelector("#termInfoBox");
 
-  // 🗓️ Mini kalendář
-  const miniCal = new VanillaCalendar("#miniCalendar", {
-    settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
-    actions: {
-      clickDay(event) {
-        const chosen = event.target.dataset.calendarDay;
-        if (chosen) {
-          overlay.dataset.datum = chosen;
-          updateTermInfoBox(infoBox, chosen, null);
-          flashBox(infoBox, "gray");
-        }
+  /* 🗓️ Kalendář */
+  const miniCal = new VanillaCalendar("#miniCalendar",{
+    settings:{lang:"cs",selection:{day:"single"},visibility:{theme:"light"}},
+    actions:{clickDay:e=>{
+      const chosen=e.target.dataset.calendarDay;
+      if(chosen){
+        overlay.dataset.datum=chosen;
+        updateTermInfoBox(infoBox,chosen,null);
+        flashBox(infoBox,"gray");
       }
-    }
+    }}
   });
-  miniCal.init();
-  restoreGreenDots(overlay);
+  miniCal.init(); restoreGreenDots(overlay);
 
-  // 🕒 Hodiny
-  const hoursSel = overlay.querySelector("#hours");
-  const minsSel  = overlay.querySelector("#minutes");
-  for (let h = 7; h < 20; h++) hoursSel.innerHTML += `<option>${String(h).padStart(2,"0")}</option>`;
-  for (let m = 0; m < 60; m += 5) minsSel.innerHTML += `<option>${String(m).padStart(2,"0")}</option>`;
+  /* 🕒 Hodiny */
+  const hSel=overlay.querySelector("#hours"),mSel=overlay.querySelector("#minutes");
+  for(let h=7;h<20;h++)hSel.innerHTML+=`<option>${String(h).padStart(2,"0")}</option>`;
+  for(let m=0;m<60;m+=5)mSel.innerHTML+=`<option>${String(m).padStart(2,"0")}</option>`;
+  hSel.addEventListener("change",()=>updateTime(infoBox,overlay));
+  mSel.addEventListener("change",()=>updateTime(infoBox,overlay));
 
-  hoursSel.addEventListener("change",()=>updateTime(infoBox, overlay));
-  minsSel.addEventListener("change",()=>updateTime(infoBox, overlay));
-
-  // 🌍 Mapa s trasou
-  if (item.adresa) {
-    const wgsCoords = [50.049, 14.523];
-    const map = L.map(overlay.querySelector("#mapDetail")).setView(wgsCoords, 9);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution:"© OpenStreetMap" }).addTo(map);
-    const wgsMarker = L.marker(wgsCoords, { title:"WGS – Do Dubče" }).addTo(map);
-
+  /* 🗺️ Mapa + vzdálenost */
+  if(item.adresa){
+    const wgs=[50.049,14.523];
+    const map=L.map(overlay.querySelector("#mapDetail")).setView(wgs,9);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);
+    const wgsM=L.marker(wgs,{title:"WGS"}).addTo(map);
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data[0]) {
-          const custCoords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-          const custMarker = L.marker(custCoords, { title: "Zákazník" }).addTo(map);
-          L.polyline([wgsCoords, custCoords], { color:"#0046ff", weight:3, opacity:0.8 }).addTo(map);
-          const dist = calcDistanceCoords(wgsCoords[0], wgsCoords[1], custCoords[0], custCoords[1]);
-          overlay.querySelector("#mapDistance").innerHTML = `📍 Vzdálenost od WGS: ${dist.toFixed(1)} km`;
-          const group = L.featureGroup([wgsMarker, custMarker]);
-          map.fitBounds(group.getBounds().pad(0.3));
+      .then(r=>r.json())
+      .then(d=>{
+        if(d[0]){
+          const c=[+d[0].lat,+d[0].lon];
+          const cust=L.marker(c,{title:"Zákazník"}).addTo(map);
+          L.polyline([wgs,c],{color:"#0046ff",weight:3}).addTo(map);
+          const dist=calcDistanceCoords(wgs[0],wgs[1],c[0],c[1]);
+          overlay.querySelector("#mapDistance").innerHTML=`📍 Vzdálenost od WGS: ${dist.toFixed(1)} km`;
+          map.fitBounds(L.featureGroup([wgsM,cust]).getBounds().pad(0.3));
         }
       });
   }
 
-  // 💾 Uložení termínu (napojeno na část 4/10)
-  overlay.querySelector("#saveTermBtn").onclick = () => {
-    const datum = overlay.dataset.datum;
-    const cas = `${hoursSel.value}:${minsSel.value}`;
-    if (!datum || !cas) return alert("Vyberte datum a čas!");
-    ulozitTerminNaGitHub(item, id, datum, cas, overlay, overlay.querySelector("#saveTermBtn"), infoBox);
+  /* 💾 Uložení termínu */
+  overlay.querySelector("#saveTermBtn").onclick=()=>{
+    const datum=overlay.dataset.datum;
+    const cas=`${hSel.value}:${mSel.value}`;
+    if(!datum||!cas)return alert("Vyberte datum a čas!");
+    ulozitTerminNaGitHub(item,id,datum,cas,overlay,overlay.querySelector("#saveTermBtn"),infoBox);
+    // 📱 SMS po úspěchu (vyvoláno v 4/10 po potvrzení)
+    setTimeout(()=>{
+      if(item.telefon){
+        const tel=item.telefon.replace(/\+?420|\s+/g,"");
+        const sms=`Dobrý den, termín servisu ${datum} v ${cas} byl potvrzen. Tým White Glove Service.`;
+        window.location.href=`sms:+420${tel}?body=${encodeURIComponent(sms)}`;
+      }
+    },1600);
   };
 
-  // 🔴 Zákazník zrušil
-  overlay.querySelector("#cancelBtn").onclick = () => {
-    stavy[id] = "zruseno";
-    localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
-    overlay.remove();
-    renderTable(dataAll);
+  /* 🔴 Zákazník zrušil */
+  overlay.querySelector("#cancelBtn").onclick=()=>{
+    stavy[id]="zruseno";
+    localStorage.setItem("stavyReklamaci",JSON.stringify(stavy));
+    overlay.remove(); renderTable(dataAll);
   };
 
-  // ⚫ Zavřít
-  overlay.querySelector("#closeBtn").onclick = () => overlay.remove();
+  overlay.querySelector("#closeBtn").onclick=()=>overlay.remove();
 }
 
-/* 🔁 Aktualizace rámečku */
-function updateTermInfoBox(box, datum, cas) {
-  if (!box) return;
-  const d = new Date(datum);
-  const den = d.toLocaleDateString("cs-CZ", { weekday:"long", day:"numeric", month:"long", year:"numeric" });
-  box.textContent = cas ? `📅 ${den} – ${cas}` : `📅 ${den}`;
+/* 📦 Pomocné funkce */
+function updateTermInfoBox(b,d,c){
+  const date=new Date(d);
+  const den=date.toLocaleDateString("cs-CZ",{weekday:"long",day:"numeric",month:"long"});
+  b.textContent=c?`📅 ${den} – ${c}`:`📅 ${den}`;
 }
-
-/* ⏰ Při výběru času */
-function updateTime(box, overlay) {
-  const datum = overlay.dataset.datum;
-  const hours = overlay.querySelector("#hours").value;
-  const mins = overlay.querySelector("#minutes").value;
-  if (!datum) return;
-  const cas = `${hours}:${mins}`;
-  updateTermInfoBox(box, datum, cas);
-  flashBox(box, "green");
+function updateTime(b,o){
+  const d=o.dataset.datum; if(!d)return;
+  const c=`${o.querySelector("#hours").value}:${o.querySelector("#minutes").value}`;
+  updateTermInfoBox(b,d,c); flashBox(b,"green");
 }
-
-/* 💡 Bliknutí šedě nebo zeleně */
-function flashBox(box, color="gray") {
-  box.classList.remove("flash-gray","flash-green");
-  void box.offsetWidth;
-  box.classList.add(color === "green" ? "flash-green" : "flash-gray");
+function flashBox(b,color){
+  b.classList.remove("flash-gray","flash-green");void b.offsetWidth;
+  b.classList.add(color==="green"?"flash-green":"flash-gray");
 }
-
-/* 📏 Výpočet vzdálenosti */
-function calcDistanceCoords(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2-lat1)*Math.PI/180;
-  const dLon = (lon2-lon1)*Math.PI/180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+function calcDistanceCoords(a,b,c,d){
+  const R=6371, dL=(c-a)*Math.PI/180,dO=(d-b)*Math.PI/180;
+  const x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dO/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
 }
 </script>
 
 <style>
-.grid-layout {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:18px;
-}
-.left-panel, .right-panel {
-  background:#fff;
-  border-radius:10px;
-  padding:10px;
-}
-.calendar-wrapper {
-  margin-top:15px;
-}
-.term-info-box {
-  background:#f0f0f0;
-  padding:10px;
-  text-align:center;
-  font-weight:600;
-  color:#000;
-  border-radius:8px;
-  margin-top:8px;
-  transition:background 0.3s;
-}
-
-/* 💡 blikání */
-.flash-gray { animation:flashGray 0.4s; }
-.flash-green { animation:flashGreen 0.5s; }
-@keyframes flashGray { 0%{background:#d6d6d6;} 100%{background:#f0f0f0;} }
-@keyframes flashGreen { 0%{background:#b6f7a8;} 100%{background:#f0f0f0;} }
-
-#mapDetail {
-  height:260px;
-  border-radius:10px;
-  border:1px solid #ddd;
-}
-#mapDistance {
-  text-align:center;
-  font-weight:600;
-  margin:6px 0 10px;
-}
-.time-box {
-  background:#f9f9f9;
-  border:1px solid #ccc;
-  border-radius:10px;
-  padding:15px;
-}
-.btn-row {
-  display:flex;
-  gap:10px;
-  justify-content:center;
-  margin-top:10px;
-}
-.btn-action {
-  flex:1;
-  padding:10px;
-  font-weight:600;
-  border:none;
-  border-radius:8px;
-  color:white;
-  cursor:pointer;
-}
-.btn-green { background:linear-gradient(135deg,#28a745,#6fdd72); }
-.btn-red { background:linear-gradient(135deg,#dc3545,#f87171); }
-.btn-gray { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
+.grid-layout{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.left-panel,.right-panel{background:#fff;border-radius:10px;padding:10px;}
+#miniCalendar{margin-bottom:12px;}
+.custom-time-picker{display:flex;justify-content:center;align-items:center;gap:6px;margin-bottom:10px;}
+.custom-time-picker select{font-size:1.1em;font-weight:600;border:1px solid #ccc;border-radius:8px;padding:5px 10px;}
+.term-info-box{background:#f0f0f0;padding:10px;text-align:center;font-weight:600;border-radius:8px;margin-top:8px;transition:background .3s;}
+.flash-gray{animation:flashGray 0.4s;}
+.flash-green{animation:flashGreen 0.5s 2;}
+@keyframes flashGray{0%{background:#d6d6d6;}100%{background:#f0f0f0;}}
+@keyframes flashGreen{0%,100%{background:#b6f7a8;}50%{background:#d8ffd2;}}
+.customer-info h2{text-align:center;margin:0 0 8px;}
+.customer-info p{margin:4px 0;font-size:.95em;color:#000;}
+.distance-banner{background:#f6f6f6;border-radius:8px;padding:8px;text-align:center;font-weight:600;margin:10px 0;}
+#mapDetail{height:260px;border-radius:10px;border:1px solid #ddd;}
+.btn-row{display:flex;gap:10px;justify-content:center;margin-top:10px;}
+.btn-action{flex:1;padding:10px;border:none;border-radius:8px;font-weight:600;color:#fff;cursor:pointer;}
+.btn-green{background:linear-gradient(135deg,#28a745,#6fdd72);}
+.btn-red{background:linear-gradient(135deg,#dc3545,#f87171);}
+.btn-gray{background:linear-gradient(135deg,#6c757d,#a0a4a7);}
 </style>
 <!-- 🟩 KONEC ČÁSTI 3/10 -->
+
 
 
 
