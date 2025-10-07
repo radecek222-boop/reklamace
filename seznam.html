@@ -332,7 +332,7 @@ window.addEventListener("DOMContentLoaded", loadData);
 <!-- 🟨 KONEC ČÁSTI 2/10 (finální – Praha bez PSČ + uložené termíny po reloadu) -->
 
 
-
+<!-- 🟨 ZAČÁTEK ČÁSTI 3/10 (finální – jednotný formát Prahy bez PSČ) -->
 <script>
 /* ============================= */
 /* 💬 DETAIL MODAL SE ZÁKAZNÍKEM */
@@ -343,14 +343,19 @@ function openDetail(index) {
 
   const overlay = document.createElement("div");
   overlay.className = "detail-overlay";
+
+  // 🧭 použijeme stejnou logiku pro Prahu bez PSČ
+  const adresaUpravena = normalizePrahaAddress(item.adresa || "");
+
   overlay.innerHTML = `
     <div class="detail-modal">
       <div class="detail-content">
         <div class="detail-info">
           <h2>${item.zakaznik || "Zákazník"}</h2>
+
           <p><strong>Adresa:</strong>
-            <a href="https://waze.com/ul?q=${encodeURIComponent(item.adresa || "")}" target="_blank" style="color:#0046ff;font-weight:600;">
-              ${item.adresa || "Neuvedeno"}
+            <a href="https://waze.com/ul?q=${encodeURIComponent(adresaUpravena)}" target="_blank" style="color:#0046ff;font-weight:600;">
+              ${adresaUpravena || "Neuvedeno"}
             </a>
           </p>
 
@@ -427,11 +432,11 @@ function openDetail(index) {
     minsSel.innerHTML += `<option value="${String(m).padStart(2,"0")}">${String(m).padStart(2,"0")}</option>`;
   }
 
-  /* 🗓️ Mini Vanilla kalendář v detailu zákazníka */
+  /* 🗓️ Mini Vanilla kalendář v detailu */
   const miniCal = new VanillaCalendar("#miniCalendar", {
     settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
     actions: {
-      clickDay(event, self) {
+      clickDay(event) {
         const chosen = event.target.dataset.calendarDay;
         if (chosen) {
           dateInput.value = chosen;
@@ -453,8 +458,10 @@ function openDetail(index) {
     }
   });
   miniCal.init();
+}
+</script>
+<!-- 🟨 KONEC ČÁSTI 3/10 (finální – jednotný formát Prahy bez PSČ) -->
 
-<!-- 🟨 KONEC ČÁSTI 3/10 -->
   /* 🗺️ Inicializace mapy v detailu */
   if (item.adresa) {
     const wgsCoords = [50.049, 14.523]; // WGS – Do Dubče Praha 9 Běchovice
