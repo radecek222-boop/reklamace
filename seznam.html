@@ -331,8 +331,7 @@ window.addEventListener("DOMContentLoaded", loadData);
 </script>
 <!-- 🟨 KONEC ČÁSTI 2/10 (finální – Praha bez PSČ + uložené termíny po reloadu) -->
 
-
-<!-- 🟨 ZAČÁTEK ČÁSTI 3/10 + 4/10 (sjednocená funkční verze) -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 3/10 (finální – funkční mapa + domluvit termín + šedý rámeček) -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -377,6 +376,7 @@ function openDetail(index) {
           }
 
           <div class="btn-row">
+            <button id="termBtn" class="btn-action btn-blue">Domluvit termín</button>
             <button id="protoBtn" class="btn-action btn-green">Přejít na protokol</button>
             <button id="closeBtn" class="btn-action btn-red">Zavřít</button>
           </div>
@@ -414,6 +414,7 @@ function openDetail(index) {
   const hoursSel = overlay.querySelector("#hours");
   const minsSel = overlay.querySelector("#minutes");
 
+  // Hodiny a minuty
   for (let h = 7; h < 20; h++) {
     hoursSel.innerHTML += `<option value="${String(h).padStart(2,"0")}">${String(h).padStart(2,"0")}</option>`;
   }
@@ -421,6 +422,7 @@ function openDetail(index) {
     minsSel.innerHTML += `<option value="${String(m).padStart(2,"0")}">${String(m).padStart(2,"0")}</option>`;
   }
 
+  // Mini kalendář
   const miniCal = new VanillaCalendar("#miniCalendar", {
     settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
     actions: {
@@ -434,7 +436,7 @@ function openDetail(index) {
           if (existing) existing.remove();
           const el = document.createElement("div");
           el.id = "chosenDateDisplay";
-          el.style.fontSize = "1.4em";
+          el.style.fontSize = "1.3em";
           el.style.fontWeight = "700";
           el.style.marginTop = "8px";
           el.style.color = "#0046ff";
@@ -446,18 +448,16 @@ function openDetail(index) {
   });
   miniCal.init();
 
-  /* 🗺️ Inicializace mapy */
+  // Mapa
   if (item.adresa) {
     const map = L.map(overlay.querySelector("#mapDetail")).setView([50.049, 14.523], 9);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "© OpenStreetMap"
     }).addTo(map);
-
     const wgsCoords = [50.049, 14.523];
     const wgsMarker = L.marker(wgsCoords, { title: "WGS – Do Dubče" })
       .addTo(map)
       .bindPopup("<b>WGS – Do Dubče, Praha 9 Běchovice</b>");
-
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`)
       .then(res => res.json())
       .then(data => {
@@ -470,18 +470,23 @@ function openDetail(index) {
               iconSize: [28, 28],
               iconAnchor: [14, 28]
             })
-          }).addTo(map).bindPopup(`<b>${item.zakaznik || "Zákazník"}</b><br>${item.adresa}`);
+          }).addTo(map).bindPopup(`<b>${item.zakaznik}</b><br>${item.adresa}`);
           const group = L.featureGroup([wgsMarker, custMarker]);
           map.fitBounds(group.getBounds().pad(0.3));
-
-          const distanceKm = calcDistanceCoords(wgsCoords[0], wgsCoords[1], custCoords[0], custCoords[1]);
+          const dist = calcDistanceCoords(wgsCoords[0], wgsCoords[1], custCoords[0], custCoords[1]);
           overlay.querySelector("#mapDistance").innerHTML =
-            `📍 Vzdálenost od WGS: <strong>${distanceKm.toFixed(1)} km</strong>`;
+            `📍 Vzdálenost od WGS: <strong>${dist.toFixed(1)} km</strong>`;
         }
       });
   }
 
-  /* 🔘 Funkce tlačítek */
+  // 🔘 Akce tlačítek
+  overlay.querySelector("#termBtn").onclick = () => {
+    overlay.querySelector("#termSection").scrollIntoView({ behavior: "smooth" });
+    overlay.querySelector("#termSection").style.boxShadow = "0 0 0 3px #0046ff55";
+    setTimeout(()=>overlay.querySelector("#termSection").style.boxShadow="none",1500);
+  };
+
   overlay.querySelector("#saveTermBtn").onclick = () => {
     const datum = dateInput.value;
     const cas = `${hoursSel.value}:${minsSel.value}`;
@@ -526,17 +531,6 @@ function openDetail(index) {
     setTimeout(() => overlay.remove(), 200);
   }
 }
-
-/* 📏 Výpočet vzdálenosti */
-function calcDistanceCoords(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2)**2 +
-            Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180) *
-            Math.sin(dLon/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
 </script>
 
 <style>
@@ -562,7 +556,135 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   color: white;
 }
 </style>
-<!-- 🟨 KONEC ČÁSTI 3+4/10 -->
+<!-- 🟨 KONEC ČÁSTI 3/10 -->
+
+
+  <!-- 🟨 ZAČÁTEK ČÁSTI 4/10 (finální – mapa, akce, plánování) -->
+<script>
+/* 📏 Výpočet vzdálenosti mezi souřadnicemi */
+function calcDistanceCoords(lat1, lon1, lat2, lon2) {
+  const R = 6371; // km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) *
+    Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+/* 💾 Uložení termínu do localStorage */
+function ulozTermin(zaznam) {
+  let data = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
+  const id = zaznam.cislo || zaznam.id;
+  data = data.filter(z => z.cislo !== id);
+  data.push(zaznam);
+  localStorage.setItem("stavyReklamaciData", JSON.stringify(data));
+}
+
+/* 🕓 Kontrola překryvu termínů (2 h tolerance) */
+function checkOverlap(datum, cas) {
+  const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
+  const nove = new Date(`${datum}T${cas}`);
+  return ulozene.filter(z => {
+    if (z.datum !== datum) return false;
+    const exist = new Date(`${z.datum}T${z.cas}`);
+    const diff = Math.abs((exist - nove) / 36e5);
+    return diff < 2;
+  });
+}
+
+/* 🗺️ Inicializace mapy po otevření detailu (z části 3) */
+function initMapAndActions(item, overlay, index, id) {
+  if (!item || !overlay) return;
+  const wgsCoords = [50.049, 14.523];
+  const map = L.map(overlay.querySelector("#mapDetail")).setView(wgsCoords, 9);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "© OpenStreetMap"
+  }).addTo(map);
+
+  const wgsMarker = L.marker(wgsCoords, { title: "WGS – Do Dubče" })
+    .addTo(map)
+    .bindPopup("<b>WGS – Do Dubče, Praha 9 Běchovice</b>");
+
+  // 📍 Získání souřadnic zákazníka
+  if (item.adresa) {
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data[0]) {
+          const custCoords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+          const custMarker = L.marker(custCoords, {
+            title: "Zákazník",
+            icon: L.icon({
+              iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png",
+              iconSize: [28, 28],
+              iconAnchor: [14, 28]
+            })
+          }).addTo(map)
+            .bindPopup(`<b>${item.zakaznik || "Zákazník"}</b><br>${item.adresa}`);
+          const group = L.featureGroup([wgsMarker, custMarker]);
+          map.fitBounds(group.getBounds().pad(0.3));
+
+          const km = calcDistanceCoords(wgsCoords[0], wgsCoords[1], custCoords[0], custCoords[1]);
+          overlay.querySelector("#mapDistance").innerHTML =
+            `📍 Vzdálenost od WGS: <strong>${km.toFixed(1)} km</strong>`;
+        }
+      });
+  }
+
+  /* 💾 Uložit / Změnit termín + SMS potvrzení */
+  overlay.querySelector("#saveTermBtn").onclick = () => {
+    const datum = overlay.querySelector("#datumTerminu").value;
+    const cas = `${overlay.querySelector("#hours").value}:${overlay.querySelector("#minutes").value}`;
+    if (!datum || !cas) return alert("Vyberte datum a čas!");
+
+    const kolize = checkOverlap(datum, cas);
+    if (kolize.length > 0) {
+      const seznam = kolize.map(k => `📍 ${k.adresa} (${k.cas})`).join("\n");
+      if (!confirm(`⚠️ Termín koliduje s jinými záznamy:\n\n${seznam}\n\nPřesto uložit?`)) return;
+    }
+
+    stavy[item.cislo || index] = "domluveno";
+    item.datum = datum;
+    item.cas = cas;
+    ulozTermin(item);
+    localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+    renderTable(dataAll);
+
+    // 📩 SMS potvrzení (není povinné)
+    if (item.telefon) {
+      const telefonCisty = item.telefon.replace(/\+?420|\s+/g, "");
+      const d = new Date(datum);
+      const den = d.toLocaleDateString("cs-CZ", { weekday: "short", day: "numeric", month: "numeric" });
+      const smsText = `Dobrý den, potvrzujeme termín návštěvy technika WGS – ${den} v ${cas} na adrese ${item.adresa || ""}.`;
+      window.location.href = `sms:+420${telefonCisty}?body=${encodeURIComponent(smsText)}`;
+    }
+  };
+
+  /* 📵 Nezvedá – odešle SMS */
+  overlay.querySelector("#noAnswerBtn").onclick = () => {
+    stavy[item.cislo || index] = "nezveda";
+    localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+    renderTable(dataAll);
+    if (item.telefon) {
+      const tel = item.telefon.replace(/\+?420|\s+/g, "");
+      const sms = `Dobrý den, volali jsme ohledně vaší reklamace ${item.cislo || ""}. Prosím zavolejte zpět – WGS.`;
+      window.location.href = `sms:+420${tel}?body=${encodeURIComponent(sms)}`;
+    }
+  };
+
+  /* ❌ Zákazník zrušil */
+  overlay.querySelector("#cancelBtn").onclick = () => {
+    stavy[item.cislo || index] = "zruseno";
+    localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+    renderTable(dataAll);
+  };
+}
+</script>
+<!-- 🟨 KONEC ČÁSTI 4/10 -->
+
 
 
 
