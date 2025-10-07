@@ -1062,8 +1062,35 @@ function showPhoto(src) {
 </style>
 
 <!-- 📅 VanillaCalendar knihovna -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/build/vanilla-calendar.min.css">
-<script src="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/build/vanilla-calendar.min.js"></script>
+<script>
+// ✅ Oprava funkčnosti tlačítka Plán dne
+document.addEventListener("click", e => {
+  if (e.target.id === "planBtn") {
+    const modal = document.getElementById("planModal");
+    if (!modal) return alert("Chyba: modal nebyl nalezen.");
+
+    // zobraz modal
+    modal.style.display = "flex";
+    setTimeout(() => {
+      modal.classList.add("active");
+      // inicializuj kalendář znovu, pokud ještě není
+      if (!document.querySelector(".vanilla-calendar-day__btn")) initCalendar();
+      // oprav zobrazení mapy
+      setTimeout(() => {
+        const mapEl = document.getElementById("map");
+        if (mapEl && map) map.invalidateSize();
+      }, 200);
+    }, 10);
+  }
+
+  if (e.target.id === "closeMap") {
+    const modal = document.getElementById("planModal");
+    modal.classList.remove("active");
+    setTimeout(() => (modal.style.display = "none"), 250);
+  }
+});
+</script>
+
 
 </body>
 </html>
