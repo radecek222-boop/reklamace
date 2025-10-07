@@ -724,7 +724,7 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
 }
 </style>
 
-<!-- 🟨 ZAČÁTEK ČÁSTI 6+7/10 (FINÁLNÍ) -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 6/10 -->
 <style>
 #planModal {
   display: none;
@@ -754,7 +754,7 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   gap: 20px;
 }
 
-/* 🔹 Levý blok (kalendář + legenda + zpět) */
+/* 🔹 Levý blok */
 .left-block {
   display: flex;
   flex-direction: column;
@@ -792,7 +792,7 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   margin-top: 6px;
 }
 
-/* 🔴 rámeček s časem odjezdu */
+/* 🔴 Rámeček + rychlost */
 .departure-alert {
   margin-top: 10px;
   padding: 10px 12px;
@@ -804,8 +804,16 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   background: linear-gradient(135deg, #ff3b3b, #cc0000);
   animation: blink 1s infinite;
 }
-@keyframes blink {
-  50% { opacity: 0.4; }
+@keyframes blink { 50% { opacity: 0.4; } }
+.speed-select {
+  width: 100%;
+  margin-top: 8px;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-weight: 600;
+  background: #f6f7fb;
+  cursor: pointer;
 }
 
 #closeMap {
@@ -848,7 +856,7 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   color: #444;
 }
 
-/* 🔹 Zákazníci pod mapou */
+/* 🔹 Zákazníci */
 .plan-list {
   margin-top: 10px;
   display: flex;
@@ -879,22 +887,15 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   font-weight: 600;
   font-size: 0.85em;
 }
-.phone-btn {
-  background: linear-gradient(135deg, #007bff, #399bff);
-  color: #fff;
-}
+.phone-btn { background: linear-gradient(135deg,#007bff,#399bff); color:#fff; }
 .waze-btn {
   border: 1px solid #0046ff;
   background: #f0f4ff;
   color: #0046ff;
 }
 .waze-btn:hover { background: #0046ff; color:#fff; }
-.flag-btn {
-  background:none;
-  border:none;
-  font-size:1.2em;
-  cursor:pointer;
-}
+.flag-btn { background:none; border:none; font-size:1.2em; cursor:pointer; }
+
 .blinking-marker { animation: blinkMarker 1s infinite; }
 @keyframes blinkMarker {
   0%{transform:scale(1);filter:brightness(1);}
@@ -902,24 +903,14 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   100%{transform:scale(1);filter:brightness(1);}
 }
 
-/* 🔹 Responsivita */
+/* Responsivita */
 @media(max-width:900px){
-  #planModal .modal-inner{
-    grid-template-columns:1fr;
-    grid-template-rows:auto auto auto auto;
-    height:95vh;
-  }
-  .plan-row{
-    grid-template-columns:26px 60px 1.5fr 0.8fr 1.2fr 90px;
-    font-size:0.85em;
-  }
+  #planModal .modal-inner{grid-template-columns:1fr;grid-template-rows:auto auto auto auto;height:95vh;}
+  .plan-row{grid-template-columns:26px 60px 1.5fr 0.8fr 1.2fr 90px;font-size:0.85em;}
   #map{min-height:300px;}
 }
 </style>
 
-<script>
-const planBtn=document.getElementById("planBtn");
-const planModalHTML=`
 <div id="planModal">
   <div class="modal-inner">
     <div class="left-block">
@@ -927,6 +918,12 @@ const planModalHTML=`
       <div class="panel legend" id="legendBox">
         <table id="routeTable"></table>
         <div class="legend-total" id="totalKm"></div>
+        <select id="speedSelect" class="speed-select">
+          <option value="60">Průměrná rychlost: 60 km/h</option>
+          <option value="70" selected>Průměrná rychlost: 70 km/h</option>
+          <option value="80">Průměrná rychlost: 80 km/h</option>
+          <option value="100">Průměrná rychlost: 100 km/h</option>
+        </select>
         <div class="departure-alert" id="departureTimeBox">Vyrazit na cestu nejpozději v —</div>
       </div>
       <button id="closeMap">Zpět</button>
@@ -936,103 +933,166 @@ const planModalHTML=`
       <div class="plan-list" id="planList"></div>
     </div>
   </div>
-</div>`;
-document.body.insertAdjacentHTML("beforeend",planModalHTML);
+</div>
+<!-- 🟩 KONEC ČÁSTI 6/10 -->
 
-let map,markersLayer,routeLayer,markerMap={};
-const wgsCoords=[50.049,14.523];
 
-planBtn.onclick=()=>{const m=document.getElementById("planModal");m.style.display="flex";setTimeout(()=>m.classList.add("active"),10);initCalendar();};
-document.getElementById("closeMap").onclick=()=>{const m=document.getElementById("planModal");m.classList.remove("active");setTimeout(()=>m.style.display="none",250);};
 
-function initCalendar(){
-  const ulozene=JSON.parse(localStorage.getItem("stavyReklamaciData")||"[]");
-  const unique=[...new Set(ulozene.map(z=>z.datum))];
-  const cal=new VanillaCalendar("#calendar",{settings:{lang:"cs",visibility:{theme:"light"}},actions:{clickDay:(e)=>{const d=e.target.dataset.calendarDay;if(d)showPlanForDay(d);}}});
+
+    <!-- 🟦 ZAČÁTEK ČÁSTI 7/10 -->
+<script>
+let map, markersLayer, routeLayer, markerMap = {};
+const wgsCoords = [50.049, 14.523];
+
+const planBtn = document.getElementById("planBtn");
+planBtn.onclick = () => {
+  const m = document.getElementById("planModal");
+  m.style.display = "flex";
+  setTimeout(() => m.classList.add("active"), 10);
+  initCalendar();
+};
+document.getElementById("closeMap").onclick = () => {
+  const m = document.getElementById("planModal");
+  m.classList.remove("active");
+  setTimeout(() => m.style.display = "none", 250);
+};
+
+/* 🗓️ Kalendář */
+function initCalendar() {
+  const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
+  const unique = [...new Set(ulozene.map(z => z.datum))];
+  const cal = new VanillaCalendar("#calendar", {
+    settings: { lang: "cs", visibility: { theme: "light" } },
+    actions: { clickDay: (e) => {
+      const d = e.target.dataset.calendarDay;
+      if (d) showPlanForDay(d);
+    }}
+  });
   cal.init();
-  setTimeout(()=>{
-    document.querySelectorAll(".vanilla-calendar-day__btn").forEach(btn=>{
-      if(unique.includes(btn.dataset.calendarDay)){
-        const dot=document.createElement("span");
-        dot.style.cssText=`position:absolute;top:4px;left:50%;transform:translateX(-50%);width:8px;height:8px;border-radius:50%;background:#0046ff;`;
-        btn.appendChild(dot);
-      }
-    });
-  },300);
+  setTimeout(() => addBlueDots(unique), 300);
 }
 
-async function showPlanForDay(date){
-  const overlay=document.getElementById("mapOverlay");
-  const planList=document.getElementById("planList");
-  const routeTable=document.getElementById("routeTable");
-  const totalKm=document.getElementById("totalKm");
-  const departureBox=document.getElementById("departureTimeBox");
-
-  overlay.style.display="none";planList.innerHTML="";routeTable.innerHTML="";totalKm.textContent="";departureBox.textContent="Vyrazit na cestu nejpozději v —";
-
-  const terminy=JSON.parse(localStorage.getItem("stavyReklamaciData")||"[]").filter(t=>t.datum===date);
-  if(!map){
-    map=L.map("map").setView(wgsCoords,8);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);
-    markersLayer=L.layerGroup().addTo(map);
-    routeLayer=L.layerGroup().addTo(map);
-  }
-  markersLayer.clearLayers();routeLayer.clearLayers();markerMap={};
-
-  if(!terminy.length){overlay.style.display="flex";map.setView(wgsCoords,8);return;}
-  const homeIcon=L.icon({iconUrl:"https://cdn-icons-png.flaticon.com/512/25/25694.png",iconSize:[36,36],iconAnchor:[18,36]});
-  L.marker(wgsCoords,{icon:homeIcon}).addTo(markersLayer);
-
-  const cache=JSON.parse(localStorage.getItem("geoCache")||"{}");let coords=[wgsCoords];
-  for(const t of terminy){
-    let c=cache[t.adresa];
-    if(!c){
-      const res=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(t.adresa)}`);
-      const data=await res.json();if(data[0]){c=[parseFloat(data[0].lat),parseFloat(data[0].lon)];cache[t.adresa]=c;localStorage.setItem("geoCache",JSON.stringify(cache));}
+/* 🔵 Modré puntíky */
+function addBlueDots(uniqueDates) {
+  document.querySelectorAll(".vanilla-calendar-day__btn span.dot").forEach(d => d.remove());
+  document.querySelectorAll(".vanilla-calendar-day__btn").forEach(btn => {
+    if (uniqueDates.includes(btn.dataset.calendarDay)) {
+      const dot = document.createElement("span");
+      dot.classList.add("dot");
+      dot.style.cssText = "position:absolute;top:4px;left:50%;transform:translateX(-50%);width:8px;height:8px;border-radius:50%;background:#0046ff;";
+      btn.appendChild(dot);
     }
-    if(c){coords.push(c);const flag=L.icon({iconUrl:"https://cdn-icons-png.flaticon.com/512/684/684908.png",iconSize:[28,28],iconAnchor:[14,28]});const m=L.marker(c,{icon:flag}).addTo(markersLayer).bindPopup(`<b>${t.zakaznik}</b><br>${t.adresa}<br>${t.cas}`);markerMap[t.adresa]=m;}
+  });
+}
+
+/* 🗺️ Zobrazení trasy a výpočet odjezdu */
+async function showPlanForDay(date) {
+  const overlay = document.getElementById("mapOverlay");
+  const planList = document.getElementById("planList");
+  const routeTable = document.getElementById("routeTable");
+  const totalKm = document.getElementById("totalKm");
+  const departureBox = document.getElementById("departureTimeBox");
+  const speedSelect = document.getElementById("speedSelect");
+
+  overlay.style.display = "none";
+  planList.innerHTML = "";
+  routeTable.innerHTML = "";
+  totalKm.textContent = "";
+  departureBox.textContent = "Vyrazit na cestu nejpozději v —";
+
+  const terminy = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]").filter(t => t.datum === date);
+  if (!map) {
+    map = L.map("map").setView(wgsCoords, 8);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap" }).addTo(map);
+    markersLayer = L.layerGroup().addTo(map);
+    routeLayer = L.layerGroup().addTo(map);
+  }
+  markersLayer.clearLayers(); routeLayer.clearLayers(); markerMap = {};
+
+  if (!terminy.length) { overlay.style.display = "flex"; map.setView(wgsCoords, 8); return; }
+
+  const homeIcon = L.icon({ iconUrl: "https://cdn-icons-png.flaticon.com/512/25/25694.png", iconSize: [36, 36], iconAnchor: [18, 36] });
+  L.marker(wgsCoords, { icon: homeIcon }).addTo(markersLayer);
+
+  const cache = JSON.parse(localStorage.getItem("geoCache") || "{}");
+  let coords = [wgsCoords];
+
+  for (const t of terminy) {
+    let c = cache[t.adresa];
+    if (!c) {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(t.adresa)}`);
+      const data = await res.json();
+      if (data[0]) {
+        c = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+        cache[t.adresa] = c;
+        localStorage.setItem("geoCache", JSON.stringify(cache));
+      }
+    }
+    if (c) {
+      coords.push(c);
+      const flag = L.icon({ iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png", iconSize: [28, 28], iconAnchor: [14, 28] });
+      const m = L.marker(c, { icon: flag }).addTo(markersLayer)
+        .bindPopup(`<b>${t.zakaznik}</b><br>${t.adresa}<br>${t.cas}`);
+      markerMap[t.adresa] = m;
+    }
   }
 
-  // 🧭 Řádek zákazníka – vlajka, čas, adresa, Waze, jméno, telefon
-  planList.innerHTML=terminy.map(t=>`
+  planList.innerHTML = terminy.map(t => `
     <div class="plan-row">
       <button class="flag-btn" data-addr="${t.adresa}">🚩</button>
-      <div>${t.cas||""}</div>
+      <div>${t.cas || ""}</div>
       <div>${t.adresa}</div>
       <div><button class="waze-btn" onclick="window.open('waze://?q=${encodeURIComponent(t.adresa)}','_blank')">Waze</button></div>
       <div><b>${t.zakaznik}</b></div>
-      <div><button class="phone-btn" onclick="window.location.href='tel:${t.telefon?.replace('+420','').trim()||''}'">📞</button></div>
+      <div><button class="phone-btn" onclick="window.location.href='tel:${t.telefon?.replace('+420','').trim() || ''}'">📞</button></div>
     </div>`).join("");
 
-  document.querySelectorAll(".flag-btn").forEach(b=>{
-    b.onclick=()=>{const a=b.dataset.addr;Object.values(markerMap).forEach(m=>m._icon.classList.remove("blinking-marker"));if(markerMap[a]){map.setView(markerMap[a].getLatLng(),12);markerMap[a]._icon.classList.add("blinking-marker");markerMap[a].openPopup();}}
+  document.querySelectorAll(".flag-btn").forEach(b => {
+    b.onclick = () => {
+      const a = b.dataset.addr;
+      Object.values(markerMap).forEach(m => m._icon.classList.remove("blinking-marker"));
+      if (markerMap[a]) {
+        map.setView(markerMap[a].getLatLng(), 12);
+        markerMap[a]._icon.classList.add("blinking-marker");
+        markerMap[a].openPopup();
+      }
+    }
   });
 
-  const coordStr=coords.map(c=>`${c[1]},${c[0]}`).join(";");
-  const res=await fetch(`https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson`);
-  const data=await res.json();
-  if(data.routes?.length){
-    const r=data.routes[0];const legs=r.legs||[];let total=0;
-    routeTable.innerHTML="<tr><th>#</th><th>Odkud</th><th>Kam</th><th>Km</th></tr>";
-    legs.forEach((leg,i)=>{const km=(leg.distance/1000).toFixed(1);total+=+km;const from=i===0?"WGS":terminy[i-1]?.zakaznik||"Zákazník";const to=terminy[i]?.zakaznik||"Zákazník";routeTable.innerHTML+=`<tr><td>${i+1}</td><td>${from}</td><td>${to}</td><td>${km}</td></tr>`;L.geoJSON(leg.geometry,{style:{color:"#0046ff",weight:4,opacity:.8}}).addTo(routeLayer);});
-    totalKm.textContent=`CELKEM: ${total.toFixed(1)} km`;
-  }
+  const coordStr = coords.map(c => `${c[1]},${c[0]}`).join(";");
+  const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson`);
+  const data = await res.json();
 
-  // 🔍 přiblížení mapy na všechny zákazníky
-  if (coords.length > 1) map.fitBounds(markersLayer.getBounds().pad(0.2));
+  if (data.routes?.length) {
+    const r = data.routes[0]; const legs = r.legs || []; let total = 0;
+    routeTable.innerHTML = "<tr><th>#</th><th>Odkud</th><th>Kam</th><th>Km</th></tr>";
+    legs.forEach((leg, i) => {
+      const km = (leg.distance / 1000).toFixed(1);
+      total += +km;
+      const from = i === 0 ? "WGS" : terminy[i-1]?.zakaznik || "Zákazník";
+      const to = terminy[i]?.zakaznik || "Zákazník";
+      routeTable.innerHTML += `<tr><td>${i+1}</td><td>${from}</td><td>${to}</td><td>${km}</td></tr>`;
+      L.geoJSON(leg.geometry, { style: { color: "#0046ff", weight: 4, opacity: .8 } }).addTo(routeLayer);
+    });
+    totalKm.textContent = `CELKEM: ${total.toFixed(1)} km`;
+    if (coords.length > 1) map.fitBounds(L.latLngBounds(coords).pad(0.2));
 
-  // ⏰ spočítáme čas odjezdu (1h 20min před prvním zákazníkem)
-  if (terminy.length && terminy[0].cas) {
-    const [h, m] = terminy[0].cas.split(":").map(Number);
-    const d = new Date();
-    d.setHours(h, m - 80);
-    const hh = String(d.getHours()).padStart(2,"0");
-    const mm = String(d.getMinutes()).padStart(2,"0");
-    departureBox.textContent = `Vyrazit na cestu nejpozději v ${hh}:${mm}`;
+    // 🚗 reálný výpočet času odjezdu
+    if (terminy.length && terminy[0].cas && legs[0]) {
+      const speed = parseInt(speedSelect.value);
+      const driveMinutes = (legs[0].distance / 1000) / speed * 60 + 10;
+      const [h, m] = terminy[0].cas.split(":").map(Number);
+      const d = new Date();
+      d.setHours(h, m - driveMinutes);
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mm = String(d.getMinutes()).padStart(2, "0");
+      departureBox.textContent = `Vyrazit na cestu nejpozději v ${hh}:${mm}`;
+    }
   }
 }
 </script>
-<!-- 🟨 KONEC ČÁSTI 6+7/10 -->
+<!-- 🟦 KONEC ČÁSTI 7/10 -->
+
 
 
 
