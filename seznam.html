@@ -939,7 +939,7 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
 
 
 
-<!-- 🟦 ZAČÁTEK ČÁSTI 7/10 (sort + live recalc + travel time) -->
+<!-- 🟦 ZAČÁTEK ČÁSTI 7/10 (Finální – trasa + číslované zastávky + návrat do WGS) -->
 <script>
 let map, markersLayer, routeLayer, markerMap = {};
 const wgsCoords = [50.049, 14.523];
@@ -1023,9 +1023,6 @@ async function showPlanForDay(date) {
 
   if (!terminy.length) { overlay.style.display = "flex"; map.setView(wgsCoords, 8); return; }
 
-  const homeIcon = L.icon({ iconUrl: "https://cdn-icons-png.flaticon.com/512/25/25694.png", iconSize: [36, 36], iconAnchor: [18, 36] });
-  L.marker(wgsCoords, { icon: homeIcon }).addTo(markersLayer);
-
   const cache = JSON.parse(localStorage.getItem("geoCache") || "{}");
   let coords = [wgsCoords];
 
@@ -1040,16 +1037,36 @@ async function showPlanForDay(date) {
         localStorage.setItem("geoCache", JSON.stringify(cache));
       }
     }
-    if (c) {
-      coords.push(c);
-      const flag = L.icon({ iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png", iconSize: [28, 28], iconAnchor: [14, 28] });
-      const m = L.marker(c, { icon: flag }).addTo(markersLayer)
+    if (c) coords.push(c);
+  }
+
+  // přidáme zpět WGS jako cílový bod
+  coords.push(wgsCoords);
+
+  // 🧭 vykreslení číslovaných markerů
+  const numberIcon = (n) => L.divIcon({
+    className: "number-icon",
+    html: `<div style="background:#0046ff;color:white;font-weight:700;width:26px;height:26px;line-height:26px;text-align:center;border-radius:50%;box-shadow:0 0 3px rgba(0,0,0,.4);">${n}</div>`,
+    iconSize: [26,26],
+    iconAnchor: [13,26]
+  });
+
+  // start marker
+  const homeIcon = L.icon({ iconUrl: "https://cdn-icons-png.flaticon.com/512/25/25694.png", iconSize: [36, 36], iconAnchor: [18, 36] });
+  L.marker(wgsCoords, { icon: homeIcon }).addTo(markersLayer);
+
+  // zákazníci s čísly
+  terminy.forEach((t,i)=>{
+    const pos = coords[i+1];
+    if (pos) {
+      const m = L.marker(pos, { icon: numberIcon(i+1) })
+        .addTo(markersLayer)
         .bindPopup(`<b>${t.zakaznik}</b><br>${t.adresa}<br>${t.cas}`);
       markerMap[t.adresa] = m;
     }
-  }
+  });
 
-  // 🧾 seznam zákazníků podle času
+  // 🧾 seznam zákazníků
   planList.innerHTML = terminy.map(t => `
     <div class="plan-row">
       <button class="flag-btn" data-addr="${t.adresa}">🚩</button>
@@ -1072,6 +1089,7 @@ async function showPlanForDay(date) {
     }
   });
 
+  // 🛣️ vykreslení trasy přes všechny body a zpět
   const coordStr = coords.map(c => `${c[1]},${c[0]}`).join(";");
   const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson`);
   const data = await res.json();
@@ -1080,15 +1098,17 @@ async function showPlanForDay(date) {
     const r = data.routes[0]; const legs = r.legs || []; let total = 0;
     currentLegs = legs;
     routeTable.innerHTML = "<tr><th>#</th><th>Odkud</th><th>Kam</th><th>Km</th></tr>";
+
     legs.forEach((leg, i) => {
       const km = (leg.distance / 1000).toFixed(1);
       total += +km;
       const from = i === 0 ? "WGS" : terminy[i-1]?.zakaznik || "Zákazník";
-      const to = terminy[i]?.zakaznik || "Zákazník";
+      const to = i < terminy.length ? terminy[i]?.zakaznik : "WGS";
       routeTable.innerHTML += `<tr><td>${i+1}</td><td>${from}</td><td>${to}</td><td>${km}</td></tr>`;
-      L.geoJSON(leg.geometry, { style: { color: "#0046ff", weight: 4, opacity: .8 } }).addTo(routeLayer);
+      L.geoJSON(leg.geometry, { style: { color: "#0046ff", weight: 4, opacity: .85 } }).addTo(routeLayer);
     });
-    totalKm.textContent = `CELKEM: ${total.toFixed(1)} km`;
+
+    totalKm.innerHTML = `<div style="text-align:center;font-weight:700;">CELKEM: ${total.toFixed(1)} km</div>`;
     if (coords.length > 1) map.fitBounds(L.latLngBounds(coords).pad(0.2));
 
     recalcDeparture();
@@ -1098,7 +1118,7 @@ async function showPlanForDay(date) {
   speedSelect.onchange = () => recalcDeparture();
 }
 
-/* 🚗 Přepočet času odjezdu + zobrazení doby jízdy */
+/* 🚗 Přepočet času odjezdu + doba jízdy */
 function recalcDeparture() {
   const departureBox = document.getElementById("departureTimeBox");
   const speedSelect = document.getElementById("speedSelect");
@@ -1119,12 +1139,17 @@ function recalcDeparture() {
 
   const hDrive = Math.floor(driveMinutes / 60);
   const mDrive = Math.round(driveMinutes % 60);
-  totalKm.textContent = `Doba jízdy k prvnímu zákazníkovi: ${hDrive} h ${mDrive} min`;
+  totalKm.innerHTML = `
+    <div style="text-align:center;font-weight:700;">
+      🚗 Doba jízdy k prvnímu zákazníkovi: ${hDrive} h ${mDrive} min
+    </div>
+  `;
 
   departureBox.textContent = `Vyrazit na cestu nejpozději v ${hh}:${mm}`;
 }
 </script>
 <!-- 🟦 KONEC ČÁSTI 7/10 -->
+
 
 
 
