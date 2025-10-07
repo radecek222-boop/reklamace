@@ -58,10 +58,14 @@ h2 {
   gap: 15px;
   margin-bottom: 25px;
 }
+
+/* 🔘 Vzhled všech tlačítek */
 .btn {
-  display: inline-block;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
   text-decoration: none;
-  padding: 10px 24px;
+  padding: 12px 24px;
   border-radius: 8px;
   font-weight: 600;
   font-size: 1em;
@@ -71,8 +75,11 @@ h2 {
   color: white;
   box-shadow: 0 3px 8px rgba(0,0,0,0.15);
   min-width: 160px;
+  height: 44px;
+  text-align: center;
 }
 .btn:hover { transform: scale(1.04); opacity: 0.9; }
+
 .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
 .btn-refresh { background: linear-gradient(135deg, #b80000, #ff3838); }
 .btn-green { background: linear-gradient(135deg, #28a745, #60d06a); }
@@ -139,6 +146,7 @@ tr:hover { background: #f1f6ff; cursor: pointer; }
 
     <input type="text" id="search" placeholder="🔍 Hledat podle jména, adresy nebo zadavatele...">
     <div id="tableContainer" class="loading">Načítám data...</div>
+
 <script>
 const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
 const tableContainer = document.getElementById("tableContainer");
@@ -389,7 +397,7 @@ function openDetail(index) {
 
   /* 🗺️ Inicializace mapy v detailu */
   if (item.adresa) {
-    const wgsCoords = [50.049, 14.523]; // Do Dubče, Běchovice
+    const wgsCoords = [50.049, 14.523]; // WGS – Do Dubče, Praha 9
     const map = L.map(overlay.querySelector("#mapDetail")).setView(wgsCoords, 9);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "© OpenStreetMap"
@@ -493,12 +501,12 @@ function openDetail(index) {
 
 /* 📏 Výpočet vzdálenosti mezi dvěma souřadnicemi */
 function calcDistanceCoords(lat1, lon1, lat2, lon2) {
-  const R = 6371; // km
+  const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+  const a = Math.sin(dLat/2) ** 2 +
             Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
+            Math.sin(dLon/2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 </script>
@@ -672,6 +680,10 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   cursor: pointer;
   transition: transform 0.15s ease-in-out, opacity 0.2s ease;
   box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  height: 44px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .btn-action:hover { transform: scale(1.05); opacity: 0.9; }
 
@@ -693,7 +705,7 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   .btn-row { flex-direction: column; }
   .btn-action { width: 100%; font-size: 0.95em; }
   #mapDetail {
-    height: 300px;
+    height: 320px;
   }
 }
 </style>
@@ -730,21 +742,29 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   font-size: 1.4em;
   font-weight: 700;
   margin: 5px 0 15px;
+  color: #111;
 }
+
+/* 🔷 Kalendář + mapa vedle sebe */
 .plan-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
+  align-items: stretch;
 }
 #calendar {
   border: 1px solid #ddd;
   border-radius: 10px;
   overflow: hidden;
+  height: 450px;
 }
 #map {
   height: 450px;
   border-radius: 10px;
+  border: 1px solid #ddd;
 }
+
+/* 📋 Seznam pod mapou */
 .plan-list {
   max-height: 220px;
   overflow-y: auto;
@@ -752,44 +772,82 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 10px;
+  background: #fafafa;
 }
 .plan-list div {
-  margin-bottom: 5px;
-  padding: 4px 6px;
+  margin-bottom: 6px;
+  padding: 6px 8px;
   border-bottom: 1px solid #eee;
+  line-height: 1.5;
 }
+
+/* 🔘 Tlačítka dole */
 .plan-actions {
   display: flex;
   justify-content: center;
   gap: 15px;
 }
+.plan-actions .btn-action {
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  height: 44px;
+}
 
-/* 📱 Mobilní rozložení plánu dne */
+/* 📱 Mobilní rozložení */
 @media (max-width: 750px) {
   .plan-content {
     display: flex;
     flex-direction: column;
   }
-  #map {
-    height: 320px;
+  #calendar, #map {
+    height: 380px;
   }
+  .plan-list {
+    max-height: unset;
+  }
+}
+
+/* 🔵 Tečky v kalendáři pro dny s plánem */
+.vc-day--has-event::after {
+  content: "•";
+  color: #007bff;
+  font-size: 1.2em;
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* ❌ Text pro prázdný den */
+.no-data {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 450px;
+  font-size: 1.1em;
+  color: #777;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fdfdfd;
 }
 </style>
 
 <script>
-// =============================
-// 🗓️ PLÁN DNE – KALENDÁŘ + MAPA
-// =============================
 const planBtn = document.getElementById("planBtn");
 
-/* 🔧 HTML modalu */
+/* 🧱 HTML modalu */
 const planModalHTML = `
 <div id="planModal">
   <div class="modal-inner">
-    <h2>🗺️ Plán dne</h2>
+    <h2>Plán dne</h2>
     <div class="plan-content">
       <div id="calendar"></div>
-      <div id="map"></div>
+      <div id="mapContainer">
+        <div id="map"></div>
+        <div id="noDataMsg" class="no-data" style="display:none;">❌ Žádný záznam pro tento den</div>
+      </div>
     </div>
     <div class="plan-list" id="planList">Vyberte den v kalendáři...</div>
     <div class="plan-actions">
@@ -801,9 +859,9 @@ const planModalHTML = `
 document.body.insertAdjacentHTML("beforeend", planModalHTML);
 
 let map, markersLayer, routeLayer;
-const wgsCoords = [50.049, 14.523]; // Do Dubče, Běchovice Praha 9
+const wgsCoords = [50.049, 14.523]; // Do Dubče – Praha 9 (WGS)
 
-/* 🗓️ Inicializace Vanilla kalendáře s označením dnů */
+/* 🗓️ Inicializace kalendáře */
 function initCalendar() {
   const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
   const dny = ulozene.map(z => z.datum);
@@ -821,32 +879,45 @@ function initCalendar() {
 
   calendar.init();
 
-  // Zvýraznění dnů s plánem
+  // Přidání modrých puntíků
   setTimeout(() => {
     document.querySelectorAll(".vanilla-calendar-day__btn").forEach(btn => {
       const date = btn.dataset.calendarDay;
       if (uniqueDays.includes(date)) {
-        btn.style.background = "#d2e3ff";
-        btn.style.borderRadius = "6px";
+        const dot = document.createElement("div");
+        dot.style.position = "absolute";
+        dot.style.bottom = "6px";
+        dot.style.left = "50%";
+        dot.style.transform = "translateX(-50%)";
+        dot.style.width = "7px";
+        dot.style.height = "7px";
+        dot.style.borderRadius = "50%";
+        dot.style.background = "#007bff";
+        btn.style.position = "relative";
+        btn.appendChild(dot);
       }
     });
   }, 200);
-
-  return calendar;
 }
-
-/* 🔍 Zobrazení plánovaných reklamací v mapě a seznamu */
+<script>
+/* 🗺️ Zobrazení plánovaných reklamací v mapě a seznamu */
 async function showPlanForDay(date) {
   const planList = document.getElementById("planList");
+  const mapEl = document.getElementById("map");
+  const msgEl = document.getElementById("noDataMsg");
   const terminy = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]")
     .filter(t => t.datum === date);
 
   planList.innerHTML = "";
-
   if (!terminy.length) {
-    planList.innerHTML = "<div style='color:#777;'>Žádné reklamace pro tento den.</div>";
+    msgEl.style.display = "flex";
+    mapEl.style.display = "none";
+    planList.innerHTML = "<div style='text-align:center;color:#777;'>❌ Žádný záznam pro tento den</div>";
     if (markersLayer) markersLayer.clearLayers();
     return;
+  } else {
+    msgEl.style.display = "none";
+    mapEl.style.display = "block";
   }
 
   if (!map) {
@@ -855,7 +926,6 @@ async function showPlanForDay(date) {
       attribution: "© OpenStreetMap"
     }).addTo(map);
     markersLayer = L.layerGroup().addTo(map);
-    routeLayer = L.polyline([], {color: "purple", weight: 4}).addTo(map);
   }
 
   const cache = JSON.parse(localStorage.getItem("geoCache") || "{}");
@@ -881,39 +951,32 @@ async function showPlanForDay(date) {
   }
 
   markersLayer.clearLayers();
-  L.marker(wgsCoords, {title: "WGS – Běchovice", icon: L.icon({
+
+  // 🔴 WGS bod
+  L.marker(wgsCoords, {title: "WGS – Do Dubče", icon: L.icon({
     iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png",
     iconSize: [28,28],
     iconAnchor: [14,28]
   })}).addTo(markersLayer).bindPopup("<b>WGS – Do Dubče, Praha 9</b>");
 
-  terminy.forEach(t => {
+  // 🔵 Body zákazníků
+  for (const t of terminy) {
     const c = cache[t.adresa];
     if (c) {
-      L.marker(c, { icon: L.icon({
+      L.marker(c, {title: t.zakaznik || "Zákazník", icon: L.icon({
         iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png",
         iconSize: [28,28],
         iconAnchor: [14,28]
       })}).addTo(markersLayer)
       .bindPopup(`<b>${t.zakaznik || "Zákazník"}</b><br>${t.adresa || ""}<br>${t.produkt || ""}`);
     }
-  });
-
-  const coordStr = coords.map(c => c[1] + "," + c[0]).join(";");
-  const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson`);
-  const data = await res.json();
-  const route = data.routes[0];
-  if (route) {
-    const line = L.geoJSON(route.geometry, {color: "purple", weight: 5});
-    routeLayer.setLatLngs(line.getLatLngs());
-    map.fitBounds(line.getBounds());
   }
 
+  // 📋 Seznam zákazníků pod mapou
   planList.innerHTML = terminy.map(t => `
     <div>
-      <b>${t.zakaznik || "Zákazník"}</b><br>
-      ${t.adresa || ""}<br>
-      <span style="color:#555;">${t.produkt || ""}</span>
+      <b>${t.zakaznik || "Zákazník"}</b> – ${t.adresa || ""} – 
+      <span style="color:#444;">${t.produkt || ""}</span>
     </div>
   `).join("");
 }
@@ -937,7 +1000,7 @@ async function exportPlanToPDF() {
   terminy.forEach(t => {
     doc.text(`• ${t.zakaznik || "Zákazník"} – ${t.adresa || ""}`, 14, y);
     y += 6;
-    doc.text(`   Model: ${t.produkt || ""}  |  Tel: ${t.telefon || ""}  |  Čas: ${t.cas || ""}`, 14, y);
+    doc.text(`   Model: ${t.produkt || ""} | Tel: ${t.telefon || ""} | Čas: ${t.cas || ""}`, 14, y);
     y += 8;
   });
   doc.save(`Plan_${date}.pdf`);
@@ -952,15 +1015,20 @@ planBtn.onclick = () => {
 };
 
 /* ❌ Zavření modalu */
-document.getElementById("closeMap").onclick = () => {
-  const modal = document.getElementById("planModal");
-  modal.classList.remove("active");
-  setTimeout(() => (modal.style.display = "none"), 250);
-};
+document.body.addEventListener("click", e => {
+  if (e.target.id === "closeMap") {
+    const modal = document.getElementById("planModal");
+    modal.classList.remove("active");
+    setTimeout(() => (modal.style.display = "none"), 250);
+  }
+});
 
 /* 📤 Export PDF */
-document.getElementById("exportPlanPDF").onclick = exportPlanToPDF;
+document.body.addEventListener("click", e => {
+  if (e.target.id === "exportPlanPDF") exportPlanToPDF();
+});
 </script>
+
 <script>
 /* =============================== */
 /* 🖼️ NÁHLED FOTKY NA CELOU OBRAZOVKU */
@@ -977,67 +1045,9 @@ function showPhoto(src) {
   viewer.querySelector(".close-viewer").onclick = () => viewer.remove();
   viewer.onclick = e => { if (e.target === viewer) viewer.remove(); };
 }
-
-/* =============================== */
-/* 🔴 BLINK dnešních termínů v seznamu */
-/* =============================== */
-function highlightTodayRows() {
-  const today = new Date().toISOString().split("T")[0];
-  document.querySelectorAll("tbody tr").forEach(row => {
-    const index = row.dataset.index;
-    const item = dataAll[index];
-    if (item && item.datum === today && stavy[item.cislo || `radek-${index}`] === "domluveno") {
-      row.classList.add("blink-today");
-    } else {
-      row.classList.remove("blink-today");
-    }
-  });
-}
-
-/* 💾 Uložení termínů */
-function ulozTermin(zaznam) {
-  let data = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
-  const id = zaznam.cislo || zaznam.id;
-  data = data.filter(z => z.cislo !== id);
-  data.push(zaznam);
-  localStorage.setItem("stavyReklamaciData", JSON.stringify(data));
-}
-
-/* 🕓 Kontrola překryvu termínů (2h rozdíl) */
-function checkOverlap(datum, cas) {
-  const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
-  const nove = new Date(`${datum}T${cas}`);
-  return ulozene.filter(z => {
-    if (z.datum !== datum) return false;
-    const exist = new Date(`${z.datum}T${z.cas}`);
-    const diff = Math.abs((exist - nove) / 36e5);
-    return diff < 2;
-  });
-}
-
-/* 🩸 Aktivace blikání dnešních termínů */
-const originalRenderTableBlink = renderTable;
-renderTable = function(arr) {
-  originalRenderTableBlink(arr);
-  setTimeout(highlightTodayRows, 150);
-};
-window.addEventListener("storage", e => {
-  if (e.key === "stavyReklamaci") setTimeout(highlightTodayRows, 300);
-});
-setInterval(highlightTodayRows, 30000);
 </script>
 
 <style>
-/* 🔴 Blikání dnešních termínů */
-@keyframes blinkToday {
-  0% { background-color: #fff2f2; }
-  50% { background-color: #ffdada; }
-  100% { background-color: #fff2f2; }
-}
-.blink-today {
-  animation: blinkToday 1.4s infinite;
-}
-
 /* 🔍 Fullscreen náhled fotky */
 .photo-viewer {
   position: fixed;
