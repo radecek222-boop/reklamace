@@ -461,7 +461,7 @@ window.addEventListener("DOMContentLoaded", loadData);
 </script>
 <!-- 🟨 KONEC ČÁSTI 2/10 (finální – Praha bez PSČ + uložené termíny po reloadu) -->
 
-<!-- 🟨 ZAČÁTEK ČÁSTI 3/10 (Detail zákazníka – přehled 2x2: info, mapa, kalendář, hodiny) -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 3/10 (Detail zákazníka – s výpisem vzdálenosti v km) -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -512,7 +512,7 @@ function openDetail(index) {
         <!-- 🗺️ Pravý horní blok – mapa -->
         <div class="right-top">
           <div id="mapDetail"></div>
-          <div id="mapDistance" class="map-distance"></div>
+          <div id="mapDistance" class="map-distance">📍 Načítám trasu...</div>
         </div>
 
         <!-- 📅 Levý dolní blok – kalendář -->
@@ -558,7 +558,7 @@ function openDetail(index) {
   });
   miniCal.init();
 
-  // 🗺️ Mapa s trasou WGS ➜ zákazník
+  // 🗺️ Mapa s trasou WGS ➜ zákazník a výpisem vzdálenosti
   if (item.adresa) {
     const wgsCoords = [50.049, 14.523];
     const map = L.map(overlay.querySelector("#mapDetail")).setView(wgsCoords, 9);
@@ -574,10 +574,24 @@ function openDetail(index) {
           const group = L.featureGroup([wgsMarker, custMarker]);
           map.fitBounds(group.getBounds().pad(0.3));
           L.polyline([wgsCoords, custCoords], { color: "#0046ff", weight: 3, opacity: 0.8 }).addTo(map);
+
+          const distanceKm = calcDistanceCoords(
+            wgsCoords[0], wgsCoords[1],
+            custCoords[0], custCoords[1]
+          );
           overlay.querySelector("#mapDistance").innerHTML =
-            `📍 Trasa: WGS → ${item.zakaznik || "Zákazník"}`;
+            `📍 Trasa: WGS → ${item.zakaznik || "Zákazník"} – ${distanceKm.toFixed(1)} km`;
         }
       });
+  }
+
+  // Výpočet vzdálenosti (haversin)
+  function calcDistanceCoords(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
   // 🧭 Zobrazení kalendáře + hodin až po kliknutí
@@ -600,76 +614,8 @@ function openDetail(index) {
   };
 }
 </script>
-
-<style>
-.grid-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto;
-  gap: 18px;
-}
-.left-top, .right-top, .left-bottom, .right-bottom {
-  background: #fff;
-  border-radius: 10px;
-  padding: 10px;
-}
-.left-top h2 { text-align:center; font-size:1.5em; margin-bottom:10px; }
-#mapDetail {
-  height: 260px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-}
-.map-distance {
-  text-align: center;
-  font-size: 0.9em;
-  margin-top: 6px;
-}
-.left-bottom {
-  display: none;
-  background: transparent;
-  padding: 0;
-}
-.right-bottom {
-  display: none;
-}
-.time-box {
-  background: #f9f9f9;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  padding: 15px;
-  text-align: center;
-}
-.custom-time-picker {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 15px;
-}
-.custom-time-picker select {
-  font-size: 1.2em;
-  font-weight: 600;
-  border-radius: 8px;
-  padding: 5px 10px;
-  border: 1px solid #ccc;
-}
-.time-btns {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.time-btns button {
-  width: 100%;
-  font-size: 0.95em;
-}
-
-/* 📱 Responsivita */
-@media(max-width:800px){
-  .grid-layout{grid-template-columns:1fr;grid-template-rows:auto;}
-  .left-bottom,.right-bottom{display:block;}
-}
-</style>
 <!-- 🟨 KONEC ČÁSTI 3/10 -->
+
 
 
 
