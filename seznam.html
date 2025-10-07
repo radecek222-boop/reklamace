@@ -939,10 +939,11 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
 
 
 
-    <!-- 🟦 ZAČÁTEK ČÁSTI 7/10 -->
+<!-- 🟦 ZAČÁTEK ČÁSTI 7/10 (sort + live recalc + travel time) -->
 <script>
 let map, markersLayer, routeLayer, markerMap = {};
 const wgsCoords = [50.049, 14.523];
+let currentDate = null, currentLegs = null, currentTerminy = null;
 
 const planBtn = document.getElementById("planBtn");
 planBtn.onclick = () => {
@@ -985,7 +986,7 @@ function addBlueDots(uniqueDates) {
   });
 }
 
-/* 🗺️ Zobrazení trasy a výpočet odjezdu */
+/* 🗺️ Zobrazení plánu */
 async function showPlanForDay(date) {
   const overlay = document.getElementById("mapOverlay");
   const planList = document.getElementById("planList");
@@ -1000,7 +1001,18 @@ async function showPlanForDay(date) {
   totalKm.textContent = "";
   departureBox.textContent = "Vyrazit na cestu nejpozději v —";
 
-  const terminy = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]").filter(t => t.datum === date);
+  let terminy = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]").filter(t => t.datum === date);
+
+  // 🕒 seřazení zákazníků podle času
+  terminy.sort((a,b)=>{
+    if(!a.cas) return 1;
+    if(!b.cas) return -1;
+    return a.cas.localeCompare(b.cas);
+  });
+
+  currentDate = date;
+  currentTerminy = terminy;
+
   if (!map) {
     map = L.map("map").setView(wgsCoords, 8);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap" }).addTo(map);
@@ -1037,6 +1049,7 @@ async function showPlanForDay(date) {
     }
   }
 
+  // 🧾 seznam zákazníků podle času
   planList.innerHTML = terminy.map(t => `
     <div class="plan-row">
       <button class="flag-btn" data-addr="${t.adresa}">🚩</button>
@@ -1065,6 +1078,7 @@ async function showPlanForDay(date) {
 
   if (data.routes?.length) {
     const r = data.routes[0]; const legs = r.legs || []; let total = 0;
+    currentLegs = legs;
     routeTable.innerHTML = "<tr><th>#</th><th>Odkud</th><th>Kam</th><th>Km</th></tr>";
     legs.forEach((leg, i) => {
       const km = (leg.distance / 1000).toFixed(1);
@@ -1077,21 +1091,41 @@ async function showPlanForDay(date) {
     totalKm.textContent = `CELKEM: ${total.toFixed(1)} km`;
     if (coords.length > 1) map.fitBounds(L.latLngBounds(coords).pad(0.2));
 
-    // 🚗 reálný výpočet času odjezdu
-    if (terminy.length && terminy[0].cas && legs[0]) {
-      const speed = parseInt(speedSelect.value);
-      const driveMinutes = (legs[0].distance / 1000) / speed * 60 + 10;
-      const [h, m] = terminy[0].cas.split(":").map(Number);
-      const d = new Date();
-      d.setHours(h, m - driveMinutes);
-      const hh = String(d.getHours()).padStart(2, "0");
-      const mm = String(d.getMinutes()).padStart(2, "0");
-      departureBox.textContent = `Vyrazit na cestu nejpozději v ${hh}:${mm}`;
-    }
+    recalcDeparture();
   }
+
+  // 🔁 přepočet při změně rychlosti
+  speedSelect.onchange = () => recalcDeparture();
+}
+
+/* 🚗 Přepočet času odjezdu + zobrazení doby jízdy */
+function recalcDeparture() {
+  const departureBox = document.getElementById("departureTimeBox");
+  const speedSelect = document.getElementById("speedSelect");
+  const totalKm = document.getElementById("totalKm");
+
+  if (!currentTerminy?.length || !currentLegs?.length) return;
+
+  const first = currentTerminy[0];
+  if (!first.cas) return;
+
+  const speed = parseInt(speedSelect.value);
+  const driveMinutes = (currentLegs[0].distance / 1000) / speed * 60 + 10;
+  const [h, m] = first.cas.split(":").map(Number);
+  const d = new Date();
+  d.setHours(h, m - driveMinutes);
+  const hh = String(d.getHours()).padStart(2,"0");
+  const mm = String(d.getMinutes()).padStart(2,"0");
+
+  const hDrive = Math.floor(driveMinutes / 60);
+  const mDrive = Math.round(driveMinutes % 60);
+  totalKm.textContent = `Doba jízdy k prvnímu zákazníkovi: ${hDrive} h ${mDrive} min`;
+
+  departureBox.textContent = `Vyrazit na cestu nejpozději v ${hh}:${mm}`;
 }
 </script>
 <!-- 🟦 KONEC ČÁSTI 7/10 -->
+
 
 
 
