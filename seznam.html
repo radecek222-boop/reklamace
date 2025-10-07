@@ -461,7 +461,7 @@ window.addEventListener("DOMContentLoaded", loadData);
 </script>
 <!-- 🟨 KONEC ČÁSTI 2/10 (finální – Praha bez PSČ + uložené termíny po reloadu) -->
 
-<!-- 🟨 ZAČÁTEK ČÁSTI 3/10 (Detail zákazníka – s výpisem vzdálenosti v km) -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 3/10 (Detail zákazníka – stabilní verze se vzdáleností a přechodem na čas) -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -546,19 +546,23 @@ function openDetail(index) {
   for (let h = 7; h < 20; h++) hoursSel.innerHTML += `<option>${String(h).padStart(2,"0")}</option>`;
   for (let m = 0; m < 60; m += 5) minsSel.innerHTML += `<option>${String(m).padStart(2,"0")}</option>`;
 
-  // 🗓️ Mini kalendář
+  // 🗓️ Mini kalendář (po kliknutí zobrazí čas)
   const miniCal = new VanillaCalendar("#miniCalendar", {
     settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
     actions: {
       clickDay(event) {
         const chosen = event.target.dataset.calendarDay;
-        if (chosen) overlay.dataset.datum = chosen;
+        if (chosen) {
+          overlay.dataset.datum = chosen;
+          // automaticky odhalí výběr času
+          overlay.querySelector(".right-bottom").style.display = "block";
+        }
       }
     }
   });
   miniCal.init();
 
-  // 🗺️ Mapa s trasou WGS ➜ zákazník a výpisem vzdálenosti
+  // 🗺️ Mapa s trasou WGS ➜ zákazník + výpočet km
   if (item.adresa) {
     const wgsCoords = [50.049, 14.523];
     const map = L.map(overlay.querySelector("#mapDetail")).setView(wgsCoords, 9);
@@ -585,7 +589,7 @@ function openDetail(index) {
       });
   }
 
-  // Výpočet vzdálenosti (haversin)
+  // 📏 Výpočet vzdálenosti mezi souřadnicemi
   function calcDistanceCoords(lat1, lon1, lat2, lon2) {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -597,7 +601,6 @@ function openDetail(index) {
   // 🧭 Zobrazení kalendáře + hodin až po kliknutí
   overlay.querySelector("#termBtn").onclick = () => {
     overlay.querySelector(".left-bottom").style.display = "block";
-    overlay.querySelector(".right-bottom").style.display = "block";
     overlay.querySelector("#termBtn").disabled = true;
   };
 
@@ -615,6 +618,7 @@ function openDetail(index) {
 }
 </script>
 <!-- 🟨 KONEC ČÁSTI 3/10 -->
+
 
 
 
