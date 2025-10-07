@@ -114,10 +114,14 @@ tr:hover { background: #f1f6ff; cursor: pointer; }
   to { background-color: #fff280; }
 }
 
-/* 📱 Mobilní verze */
+/* 📱 Stejná tlačítka na mobilu */
 @media (max-width:700px){
   table { display:none; }
-  .btn {width:100%;min-width:unset;}
+  .btn {
+    width:100%;
+    min-width:unset;
+    text-align:center;
+  }
 }
 </style>
 </head>
@@ -265,7 +269,7 @@ function renderTable(arr) {
   html += "</tbody></table>";
   tableContainer.innerHTML = html;
 
-  // Kliknutí na řádek → detail
+  // Kliknutí na řádek → otevře detail zákazníka
   document.querySelectorAll("tbody tr").forEach(row => {
     row.addEventListener("click", () => openDetail(row.getAttribute("data-index")));
   });
@@ -297,64 +301,72 @@ function openDetail(index) {
   overlay.className = "detail-overlay";
   overlay.innerHTML = `
     <div class="detail-modal">
-      <h2>${item.zakaznik || "Zákazník"}</h2>
+      <div class="detail-content">
+        <div class="detail-info">
+          <h2>${item.zakaznik || "Zákazník"}</h2>
+          <p><strong>Adresa:</strong>
+            <a href="https://waze.com/ul?q=${encodeURIComponent(item.adresa || "")}" target="_blank">
+              ${item.adresa || "Neuvedeno"}
+            </a>
+          </p>
 
-      <p><strong>Adresa:</strong>
-        <a href="https://waze.com/ul?q=${encodeURIComponent(item.adresa || "")}" target="_blank">
-          ${item.adresa || "Neuvedeno"}
-        </a>
-      </p>
+          <p><strong>Telefon:</strong>
+            <a href="tel:${(item.telefon || "").replace("+420","").trim()}">
+              ${(item.telefon || "").replace("+420","").trim()}
+            </a>
+          </p>
 
-      <p><strong>Telefon:</strong>
-        <a href="tel:${(item.telefon || "").replace("+420","").trim()}">
-          ${(item.telefon || "").replace("+420","").trim()}
-        </a>
-      </p>
+          <p><strong>Email:</strong> ${item.email || "–"}</p>
+          <p><strong>Produkt / model:</strong> ${item.produkt || "–"}</p>
+          <p><strong>Popis závady:</strong> ${item.popis || "–"}</p>
+          <p><strong>Typ:</strong> ${item.typ || "–"}</p>
 
-      <p><strong>Email:</strong> ${item.email || "–"}</p>
-      <p><strong>Produkt / model:</strong> ${item.produkt || "–"}</p>
-      <p><strong>Popis závady:</strong> ${item.popis || "–"}</p>
-      <p><strong>Typ:</strong> ${item.typ || "–"}</p>
+          ${
+            item.typ && item.typ.toLowerCase().includes("pozáruční") 
+              ? "" 
+              : `<p><strong>Datum prodeje:</strong> ${item.datum_prodeje || "–"} |
+                 <strong>Datum reklamace:</strong> ${item.datum_reklamace || "–"}</p>`
+          }
 
-      ${
-        item.typ && item.typ.toLowerCase().includes("pozáruční") 
-          ? "" 
-          : `<p><strong>Datum prodeje:</strong> ${item.datum_prodeje || "–"} |
-             <strong>Datum reklamace:</strong> ${item.datum_reklamace || "–"}</p>`
-      }
+          ${
+            item.fotky && item.fotky.length
+              ? `
+                <div class="foto-container">
+                  ${item.fotky.map(f => `
+                    <img src="foto/${f}" alt="${f}" onclick="showPhoto(this.src)" />
+                  `).join("")}
+                </div>`
+              : `<p style="color:#777;">📷 Žádné přiložené fotografie</p>`
+          }
 
-      ${
-        item.fotky && item.fotky.length
-          ? `
-            <div class="foto-container">
-              ${item.fotky.map(f => `
-                <img src="foto/${f}" alt="${f}" onclick="showPhoto(this.src)" />
-              `).join("")}
-            </div>`
-          : `<p style="color:#777;">📷 Žádné přiložené fotografie</p>`
-      }
+          <div class="btn-row">
+            <button id="termBtn" class="btn-action btn-blue">Domluvit termín</button>
+            <button id="protoBtn" class="btn-action btn-green">Přejít na protokol</button>
+            <button id="closeBtn" class="btn-action btn-red">Zavřít</button>
+          </div>
 
-      <div class="btn-row">
-        <button id="termBtn" class="btn-action btn-blue">Domluvit termín</button>
-        <button id="protoBtn" class="btn-action btn-green">Přejít na protokol</button>
-        <button id="closeBtn" class="btn-action btn-red">Zavřít</button>
-      </div>
+          <div id="termSection" class="term-section">
+            <h3>Domluvit / Změnit termín</h3>
 
-      <div id="termSection" class="term-section">
-        <h3>Domluvit / Změnit termín</h3>
+            <div class="term-center">
+              <input type="date" id="datumTerminu" class="term-date" />
+              <div class="custom-time-picker">
+                <select id="hours"></select><span>:</span><select id="minutes"></select>
+              </div>
+            </div>
 
-        <div class="term-center">
-          <input type="date" id="datumTerminu" class="term-date" />
-          <div class="custom-time-picker">
-            <select id="hours"></select><span>:</span><select id="minutes"></select>
+            <div class="btn-row">
+              <button id="saveTermBtn" class="btn-action btn-green">Uložit termín</button>
+              <button id="noAnswerBtn" class="btn-action btn-orange">Nezvedá to</button>
+              <button id="cancelBtn" class="btn-action btn-gray">Zákazník zrušil</button>
+              <button id="backBtn" class="btn-action btn-red">Zpět</button>
+            </div>
           </div>
         </div>
 
-        <div class="btn-row">
-          <button id="saveTermBtn" class="btn-action btn-green">Uložit termín</button>
-          <button id="noAnswerBtn" class="btn-action btn-orange">Nezvedá to</button>
-          <button id="cancelBtn" class="btn-action btn-gray">Zákazník zrušil</button>
-          <button id="backBtn" class="btn-action btn-red">Zpět</button>
+        <div class="detail-map">
+          <div id="mapDetail"></div>
+          <div id="mapDistance" class="map-distance"></div>
         </div>
       </div>
     </div>
@@ -373,6 +385,42 @@ function openDetail(index) {
   }
   for (let m = 0; m < 60; m += 5) {
     minsSel.innerHTML += `<option value="${String(m).padStart(2,"0")}">${String(m).padStart(2,"0")}</option>`;
+  }
+
+  /* 🗺️ Inicializace mapy v detailu */
+  if (item.adresa) {
+    const wgsCoords = [50.049, 14.523]; // Do Dubče, Běchovice
+    const map = L.map(overlay.querySelector("#mapDetail")).setView(wgsCoords, 9);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap"
+    }).addTo(map);
+
+    const wgsMarker = L.marker(wgsCoords, { title: "WGS – Do Dubče" }).addTo(map)
+      .bindPopup("<b>WGS – Do Dubče, Praha 9</b>");
+
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data[0]) {
+          const custCoords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+          const custMarker = L.marker(custCoords, { title: "Zákazník", icon: L.icon({
+            iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png",
+            iconSize: [28, 28],
+            iconAnchor: [14, 28]
+          })}).addTo(map)
+            .bindPopup(`<b>${item.zakaznik || "Zákazník"}</b><br>${item.adresa}`);
+
+          const group = L.featureGroup([wgsMarker, custMarker]);
+          map.fitBounds(group.getBounds().pad(0.3));
+
+          const distanceKm = calcDistanceCoords(
+            wgsCoords[0], wgsCoords[1],
+            custCoords[0], custCoords[1]
+          );
+          overlay.querySelector("#mapDistance").innerHTML =
+            `📍 Vzdálenost od WGS: <b>${distanceKm.toFixed(1)} km</b>`;
+        }
+      });
   }
 
   /* 💾 Uložit termín */
@@ -395,7 +443,7 @@ function openDetail(index) {
     closeDetail();
     renderTable(dataAll);
 
-    // 📩 Automatická SMS potvrzení
+    // 📩 Automatické odeslání potvrzovací SMS
     if (item.telefon) {
       const telefonCisty = item.telefon.replace(/\+?420|\s+/g, "");
       const smsText = `Dobrý den, níže vám zasíláme potvrzený termín návštěvy našeho technika v den ${datum} v čase ${cas} na adresu ${item.adresa || ""}. Servisní centrum WGS`;
@@ -442,6 +490,17 @@ function openDetail(index) {
     setTimeout(() => overlay.remove(), 200);
   }
 }
+
+/* 📏 Výpočet vzdálenosti mezi dvěma souřadnicemi */
+function calcDistanceCoords(lat1, lon1, lat2, lon2) {
+  const R = 6371; // km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 </script>
 <style>
 /* ============================= */
@@ -463,8 +522,8 @@ function openDetail(index) {
 .detail-modal {
   background: #fff;
   border-radius: 16px;
-  width: 80%;
-  max-width: 780px;
+  width: 90%;
+  max-width: 950px;
   padding: 25px 30px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.3);
   overflow-y: auto;
@@ -474,6 +533,33 @@ function openDetail(index) {
 @keyframes fadeIn {
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
+}
+
+.detail-content {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+}
+.detail-info {
+  flex: 1.2;
+}
+.detail-map {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#mapDetail {
+  height: 280px;
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+.map-distance {
+  font-size: 0.95em;
+  text-align: center;
+  color: #333;
+  padding-top: 5px;
 }
 
 .detail-modal h2 {
@@ -511,41 +597,6 @@ function openDetail(index) {
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 .foto-container img:hover { transform: scale(1.06); }
-
-/* 🔍 Zvětšení fotky */
-.photo-viewer {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.85);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-}
-.photo-viewer-inner {
-  position: relative;
-  max-width: 90vw;
-  max-height: 85vh;
-}
-.photo-viewer-inner img {
-  width: 100%;
-  height: auto;
-  border-radius: 10px;
-}
-.close-viewer {
-  position: absolute;
-  top: -15px;
-  right: -15px;
-  background: #ff3b30;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  cursor: pointer;
-  font-size: 1.2em;
-  font-weight: bold;
-}
 
 /* 🎛️ Sekce termínu */
 .term-section {
@@ -631,11 +682,19 @@ function openDetail(index) {
 .btn-red    { background: linear-gradient(135deg, #dc3545, #f87171); }
 
 /* 📱 Mobilní zobrazení */
-@media (max-width: 700px) {
-  .detail-modal { width: 94%; padding: 20px; }
+@media (max-width: 750px) {
+  .detail-content {
+    flex-direction: column;
+  }
+  .detail-modal {
+    width: 94%;
+    padding: 20px;
+  }
   .btn-row { flex-direction: column; }
   .btn-action { width: 100%; font-size: 0.95em; }
-  .foto-container img { width: 90px; height: 90px; }
+  #mapDetail {
+    height: 300px;
+  }
 }
 </style>
 <style>
@@ -687,7 +746,7 @@ function openDetail(index) {
   border-radius: 10px;
 }
 .plan-list {
-  max-height: 180px;
+  max-height: 220px;
   overflow-y: auto;
   font-size: 0.95em;
   padding: 10px;
@@ -704,6 +763,17 @@ function openDetail(index) {
   justify-content: center;
   gap: 15px;
 }
+
+/* 📱 Mobilní rozložení plánu dne */
+@media (max-width: 750px) {
+  .plan-content {
+    display: flex;
+    flex-direction: column;
+  }
+  #map {
+    height: 320px;
+  }
+}
 </style>
 
 <script>
@@ -712,7 +782,7 @@ function openDetail(index) {
 // =============================
 const planBtn = document.getElementById("planBtn");
 
-/* 🔧 Vložíme HTML modalu */
+/* 🔧 HTML modalu */
 const planModalHTML = `
 <div id="planModal">
   <div class="modal-inner">
@@ -733,8 +803,12 @@ document.body.insertAdjacentHTML("beforeend", planModalHTML);
 let map, markersLayer, routeLayer;
 const wgsCoords = [50.049, 14.523]; // Do Dubče, Běchovice Praha 9
 
-// 🗓️ Inicializace Vanilla kalendáře
+/* 🗓️ Inicializace Vanilla kalendáře s označením dnů */
 function initCalendar() {
+  const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
+  const dny = ulozene.map(z => z.datum);
+  const uniqueDays = [...new Set(dny)];
+
   const calendar = new VanillaCalendar("#calendar", {
     settings: { lang: "cs", visibility: { theme: "light" } },
     actions: {
@@ -744,7 +818,20 @@ function initCalendar() {
       }
     }
   });
+
   calendar.init();
+
+  // Zvýraznění dnů s plánem
+  setTimeout(() => {
+    document.querySelectorAll(".vanilla-calendar-day__btn").forEach(btn => {
+      const date = btn.dataset.calendarDay;
+      if (uniqueDays.includes(date)) {
+        btn.style.background = "#d2e3ff";
+        btn.style.borderRadius = "6px";
+      }
+    });
+  }, 200);
+
   return calendar;
 }
 
@@ -762,7 +849,6 @@ async function showPlanForDay(date) {
     return;
   }
 
-  // Inicializace mapy (pouze jednou)
   if (!map) {
     map = L.map("map").setView([50.0755, 14.4378], 9);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -788,28 +874,31 @@ async function showPlanForDay(date) {
     return null;
   };
 
-  // Přidáme WGS bod
   coords.push(wgsCoords);
-
   for (const t of terminy) {
     const c = await fetchCoords(t.adresa);
     if (c) coords.push(c);
   }
 
-  // Vyčistit a přidat značky
   markersLayer.clearLayers();
-  L.marker(wgsCoords, {title: "WGS – Běchovice"}).addTo(markersLayer)
-    .bindPopup("<b>WGS – Do Dubče, Praha 9</b>").openPopup();
+  L.marker(wgsCoords, {title: "WGS – Běchovice", icon: L.icon({
+    iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png",
+    iconSize: [28,28],
+    iconAnchor: [14,28]
+  })}).addTo(markersLayer).bindPopup("<b>WGS – Do Dubče, Praha 9</b>");
 
   terminy.forEach(t => {
     const c = cache[t.adresa];
     if (c) {
-      L.marker(c).addTo(markersLayer)
-        .bindPopup(`<b>${t.zakaznik || "Zákazník"}</b><br>${t.adresa || ""}<br>${t.produkt || ""}`);
+      L.marker(c, { icon: L.icon({
+        iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png",
+        iconSize: [28,28],
+        iconAnchor: [14,28]
+      })}).addTo(markersLayer)
+      .bindPopup(`<b>${t.zakaznik || "Zákazník"}</b><br>${t.adresa || ""}<br>${t.produkt || ""}`);
     }
   });
 
-  // 🛣️ Vykreslení trasy (OSRM)
   const coordStr = coords.map(c => c[1] + "," + c[0]).join(";");
   const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson`);
   const data = await res.json();
@@ -820,7 +909,6 @@ async function showPlanForDay(date) {
     map.fitBounds(line.getBounds());
   }
 
-  // 🧾 Vypis seznamu
   planList.innerHTML = terminy.map(t => `
     <div>
       <b>${t.zakaznik || "Zákazník"}</b><br>
@@ -906,19 +994,7 @@ function highlightTodayRows() {
   });
 }
 
-const originalRenderTableBlink = renderTable;
-renderTable = function(arr) {
-  originalRenderTableBlink(arr);
-  setTimeout(highlightTodayRows, 150);
-};
-window.addEventListener("storage", e => {
-  if (e.key === "stavyReklamaci") setTimeout(highlightTodayRows, 300);
-});
-setInterval(highlightTodayRows, 30000);
-
-/* =============================== */
-/* 💾 Uložení termínu a kontrola kolizí */
-/* =============================== */
+/* 💾 Uložení termínů */
 function ulozTermin(zaznam) {
   let data = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
   const id = zaznam.cislo || zaznam.id;
@@ -927,6 +1003,7 @@ function ulozTermin(zaznam) {
   localStorage.setItem("stavyReklamaciData", JSON.stringify(data));
 }
 
+/* 🕓 Kontrola překryvu termínů (2h rozdíl) */
 function checkOverlap(datum, cas) {
   const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
   const nove = new Date(`${datum}T${cas}`);
@@ -937,9 +1014,67 @@ function checkOverlap(datum, cas) {
     return diff < 2;
   });
 }
+
+/* 🩸 Aktivace blikání dnešních termínů */
+const originalRenderTableBlink = renderTable;
+renderTable = function(arr) {
+  originalRenderTableBlink(arr);
+  setTimeout(highlightTodayRows, 150);
+};
+window.addEventListener("storage", e => {
+  if (e.key === "stavyReklamaci") setTimeout(highlightTodayRows, 300);
+});
+setInterval(highlightTodayRows, 30000);
 </script>
 
-<!-- ✅ Vanilla Calendar knihovna -->
+<style>
+/* 🔴 Blikání dnešních termínů */
+@keyframes blinkToday {
+  0% { background-color: #fff2f2; }
+  50% { background-color: #ffdada; }
+  100% { background-color: #fff2f2; }
+}
+.blink-today {
+  animation: blinkToday 1.4s infinite;
+}
+
+/* 🔍 Fullscreen náhled fotky */
+.photo-viewer {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+.photo-viewer-inner {
+  position: relative;
+  max-width: 90vw;
+  max-height: 85vh;
+}
+.photo-viewer-inner img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+.close-viewer {
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  background: #ff3b30;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+</style>
+
+<!-- 📅 VanillaCalendar knihovna -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/build/vanilla-calendar.min.css">
 <script src="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/build/vanilla-calendar.min.js"></script>
 
