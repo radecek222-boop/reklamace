@@ -463,7 +463,7 @@ window.addEventListener("DOMContentLoaded", loadData);
 
 
 
-<!-- 🟩 ZAČÁTEK ČÁSTI 3/10 (Detail zákazníka – finální layout se 4 tlačítky a toast napojením) -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 3/10 (Detail zákazníka – plná verze) -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -477,7 +477,7 @@ function openDetail(index) {
     <div class="detail-modal">
       <div class="grid-layout">
 
-        <!-- 🧭 VLEVO – kalendář, čas + tlačítka -->
+        <!-- 🧭 VLEVO – kalendář, čas a tlačítka -->
         <div class="left-panel">
           <div id="miniCalendar"></div>
 
@@ -488,10 +488,10 @@ function openDetail(index) {
           <div class="term-info-box" id="termInfoBox">Vyberte datum a čas</div>
 
           <div class="left-buttons">
-            <button id="saveTermBtn"  class="btn-action btn-green">Uložit / Změnit</button>
-            <button id="noAnswerBtn"  class="btn-action btn-orange">Nezvedá (SMS)</button>
-            <button id="cancelBtn"    class="btn-action btn-red">Zákazník zrušil</button>
-            <button id="closeBtn"     class="btn-action btn-gray">Zpět</button>
+            <button id="saveTermBtn" class="btn-action btn-green">Uložit / Změnit</button>
+            <button id="noAnswerBtn" class="btn-action btn-orange">Nezvedá (SMS)</button>
+            <button id="cancelBtn" class="btn-action btn-red">Zákazník zrušil</button>
+            <button id="closeBtn" class="btn-action btn-gray">Zpět</button>
           </div>
         </div>
 
@@ -499,9 +499,9 @@ function openDetail(index) {
         <div class="right-panel">
           <div class="customer-info">
             <h2>${item.zakaznik || "Zákazník"}</h2>
-            <p><strong>Adresa:</strong> 
+            <p><strong>Adresa:</strong>
               <a href="https://waze.com/ul?q=${encodeURIComponent(adresaUpravena)}" target="_blank">${adresaUpravena}</a></p>
-            <p><strong>Telefon:</strong> 
+            <p><strong>Telefon:</strong>
               <a href="tel:${(item.telefon||"").replace("+420","").trim()}">${(item.telefon||"").replace("+420","").trim()}</a></p>
             <p><strong>Email:</strong> ${item.email||"–"}</p>
             <p><strong>Produkt / model:</strong> ${item.produkt||"–"}</p>
@@ -521,34 +521,40 @@ function openDetail(index) {
   const id = item.cislo || `radek-${index}`;
   const infoBox = overlay.querySelector("#termInfoBox");
 
-  /* 🗓️ Kalendář – zůstává označený den */
-  const miniCal = new VanillaCalendar("#miniCalendar",{
-    settings:{lang:"cs",selection:{day:"single"},visibility:{theme:"light"}},
-    actions:{clickDay:e=>{
-      const chosen=e.target.dataset.calendarDay;
-      if(chosen){
-        overlay.dataset.datum=chosen;
-        e.target.classList.add("vanilla-calendar-day__btn_selected");
-        updateTermInfoBox(infoBox,chosen,null);
-        flashBox(infoBox,"gray");
+  /* 🗓️ Kalendář – inicializace po vykreslení */
+  setTimeout(() => {
+    const calContainer = overlay.querySelector("#miniCalendar");
+    if (!calContainer) return;
+    const miniCal = new VanillaCalendar(calContainer, {
+      settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
+      actions: {
+        clickDay(e) {
+          const chosen = e.target.dataset.calendarDay;
+          if (chosen) {
+            overlay.dataset.datum = chosen;
+            e.target.classList.add("vanilla-calendar-day__btn_selected");
+            updateTermInfoBox(infoBox, chosen, null);
+            flashBox(infoBox, "gray");
+          }
+        }
       }
-    }}
-  });
-  miniCal.init();
+    });
+    miniCal.init();
+  }, 120);
 
   /* 🕒 Hodiny */
-  const hSel=overlay.querySelector("#hours"),mSel=overlay.querySelector("#minutes");
-  for(let h=7;h<20;h++)hSel.innerHTML+=`<option>${String(h).padStart(2,"0")}</option>`;
-  for(let m=0;m<60;m+=5)mSel.innerHTML+=`<option>${String(m).padStart(2,"0")}</option>`;
-  hSel.addEventListener("change",()=>updateTime(infoBox,overlay));
-  mSel.addEventListener("change",()=>updateTime(infoBox,overlay));
+  const hSel = overlay.querySelector("#hours"), mSel = overlay.querySelector("#minutes");
+  for (let h=7; h<20; h++) hSel.innerHTML += `<option>${String(h).padStart(2,"0")}</option>`;
+  for (let m=0; m<60; m+=5) mSel.innerHTML += `<option>${String(m).padStart(2,"0")}</option>`;
+  hSel.addEventListener("change", ()=>updateTime(infoBox, overlay));
+  mSel.addEventListener("change", ()=>updateTime(infoBox, overlay));
 
-  /* 🗺️ Mapa + vzdálenost */
-  if(item.adresa){
-    const wgs=[50.049,14.523];
-    const map=L.map(overlay.querySelector("#mapDetail")).setView(wgs,9);
+  /* 🗺️ Mapa + vzdálenost od WGS */
+  if (item.adresa) {
+    const wgs = [50.049, 14.523];
+    const map = L.map(overlay.querySelector("#mapDetail")).setView(wgs,9);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);
-    const wgsM=L.marker(wgs,{title:"WGS"}).addTo(map);
+    const wgsM = L.marker(wgs,{title:"WGS"}).addTo(map);
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`)
       .then(r=>r.json()).then(d=>{
         if(d[0]){
@@ -563,82 +569,31 @@ function openDetail(index) {
   }
 
   /* 🟩 Uložit / Změnit */
-  overlay.querySelector("#saveTermBtn").onclick=()=>{
-    const datum=overlay.dataset.datum;
-    const cas=`${hSel.value}:${mSel.value}`;
-    if(!datum||!cas)return alert("Vyberte datum a čas!");
-    ulozitTerminNaGitHub(item,id,datum,cas,overlay,overlay.querySelector("#saveTermBtn"),infoBox);
-    setNextToast("✅ Termín úspěšně uložen","success");
-    setTimeout(()=>{
-      if(item.telefon){
-        const tel=item.telefon.replace(/\+?420|\s+/g,"");
-        const d=new Date(datum);
-        const den=d.toLocaleDateString("cs-CZ",{weekday:"long",day:"numeric",month:"long"});
-        const sms=`Dobrý den, Váš termín servisu byl potvrzen na ${den} v ${cas}. WGS`;
-        window.location.href=`sms:+420${tel}?body=${encodeURIComponent(sms)}`;
-      }
-    },1600);
+  overlay.querySelector("#saveTermBtn").onclick = () => {
+    const datum = overlay.dataset.datum;
+    const cas = `${hSel.value}:${mSel.value}`;
+    if (!datum || !cas) return alert("Vyberte datum a čas!");
+    ulozitTerminNaGitHub(item, id, datum, cas, overlay, overlay.querySelector("#saveTermBtn"), infoBox);
   };
 
   /* 🟧 Nezvedá (SMS) */
-  overlay.querySelector("#noAnswerBtn").onclick=async()=>{
-    stavy[id]="nezveda"; item.stav="nezveda";
-    try{
-      await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({action:"update",record:item})
-      });
-    }catch(e){console.error(e);}
-    setNextToast("📩 SMS o nezvednutí byla odeslána","warning");
-    const smsBox=document.createElement("div");
-    smsBox.className="successOverlay";
-    smsBox.innerHTML=`<div class="successInner" style="border-left:6px solid #ff9800">
-      <div class="icon">📩</div><div class="title" style="color:#ff9800">Zákazník nezvedá</div>
-      <div class="text">Byla odeslána SMS s žádostí o zpětné volání</div></div>`;
-    document.body.appendChild(smsBox);
-    setTimeout(()=>smsBox.classList.add("active"),50);
-    if(item.telefon){
-      const tel=item.telefon.replace(/\+?420|\s+/g,"");
-      const sms=`Dobrý den, volali jsme ohledně Vaší reklamace. Prosím ozvěte se zpět. WGS`;
-      setTimeout(()=>{window.location.href=`sms:+420${tel}?body=${encodeURIComponent(sms)}`;},600);
+  overlay.querySelector("#noAnswerBtn").onclick = () => {
+    setNextToast("📩 SMS o nezvednutí odeslána", "warning");
+    if (item.telefon) {
+      const tel = item.telefon.replace(/\+?420|\s+/g, "");
+      const sms = `Dobrý den, volali jsme ohledně Vaší reklamace. Prosím ozvěte se zpět. WGS`;
+      window.location.href = `sms:+420${tel}?body=${encodeURIComponent(sms)}`;
     }
-    setTimeout(()=>{smsBox.classList.remove("active");setTimeout(()=>{smsBox.remove();overlay.remove();renderTable(dataAll);},400);},1500);
+    setTimeout(()=>overlay.remove(),1500);
   };
 
-  /* 🟥 Zákazník zrušil (SMS + GitHub) */
-  overlay.querySelector("#cancelBtn").onclick=async()=>{
-    stavy[id]="zruseno"; item.stav="zruseno";
-    setNextToast("❌ Termín byl zrušen zákazníkem","error");
-    const msg=document.createElement("div");
-    msg.className="successOverlay";
-    msg.innerHTML=`<div class="successInner" style="border-left:6px solid #dc3545">
-      <div class="icon">❌</div><div class="title" style="color:#dc3545">Termín byl zrušen zákazníkem</div>
-      <div class="text">Záznam přesunut do „Hotové reklamace“</div></div>`;
-    document.body.appendChild(msg);
-    setTimeout(()=>msg.classList.add("active"),50);
-    try{
-      await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({action:"update",record:item})
-      });
-    }catch(e){console.error(e);}
-    setTimeout(()=>{
-      if(item.telefon){
-        const tel=item.telefon.replace(/\+?420|\s+/g,"");
-        const d=item.datum?new Date(item.datum):null;
-        let datumText="";
-        if(d){
-          const den=d.toLocaleDateString("cs-CZ",{weekday:"long",day:"numeric",month:"long"});
-          datumText=item.cas?` dne ${den} v ${item.cas}`:` dne ${den}`;
-        }
-        const sms=`Dobrý den, Váš termín servisu${datumText} byl zrušen na základě Vašeho požadavku. WGS`;
-        window.location.href=`sms:+420${tel}?body=${encodeURIComponent(sms)}`;
-      }
-    },900);
-    setTimeout(()=>{msg.classList.remove("active");setTimeout(()=>{msg.remove();overlay.remove();renderTable(dataAll);},400);},1500);
+  /* 🟥 Zákazník zrušil */
+  overlay.querySelector("#cancelBtn").onclick = () => {
+    zrusitTerminNaGitHub(item, id, overlay);
   };
 
-  overlay.querySelector("#closeBtn").onclick=()=>overlay.remove();
+  /* ⚙️ Zpět */
+  overlay.querySelector("#closeBtn").onclick = ()=>overlay.remove();
 }
 
 /* 📦 Pomocné funkce */
@@ -691,87 +646,42 @@ function calcDistanceCoords(a,b,c,d){
 
 
 
-<!-- 🟩 ZAČÁTEK ČÁSTI 4/10 (uložení termínu do GitHub + loader + toast notifikace) -->
-<script>
-async function ulozitTerminNaGitHub(item, id, datum, cas, overlay, btn, infoBox) {
-  stavy[id] = "domluveno";
-  item.datum = datum;
-  item.cas = cas;
 
-  /* ⏳ Loader „Čekejte“ */
-  const loader = document.createElement("div");
-  loader.className = "loader-overlay";
-  loader.innerHTML = `
-    <div class="loader-inner">
-      <div class="hourglass"></div>
-      <div>⏳ Čekejte, ukládám termín…</div>
-    </div>`;
+
+<!-- 🟦 ZAČÁTEK ČÁSTI 4/10 (FINÁLNÍ – ukládání, zrušení, SMS, loader a toast) -->
+<script>
+/* 💾 Uložení termínu na GitHub (Worker WGS) + čekání + potvrzení + návrat */
+async function ulozitTerminNaGitHub(item, id, datum, cas, overlay, btn, infoBox) {
+  const loader = vytvorLoader("⏳ Čekejte, ukládám termín…");
   document.body.appendChild(loader);
 
-  const style = document.createElement("style");
-  style.textContent = `
-    .loader-overlay {
-      position: fixed; inset: 0;
-      background: rgba(255,255,255,0.88);
-      display: flex; flex-direction: column;
-      justify-content: center; align-items: center;
-      font-family: "Inter", sans-serif;
-      color: #0046ff; font-weight: 700;
-      font-size: 1.2em; z-index: 99999;
-    }
-    .hourglass {
-      width: 44px; height: 44px;
-      border: 4px solid #0046ff;
-      border-radius: 50%;
-      border-top-color: transparent;
-      animation: spin 1.1s linear infinite;
-    }
-    @keyframes spin { from {transform:rotate(0)} to {transform:rotate(360deg)} }
-  `;
-  document.head.appendChild(style);
-
   try {
-    /* 💾 Uložení přes Worker na GitHub */
-    await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+    const record = { ...item, datum, cas, stav: "domluveno" };
+    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "update", record: item })
+      body: JSON.stringify({ action: "update", record })
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-    /* ✅ Potvrzení „Termín úspěšně uložen“ */
+    flashBox(infoBox, "green");
+    setNextToast("✅ Termín byl úspěšně uložen", "success");
+    btn.classList.add("btn-flash");
+
+    // SMS potvrzení zákazníkovi
+    if (item.telefon) {
+      const tel = item.telefon.replace(/\+?420|\s+/g, "");
+      const d = new Date(datum);
+      const den = d.toLocaleDateString("cs-CZ", { weekday: "long", day: "numeric", month: "long" });
+      const sms = `Dobrý den, Váš termín servisu byl potvrzen na ${den} v ${cas}. WGS`;
+      setTimeout(() => window.location.href = `sms:+420${tel}?body=${encodeURIComponent(sms)}`, 1300);
+    }
+
     setTimeout(() => {
       loader.remove();
-      const ok = document.createElement("div");
-      ok.className = "successOverlay";
-      ok.innerHTML = `
-        <div class="successInner">
-          <div class="icon">✅</div>
-          <div class="title">Termín úspěšně uložen</div>
-          <div class="text">Data byla odeslána a potvrzena v GitHub repozitáři.</div>
-        </div>`;
-      document.body.appendChild(ok);
-      setTimeout(() => ok.classList.add("active"), 50);
-
-      /* 💾 Lokální uložení */
-      ulozTermin(item);
-      localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
-
-      /* 💡 Zelené bliknutí šedého banneru */
-      flashBox(infoBox,"green");
-
-      /* 🔔 Toast pro návrat */
-      setNextToast("✅ Termín úspěšně uložen", "success");
-
-      /* 🔁 Návrat na seznam */
-      setTimeout(() => {
-        ok.classList.remove("active");
-        setTimeout(() => {
-          ok.remove();
-          overlay.remove();
-          renderTable(dataAll);
-        }, 400);
-      }, 1500);
-    }, 800);
+      overlay.remove();
+      renderTable(dataAll);
+    }, 1600);
 
   } catch (err) {
     loader.remove();
@@ -779,110 +689,99 @@ async function ulozitTerminNaGitHub(item, id, datum, cas, overlay, btn, infoBox)
   }
 }
 
-/* 🌟 Toast notifikace */
-function showToast(msg, type="success") {
-  const toast = document.createElement("div");
-  toast.className = `wgs-toast ${type}`;
-  toast.innerHTML = `<span>${msg}</span>`;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.classList.add("active"), 50);
-  setTimeout(() => {
-    toast.classList.remove("active");
-    setTimeout(() => toast.remove(), 400);
-  }, 3500);
+/* ❌ Zákazník zrušil termín – uložení + přesun do hotových + SMS */
+async function zrusitTerminNaGitHub(item, id, overlay) {
+  const loader = vytvorLoader("⏳ Čekejte, ruším termín…");
+  document.body.appendChild(loader);
+
+  try {
+    const record = { ...item, stav: "zruseno" };
+    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "update", record })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    setNextToast("❌ Termín byl zrušen zákazníkem", "error");
+
+    // SMS zákazníkovi o zrušení
+    if (item.telefon) {
+      const tel = item.telefon.replace(/\+?420|\s+/g, "");
+      const d = item.datum ? new Date(item.datum) : null;
+      let datumText = "";
+      if (d) {
+        const den = d.toLocaleDateString("cs-CZ", { weekday: "long", day: "numeric", month: "long" });
+        datumText = item.cas ? ` dne ${den} v ${item.cas}` : ` dne ${den}`;
+      }
+      const sms = `Dobrý den, Váš termín servisu${datumText} byl zrušen na základě Vašeho požadavku. WGS`;
+      setTimeout(() => window.location.href = `sms:+420${tel}?body=${encodeURIComponent(sms)}`, 1200);
+    }
+
+    // odstraní loader a zavře overlay
+    setTimeout(() => {
+      loader.remove();
+      overlay.remove();
+      renderTable(dataAll);
+    }, 1500);
+
+  } catch (err) {
+    loader.remove();
+    alert("❌ Chyba při rušení termínu: " + err.message);
+  }
 }
 
-/* 🧩 Po načtení seznamu zobraz toast z předešlé akce */
-window.addEventListener("DOMContentLoaded", () => {
-  const toastMsg = sessionStorage.getItem("wgsToastMsg");
-  const toastType = sessionStorage.getItem("wgsToastType");
-  if (toastMsg) {
-    showToast(toastMsg, toastType);
-    sessionStorage.removeItem("wgsToastMsg");
-    sessionStorage.removeItem("wgsToastType");
-  }
-});
-
-/* 🧠 Nastavení toastu pro příští zobrazení */
-function setNextToast(msg, type="success") {
-  sessionStorage.setItem("wgsToastMsg", msg);
-  sessionStorage.setItem("wgsToastType", type);
+/* 🪄 Pomocná funkce – vizuální loader */
+function vytvorLoader(text) {
+  const el = document.createElement("div");
+  el.className = "loaderOverlay";
+  el.innerHTML = `
+    <div class="hourglass"></div>
+    <div class="loaderText">${text}</div>
+  `;
+  return el;
 }
 </script>
 
 <style>
-/* ✅ Hláška při uložení */
-.successOverlay {
+/* ============================== */
+/* ⏳ OVERLAY „ČEKEJTE“ */
+.loaderOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.88);
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 100000;
-}
-.successOverlay.active { opacity: 1; }
-
-.successInner {
-  background: #fff;
-  border-left: 6px solid #28a745;
-  border-radius: 12px;
-  padding: 25px 30px;
-  text-align: center;
+  z-index: 10000;
   font-family: "Inter", sans-serif;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  max-width: 360px;
 }
-.successInner .icon {
-  font-size: 2em;
-  margin-bottom: 10px;
+.hourglass {
+  border: 4px solid #0046ff;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  animation: spin 1.1s linear infinite;
 }
-.successInner .title {
+@keyframes spin { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }
+.loaderText {
+  margin-top: 15px;
   font-size: 1.3em;
-  font-weight: 800;
-  color: #28a745;
-  margin-bottom: 6px;
-}
-.successInner .text {
-  font-size: 0.95em;
-  color: #333;
+  font-weight: 700;
+  color: #0046ff;
+  text-align: center;
 }
 
-/* 🌟 Toast notifikace (pravý horní roh) */
-.wgs-toast {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: #fff;
-  padding: 14px 22px;
-  border-radius: 8px;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.15);
-  font-family: "Inter", sans-serif;
-  font-size: 0.95em;
-  font-weight: 600;
-  color: #111;
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: all 0.35s ease;
-  z-index: 100001;
-}
-.wgs-toast.active {
-  opacity: 1;
-  transform: translateY(0);
-}
-.wgs-toast.success {
-  border-left: 5px solid #28a745;
-}
-.wgs-toast.error {
-  border-left: 5px solid #dc3545;
-}
-.wgs-toast.warning {
-  border-left: 5px solid #ff9800;
+/* 🟩 Tlačítko bliknutí po uložení */
+.btn-flash { animation: btnFlash 0.6s ease 2; }
+@keyframes btnFlash {
+  0%,100% { filter: brightness(1); }
+  50% { filter: brightness(1.6); }
 }
 </style>
-<!-- 🟩 KONEC ČÁSTI 4/10 -->
+<!-- 🟦 KONEC ČÁSTI 4/10 -->
+
 
 
 
