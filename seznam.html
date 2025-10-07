@@ -838,5 +838,98 @@ document.addEventListener("click", e => {
   href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/build/vanilla-calendar.min.css">
 <script src="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/build/vanilla-calendar.min.js"></script>
 
+    <script>
+/* ============================= */
+/* 🗓️ PLÁN DNE MODAL + MAPA     */
+/* ============================= */
+document.getElementById("planBtn").addEventListener("click", showPlanModal);
+
+function showPlanModal() {
+  let modal = document.getElementById("planModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "planModal";
+    modal.innerHTML = `
+      <div class="modal-inner">
+        <h2>📅 Plán dne</h2>
+        <div class="plan-content">
+          <div>
+            <div id="calendar"></div>
+            <div class="plan-list" id="planList">Vyberte den v kalendáři…</div>
+          </div>
+          <div id="map"></div>
+        </div>
+        <div class="plan-actions">
+          <button class="btn btn-red" onclick="closePlanModal()">Zavřít</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  modal.classList.add("active");
+  disableBodyScroll();
+
+  const calendarElem = document.getElementById("calendar");
+  const planList = document.getElementById("planList");
+
+  const terminy = JSON.parse(localStorage.getItem("terminyReklamaci") || "[]");
+
+  if (!terminy.length) {
+    planList.innerHTML = "📭 Zatím nejsou naplánovány žádné návštěvy.";
+  }
+
+  const calendar = new VanillaCalendar(calendarElem, {
+    settings: { lang: 'cs' },
+    actions: {
+      clickDay(e, day) {
+        const datum = day.date;
+        const vybrane = terminy.filter(t => t.datum === datum);
+        if (vybrane.length === 0) {
+          planList.innerHTML = "Žádné návštěvy pro tento den.";
+          return;
+        }
+        let html = "";
+        vybrane.forEach(t => {
+          html += `<div><b>${t.cas}</b> – ${t.zakaznik || ""}, ${t.adresa || ""}</div>`;
+        });
+        planList.innerHTML = html;
+        showPlanMap(vybrane);
+      }
+    }
+  });
+  calendar.init();
+}
+
+function showPlanMap(zaznamy) {
+  const mapElem = document.getElementById("map");
+  const map = L.map(mapElem).setView([50.049, 14.523], 8);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "© OpenStreetMap"
+  }).addTo(map);
+
+  zaznamy.forEach(z => {
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(z.adresa)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data[0]) {
+          const coords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+          L.marker(coords).addTo(map)
+            .bindPopup(`<b>${z.zakaznik || ""}</b><br>${z.adresa || ""}<br>${z.cas || ""}`);
+        }
+      });
+  });
+}
+
+function closePlanModal() {
+  const modal = document.getElementById("planModal");
+  if (modal) {
+    modal.classList.remove("active");
+    setTimeout(() => modal.remove(), 300);
+    enableBodyScroll();
+  }
+}
+</script>
+
 </body>
 </html>
