@@ -584,7 +584,7 @@ function openDetail(index) {
   overlay.querySelector("#noAnswerBtn").onclick=async()=>{
     stavy[id]="nezveda"; item.stav="nezveda";
     try{
-      await fetch("https://dark-darkness-d89a.72nvwf4pb2.workers.dev/",{
+      await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders",{
         method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({action:"update",record:item})
       });
@@ -617,7 +617,7 @@ function openDetail(index) {
     document.body.appendChild(msg);
     setTimeout(()=>msg.classList.add("active"),50);
     try{
-      await fetch("https://dark-darkness-d89a.72nvwf4pb2.workers.dev/",{
+      await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders",{
         method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({action:"update",record:item})
       });
@@ -732,7 +732,7 @@ async function ulozitTerminNaGitHub(item, id, datum, cas, overlay, btn, infoBox)
 
   try {
     /* 💾 Uložení přes Worker na GitHub */
-    await fetch("https://dark-darkness-d89a.72nvwf4pb2.workers.dev/", {
+    await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "update", record: item })
