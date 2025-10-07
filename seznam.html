@@ -366,6 +366,7 @@ window.addEventListener("DOMContentLoaded", loadData);
 </script>
 <!-- 🟨 KONEC ČÁSTI 2/10 (upravená) -->
 
+<!-- 🟨 ZAČÁTEK ČÁSTI 3/10 (upravená – adresa v detailu podle PSČ) -->
 <script>
 /* ============================= */
 /* 💬 DETAIL MODAL SE ZÁKAZNÍKEM */
@@ -376,14 +377,16 @@ function openDetail(index) {
 
   const overlay = document.createElement("div");
   overlay.className = "detail-overlay";
+  const adresaUpravena = normalizePrahaAddress(item.adresa || "");
+
   overlay.innerHTML = `
     <div class="detail-modal">
       <div class="detail-content">
         <div class="detail-info">
           <h2>${item.zakaznik || "Zákazník"}</h2>
           <p><strong>Adresa:</strong>
-            <a href="https://waze.com/ul?q=${encodeURIComponent(item.adresa || "")}" target="_blank" style="color:#0046ff;font-weight:600;">
-              ${item.adresa || "Neuvedeno"}
+            <a href="https://waze.com/ul?q=${encodeURIComponent(adresaUpravena)}" target="_blank" style="color:#0046ff;font-weight:600;">
+              ${adresaUpravena || "Neuvedeno"}
             </a>
           </p>
 
@@ -486,8 +489,9 @@ function openDetail(index) {
     }
   });
   miniCal.init();
+</script>
+<!-- 🟨 KONEC ČÁSTI 3/10 (upravená) -->
 
-<!-- 🟨 KONEC ČÁSTI 3/10 -->
   /* 🗺️ Inicializace mapy v detailu */
   if (item.adresa) {
     const wgsCoords = [50.049, 14.523]; // WGS – Do Dubče Praha 9 Běchovice
