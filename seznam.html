@@ -107,12 +107,12 @@ tr:hover { background: #f1f6ff; cursor: pointer; }
 
 /* 🔹 Stavy */
 .stav-nova {
-  animation: radekBlikani 1.4s infinite ease-in-out;
+  animation: silneBlikani 1.3s infinite ease-in-out;
 }
-@keyframes radekBlikani {
-  0% { background-color: #fff799; }
-  50% { background-color: #fffec1; }
-  100% { background-color: #fff799; }
+@keyframes silneBlikani {
+  0%   { background-color: #ffe600; }   /* sytě žlutá */
+  50%  { background-color: #fffca8; }   /* světlejší přechod */
+  100% { background-color: #ffe600; }
 }
 .stav-domluveno { background: #99b3ff !important; }
 .stav-zruseno { background: #ff6666 !important; }
@@ -234,6 +234,7 @@ window.addEventListener("DOMContentLoaded", loadData);
 </script>
 
 <!-- 🟨 KONEC ČÁSTI 1/10 -->
+
 
 
 
@@ -400,6 +401,14 @@ reloadBtn.addEventListener("click", loadData);
 window.addEventListener("DOMContentLoaded", loadData);
 </script>
 
+
+
+
+
+
+
+    
+
 <!-- 🟨 KONEC ČÁSTI 2/10 -->
 <script>
 /* ============================= */
@@ -523,6 +532,18 @@ function openDetail(index) {
   miniCal.init();
 
 <!-- 🟨 KONEC ČÁSTI 3/10 -->
+
+
+
+
+
+
+
+
+
+
+
+  
   /* 🗺️ Inicializace mapy v detailu */
   if (item.adresa) {
     const wgsCoords = [50.049, 14.523]; // WGS – Do Dubče Praha 9 Běchovice
@@ -646,6 +667,17 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
 </script>
 
 <!-- 🟨 KONEC ČÁSTI 4/10 -->
+
+
+
+
+
+
+
+
+
+
+    
 <style>
 /* ============================= */
 /* 💬 DETAIL MODAL STYL          */
@@ -838,6 +870,17 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
 </style>
 
 <!-- 🟨 KONEC ČÁSTI 5/10 -->
+
+
+
+
+
+
+
+
+
+
+    
 <style>
 /* ✨ Plán dne – modal */
 #planModal {
@@ -947,6 +990,16 @@ let map, markersLayer, routeLayer;
 const wgsCoords = [50.049, 14.523]; // WGS – Do Dubče, Praha 9 Běchovice
 
 <!-- 🟨 KONEC ČÁSTI 6/10 -->
+
+
+
+
+
+
+
+
+
+  
 /* 🗓️ Inicializace Vanilla kalendáře s označením dnů */
 function initCalendar() {
   const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
@@ -1071,6 +1124,15 @@ async function showPlanForDay(date) {
 </script>
 
 <!-- 🟨 KONEC ČÁSTI 7/10 -->
+
+
+
+
+
+
+
+
+    
 <script>
 /* 🧾 Export plánu dne do PDF */
 async function exportPlanToPDF() {
@@ -1189,6 +1251,17 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 
 <!-- 🟨 KONEC ČÁSTI 8/10 -->
+
+
+
+
+
+
+
+
+
+
+    
 <style>
 /* 🔴 Blikání dnešních termínů */
 @keyframes blinkToday {
@@ -1244,6 +1317,16 @@ document.addEventListener("DOMContentLoaded", () => {
 </style>
 
 <!-- 🟨 KONEC ČÁSTI 9/10 -->
+
+
+
+
+
+
+
+
+
+    
 <!-- 📅 Funkční VanillaCalendar knihovna -->
 <link
   rel="stylesheet"
@@ -1257,3 +1340,14 @@ document.addEventListener("DOMContentLoaded", () => {
 </html>
 
 <!-- 🟨 KONEC ČÁSTI 10/10 -->
+
+
+
+
+
+
+
+
+
+
+
