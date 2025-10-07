@@ -776,7 +776,10 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
 }
 </style>
 
-<!-- 🟩 ZAČÁTEK ČÁSTI 6/10 -->
+
+
+  
+<!-- 🟩 ZAČÁTEK ČÁSTI 6/10 (vylepšená – kalendář, legenda, výstraha bez blikání) -->
 <style>
 #planModal {
   display: none;
@@ -814,18 +817,24 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   gap: 14px;
 }
 .panel {
-  border: 1px solid #ddd;
+  border: 1px solid #d5d7db;
   border-radius: 12px;
   background: #fafafa;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   overflow: hidden;
+  transition: box-shadow .25s ease;
 }
+.panel:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
 #calendar { flex: 1; min-height: 320px; }
+
+/* 🗒️ Legenda */
 .legend {
   background: #fff;
   padding: 10px;
   font-size: 0.9em;
   color: #333;
+  border-top: 1px solid #ddd;
 }
 .legend table {
   width: 100%;
@@ -837,14 +846,20 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   padding: 5px 6px;
   text-align: left;
 }
-.legend th { background: #f6f7fb; font-weight:600; }
+.legend th {
+  background: #f6f7fb;
+  font-weight:600;
+  color: #000;
+  border-bottom: 2px solid #ddd;
+}
 .legend-total {
   text-align: right;
   font-weight: 800;
   margin-top: 6px;
+  color: #111;
 }
 
-/* 🔴 Rámeček + rychlost */
+/* 🔴 Výstraha – červený gradient, bez blikání */
 .departure-alert {
   margin-top: 10px;
   padding: 10px 12px;
@@ -853,10 +868,15 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   color: white;
   font-size: 1em;
   border-radius: 8px;
-  background: linear-gradient(135deg, #ff3b3b, #cc0000);
-  animation: blink 1s infinite;
+  background: linear-gradient(135deg, #ff4d4d, #cc0000);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  letter-spacing: 0.3px;
+  transition: background .25s ease;
 }
-@keyframes blink { 50% { opacity: 0.4; } }
+.departure-alert:hover {
+  background: linear-gradient(135deg, #ff6666, #e00000);
+}
+
 .speed-select {
   width: 100%;
   margin-top: 8px;
@@ -866,6 +886,12 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   font-weight: 600;
   background: #f6f7fb;
   cursor: pointer;
+  color: #000;
+  transition: box-shadow .2s ease, border-color .2s ease;
+}
+.speed-select:focus {
+  border-color: #0046ff;
+  box-shadow: 0 0 0 3px rgba(0,70,255,0.2);
 }
 
 #closeMap {
@@ -948,6 +974,7 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
 .waze-btn:hover { background: #0046ff; color:#fff; }
 .flag-btn { background:none; border:none; font-size:1.2em; cursor:pointer; }
 
+/* 🟦 Animace markerů */
 .blinking-marker { animation: blinkMarker 1s infinite; }
 @keyframes blinkMarker {
   0%{transform:scale(1);filter:brightness(1);}
@@ -976,10 +1003,13 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
           <option value="80">Průměrná rychlost: 80 km/h</option>
           <option value="100">Průměrná rychlost: 100 km/h</option>
         </select>
-        <div class="departure-alert" id="departureTimeBox">Vyrazit na cestu nejpozději v —</div>
+        <div class="departure-alert" id="departureTimeBox">
+          Vyrazit na cestu nejpozději v —
+        </div>
       </div>
       <button id="closeMap">Zpět</button>
     </div>
+
     <div class="right-block">
       <div id="map"><div id="mapOverlay">Žádný plán na dnešní den</div></div>
       <div class="plan-list" id="planList"></div>
@@ -987,6 +1017,7 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   </div>
 </div>
 <!-- 🟩 KONEC ČÁSTI 6/10 -->
+
 
 
 
