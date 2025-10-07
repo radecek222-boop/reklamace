@@ -724,7 +724,7 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
 }
 </style>
 
-<!-- 🟨 ZAČÁTEK ČÁSTI 6+7/10 (AKTUALIZOVANÁ S ODJEZDEM) -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 6+7/10 (FINÁLNÍ) -->
 <style>
 #planModal {
   display: none;
@@ -768,10 +768,7 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   overflow: hidden;
 }
-#calendar {
-  flex: 1;
-  min-height: 320px;
-}
+#calendar { flex: 1; min-height: 320px; }
 .legend {
   background: #fff;
   padding: 10px;
@@ -795,7 +792,7 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   margin-top: 6px;
 }
 
-/* 🔴 nový rámeček s časem odjezdu */
+/* 🔴 rámeček s časem odjezdu */
 .departure-alert {
   margin-top: 10px;
   padding: 10px 12px;
@@ -862,7 +859,7 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
 }
 .plan-row {
   display: grid;
-  grid-template-columns: 28px 1.6fr 1.6fr 0.6fr 120px;
+  grid-template-columns: 30px 70px 1.8fr 0.8fr 1.3fr 110px;
   align-items: center;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -870,6 +867,7 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   background: #fff;
   font-size: 0.9em;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  column-gap: 10px;
 }
 .plan-row b { font-weight:600; color:#000; }
 .plan-row div { color:#000; }
@@ -912,7 +910,7 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
     height:95vh;
   }
   .plan-row{
-    grid-template-columns:24px 1.2fr 1.2fr 0.6fr 90px;
+    grid-template-columns:26px 60px 1.5fr 0.8fr 1.2fr 90px;
     font-size:0.85em;
   }
   #map{min-height:300px;}
@@ -956,7 +954,7 @@ function initCalendar(){
     document.querySelectorAll(".vanilla-calendar-day__btn").forEach(btn=>{
       if(unique.includes(btn.dataset.calendarDay)){
         const dot=document.createElement("span");
-        dot.style.cssText=`position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at center,#0046ff 30%,#357aff 90%);`;
+        dot.style.cssText=`position:absolute;top:4px;left:50%;transform:translateX(-50%);width:8px;height:8px;border-radius:50%;background:#0046ff;`;
         btn.appendChild(dot);
       }
     });
@@ -995,16 +993,15 @@ async function showPlanForDay(date){
     if(c){coords.push(c);const flag=L.icon({iconUrl:"https://cdn-icons-png.flaticon.com/512/684/684908.png",iconSize:[28,28],iconAnchor:[14,28]});const m=L.marker(c,{icon:flag}).addTo(markersLayer).bindPopup(`<b>${t.zakaznik}</b><br>${t.adresa}<br>${t.cas}`);markerMap[t.adresa]=m;}
   }
 
+  // 🧭 Řádek zákazníka – vlajka, čas, adresa, Waze, jméno, telefon
   planList.innerHTML=terminy.map(t=>`
     <div class="plan-row">
       <button class="flag-btn" data-addr="${t.adresa}">🚩</button>
-      <div><b>${t.zakaznik}</b></div>
+      <div>${t.cas||""}</div>
       <div>${t.adresa}</div>
-      <div>${t.cas}</div>
-      <div style="display:flex;gap:6px;justify-content:flex-end;">
-        <button class="phone-btn" onclick="window.location.href='tel:${t.telefon?.replace('+420','').trim()||''}'">📞</button>
-        <button class="waze-btn" onclick="window.open('waze://?q=${encodeURIComponent(t.adresa)}','_blank')">Waze</button>
-      </div>
+      <div><button class="waze-btn" onclick="window.open('waze://?q=${encodeURIComponent(t.adresa)}','_blank')">Waze</button></div>
+      <div><b>${t.zakaznik}</b></div>
+      <div><button class="phone-btn" onclick="window.location.href='tel:${t.telefon?.replace('+420','').trim()||''}'">📞</button></div>
     </div>`).join("");
 
   document.querySelectorAll(".flag-btn").forEach(b=>{
@@ -1021,6 +1018,9 @@ async function showPlanForDay(date){
     totalKm.textContent=`CELKEM: ${total.toFixed(1)} km`;
   }
 
+  // 🔍 přiblížení mapy na všechny zákazníky
+  if (coords.length > 1) map.fitBounds(markersLayer.getBounds().pad(0.2));
+
   // ⏰ spočítáme čas odjezdu (1h 20min před prvním zákazníkem)
   if (terminy.length && terminy[0].cas) {
     const [h, m] = terminy[0].cas.split(":").map(Number);
@@ -1033,6 +1033,7 @@ async function showPlanForDay(date){
 }
 </script>
 <!-- 🟨 KONEC ČÁSTI 6+7/10 -->
+
 
 
 
