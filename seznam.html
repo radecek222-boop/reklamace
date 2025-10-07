@@ -461,7 +461,7 @@ window.addEventListener("DOMContentLoaded", loadData);
 </script>
 <!-- 🟨 KONEC ČÁSTI 2/10 (finální – Praha bez PSČ + uložené termíny po reloadu) -->
 
-<!-- 🟨 ZAČÁTEK ČÁSTI 3/10 (finální – funkční tlačítka a kalendář) -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 3/10 (upravená – kalendář vlevo, čas vpravo v rámečku) -->
 <script>
 /* ============================= */
 /* 💬 DETAIL MODAL SE ZÁKAZNÍKEM */
@@ -480,17 +480,17 @@ function openDetail(index) {
         <div class="detail-info">
           <h2>${item.zakaznik || "Zákazník"}</h2>
           <p><strong>Adresa:</strong>
-            <a href="https://waze.com/ul?q=${encodeURIComponent(adresaUpravena)}"
-               target="_blank" style="color:#0046ff;font-weight:600;">
+            <a href="https://waze.com/ul?q=${encodeURIComponent(adresaUpravena)}" target="_blank" style="color:#0046ff;font-weight:600;">
               ${adresaUpravena || "Neuvedeno"}
             </a>
           </p>
+
           <p><strong>Telefon:</strong>
-            <a href="tel:${(item.telefon || "").replace("+420","").trim()}"
-               style="color:#0046ff;font-weight:600;">
+            <a href="tel:${(item.telefon || "").replace("+420","").trim()}" style="color:#0046ff;font-weight:600;">
               ${(item.telefon || "").replace("+420","").trim()}
             </a>
           </p>
+
           <p><strong>Email:</strong> ${item.email || "–"}</p>
           <p><strong>Produkt / model:</strong> ${item.produkt || "–"}</p>
           <p><strong>Popis závady:</strong> ${item.popis || "–"}</p>
@@ -499,8 +499,7 @@ function openDetail(index) {
           ${
             item.typ && item.typ.toLowerCase().includes("pozáruční")
               ? ""
-              : `<p><strong>Datum prodeje:</strong> ${item.datum_prodeje || "–"} | 
-                 <strong>Datum reklamace:</strong> ${item.datum_reklamace || "–"}</p>`
+              : `<p><strong>Datum prodeje:</strong> ${item.datum_prodeje || "–"} | <strong>Datum reklamace:</strong> ${item.datum_reklamace || "–"}</p>`
           }
 
           ${
@@ -516,28 +515,32 @@ function openDetail(index) {
             <button id="protoBtn" class="btn-action btn-green">Přejít na protokol</button>
             <button id="closeBtn" class="btn-action btn-red">Zavřít</button>
           </div>
+
+          <div id="termSection" class="term-section">
+            <h3>Domluvit / Změnit termín</h3>
+
+            <div class="term-center">
+              <div class="term-box">
+                <div id="miniCalendar" class="term-calendar"></div>
+                <div class="time-box">
+                  <div class="custom-time-picker">
+                    <select id="hours"></select><span>:</span><select id="minutes"></select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="btn-row">
+              <button id="saveTermBtn" class="btn-action btn-green">Uložit / Změnit</button>
+              <button id="noAnswerBtn" class="btn-action btn-orange">Nezvedá (SMS)</button>
+              <button id="cancelBtn" class="btn-action btn-gray">Zákazník zrušil</button>
+            </div>
+          </div>
         </div>
 
         <div class="detail-map">
           <div id="mapDetail"></div>
           <div id="mapDistance" class="map-distance"></div>
-
-          <div id="termSection" class="term-section" style="display:none;">
-            <h3>Domluvit / Změnit termín</h3>
-            <div class="term-center">
-              <div id="miniCalendar" class="term-calendar"></div>
-              <input type="hidden" id="datumTerminu">
-              <div class="custom-time-picker">
-                <select id="hours"></select><span>:</span><select id="minutes"></select>
-              </div>
-            </div>
-
-            <div class="btn-row term-actions">
-              <button id="saveTermBtn" class="btn-action btn-green">Uložit / Změnit</button>
-              <button id="noAnswerBtn" class="btn-action btn-orange">Nezvedá</button>
-              <button id="cancelBtn" class="btn-action btn-gray">Zákazník zrušil</button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -558,52 +561,100 @@ function openDetail(index) {
     minsSel.innerHTML += `<option value="${String(m).padStart(2,"0")}">${String(m).padStart(2,"0")}</option>`;
   }
 
-  /* 🗓️ Mini kalendář v detailu */
+  /* 🗓️ Mini Vanilla kalendář v detailu zákazníka */
   const miniCal = new VanillaCalendar("#miniCalendar", {
     settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
     actions: {
       clickDay(event, self) {
         const chosen = event.target.dataset.calendarDay;
         if (chosen) {
-          dateInput.value = chosen;
           const d = new Date(chosen);
           const den = d.toLocaleDateString("cs-CZ", { weekday: "long", day: "numeric", month: "numeric" });
           const existing = overlay.querySelector("#chosenDateDisplay");
           if (existing) existing.remove();
           const el = document.createElement("div");
           el.id = "chosenDateDisplay";
-          el.style.fontSize = "1.3em";
+          el.style.fontSize = "1.4em";
           el.style.fontWeight = "700";
-          el.style.marginTop = "10px";
+          el.style.marginTop = "8px";
           el.style.color = "#0046ff";
           el.textContent = den;
-          overlay.querySelector(".term-center").insertBefore(el, overlay.querySelector(".custom-time-picker"));
+          overlay.querySelector(".term-center").prepend(el);
         }
       }
     }
   });
   miniCal.init();
 
-  /* 🔘 Ovládání tlačítek */
+  /* 📍 Otevření sekce termínu */
   overlay.querySelector("#termBtn").onclick = () => {
-    overlay.querySelector("#termSection").style.display = "block";
+    const termSection = overlay.querySelector("#termSection");
+    termSection.style.display = "block";
+    termSection.scrollIntoView({ behavior: "smooth", block: "center" });
   };
-
-  overlay.querySelector("#protoBtn").onclick = () => {
-    localStorage.setItem("selectedRecord", JSON.stringify(item));
-    window.location.href = "protokol.html";
-  };
-
-  overlay.querySelector("#closeBtn").onclick = () => {
-    overlay.classList.remove("active");
-    setTimeout(() => overlay.remove(), 200);
-  };
-
-  /* Inicializace mapy a akce z části 4/10 */
-  initMapAndActions(item, overlay, index, id);
 }
 </script>
-<!-- 🟨 KONEC ČÁSTI 3/10 -->
+
+<style>
+/* 🎨 Nové rozložení kalendáře a času */
+.term-section {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f3f4f6;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+}
+
+.term-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.term-calendar {
+  flex: 1 1 50%;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  padding: 8px;
+}
+
+.time-box {
+  flex: 1 1 40%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.custom-time-picker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #bbb;
+  padding: 8px 12px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+.custom-time-picker select {
+  font-size: 1.2em;
+  font-weight: 600;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #000;
+}
+
+.btn-action.btn-gray {
+  background: linear-gradient(135deg, #a0a0a0, #c5c5c5);
+  color: white;
+}
+</style>
+<!-- 🟨 KONEC ČÁSTI 3/10 (upravená) -->
+
 
 
   <!-- 🟨 ZAČÁTEK ČÁSTI 4/10 (finální – mapa, akce a plánování termínů) -->
