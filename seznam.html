@@ -114,9 +114,10 @@ tr:hover { background: #f1f6ff; cursor: pointer; }
   to { background-color: #fff280; }
 }
 
+/* 📱 Mobilní verze */
 @media (max-width:700px){
   table { display:none; }
-  .btn {width:48%;min-width:unset;}
+  .btn {width:100%;min-width:unset;}
 }
 </style>
 </head>
@@ -190,7 +191,7 @@ function simplifyAddress(addr) {
 async function loadData() {
   tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
   try {
-    const res = await fetch(API_URL);
+    const res = await fetch(API_URL, { mode: "cors", cache: "no-store" });
     if (!res.ok) throw new Error("Chyba při načítání dat");
     const data = await res.json();
     if (!Array.isArray(data)) throw new Error("Neplatný formát dat");
@@ -394,7 +395,7 @@ function openDetail(index) {
     closeDetail();
     renderTable(dataAll);
 
-    // 📩 Automatické odeslání potvrzovací SMS
+    // 📩 Automatická SMS potvrzení
     if (item.telefon) {
       const telefonCisty = item.telefon.replace(/\+?420|\s+/g, "");
       const smsText = `Dobrý den, níže vám zasíláme potvrzený termín návštěvy našeho technika v den ${datum} v čase ${cas} na adresu ${item.adresa || ""}. Servisní centrum WGS`;
@@ -409,7 +410,6 @@ function openDetail(index) {
     closeDetail();
     renderTable(dataAll);
 
-    // 📩 Automatická SMS "Nezvedá to"
     if (item.telefon) {
       const telefonCisty = item.telefon.replace(/\+?420|\s+/g, "");
       const smsText = `Dobrý den, volali jsme vám ohledně vašeho požadavku reklamace ${item.cislo || ""}. Prosím zavolejte zpět jak to bude možné, rádi bychom si s vámi domluvili termín návštěvy. Servisní centrum WGS`;
@@ -442,6 +442,7 @@ function openDetail(index) {
     setTimeout(() => overlay.remove(), 200);
   }
 }
+</script>
 <style>
 /* ============================= */
 /* 💬 DETAIL MODAL STYL          */
@@ -636,7 +637,8 @@ function openDetail(index) {
   .btn-action { width: 100%; font-size: 0.95em; }
   .foto-container img { width: 90px; height: 90px; }
 }
-
+</style>
+<style>
 /* ✨ Plán dne – modal */
 #planModal {
   display: none;
@@ -703,6 +705,7 @@ function openDetail(index) {
   gap: 15px;
 }
 </style>
+
 <script>
 // =============================
 // 🗓️ PLÁN DNE – KALENDÁŘ + MAPA
@@ -912,9 +915,31 @@ window.addEventListener("storage", e => {
   if (e.key === "stavyReklamaci") setTimeout(highlightTodayRows, 300);
 });
 setInterval(highlightTodayRows, 30000);
+
+/* =============================== */
+/* 💾 Uložení termínu a kontrola kolizí */
+/* =============================== */
+function ulozTermin(zaznam) {
+  let data = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
+  const id = zaznam.cislo || zaznam.id;
+  data = data.filter(z => z.cislo !== id);
+  data.push(zaznam);
+  localStorage.setItem("stavyReklamaciData", JSON.stringify(data));
+}
+
+function checkOverlap(datum, cas) {
+  const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
+  const nove = new Date(`${datum}T${cas}`);
+  return ulozene.filter(z => {
+    if (z.datum !== datum) return false;
+    const exist = new Date(`${z.datum}T${z.cas}`);
+    const diff = Math.abs((exist - nove) / 36e5);
+    return diff < 2;
+  });
+}
 </script>
 
-<!-- VanillaCalendar knihovna -->
+<!-- ✅ Vanilla Calendar knihovna -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/build/vanilla-calendar.min.css">
 <script src="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro/build/vanilla-calendar.min.js"></script>
 
