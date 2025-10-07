@@ -635,148 +635,146 @@ function calcDistanceCoords(a,b,c,d){
 
 
 
-<!-- 🟩 ZAČÁTEK ČÁSTI 4/10 (uložení s vizuálním potvrzením, zelený puntík trvale) -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 4/10 (loader + potvrzení o úspěšném uložení) -->
 <script>
-/* ✅ Uložení termínu + vizuální potvrzení + trvalý zelený puntík */
-async function ulozitTerminNaGitHub(item, id, datum, cas, overlay, btn, infoBox) {
-  // 🕓 Kontrola kolize (2 h)
-  const kolize = checkOverlap(datum, cas);
-  if (kolize.length > 0) {
-    const seznam = kolize.map(k => `📍 ${k.adresa} (${k.cas})`).join("\\n");
-    if (!confirm(`⚠️ Termín koliduje s jinými:\n\n${seznam}\n\nPřesto uložit?`)) return;
+async function ulozitTerminNaGitHub(item,id,datum,cas,overlay,btn,infoBox){
+  const kolize=checkOverlap(datum,cas);
+  if(kolize.length>0){
+    const seznam=kolize.map(k=>`📍 ${k.adresa} (${k.cas})`).join("\\n");
+    if(!confirm(`⚠️ Termín koliduje:\n\n${seznam}\n\nPřesto uložit?`))return;
   }
 
-  // ⏳ Loader
-  const loader = document.createElement("div");
-  loader.innerHTML = `
+  // ⏳ loader
+  const loader=document.createElement("div");
+  loader.innerHTML=`
     <div class="loaderBox">
       <div class="hourglass"></div>
       <div>⏳ Čekejte prosím, ukládám data...</div>
     </div>`;
   document.body.appendChild(loader);
+  ensure4StylesInjected();
 
-  ensure4StylesInjected(); // jednorázově vloží CSS pro loader/efekty
-
-  try {
-    // 💾 uložení termínu
-    stavy[id] = "domluveno";
-    item.datum = datum;
-    item.cas = cas;
+  try{
+    stavy[id]="domluveno";
+    item.datum=datum; item.cas=cas;
     await ulozTermin(item);
-    localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+    localStorage.setItem("stavyReklamaci",JSON.stringify(stavy));
 
-    // 🌿 trvale si pamatuj vybraný den a hned ho označ v mini-kalendáři
     rememberGreenDate(datum);
-    addGreenDotToMiniCalendar(datum, overlay);
+    addGreenDotToMiniCalendar(datum,overlay);
 
-    // ✨ vizuální potvrzení (rámeček + bliknutí tlačítka)
-    if (infoBox) {
-      infoBox.classList.add("saved-green");
-      setTimeout(() => infoBox.classList.remove("saved-green"), 800);
-    }
-    if (btn) {
-      btn.classList.add("blink-green");
-      setTimeout(() => btn.classList.remove("blink-green"), 800);
-    }
+    // vizuální potvrzení v rámečku a tlačítku
+    infoBox?.classList.add("saved-green");
+    btn?.classList.add("blink-green");
+    setTimeout(()=>infoBox?.classList.remove("saved-green"),800);
+    setTimeout(()=>btn?.classList.remove("blink-green"),800);
 
-    // 🔚 zavři a obnov tabulku
-    setTimeout(() => {
+    // ✅ hláška "Termín úspěšně uložen"
+    setTimeout(()=>{
       loader.remove();
-      overlay.remove();
-      renderTable(dataAll);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }, 1200);
-  } catch (err) {
+      showSuccessOverlay(()=>{
+        overlay.remove();
+        renderTable(dataAll);
+        window.scrollTo({top:0,behavior:"smooth"});
+      });
+    },800);
+
+  }catch(err){
     loader.remove();
-    alert("❌ Chyba při ukládání: " + err.message);
+    alert("❌ Chyba při ukládání: "+err.message);
   }
 }
 
-/* 💾 Lokální uložení termínu do stavyReklamaciData */
-function ulozTermin(zaznam) {
-  return new Promise(resolve => {
-    let data = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
-    const id = zaznam.cislo || zaznam.id;
-    data = data.filter(z => z.cislo !== id);
+/* ✅ zobrazení hlášky */
+function showSuccessOverlay(callback){
+  const msg=document.createElement("div");
+  msg.className="successOverlay";
+  msg.innerHTML=`
+    <div class="successInner">
+      <div class="icon">✅</div>
+      <div class="title">Termín úspěšně uložen</div>
+      <div class="text">Data byla zapsána do GitHub úložiště</div>
+    </div>`;
+  document.body.appendChild(msg);
+  setTimeout(()=>msg.classList.add("active"),50);
+  setTimeout(()=>{
+    msg.classList.remove("active");
+    setTimeout(()=>{
+      msg.remove();
+      if(callback)callback();
+    },400);
+  },1300);
+}
+
+/* 💾 Lokální uložení termínu */
+function ulozTermin(zaznam){
+  return new Promise(resolve=>{
+    let data=JSON.parse(localStorage.getItem("stavyReklamaciData")||"[]");
+    const id=zaznam.cislo||zaznam.id;
+    data=data.filter(z=>z.cislo!==id);
     data.push(zaznam);
-    localStorage.setItem("stavyReklamaciData", JSON.stringify(data));
+    localStorage.setItem("stavyReklamaciData",JSON.stringify(data));
     resolve(true);
   });
 }
 
-/* 🕓 Kontrola překryvu termínů (2 hodiny) */
-function checkOverlap(datum, cas) {
-  const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
-  const nove = new Date(`${datum}T${cas}`);
-  return ulozene.filter(z => {
-    if (z.datum !== datum) return false;
-    const exist = new Date(`${z.datum}T${z.cas}`);
-    const diff = Math.abs((exist - nove) / 36e5);
-    return diff < 2;
+/* 🕓 Kontrola překryvu (2 h) */
+function checkOverlap(datum,cas){
+  const ulozene=JSON.parse(localStorage.getItem("stavyReklamaciData")||"[]");
+  const nove=new Date(`${datum}T${cas}`);
+  return ulozene.filter(z=>{
+    if(z.datum!==datum)return false;
+    const exist=new Date(`${z.datum}T${z.cas}`);
+    const diff=Math.abs((exist-nove)/36e5);
+    return diff<2;
   });
 }
 
-/* 🌿 Persistentní zelené puntíky (po uložení i po reloadu) */
-function rememberGreenDate(dateStr) {
-  let dates = JSON.parse(localStorage.getItem("greenDates") || "[]");
-  if (!dates.includes(dateStr)) {
+/* 🌿 Zelené puntíky – trvalé označení naplánovaných dnů */
+function rememberGreenDate(dateStr){
+  let dates=JSON.parse(localStorage.getItem("greenDates")||"[]");
+  if(!dates.includes(dateStr)){
     dates.push(dateStr);
-    localStorage.setItem("greenDates", JSON.stringify(dates));
+    localStorage.setItem("greenDates",JSON.stringify(dates));
   }
 }
-
-/* Přidá zelený puntík do mini-kalendáře v právě otevřeném detailu */
-function addGreenDotToMiniCalendar(dateStr, overlay) {
-  if (!overlay) return;
-  const btn = overlay.querySelector(`.vanilla-calendar-day__btn[data-calendar-day="${dateStr}"]`);
-  if (!btn) return;
-  if (!btn.querySelector(".mini-cal-dot")) {
-    const dot = document.createElement("span");
-    dot.className = "mini-cal-dot";
-    btn.style.position = "relative";
-    dot.style.cssText = "position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:8px;height:8px;border-radius:50%;background:#22c55e;";
+function addGreenDotToMiniCalendar(dateStr,overlay){
+  const btn=overlay?.querySelector(`.vanilla-calendar-day__btn[data-calendar-day="${dateStr}"]`);
+  if(!btn)return;
+  if(!btn.querySelector(".mini-cal-dot")){
+    const dot=document.createElement("span");
+    dot.className="mini-cal-dot";
+    dot.style.cssText="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:8px;height:8px;border-radius:50%;background:#22c55e;";
     btn.appendChild(dot);
   }
-  // lehké zvýraznění vybraného dne (pokud používáš 'selected-green' ve 3/10)
-  btn.classList.add("selected-green");
 }
 
-/* (Volitelné) Načte a vykreslí puntíky do mini-kalendáře po otevření detailu.
-   Zavolej z 3/10 po miniCal.init(): restoreGreenDots(overlay); */
-function restoreGreenDots(overlay) {
-  let dates = JSON.parse(localStorage.getItem("greenDates") || "[]");
-  dates.forEach(d => addGreenDotToMiniCalendar(d, overlay));
-}
+/* Jednorázová injekce stylů */
+function ensure4StylesInjected(){
+  if(document.getElementById("wgs-4-10-styles"))return;
+  const style=document.createElement("style");
+  style.id="wgs-4-10-styles";
+  style.textContent=`
+    .loaderBox{position:fixed;inset:0;background:rgba(255,255,255,0.9);display:flex;flex-direction:column;justify-content:center;align-items:center;font-family:'Inter',sans-serif;font-size:1.3em;font-weight:700;color:#0046ff;z-index:10000;}
+    .hourglass{border:4px solid #0046ff;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin-bottom:15px;}
+    @keyframes spin{from{transform:rotate(0);}to{transform:rotate(360deg);}}
+    .term-info-box.saved-green{background:#8eff7a!important;}
+    .blink-green{animation:blinkBtn .25s 2;}
+    @keyframes blinkBtn{0%,100%{box-shadow:0 0 0 rgba(0,255,0,0);}50%{box-shadow:0 0 15px 4px rgba(0,255,0,.7);}}
 
-/* Jednorázová injekce CSS pro loader a potvrzovací efekty (idempotentní) */
-function ensure4StylesInjected() {
-  if (document.getElementById("wgs-4-10-styles")) return;
-  const style = document.createElement("style");
-  style.id = "wgs-4-10-styles";
-  style.textContent = `
-    .loaderBox {
-      position:fixed;inset:0;background:rgba(255,255,255,0.9);
-      display:flex;flex-direction:column;justify-content:center;align-items:center;
-      font-family:'Inter',sans-serif;font-size:1.4em;font-weight:700;color:#0046ff;z-index:10000;
-    }
-    .hourglass { border:4px solid #0046ff;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin-bottom:15px; }
-    @keyframes spin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
-
-    /* 💚 potvrzení uloženého termínu */
-    .term-info-box.saved-green { background:#8eff7a !important; transition:background 0.3s; }
-    .blink-green { animation:blinkBtn 0.25s 2; }
-    @keyframes blinkBtn {
-      0%,100% { box-shadow:0 0 0 rgba(0,255,0,0); }
-      50% { box-shadow:0 0 15px 4px rgba(0,255,0,0.7); }
-    }
-
-    /* zvýraznění dne v mini-kalendáři */
-    .selected-green { background:#d9fdd3 !important; color:#000 !important; border-radius:6px; }
+    /* ✅ hláška */
+    .successOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;justify-content:center;align-items:center;opacity:0;transition:opacity .3s ease;z-index:11000;}
+    .successOverlay.active{opacity:1;}
+    .successInner{background:white;border-radius:14px;padding:40px 60px;text-align:center;font-family:'Inter',sans-serif;box-shadow:0 8px 25px rgba(0,0,0,0.3);}
+    .successInner .icon{font-size:3em;margin-bottom:10px;}
+    .successInner .title{font-size:1.6em;font-weight:800;color:#28a745;margin-bottom:6px;}
+    .successInner .text{font-size:1em;color:#333;}
   `;
   document.head.appendChild(style);
 }
 </script>
 <!-- 🟩 KONEC ČÁSTI 4/10 -->
+
 
 
 
