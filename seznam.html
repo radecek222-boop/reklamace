@@ -724,7 +724,7 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
 }
 </style>
 
-<!-- 🟨 ZAČÁTEK ČÁSTI 6+7/10 -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 6+7/10 (FINÁLNÍ) -->
 <style>
 #planModal {
   display: none;
@@ -759,19 +759,21 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
 }
-#calendar {
+.panel {
   border: 1px solid #ddd;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  min-height: 260px;
+  border-radius: 12px;
+  background: #fafafa;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   overflow: hidden;
 }
+#calendar {
+  flex: 1;
+  min-height: 320px;
+}
 .legend {
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  background: #fafafa;
+  background: #fff;
   padding: 10px;
   font-size: 0.9em;
   color: #333;
@@ -783,7 +785,7 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
 }
 .legend th, .legend td {
   border-bottom: 1px solid #eee;
-  padding: 4px 6px;
+  padding: 5px 6px;
   text-align: left;
 }
 .legend th { background: #f6f7fb; font-weight:600; }
@@ -813,10 +815,11 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
 }
 #map {
   flex: 1;
-  min-height: 400px;
+  min-height: 440px;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 3px 10px rgba(0,0,0,.1);
+  background: #eaeaea;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   position: relative;
 }
 #mapOverlay {
@@ -830,18 +833,20 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   font-weight: 600;
   color: #444;
 }
+
+/* 🔹 Zákazníci pod mapou */
 .plan-list {
   margin-top: 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   max-height: 180px;
   overflow-y: auto;
 }
 .plan-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 28px 1.6fr 1.6fr 0.6fr 120px;
   align-items: center;
-  justify-content: space-between;
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 8px 10px;
@@ -850,6 +855,7 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 .plan-row b { font-weight:600; color:#000; }
+.plan-row div { color:#000; }
 .phone-btn, .waze-btn {
   border: none;
   cursor: pointer;
@@ -888,7 +894,11 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
     grid-template-rows:auto auto auto auto;
     height:95vh;
   }
-  .plan-list{max-height:150px;}
+  .plan-row{
+    grid-template-columns:24px 1.2fr 1.2fr 0.6fr 90px;
+    font-size:0.85em;
+  }
+  #map{min-height:300px;}
 }
 </style>
 
@@ -898,8 +908,8 @@ const planModalHTML=`
 <div id="planModal">
   <div class="modal-inner">
     <div class="left-block">
-      <div id="calendar"></div>
-      <div class="legend" id="legendBox">
+      <div class="panel" id="calendar"></div>
+      <div class="panel legend" id="legendBox">
         <table id="routeTable"></table>
         <div class="legend-total" id="totalKm"></div>
       </div>
@@ -915,6 +925,7 @@ document.body.insertAdjacentHTML("beforeend",planModalHTML);
 
 let map,markersLayer,routeLayer,markerMap={};
 const wgsCoords=[50.049,14.523];
+
 planBtn.onclick=()=>{const m=document.getElementById("planModal");m.style.display="flex";setTimeout(()=>m.classList.add("active"),10);initCalendar();};
 document.getElementById("closeMap").onclick=()=>{const m=document.getElementById("planModal");m.classList.remove("active");setTimeout(()=>m.style.display="none",250);};
 
@@ -966,9 +977,10 @@ async function showPlanForDay(date){
   planList.innerHTML=terminy.map(t=>`
     <div class="plan-row">
       <button class="flag-btn" data-addr="${t.adresa}">🚩</button>
-      <div><b>${t.zakaznik}</b><br>${t.adresa}</div>
-      <div>🕐 ${t.cas}</div>
-      <div style="display:flex;gap:6px;">
+      <div><b>${t.zakaznik}</b></div>
+      <div>${t.adresa}</div>
+      <div>${t.cas}</div>
+      <div style="display:flex;gap:6px;justify-content:flex-end;">
         <button class="phone-btn" onclick="window.location.href='tel:${t.telefon?.replace('+420','').trim()||''}'">📞</button>
         <button class="waze-btn" onclick="window.open('waze://?q=${encodeURIComponent(t.adresa)}','_blank')">Waze</button>
       </div>
@@ -990,6 +1002,7 @@ async function showPlanForDay(date){
 }
 </script>
 <!-- 🟨 KONEC ČÁSTI 6+7/10 -->
+
 
 
 
