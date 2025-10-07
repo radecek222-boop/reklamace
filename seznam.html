@@ -462,7 +462,7 @@ window.addEventListener("DOMContentLoaded", loadData);
 <!-- 🟨 KONEC ČÁSTI 2/10 (finální – Praha bez PSČ + uložené termíny po reloadu) -->
 
 
-<!-- 🟩 ZAČÁTEK ČÁSTI 3/10 (Detail zákazníka – mapa, kalendář, vzdálenost, info-box, zpětná vazba) -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 3/10 (Detail zákazníka – s infoboxem pod kalendářem) -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -475,7 +475,7 @@ function openDetail(index) {
   overlay.innerHTML = `
     <div class="detail-modal">
       <div class="grid-layout">
-        <!-- 🧩 Levý panel – detail zákazníka + kalendář + info-box -->
+        <!-- 🧩 Levý panel – detail + kalendář + infobox -->
         <div class="left-panel">
           <h2>${item.zakaznik || "Zákazník"}</h2>
           <p><strong>Adresa:</strong>
@@ -487,27 +487,26 @@ function openDetail(index) {
           <p><strong>Email:</strong> ${item.email || "–"}</p>
           <p><strong>Produkt / model:</strong> ${item.produkt || "–"}</p>
           <p><strong>Popis závady:</strong> ${item.popis || "–"}</p>
-          <p><strong>Typ:</strong> ${item.typ || "–"}</p>
 
-          <div id="miniCalendarBox">
-            <h3>📅 Vyberte datum</h3>
+          <div class="calendar-wrapper">
             <div id="miniCalendar"></div>
-            <div id="termInfoBox" class="term-info-box">Den, datum a čas zatím nevybrány</div>
+            <div class="term-info-box" id="termInfoBox">📅 Vyberte datum a čas</div>
           </div>
         </div>
 
-        <!-- 🗺️ Pravý panel – mapa, vzdálenost, čas, tlačítka -->
+        <!-- 🗺️ Pravý panel – mapa + čas + tlačítka -->
         <div class="right-panel">
           <div id="mapDetail"></div>
-          <div id="mapDistance" class="map-distance">📍 Měřím vzdálenost...</div>
+          <div id="mapDistance"></div>
 
           <div class="time-box">
             <div class="custom-time-picker">
-              <select id="hours"></select><span>:</span><select id="minutes"></select>
+              <select id="hours"></select>
+              <span>:</span>
+              <select id="minutes"></select>
             </div>
             <div class="btn-row">
               <button id="saveTermBtn" class="btn-action btn-green">Uložit / Změnit</button>
-              <button id="noAnswerBtn" class="btn-action btn-orange">Nezvedá (SMS)</button>
               <button id="cancelBtn" class="btn-action btn-red">Zákazník zrušil</button>
               <button id="closeBtn" class="btn-action btn-gray">Zavřít</button>
             </div>
@@ -516,125 +515,184 @@ function openDetail(index) {
       </div>
     </div>
   `;
-
   document.body.appendChild(overlay);
   setTimeout(() => overlay.classList.add("active"), 10);
 
   const id = item.cislo || `radek-${index}`;
-  const hoursSel = overlay.querySelector("#hours");
-  const minsSel  = overlay.querySelector("#minutes");
-  const infoBox  = overlay.querySelector("#termInfoBox");
+  const infoBox = overlay.querySelector("#termInfoBox");
 
-  for (let h = 7; h < 20; h++) hoursSel.innerHTML += `<option>${String(h).padStart(2,"0")}</option>`;
-  for (let m = 0; m < 60; m += 5) minsSel.innerHTML += `<option>${String(m).padStart(2,"0")}</option>`;
-
-  // 🗓️ Kalendář
+  // 🗓️ Mini kalendář
   const miniCal = new VanillaCalendar("#miniCalendar", {
-    settings:{lang:"cs",selection:{day:"single"},visibility:{theme:"light"}},
-    actions:{
-      clickDay(event){
+    settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
+    actions: {
+      clickDay(event) {
         const chosen = event.target.dataset.calendarDay;
-        if(chosen){
+        if (chosen) {
           overlay.dataset.datum = chosen;
-          highlightSelectedDay(chosen);
-          updateInfoBox();
+          updateTermInfoBox(infoBox, chosen, null);
+          flashBox(infoBox, "gray");
         }
       }
     }
   });
   miniCal.init();
+  restoreGreenDots(overlay);
 
-  // ⏰ Změna času = aktualizace rámečku
-  hoursSel.addEventListener("change", updateInfoBox);
-  minsSel.addEventListener("change", updateInfoBox);
+  // 🕒 Hodiny
+  const hoursSel = overlay.querySelector("#hours");
+  const minsSel  = overlay.querySelector("#minutes");
+  for (let h = 7; h < 20; h++) hoursSel.innerHTML += `<option>${String(h).padStart(2,"0")}</option>`;
+  for (let m = 0; m < 60; m += 5) minsSel.innerHTML += `<option>${String(m).padStart(2,"0")}</option>`;
 
-  function updateInfoBox(){
-    const datum = overlay.dataset.datum;
-    const cas = `${hoursSel.value}:${minsSel.value}`;
-    if(!datum) return;
-    const den = new Date(datum).toLocaleDateString("cs-CZ",{weekday:"long",day:"numeric",month:"numeric"});
-    infoBox.textContent = `${den} – ${cas}`;
-    infoBox.classList.add("active-green");
-    setTimeout(()=>infoBox.classList.remove("active-green"),600);
-  }
+  hoursSel.addEventListener("change",()=>updateTime(infoBox, overlay));
+  minsSel.addEventListener("change",()=>updateTime(infoBox, overlay));
 
-  // 🗺️ Mapa + vzdálenost
-  if(item.adresa){
-    const wgsCoords = [50.049,14.523];
-    const map = L.map(overlay.querySelector("#mapDetail")).setView(wgsCoords,9);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);
-    const wgsMarker = L.marker(wgsCoords,{title:"WGS – Do Dubče"}).addTo(map);
+  // 🌍 Mapa s trasou
+  if (item.adresa) {
+    const wgsCoords = [50.049, 14.523];
+    const map = L.map(overlay.querySelector("#mapDetail")).setView(wgsCoords, 9);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution:"© OpenStreetMap" }).addTo(map);
+    const wgsMarker = L.marker(wgsCoords, { title:"WGS – Do Dubče" }).addTo(map);
+
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`)
-      .then(r=>r.json()).then(d=>{
-        if(d[0]){
-          const c=[+d[0].lat,+d[0].lon];
-          const custMarker=L.marker(c).addTo(map);
-          const g=L.featureGroup([wgsMarker,custMarker]);map.fitBounds(g.getBounds().pad(0.3));
-          const km=calcDistanceCoords(wgsCoords[0],wgsCoords[1],c[0],c[1]).toFixed(1);
-          overlay.querySelector("#mapDistance").innerHTML=`📍 Vzdálenost od WGS: <strong>${km} km</strong>`;
-          L.polyline([wgsCoords,c],{color:"#0046ff",weight:3}).addTo(map);
+      .then(res => res.json())
+      .then(data => {
+        if (data[0]) {
+          const custCoords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+          const custMarker = L.marker(custCoords, { title: "Zákazník" }).addTo(map);
+          L.polyline([wgsCoords, custCoords], { color:"#0046ff", weight:3, opacity:0.8 }).addTo(map);
+          const dist = calcDistanceCoords(wgsCoords[0], wgsCoords[1], custCoords[0], custCoords[1]);
+          overlay.querySelector("#mapDistance").innerHTML = `📍 Vzdálenost od WGS: ${dist.toFixed(1)} km`;
+          const group = L.featureGroup([wgsMarker, custMarker]);
+          map.fitBounds(group.getBounds().pad(0.3));
         }
       });
   }
 
-  // 🔘 Tlačítka
-  overlay.querySelector("#closeBtn").onclick=()=>overlay.remove();
-  overlay.querySelector("#cancelBtn").onclick=()=>{
-    stavy[id]="zruseno";localStorage.setItem("stavyReklamaci",JSON.stringify(stavy));
-    overlay.remove();renderTable(dataAll);
+  // 💾 Uložení termínu (napojeno na část 4/10)
+  overlay.querySelector("#saveTermBtn").onclick = () => {
+    const datum = overlay.dataset.datum;
+    const cas = `${hoursSel.value}:${minsSel.value}`;
+    if (!datum || !cas) return alert("Vyberte datum a čas!");
+    ulozitTerminNaGitHub(item, id, datum, cas, overlay, overlay.querySelector("#saveTermBtn"), infoBox);
   };
-  overlay.querySelector("#noAnswerBtn").onclick=()=>{
-    stavy[id]="nezveda";localStorage.setItem("stavyReklamaci",JSON.stringify(stavy));
-    overlay.remove();renderTable(dataAll);
+
+  // 🔴 Zákazník zrušil
+  overlay.querySelector("#cancelBtn").onclick = () => {
+    stavy[id] = "zruseno";
+    localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+    overlay.remove();
+    renderTable(dataAll);
   };
-  overlay.querySelector("#saveTermBtn").onclick=async(e)=>{
-    const datum=overlay.dataset.datum;
-    const cas=`${hoursSel.value}:${minsSel.value}`;
-    if(!datum||!cas)return alert("Vyberte datum a čas!");
-    const btn=e.target;
-    await ulozitTerminNaGitHub(item,id,datum,cas,overlay,btn,infoBox);
-  };
+
+  // ⚫ Zavřít
+  overlay.querySelector("#closeBtn").onclick = () => overlay.remove();
 }
 
-function highlightSelectedDay(chosen){
-  document.querySelectorAll(".vanilla-calendar-day__btn_selected").forEach(b=>b.classList.remove("selected-green"));
-  const el=document.querySelector(`.vanilla-calendar-day__btn[data-calendar-day="${chosen}"]`);
-  if(el) el.classList.add("selected-green");
+/* 🔁 Aktualizace rámečku */
+function updateTermInfoBox(box, datum, cas) {
+  if (!box) return;
+  const d = new Date(datum);
+  const den = d.toLocaleDateString("cs-CZ", { weekday:"long", day:"numeric", month:"long", year:"numeric" });
+  box.textContent = cas ? `📅 ${den} – ${cas}` : `📅 ${den}`;
 }
 
-function calcDistanceCoords(lat1,lon1,lat2,lon2){
-  const R=6371;
-  const dLat=(lat2-lat1)*Math.PI/180;
-  const dLon=(lon2-lon1)*Math.PI/180;
-  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+/* ⏰ Při výběru času */
+function updateTime(box, overlay) {
+  const datum = overlay.dataset.datum;
+  const hours = overlay.querySelector("#hours").value;
+  const mins = overlay.querySelector("#minutes").value;
+  if (!datum) return;
+  const cas = `${hours}:${mins}`;
+  updateTermInfoBox(box, datum, cas);
+  flashBox(box, "green");
+}
+
+/* 💡 Bliknutí šedě nebo zeleně */
+function flashBox(box, color="gray") {
+  box.classList.remove("flash-gray","flash-green");
+  void box.offsetWidth;
+  box.classList.add(color === "green" ? "flash-green" : "flash-gray");
+}
+
+/* 📏 Výpočet vzdálenosti */
+function calcDistanceCoords(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 </script>
 
 <style>
-.grid-layout{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
-.left-panel,.right-panel{background:#fff;border-radius:10px;padding:12px 16px;}
-#mapDetail{height:280px;border-radius:10px;border:1px solid #ddd;}
-.map-distance{text-align:center;font-size:.95em;margin:8px 0 15px;}
-#miniCalendarBox{margin-top:20px;border-top:1px solid #ddd;padding-top:10px;}
-.term-info-box{
-  margin-top:12px;padding:10px;border-radius:8px;background:#f2f3f5;
-  text-align:center;font-weight:600;font-size:.95em;color:#333;
-  transition:background .3s ease;
+.grid-layout {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
 }
-.term-info-box.active-green{background:#d9fdd3;}
-.term-info-box.saved-green{background:#8eff7a;}
-.selected-green{background:#8eff7a!important;color:#000!important;border-radius:6px;}
-.custom-time-picker{display:flex;justify-content:center;align-items:center;gap:6px;margin-bottom:10px;}
-.custom-time-picker select{font-size:1.1em;border-radius:8px;padding:4px 8px;border:1px solid #ccc;}
-.time-box{text-align:center;margin-top:10px;}
-.btn-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
-.btn-action{min-width:150px;}
-.blink-green{animation:blinkBtn .4s ease-in-out 2;}
-@keyframes blinkBtn{0%,100%{filter:brightness(1);}50%{filter:brightness(1.9);}}
-@media(max-width:800px){.grid-layout{grid-template-columns:1fr;}}
+.left-panel, .right-panel {
+  background:#fff;
+  border-radius:10px;
+  padding:10px;
+}
+.calendar-wrapper {
+  margin-top:15px;
+}
+.term-info-box {
+  background:#f0f0f0;
+  padding:10px;
+  text-align:center;
+  font-weight:600;
+  color:#000;
+  border-radius:8px;
+  margin-top:8px;
+  transition:background 0.3s;
+}
+
+/* 💡 blikání */
+.flash-gray { animation:flashGray 0.4s; }
+.flash-green { animation:flashGreen 0.5s; }
+@keyframes flashGray { 0%{background:#d6d6d6;} 100%{background:#f0f0f0;} }
+@keyframes flashGreen { 0%{background:#b6f7a8;} 100%{background:#f0f0f0;} }
+
+#mapDetail {
+  height:260px;
+  border-radius:10px;
+  border:1px solid #ddd;
+}
+#mapDistance {
+  text-align:center;
+  font-weight:600;
+  margin:6px 0 10px;
+}
+.time-box {
+  background:#f9f9f9;
+  border:1px solid #ccc;
+  border-radius:10px;
+  padding:15px;
+}
+.btn-row {
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  margin-top:10px;
+}
+.btn-action {
+  flex:1;
+  padding:10px;
+  font-weight:600;
+  border:none;
+  border-radius:8px;
+  color:white;
+  cursor:pointer;
+}
+.btn-green { background:linear-gradient(135deg,#28a745,#6fdd72); }
+.btn-red { background:linear-gradient(135deg,#dc3545,#f87171); }
+.btn-gray { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
 </style>
 <!-- 🟩 KONEC ČÁSTI 3/10 -->
+
 
 
 
