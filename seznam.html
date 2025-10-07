@@ -106,15 +106,17 @@ th { background: #f8f8f8; font-weight: 700; color:#000; }
 tr:hover { background: #f1f6ff; cursor: pointer; }
 
 /* 🔹 Stavy */
-.stav-nova { animation: blikani 1s infinite alternate; background: #fff799 !important; }
+.stav-nova {
+  animation: radekBlikani 1.4s infinite ease-in-out;
+}
+@keyframes radekBlikani {
+  0% { background-color: #fff799; }
+  50% { background-color: #fffec1; }
+  100% { background-color: #fff799; }
+}
 .stav-domluveno { background: #99b3ff !important; }
 .stav-zruseno { background: #ff6666 !important; }
 .stav-nezveda { background: #ffad33 !important; }
-
-@keyframes blikani {
-  from { background-color: #fff799; }
-  to { background-color: #fffac4; }
-}
 
 /* 📱 Stejná tlačítka na mobilu */
 @media (max-width:700px){
@@ -177,8 +179,9 @@ function simplifyAddress(addr) {
       const cast = pragueDistrictFromZIP(zip);
       updated = addr.replace("Hlavní město Praha", cast);
     }
+    updated = updated.replace(zip, ""); // PSČ se nezobrazuje
   }
-  return updated.trim();
+  return updated.trim().replace(/\s{2,}/g, " ");
 }
 
 /* 🗺️ Načtení dat */
@@ -231,6 +234,23 @@ window.addEventListener("DOMContentLoaded", loadData);
 </script>
 
 <!-- 🟨 KONEC ČÁSTI 1/10 -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 <script>
