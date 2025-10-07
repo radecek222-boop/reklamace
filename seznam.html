@@ -153,7 +153,7 @@ tr:hover { background: #f1f6ff; cursor: pointer; }
 <!-- 🟨 KONEC ČÁSTI 1/10 -->
 
 
-<!-- 🟨 ZAČÁTEK ČÁSTI 2/10 (finální verze – opravené zobrazení Praha + stav s datem/časem) -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 2/10 (finální – STAV bez tučného + datum/čas místo „domluveno“) -->
 <script>
 const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
 const tableContainer = document.getElementById("tableContainer");
@@ -163,8 +163,10 @@ let dataAll = [];
 let lastDataHash = "";
 let stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
 
+/* 🔄 Automatické načítání každé 2 minuty */
 setInterval(loadData, 120000);
 
+/* 🔔 Zvuková notifikace při nových záznamech */
 function playNotification() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -177,10 +179,12 @@ function playNotification() {
   } catch(e){}
 }
 
+/* 🧩 Hash pro porovnání změn */
 function hashData(arr) {
   return arr.map(r => r.cislo || r.id || "").join("|");
 }
 
+/* 📅 Chytré řazení */
 function sortSmart(data) {
   const today = new Date().toISOString().split("T")[0];
   return data.sort((a,b)=>{
@@ -192,39 +196,37 @@ function sortSmart(data) {
   });
 }
 
-/* 🧭 Normalizace adres – Praha s PSČ */
+/* 🧭 Úprava adres – Praha s PSČ */
 function normalizePrahaAddress(addr) {
   if (!addr) return "";
   let newAddr = addr.replace(/Hlavní město\s*Praha/gi, "Praha");
   const pscMatch = newAddr.match(/\b\d{5}\b/);
   if (!pscMatch) return newAddr.trim();
   const psc = pscMatch[0];
+
   const prahaMap = {
-    "11000": "Praha 1 Staré Město", "11800": "Praha 1 Malá Strana", "11900": "Praha 1 Hradčany",
-    "12000": "Praha 2 Vinohrady", "12100": "Praha 2 Nusle", "12800": "Praha 2 Nové Město",
-    "13000": "Praha 3 Žižkov", "13085": "Praha 3 Vinohrady",
-    "14000": "Praha 4 Nusle", "14100": "Praha 4 Michle", "14200": "Praha 4 Kamýk",
-    "14300": "Praha 4 Modřany", "14700": "Praha 4 Braník", "14900": "Praha 4 Chodov",
-    "15000": "Praha 5 Smíchov", "15200": "Praha 5 Barrandov", "15300": "Praha 5 Velká Chuchle",
-    "15500": "Praha 5 Stodůlky", "15900": "Praha 5 Zbraslav",
-    "16000": "Praha 6 Dejvice", "16200": "Praha 6 Veleslavín", "16300": "Praha 6 Řepy",
-    "16400": "Praha 6 Nebušice", "16500": "Praha 6 Suchdol",
-    "17000": "Praha 7 Holešovice", "17100": "Praha 7 Troja",
-    "18000": "Praha 8 Libeň", "18100": "Praha 8 Karlín", "18200": "Praha 8 Kobylisy",
-    "18400": "Praha 8 Čimice", "18600": "Praha 8 Dolní Chabry",
-    "19000": "Praha 9 Vysočany", "19011": "Praha 9 Satalice", "19012": "Praha 9 Běchovice",
-    "19014": "Praha 9 Újezd nad Lesy", "19015": "Praha 9 Dolní Počernice",
-    "19016": "Praha 9 Koloděje", "19300": "Praha 9 Horní Počernice",
-    "19600": "Praha 9 Čakovice", "19800": "Praha 9 Černý Most",
-    "19900": "Praha 9 Letňany", "19017": "Praha 9 Klánovice",
-    "10000": "Praha 10 Vršovice", "10100": "Praha 10 Strašnice",
-    "10200": "Praha 10 Hostivař", "10400": "Praha 10 Uhříněves",
-    "10600": "Praha 10 Záběhlice", "10700": "Praha 10 Petrovice",
-    "10800": "Praha 10 Malešice", "10900": "Praha 10 Horní Měcholupy",
-    "11100": "Praha 10 Dubeč",
-    "14800": "Praha 12 Modřany", "10300": "Praha 22 Kolovraty",
-    "15600": "Praha 5 Zbraslav", "16500": "Praha 6 Lysolaje"
+    "11000": "Praha 1 Staré Město","11800":"Praha 1 Malá Strana","11900":"Praha 1 Hradčany",
+    "12000":"Praha 2 Vinohrady","12100":"Praha 2 Nusle","12800":"Praha 2 Nové Město",
+    "13000":"Praha 3 Žižkov","13085":"Praha 3 Vinohrady",
+    "14000":"Praha 4 Nusle","14100":"Praha 4 Michle","14200":"Praha 4 Kamýk",
+    "14300":"Praha 4 Modřany","14700":"Praha 4 Braník","14900":"Praha 4 Chodov",
+    "15000":"Praha 5 Smíchov","15200":"Praha 5 Barrandov","15300":"Praha 5 Velká Chuchle",
+    "15500":"Praha 5 Stodůlky","15900":"Praha 5 Zbraslav",
+    "16000":"Praha 6 Dejvice","16200":"Praha 6 Veleslavín","16300":"Praha 6 Řepy",
+    "16400":"Praha 6 Nebušice","16500":"Praha 6 Suchdol",
+    "17000":"Praha 7 Holešovice","17100":"Praha 7 Troja",
+    "18000":"Praha 8 Libeň","18100":"Praha 8 Karlín","18200":"Praha 8 Kobylisy",
+    "18400":"Praha 8 Čimice","18600":"Praha 8 Dolní Chabry",
+    "19000":"Praha 9 Vysočany","19011":"Praha 9 Satalice","19012":"Praha 9 Běchovice",
+    "19014":"Praha 9 Újezd nad Lesy","19015":"Praha 9 Dolní Počernice","19016":"Praha 9 Koloděje",
+    "19300":"Praha 9 Horní Počernice","19600":"Praha 9 Čakovice","19800":"Praha 9 Černý Most",
+    "19900":"Praha 9 Letňany","19017":"Praha 9 Klánovice",
+    "10000":"Praha 10 Vršovice","10100":"Praha 10 Strašnice","10200":"Praha 10 Hostivař",
+    "10400":"Praha 10 Uhříněves","10600":"Praha 10 Záběhlice","10700":"Praha 10 Petrovice",
+    "10800":"Praha 10 Malešice","10900":"Praha 10 Horní Měcholupy","11100":"Praha 10 Dubeč",
+    "14800":"Praha 12 Modřany","10300":"Praha 22 Kolovraty","15600":"Praha 5 Zbraslav","16500":"Praha 6 Lysolaje"
   };
+
   const doplnek = prahaMap[psc];
   if (doplnek) {
     newAddr = newAddr.replace(/\bPraha\b\s*\d{0,2}\b/gi, "").trim().replace(/\s*,\s*$/, "");
@@ -242,6 +244,7 @@ async function loadData() {
     if (!res.ok) throw new Error("Chyba při načítání dat");
     const data = await res.json();
     if (!Array.isArray(data)) throw new Error("Neplatný formát dat");
+
     dataAll = sortSmart(data.reverse());
     const newHash = hashData(dataAll);
     if (lastDataHash && newHash !== lastDataHash) playNotification();
@@ -255,37 +258,55 @@ async function loadData() {
 /* 📋 Vykreslení tabulky */
 function renderTable(arr) {
   if (!arr.length) { tableContainer.innerHTML = "<div>Žádné záznamy</div>"; return; }
-  let html = `<table><thead><tr>
-    <th>Zákazník</th><th>Adresa</th><th>Telefon</th><th>Stav</th>
-  </tr></thead><tbody>`;
+
+  let html = `
+  <table>
+    <thead>
+      <tr><th>Zákazník</th><th>Adresa</th><th>Telefon</th><th>Stav</th></tr>
+    </thead><tbody>`;
+
   arr.forEach((r,i)=>{
     const id = r.cislo || `radek-${i}`;
     const stav = stavy[id] || "novy";
+
+    // upravená adresa
     let adresaText = normalizePrahaAddress(r.adresa || "");
     adresaText = adresaText.replace(/\bPraha\b\s*(\d{1,2})\s*Praha/gi, "Praha $1").trim();
+
     const adresa = r.adresa
-      ? `<a href="https://waze.com/ul?q=${encodeURIComponent(r.adresa)}" target="_blank" style="color:#000;font-weight:600;">${adresaText}</a>` : "–";
+      ? `<a href="https://waze.com/ul?q=${encodeURIComponent(r.adresa)}" target="_blank" style="color:#000;font-weight:600;">${adresaText}</a>`
+      : "–";
+
     const telefon = r.telefon
-      ? `<a href="tel:${r.telefon.replace('+420','').trim()}" style="color:#000;font-weight:600;">${r.telefon.replace('+420','').trim()}</a>` : "–";
+      ? `<a href="tel:${r.telefon.replace('+420','').trim()}" style="color:#000;font-weight:600;">${r.telefon.replace('+420','').trim()}</a>`
+      : "–";
+
+    // přehledný stav – zobrazí datum + čas, žádné "domluveno"
     let stavText = stav;
     if (stav === "domluveno" && r.datum && r.cas) {
       const d = new Date(r.datum);
       const den = d.toLocaleDateString("cs-CZ", { weekday: "short", day: "numeric", month: "numeric" });
-      stavText = `Domluveno na ${den} v ${r.cas}`;
+      stavText = `${den} ${r.cas}`;
     }
-    html += `<tr class="stav-${stav}" data-index="${i}" data-id="${id}">
+
+    html += `
+    <tr class="stav-${stav}" data-index="${i}" data-id="${id}">
       <td>${r.zakaznik || "–"}</td>
       <td>${adresa}</td>
       <td>${telefon}</td>
-      <td style="font-weight:600;">${stavText}</td></tr>`;
+      <td style="font-weight:400;text-transform:none;">${stavText}</td>
+    </tr>`;
   });
+
   html += "</tbody></table>";
   tableContainer.innerHTML = html;
+
   document.querySelectorAll("tbody tr").forEach(row=>{
     row.addEventListener("click",()=>openDetail(row.dataset.index));
   });
 }
 
+/* 🔍 Vyhledávání */
 searchInput.addEventListener("input",()=>{
   const q = searchInput.value.trim().toLowerCase();
   if(!q) return renderTable(dataAll);
@@ -297,7 +318,8 @@ searchInput.addEventListener("input",()=>{
 reloadBtn.addEventListener("click", loadData);
 window.addEventListener("DOMContentLoaded", loadData);
 </script>
-<!-- 🟨 KONEC ČÁSTI 2/10 -->
+<!-- 🟨 KONEC ČÁSTI 2/10 (finální – STAV bez tučného + datum/čas místo „domluveno“) -->
+
 
 <script>
 /* ============================= */
