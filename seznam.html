@@ -724,188 +724,181 @@ function calcDistanceCoords(lat1, lon1, lat2, lon2) {
 }
 </style>
 
-<!-- 🟨 ZAČÁTEK ČÁSTI 6+7/10 (AKTUALIZOVANÁ VERZE) -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 6+7/10 (FINÁLNÍ) -->
 <style>
 #planModal {
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.55);
-  justify-content:center;
-  align-items:center;
-  z-index:9999;
-  opacity:0;
-  transition:opacity .25s ease;
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity .25s ease;
 }
-#planModal.active{display:flex;opacity:1;}
+#planModal.active { display:flex; opacity:1; }
 
-#planModal .modal-inner{
-  background:#fff;
-  border-radius:14px;
-  width:95%;
-  max-width:1300px;
-  height:90vh;
-  box-shadow:0 10px 25px rgba(0,0,0,.3);
-  display:grid;
-  grid-template-columns:35% 65%;
-  overflow:hidden;
-  padding:20px;
-  gap:20px;
-}
-
-/* 🔹 Levý blok */
-.left-block{
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-  gap:14px;
-}
-.panel{
-  border:1px solid #ddd;
-  border-radius:12px;
-  background:#fafafa;
-  box-shadow:0 2px 8px rgba(0,0,0,0.08);
-  overflow:hidden;
-}
-#calendar{
-  flex:1;
-  height:100%;
-  min-height:380px;
-}
-.vanilla-calendar{
-  width:100%!important;
-  height:100%!important;
-}
-.legend{
-  background:#fff;
-  padding:10px;
-  font-size:0.9em;
-  color:#333;
-}
-.legend table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:0.9em;
-}
-.legend th,.legend td{
-  border-bottom:1px solid #eee;
-  padding:5px 6px;
-  text-align:left;
-}
-.legend th{background:#f6f7fb;font-weight:600;}
-.legend-total{
-  text-align:right;
-  font-weight:800;
-  margin-top:6px;
-}
-#closeMap{
-  margin-top:auto;
-  padding:12px;
-  border:none;
-  border-radius:8px;
-  font-weight:600;
-  color:#fff;
-  background:linear-gradient(135deg,#6c757d,#a0a4a7);
-  cursor:pointer;
-  transition:transform .2s ease,opacity .2s;
-}
-#closeMap:hover{transform:scale(1.04);opacity:.9;}
-
-/* 🔹 Pravý blok */
-.right-block{
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-start;
-}
-#map{
-  flex:1;
-  border-radius:12px;
-  overflow:hidden;
-  background:#eaeaea;
-  box-shadow:0 2px 8px rgba(0,0,0,0.08);
-  position:relative;
-  min-height:480px;
-}
-#mapOverlay{
-  position:absolute;
-  inset:0;
-  display:none;
-  background:rgba(255,255,255,0.85);
-  justify-content:center;
-  align-items:center;
-  font-size:1.2em;
-  font-weight:600;
-  color:#444;
+#planModal .modal-inner {
+  background: #fff;
+  border-radius: 14px;
+  width: 95%;
+  max-width: 1300px;
+  height: 90vh;
+  box-shadow: 0 10px 25px rgba(0,0,0,.3);
+  display: grid;
+  grid-template-columns: 35% 65%;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+  padding: 20px;
+  gap: 20px;
 }
 
-/* 🔹 Zákazníci */
-.plan-list{
-  margin-top:10px;
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  max-height:180px;
-  overflow-y:auto;
+/* 🔹 Levý blok (kalendář + legenda + zpět) */
+.left-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
 }
-.plan-row{
-  display:grid;
-  grid-template-columns:28px 1.4fr 1.8fr 0.7fr 130px;
-  align-items:center;
-  border:1px solid #ddd;
-  border-radius:8px;
-  padding:8px 10px;
-  background:#fff;
-  font-size:0.9em;
-  box-shadow:0 1px 2px rgba(0,0,0,0.05);
-  transition:background .2s;
+.panel {
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: #fafafa;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  overflow: hidden;
 }
-.plan-row:hover{background:#eef3ff;}
-.plan-row.active{background:#dbe4ff;}
-.plan-row b{font-weight:600;color:#000;}
-.plan-row div{color:#000;}
-.phone-btn,.waze-btn{
-  border:none;
-  cursor:pointer;
-  padding:5px 10px;
-  border-radius:6px;
-  font-weight:600;
-  font-size:0.85em;
+#calendar {
+  flex: 1;
+  min-height: 320px;
 }
-.phone-btn{
-  background:linear-gradient(135deg,#007bff,#399bff);
-  color:#fff;
+.legend {
+  background: #fff;
+  padding: 10px;
+  font-size: 0.9em;
+  color: #333;
 }
-.waze-btn{
-  border:1px solid #0046ff;
-  background:#f0f4ff;
-  color:#0046ff;
+.legend table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9em;
 }
-.waze-btn:hover{background:#0046ff;color:#fff;}
-.flag-btn{
+.legend th, .legend td {
+  border-bottom: 1px solid #eee;
+  padding: 5px 6px;
+  text-align: left;
+}
+.legend th { background: #f6f7fb; font-weight:600; }
+.legend-total {
+  text-align: right;
+  font-weight: 800;
+  margin-top: 6px;
+}
+#closeMap {
+  margin-top: auto;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #6c757d, #a0a4a7);
+  cursor: pointer;
+  transition: transform .2s ease, opacity .2s;
+}
+#closeMap:hover { transform:scale(1.04); opacity:.9; }
+
+/* 🔹 Pravý blok (mapa + zákazníci) */
+.right-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+#map {
+  flex: 1;
+  min-height: 440px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #eaeaea;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  position: relative;
+}
+#mapOverlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  background: rgba(255,255,255,0.85);
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #444;
+}
+
+/* 🔹 Zákazníci pod mapou */
+.plan-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.plan-row {
+  display: grid;
+  grid-template-columns: 28px 1.6fr 1.6fr 0.6fr 120px;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fff;
+  font-size: 0.9em;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.plan-row b { font-weight:600; color:#000; }
+.plan-row div { color:#000; }
+.phone-btn, .waze-btn {
+  border: none;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85em;
+}
+.phone-btn {
+  background: linear-gradient(135deg, #007bff, #399bff);
+  color: #fff;
+}
+.waze-btn {
+  border: 1px solid #0046ff;
+  background: #f0f4ff;
+  color: #0046ff;
+}
+.waze-btn:hover { background: #0046ff; color:#fff; }
+.flag-btn {
   background:none;
   border:none;
   font-size:1.2em;
   cursor:pointer;
 }
-.blinking-marker{animation:blinkMarker 1s infinite;}
-@keyframes blinkMarker{
+.blinking-marker { animation: blinkMarker 1s infinite; }
+@keyframes blinkMarker {
   0%{transform:scale(1);filter:brightness(1);}
   50%{transform:scale(1.3);filter:brightness(1.8);}
   100%{transform:scale(1);filter:brightness(1);}
 }
-.selected-day{
-  outline:3px solid #0046ff;
-  border-radius:8px;
-}
 
-/* Responsivita */
+/* 🔹 Responsivita */
 @media(max-width:900px){
   #planModal .modal-inner{
     grid-template-columns:1fr;
+    grid-template-rows:auto auto auto auto;
     height:95vh;
   }
+  .plan-row{
+    grid-template-columns:24px 1.2fr 1.2fr 0.6fr 90px;
+    font-size:0.85em;
+  }
   #map{min-height:300px;}
-  .plan-row{grid-template-columns:24px 1.3fr 1.3fr 0.6fr 90px;}
 }
 </style>
 
@@ -933,41 +926,23 @@ document.body.insertAdjacentHTML("beforeend",planModalHTML);
 let map,markersLayer,routeLayer,markerMap={};
 const wgsCoords=[50.049,14.523];
 
-planBtn.onclick=()=>{
-  const m=document.getElementById("planModal");
-  m.style.display="flex";
-  setTimeout(()=>m.classList.add("active"),10);
-  initCalendar();
-};
-document.getElementById("closeMap").onclick=()=>{
-  const m=document.getElementById("planModal");
-  m.classList.remove("active");
-  setTimeout(()=>m.style.display="none",250);
-};
+planBtn.onclick=()=>{const m=document.getElementById("planModal");m.style.display="flex";setTimeout(()=>m.classList.add("active"),10);initCalendar();};
+document.getElementById("closeMap").onclick=()=>{const m=document.getElementById("planModal");m.classList.remove("active");setTimeout(()=>m.style.display="none",250);};
 
 function initCalendar(){
   const ulozene=JSON.parse(localStorage.getItem("stavyReklamaciData")||"[]");
   const unique=[...new Set(ulozene.map(z=>z.datum))];
-  const cal=new VanillaCalendar("#calendar",{settings:{lang:"cs",visibility:{theme:"light"}},actions:{clickDay:(e)=>{
-    document.querySelectorAll(".selected-day").forEach(d=>d.classList.remove("selected-day"));
-    e.target.classList.add("selected-day");
-    const d=e.target.dataset.calendarDay;
-    if(d)showPlanForDay(d);
-  }}});
+  const cal=new VanillaCalendar("#calendar",{settings:{lang:"cs",visibility:{theme:"light"}},actions:{clickDay:(e)=>{const d=e.target.dataset.calendarDay;if(d)showPlanForDay(d);}}});
   cal.init();
-
-  const observer=new MutationObserver(()=>{
+  setTimeout(()=>{
     document.querySelectorAll(".vanilla-calendar-day__btn").forEach(btn=>{
       if(unique.includes(btn.dataset.calendarDay)){
         const dot=document.createElement("span");
-        dot.style.cssText=`position:absolute;bottom:6px;left:50%;transform:translateX(-50%);
-          width:16px;height:16px;border-radius:50%;
-          background:radial-gradient(circle at center,#0046ff 30%,#357aff 90%);`;
+        dot.style.cssText=`position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at center,#0046ff 30%,#357aff 90%);`;
         btn.appendChild(dot);
       }
     });
-  });
-  observer.observe(document.querySelector("#calendar"),{childList:true,subtree:true});
+  },300);
 }
 
 async function showPlanForDay(date){
@@ -975,11 +950,7 @@ async function showPlanForDay(date){
   const planList=document.getElementById("planList");
   const routeTable=document.getElementById("routeTable");
   const totalKm=document.getElementById("totalKm");
-  overlay.style.display="none";
-  planList.innerHTML="";
-  routeTable.innerHTML="";
-  totalKm.textContent="";
-
+  overlay.style.display="none";planList.innerHTML="";routeTable.innerHTML="";totalKm.textContent="";
   const terminy=JSON.parse(localStorage.getItem("stavyReklamaciData")||"[]").filter(t=>t.datum===date);
   if(!map){
     map=L.map("map").setView(wgsCoords,8);
@@ -987,49 +958,24 @@ async function showPlanForDay(date){
     markersLayer=L.layerGroup().addTo(map);
     routeLayer=L.layerGroup().addTo(map);
   }
-  markersLayer.clearLayers();
-  routeLayer.clearLayers();
-  markerMap={};
+  markersLayer.clearLayers();routeLayer.clearLayers();markerMap={};
 
-  if(!terminy.length){
-    overlay.style.display="flex";
-    map.setView(wgsCoords,8);
-    return;
-  }
-
+  if(!terminy.length){overlay.style.display="flex";map.setView(wgsCoords,8);return;}
   const homeIcon=L.icon({iconUrl:"https://cdn-icons-png.flaticon.com/512/25/25694.png",iconSize:[36,36],iconAnchor:[18,36]});
-  const homeMarker=L.marker(wgsCoords,{icon:homeIcon}).addTo(markersLayer);
-  const cache=JSON.parse(localStorage.getItem("geoCache")||"{}");
-  let coords=[wgsCoords];
+  L.marker(wgsCoords,{icon:homeIcon}).addTo(markersLayer);
 
+  const cache=JSON.parse(localStorage.getItem("geoCache")||"{}");let coords=[wgsCoords];
   for(const t of terminy){
     let c=cache[t.adresa];
     if(!c){
       const res=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(t.adresa)}`);
-      const data=await res.json();
-      if(data[0]){
-        c=[parseFloat(data[0].lat),parseFloat(data[0].lon)];
-        cache[t.adresa]=c;
-        localStorage.setItem("geoCache",JSON.stringify(cache));
-      }
+      const data=await res.json();if(data[0]){c=[parseFloat(data[0].lat),parseFloat(data[0].lon)];cache[t.adresa]=c;localStorage.setItem("geoCache",JSON.stringify(cache));}
     }
-    if(c){
-      coords.push(c);
-      const flag=L.icon({iconUrl:"https://cdn-icons-png.flaticon.com/512/684/684908.png",iconSize:[28,28],iconAnchor:[14,28]});
-      const m=L.marker(c,{icon:flag})
-        .addTo(markersLayer)
-        .bindPopup(`<b>${t.zakaznik}</b><br>${t.adresa}<br>${t.cas}`);
-      markerMap[t.adresa]=m;
-    }
+    if(c){coords.push(c);const flag=L.icon({iconUrl:"https://cdn-icons-png.flaticon.com/512/684/684908.png",iconSize:[28,28],iconAnchor:[14,28]});const m=L.marker(c,{icon:flag}).addTo(markersLayer).bindPopup(`<b>${t.zakaznik}</b><br>${t.adresa}<br>${t.cas}`);markerMap[t.adresa]=m;}
   }
 
-  // 📏 přiblížení na všechny body
-  const bounds=L.latLngBounds(coords);
-  map.fitBounds(bounds,{padding:[40,40]});
-
-  // 🧍 seznam zákazníků
   planList.innerHTML=terminy.map(t=>`
-    <div class="plan-row" data-addr="${t.adresa}">
+    <div class="plan-row">
       <button class="flag-btn" data-addr="${t.adresa}">🚩</button>
       <div><b>${t.zakaznik}</b></div>
       <div>${t.adresa}</div>
@@ -1040,42 +986,23 @@ async function showPlanForDay(date){
       </div>
     </div>`).join("");
 
-  document.querySelectorAll(".plan-row").forEach(r=>{
-    r.onclick=()=>{
-      document.querySelectorAll(".plan-row").forEach(x=>x.classList.remove("active"));
-      r.classList.add("active");
-      const a=r.dataset.addr;
-      Object.values(markerMap).forEach(m=>m._icon.classList.remove("blinking-marker"));
-      if(markerMap[a]){
-        map.setView(markerMap[a].getLatLng(),13);
-        markerMap[a]._icon.classList.add("blinking-marker");
-        markerMap[a].openPopup();
-      }
-    };
+  document.querySelectorAll(".flag-btn").forEach(b=>{
+    b.onclick=()=>{const a=b.dataset.addr;Object.values(markerMap).forEach(m=>m._icon.classList.remove("blinking-marker"));if(markerMap[a]){map.setView(markerMap[a].getLatLng(),12);markerMap[a]._icon.classList.add("blinking-marker");markerMap[a].openPopup();}}
   });
 
-  // 🛣️ výpočet trasy
   const coordStr=coords.map(c=>`${c[1]},${c[0]}`).join(";");
   const res=await fetch(`https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson`);
   const data=await res.json();
   if(data.routes?.length){
-    const r=data.routes[0];
-    const legs=r.legs||[];
-    let total=0;
+    const r=data.routes[0];const legs=r.legs||[];let total=0;
     routeTable.innerHTML="<tr><th>#</th><th>Odkud</th><th>Kam</th><th>Km</th></tr>";
-    legs.forEach((leg,i)=>{
-      const km=(leg.distance/1000).toFixed(1);
-      total+=+km;
-      const from=i===0?"WGS":terminy[i-1]?.zakaznik||"Zákazník";
-      const to=terminy[i]?.zakaznik||"Zákazník";
-      routeTable.innerHTML+=`<tr><td>${i+1}</td><td>${from}</td><td>${to}</td><td>${km}</td></tr>`;
-      L.geoJSON(leg.geometry,{style:{color:"#0046ff",weight:4,opacity:.8}}).addTo(routeLayer);
-    });
+    legs.forEach((leg,i)=>{const km=(leg.distance/1000).toFixed(1);total+=+km;const from=i===0?"WGS":terminy[i-1]?.zakaznik||"Zákazník";const to=terminy[i]?.zakaznik||"Zákazník";routeTable.innerHTML+=`<tr><td>${i+1}</td><td>${from}</td><td>${to}</td><td>${km}</td></tr>`;L.geoJSON(leg.geometry,{style:{color:"#0046ff",weight:4,opacity:.8}}).addTo(routeLayer);});
     totalKm.textContent=`CELKEM: ${total.toFixed(1)} km`;
   }
 }
 </script>
 <!-- 🟨 KONEC ČÁSTI 6+7/10 -->
+
 
 
 
