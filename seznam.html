@@ -461,7 +461,10 @@ window.addEventListener("DOMContentLoaded", loadData);
 </script>
 <!-- 🟨 KONEC ČÁSTI 2/10 (finální – Praha bez PSČ + uložené termíny po reloadu) -->
 
-<!-- 🟦 ZAČÁTEK ČÁSTI 3/10 – Detail zákazníka (kalendář, mapa, tlačítka, banner) -->
+
+
+
+<!-- 🟦 ZAČÁTEK ČÁSTI 3/10 – Detail zákazníka (bez zamrznutí) -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -493,16 +496,9 @@ function openDetail(index) {
             <div class="time-select">
               <select id="timeSelect">
                 <option value="">Vyber čas</option>
-                <option>07:00</option>
-                <option>08:00</option>
-                <option>09:00</option>
-                <option>10:00</option>
-                <option>11:00</option>
-                <option>12:00</option>
-                <option>13:00</option>
-                <option>14:00</option>
-                <option>15:00</option>
-                <option>16:00</option>
+                <option>07:00</option><option>08:00</option><option>09:00</option>
+                <option>10:00</option><option>11:00</option><option>12:00</option>
+                <option>13:00</option><option>14:00</option><option>15:00</option><option>16:00</option>
               </select>
             </div>
 
@@ -521,30 +517,34 @@ function openDetail(index) {
       </div>
     </div>
   `;
-
   document.body.appendChild(overlay);
 
-  // 🌍 Mapa – WGS start + zákazník
+  /* 🌍 Bezpečné načtení mapy s limitem 5 s */
   const map = L.map("detailMap").setView([49.9, 15.6], 6);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 18,
-    attribution: "&copy; OpenStreetMap",
+    maxZoom: 18, attribution: "&copy; OpenStreetMap"
   }).addTo(map);
 
   const wgsCoords = [50.081, 14.614]; // WGS Běchovice
-  fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`)
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), 5000);
+
+  fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`, { signal: controller.signal })
     .then(r => r.json())
     .then(loc => {
       if (loc && loc.length > 0) {
         const cust = [parseFloat(loc[0].lat), parseFloat(loc[0].lon)];
         const route = L.polyline([wgsCoords, cust], { color: "#0046ff", weight: 4 }).addTo(map);
-        map.fitBounds(route.getBounds(), { padding: [30, 30] });
+        if (route.getBounds && route.getBounds().isValid()) {
+          map.fitBounds(route.getBounds(), { padding: [30, 30] });
+        }
         L.marker(cust).addTo(map).bindPopup(`<b>${item.zakaznik}</b><br>${item.adresa}`);
       }
-    });
+    })
+    .catch(() => console.warn("⏳ Mapové načtení přerušeno"));
 
-  // 🗓️ Kalendář – opravená inicializace
-  setTimeout(() => {
+  /* 🗓️ Bezpečné vytvoření kalendáře */
+  requestAnimationFrame(() => {
     const miniCal = new VanillaCalendar("#miniCalendar", {
       settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
       actions: {
@@ -559,9 +559,8 @@ function openDetail(index) {
       }
     });
     miniCal.init();
-  }, 150);
+  });
 
-  // 📦 Banner + čas
   const infoBox = overlay.querySelector("#selectedInfo");
   const timeSelect = overlay.querySelector("#timeSelect");
   let selectedDate = null;
@@ -580,7 +579,7 @@ function openDetail(index) {
     }
   });
 
-  // 💾 Uložit termín
+  /* 💾 Uložit */
   overlay.querySelector(".btn-save").onclick = async () => {
     if (!selectedDate || !selectedTime) {
       alert("Vyberte nejprve datum a čas.");
@@ -590,21 +589,16 @@ function openDetail(index) {
     infoBox.classList.add("saved");
     infoBox.textContent = `Termín uložen: ${selectedDate} ${selectedTime}`;
     onSaveConfirm(infoBox);
-
     await ulozitTerminNaGitHub(item, index, selectedDate, selectedTime, overlay, overlay.querySelector(".btn-save"), infoBox);
   };
 
-  // 📞 Nezvedá
-  overlay.querySelector(".btn-orange").onclick = () => {
-    nezvedaTerminNaGitHub(item, index, overlay);
-  };
+  /* 📞 Nezvedá */
+  overlay.querySelector(".btn-orange").onclick = () => nezvedaTerminNaGitHub(item, index, overlay);
 
-  // ❌ Zákazník zrušil
-  overlay.querySelector(".btn-red").onclick = () => {
-    zrusitTerminNaGitHub(item, index, overlay);
-  };
+  /* ❌ Zákazník zrušil */
+  overlay.querySelector(".btn-red").onclick = () => zrusitTerminNaGitHub(item, index, overlay);
 
-  // ⬅️ Zpět
+  /* ⬅️ Zpět */
   overlay.querySelector(".btn-grey").onclick = () => overlay.remove();
 
   function onSaveConfirm(box) {
@@ -624,6 +618,7 @@ function openDetail(index) {
   justify-content: center;
   align-items: center;
   z-index: 9999;
+  transition: opacity 0.25s ease;
 }
 .detail-modal {
   background: white;
@@ -640,9 +635,7 @@ function openDetail(index) {
   flex-wrap: wrap;
   gap: 20px;
 }
-.left-column {
-  flex: 1 1 420px;
-}
+.left-column { flex: 1 1 420px; }
 .right-column {
   flex: 1 1 420px;
   display: flex;
@@ -654,8 +647,6 @@ function openDetail(index) {
   height: 420px;
   border-radius: 10px;
 }
-
-/* 📅 Kalendář a spodní část */
 .calendar-box {
   display: flex;
   flex-direction: column;
@@ -665,14 +656,7 @@ function openDetail(index) {
   margin: 0 auto;
   padding: 12px 0;
 }
-
-/* 🕓 Výběr času */
-.time-select {
-  width: 100%;
-  margin: 10px 0 18px;
-  display: flex;
-  justify-content: center;
-}
+.time-select { width: 100%; margin: 10px 0 18px; }
 .time-select select {
   width: 100%;
   max-width: 420px;
@@ -682,20 +666,17 @@ function openDetail(index) {
   font-family: "Inter", sans-serif;
   font-size: 1em;
 }
-
-/* 🩶 Info banner */
 .selected-info {
   width: 100%;
   max-width: 420px;
   background: #eee;
   color: #333;
-  font-family: "Inter", sans-serif;
   font-weight: 500;
   padding: 10px 15px;
   border-radius: 8px;
   text-align: center;
   margin-top: 10px;
-  transition: background 0.3s ease, color 0.3s ease;
+  transition: background .3s ease, color .3s ease;
 }
 .selected-info.blinking {
   animation: blinkGray 1.2s linear infinite;
@@ -710,8 +691,6 @@ function openDetail(index) {
   font-weight: 600;
   box-shadow: 0 0 10px rgba(0,200,0,0.4);
 }
-
-/* 🔘 Tlačítka */
 .calendar-box button {
   width: 100%;
   max-width: 420px;
@@ -719,7 +698,6 @@ function openDetail(index) {
   margin: 6px 0;
   border: none;
   border-radius: 10px;
-  font-family: "Inter", sans-serif;
   font-weight: 600;
   font-size: 1.05em;
   color: #fff;
@@ -730,18 +708,14 @@ function openDetail(index) {
 .btn-orange { background: linear-gradient(135deg, #ff9800, #ffc270); color:#222; }
 .btn-red { background: linear-gradient(135deg, #d9534f, #ff6f61); }
 .btn-grey { background: linear-gradient(135deg, #999, #ccc); color:#222; }
-.btn-save:hover, .btn-orange:hover, .btn-red:hover, .btn-grey:hover {
-  filter: brightness(1.1);
-}
-
-/* 📱 Responsivita */
-@media (max-width: 768px) {
-  .detail-content { flex-direction: column; }
-  .detail-map { height: 300px; }
-  .calendar-box { max-width: 100%; }
+@media (max-width:768px){
+  .detail-content{flex-direction:column;}
+  .detail-map{height:300px;}
+  .calendar-box{max-width:100%;}
 }
 </style>
 <!-- 🟦 KONEC ČÁSTI 3/10 -->
+
 
 
 
