@@ -1137,3 +1137,104 @@ setInterval(highlightTodayRows, 30000);
   }
 }
 </style>
+<script>
+// 🧩 Dynamické zobrazení stavů a přizpůsobení řádků
+function aktualizujZobrazeniStavu() {
+  document.querySelectorAll("tbody tr").forEach(row => {
+    const index = row.dataset.index;
+    const id = row.dataset.id;
+    const item = dataAll[index];
+    const stav = stavy[id] || "novy";
+
+    if (!item) return;
+    let text = stav.charAt(0).toUpperCase() + stav.slice(1);
+
+    // 🧠 Text ve sloupci
+    if (stav === "domluveno" && item.datum && item.cas) {
+      text = `Domluveno: ${item.datum} ${item.cas}`;
+    } else if (stav === "nezveda") {
+      text = "Zaslána SMS (nezvedá)";
+    } else if (stav === "zruseno") {
+      text = "Zákazník zrušil";
+    } else if (stav === "novy") {
+      text = "Nový záznam";
+    }
+
+    row.querySelector("td:last-child").textContent = text;
+
+    // 🩸 Odebrání všech tříd
+    row.classList.remove("stav-novy","stav-domluveno","stav-nezveda","stav-zruseno");
+
+    // 🎨 Barevné zvýraznění podle stavu
+    if (stav === "domluveno") row.classList.add("stav-domluveno");
+    if (stav === "nezveda") row.classList.add("stav-nezveda");
+    if (stav === "zruseno") row.classList.add("stav-zruseno");
+    if (stav === "novy") row.classList.add("stav-novy");
+  });
+}
+
+// 🔁 Po vykreslení tabulky aktualizuj stav
+const origRender = renderTable;
+renderTable = function(arr) {
+  origRender(arr);
+  setTimeout(aktualizujZobrazeniStavu, 200);
+};
+
+// 🔘 Při otevření detailu mění tlačítko "Domluvit termín"
+const origOpenDetail = openDetail;
+openDetail = function(index) {
+  origOpenDetail(index);
+  setTimeout(() => {
+    const overlay = document.querySelector(".detail-overlay.active");
+    if (!overlay) return;
+    const item = dataAll[index];
+    const id = item.cislo || `radek-${index}`;
+    const termBtn = overlay.querySelector("#termBtn");
+
+    const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
+    const nalezeny = ulozene.find(z => z.cislo === id);
+
+    if (nalezeny && nalezeny.datum && nalezeny.cas) {
+      termBtn.textContent = "Změnit termín";
+      termBtn.style.background = "linear-gradient(135deg, #0046ff, #357aff)";
+    } else {
+      termBtn.textContent = "Domluvit termín";
+      termBtn.style.background = "linear-gradient(135deg, #007bff, #399bff)";
+    }
+  }, 250);
+};
+
+// 🔂 Reakce na změny v localStorage
+window.addEventListener("storage", e => {
+  if (["stavyReklamaci","stavyReklamaciData"].includes(e.key)) {
+    setTimeout(aktualizujZobrazeniStavu, 300);
+  }
+});
+</script>
+
+<style>
+/* 💠 Vzhled stavů (řádků) */
+.stav-novy {
+  background: #fffbe6 !important;
+  animation: blinkNew 1.5s infinite alternate;
+}
+@keyframes blinkNew {
+  from { background-color: #fff3b0; }
+  to { background-color: #fff9c4; }
+}
+
+.stav-domluveno {
+  background: #d9e4ff !important;
+  transition: background-color 0.3s;
+}
+
+.stav-nezveda {
+  background: #ffe0b3 !important;
+  transition: background-color 0.3s;
+}
+
+.stav-zruseno {
+  background: #ffcccc !important;
+  transition: background-color 0.3s;
+}
+</style>
