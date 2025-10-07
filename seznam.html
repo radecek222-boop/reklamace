@@ -58,14 +58,15 @@ h2 {
   gap: 15px;
   margin-bottom: 25px;
 }
-
-/* 🔘 Vzhled všech tlačítek */
-.btn {
+.btn,
+.actions a,
+.actions button {
   display: inline-flex;
   justify-content: center;
   align-items: center;
   text-decoration: none;
   padding: 12px 24px;
+  height: 48px;
   border-radius: 8px;
   font-weight: 600;
   font-size: 1em;
@@ -75,50 +76,26 @@ h2 {
   color: white;
   box-shadow: 0 3px 8px rgba(0,0,0,0.15);
   min-width: 160px;
-  height: 44px;
   text-align: center;
 }
-.btn:hover { transform: scale(1.04); opacity: 0.9; }
+.btn:hover,
+.actions a:hover,
+.actions button:hover { transform: scale(1.04); opacity: 0.9; }
 
 .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
 .btn-refresh { background: linear-gradient(135deg, #b80000, #ff3838); }
 .btn-green { background: linear-gradient(135deg, #28a745, #60d06a); }
 .btn-plan { background: linear-gradient(135deg, #0046ff, #357aff); }
 
-#search {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 1em;
-  box-sizing: border-box;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-th, td {
-  padding: 10px 8px;
-  border-bottom: 1px solid #eee;
-  text-align: center;
-  font-size: 0.95em;
-  white-space: normal;
-  line-height: 1.4em;
-}
-th { background: #f8f8f8; font-weight: 700; }
-tr:hover { background: #f1f6ff; cursor: pointer; }
-
-/* 🔹 Stavy */
-.stav-novy { animation: blikani 1s infinite alternate; background: #ffdb4d !important; }
-.stav-domluveno { background: #99b3ff !important; }
-.stav-zruseno { background: #ff6666 !important; }
-.stav-nezveda { background: #ffad33 !important; }
-
-@keyframes blikani {
-  from { background-color: #ffe066; }
-  to { background-color: #fff280; }
+/* 📱 Mobilní zobrazení – všechny stejně široké */
+@media (max-width:700px){
+  .btn,
+  .actions a,
+  .actions button {
+    width: 48%;
+    min-width: unset;
+    text-align: center;
+  }
 }
 
 /* 📱 Stejná tlačítka na mobilu */
