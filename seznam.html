@@ -332,19 +332,14 @@ window.addEventListener("DOMContentLoaded", loadData);
 <!-- 🟨 KONEC ČÁSTI 2/10 (finální – Praha bez PSČ + uložené termíny po reloadu) -->
 
 
-<!-- 🟨 ZAČÁTEK ČÁSTI 3/10 (finální – jednotný formát Prahy bez PSČ) -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 3/10 (upravená – kalendář pod mapou, šedý rámeček, bez tlačítka Zpět) -->
 <script>
-/* ============================= */
-/* 💬 DETAIL MODAL SE ZÁKAZNÍKEM */
-/* ============================= */
 function openDetail(index) {
   const item = dataAll[index];
   if (!item) return;
 
   const overlay = document.createElement("div");
   overlay.className = "detail-overlay";
-
-  // 🧭 použijeme stejnou logiku pro Prahu bez PSČ
   const adresaUpravena = normalizePrahaAddress(item.adresa || "");
 
   overlay.innerHTML = `
@@ -352,19 +347,16 @@ function openDetail(index) {
       <div class="detail-content">
         <div class="detail-info">
           <h2>${item.zakaznik || "Zákazník"}</h2>
-
           <p><strong>Adresa:</strong>
             <a href="https://waze.com/ul?q=${encodeURIComponent(adresaUpravena)}" target="_blank" style="color:#0046ff;font-weight:600;">
               ${adresaUpravena || "Neuvedeno"}
             </a>
           </p>
-
           <p><strong>Telefon:</strong>
             <a href="tel:${(item.telefon || "").replace("+420","").trim()}" style="color:#0046ff;font-weight:600;">
               ${(item.telefon || "").replace("+420","").trim()}
             </a>
           </p>
-
           <p><strong>Email:</strong> ${item.email || "–"}</p>
           <p><strong>Produkt / model:</strong> ${item.produkt || "–"}</p>
           <p><strong>Popis závady:</strong> ${item.popis || "–"}</p>
@@ -385,10 +377,14 @@ function openDetail(index) {
           }
 
           <div class="btn-row">
-            <button id="termBtn" class="btn-action btn-blue">Domluvit termín</button>
             <button id="protoBtn" class="btn-action btn-green">Přejít na protokol</button>
             <button id="closeBtn" class="btn-action btn-red">Zavřít</button>
           </div>
+        </div>
+
+        <div class="detail-map">
+          <div id="mapDetail"></div>
+          <div id="mapDistance" class="map-distance"></div>
 
           <div id="termSection" class="term-section">
             <h3>Domluvit / Změnit termín</h3>
@@ -399,19 +395,12 @@ function openDetail(index) {
                 <select id="hours"></select><span>:</span><select id="minutes"></select>
               </div>
             </div>
-
-            <div class="btn-row">
+            <div class="btn-row term-actions">
               <button id="saveTermBtn" class="btn-action btn-green">Uložit / Změnit</button>
-              <button id="noAnswerBtn" class="btn-action btn-orange">Nezvedá (SMS)</button>
+              <button id="noAnswerBtn" class="btn-action btn-orange">Nezvedá</button>
               <button id="cancelBtn" class="btn-action btn-gray">Zákazník zrušil</button>
-              <button id="backBtn" class="btn-action btn-red">Zpět</button>
             </div>
           </div>
-        </div>
-
-        <div class="detail-map">
-          <div id="mapDetail"></div>
-          <div id="mapDistance" class="map-distance"></div>
         </div>
       </div>
     </div>
@@ -432,7 +421,6 @@ function openDetail(index) {
     minsSel.innerHTML += `<option value="${String(m).padStart(2,"0")}">${String(m).padStart(2,"0")}</option>`;
   }
 
-  /* 🗓️ Mini Vanilla kalendář v detailu */
   const miniCal = new VanillaCalendar("#miniCalendar", {
     settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
     actions: {
@@ -442,25 +430,52 @@ function openDetail(index) {
           dateInput.value = chosen;
           const d = new Date(chosen);
           const den = d.toLocaleDateString("cs-CZ", { weekday: "long", day: "numeric", month: "numeric" });
-          const bigDate = overlay.querySelector(".term-center");
           const existing = overlay.querySelector("#chosenDateDisplay");
           if (existing) existing.remove();
           const el = document.createElement("div");
           el.id = "chosenDateDisplay";
-          el.style.fontSize = "1.5em";
+          el.style.fontSize = "1.4em";
           el.style.fontWeight = "700";
-          el.style.marginTop = "10px";
+          el.style.marginTop = "8px";
           el.style.color = "#0046ff";
           el.textContent = den;
-          bigDate.insertBefore(el, bigDate.children[1]);
+          overlay.querySelector(".term-center").appendChild(el);
         }
       }
     }
   });
   miniCal.init();
+
+  // ✅ napojení funkcí z části 4/10
+  initMapAndActions(item, overlay, index, id);
 }
 </script>
-<!-- 🟨 KONEC ČÁSTI 3/10 (finální – jednotný formát Prahy bez PSČ) -->
+
+<style>
+.term-section {
+  margin-top: 20px;
+  background: #f2f3f5;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  padding: 15px 20px;
+}
+.term-section h3 {
+  text-align: center;
+  font-size: 1.2em;
+  margin-bottom: 12px;
+  color: #000;
+}
+.term-actions .btn-action {
+  flex: 1;
+  min-width: 160px;
+}
+.btn-gray {
+  background: linear-gradient(135deg, #8b8b8b, #b5b5b5);
+  color: white;
+}
+</style>
+<!-- 🟨 KONEC ČÁSTI 3/10 -->
+
 
 <!-- 🟨 ZAČÁTEK ČÁSTI 4/10 (opravená – mapa, plánování, SMS, uložení termínu) -->
 <script>
