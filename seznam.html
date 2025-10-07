@@ -1004,11 +1004,16 @@ planBtn.onclick = () => {
 };
 
 /* ❌ Zavření modalu */
-document.getElementById("closeMap").onclick = () => {
-  const modal = document.getElementById("planModal");
-  modal.classList.remove("active");
-  setTimeout(() => (modal.style.display = "none"), 250);
-};
+document.addEventListener("click",(e)=>{
+  if(e.target && e.target.id==="closeMap"){
+    const modal=document.getElementById("planModal");
+    if(modal){
+      modal.classList.remove("active");
+      setTimeout(()=>modal.style.display="none",250);
+    }
+  }
+});
+
 
 /* 🖼️ Náhled fotky přes celou obrazovku */
 function showPhoto(src) {
