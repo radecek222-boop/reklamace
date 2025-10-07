@@ -1,4 +1,4 @@
-<!-- 🟨 ZAČÁTEK ČÁSTI 1/10 -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 1/10 (s automatickým posunem nahoru při otevření kalendáře) -->
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -113,23 +113,140 @@ td.telefon {
 tr:hover { background: #f1f6ff; cursor: pointer; }
 
 /* 🔹 Stavy */
-.stav-novy { animation: blikani 1s infinite alternate; background: #fff9b1 !important; }
+.stav-novy { background: #fff9b1 !important; }
 .stav-domluveno { background: #99b3ff !important; }
 .stav-zruseno { background: #ff6666 !important; }
 .stav-nezveda { background: #ffad33 !important; }
 
-@keyframes blikani {
-  from { background-color: #fff9b1; }
-  to { background-color: #fff6a0; }
+/* 🎯 DETAIL ZÁKAZNÍKA */
+.detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.detail-overlay.active { opacity: 1; }
+
+.detail-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  width: 95%;
+  max-width: 1100px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
-/* 📱 Mobilní zobrazení */
+.detail-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.detail-info {
+  flex: 1 1 45%;
+  overflow-y: auto;
+  max-height: 75vh;
+}
+
+.detail-map {
+  flex: 1 1 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+#mapDetail {
+  width: 100%;
+  height: 300px;
+  border-radius: 10px;
+  z-index: 1;
+}
+
+#mapDistance {
+  margin-top: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* 🗓️ Sekce kalendáře a času */
+.term-section {
+  margin-top: 15px;
+  background: #f2f3f5;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 15px;
+  width: 100%;
+  box-sizing: border-box;
+  z-index: 2;
+}
+
+.term-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.term-calendar {
+  width: 100%;
+  max-width: 320px;
+  margin-bottom: 10px;
+}
+
+.custom-time-picker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.term-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+/* 🎨 Šedé tlačítko */
+.btn-action.btn-gray {
+  background: linear-gradient(135deg, #a0a0a0, #c7c7c7);
+  color: #fff;
+  border: none;
+}
+
+/* 🔘 Styl pro všechny tlačítka v detailu */
+.btn-action {
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.1s ease, opacity 0.2s ease;
+}
+.btn-action:hover {
+  transform: scale(1.04);
+  opacity: 0.9;
+}
+
+/* 📱 Mobilní přizpůsobení */
 @media (max-width:700px){
   table { display:none; }
   .btn {
     width:100%;
     min-width:unset;
     text-align:center;
+  }
+  .detail-content {
+    flex-direction: column;
   }
 }
 </style>
@@ -149,8 +266,21 @@ tr:hover { background: #f1f6ff; cursor: pointer; }
     <input type="text" id="search" placeholder="🔍 Hledat podle jména, adresy nebo zadavatele...">
     <div id="tableContainer" class="loading">Načítám data...</div>
   </div>
+
+<script>
+/* 📱 Automatický posun nahoru při otevření kalendáře */
+document.addEventListener("click", e => {
+  if (e.target && e.target.id === "termBtn") {
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 150);
+  }
+});
+</script>
 </body>
+</html>
 <!-- 🟨 KONEC ČÁSTI 1/10 -->
+
 
 <!-- 🟨 ZAČÁTEK ČÁSTI 2/10 (finální – Praha bez PSČ + uložené termíny po reloadu) -->
 <script>
