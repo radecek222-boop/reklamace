@@ -100,12 +100,13 @@ th, td {
   white-space: normal;
   line-height: 1.4em;
   color: #000;
+  font-weight: 400;
 }
 th { background: #f8f8f8; font-weight: 700; color:#000; }
 tr:hover { background: #f1f6ff; cursor: pointer; }
 
 /* 🔹 Stavy */
-.stav-novy { animation: blikani 1s infinite alternate; background: #ffeb66 !important; }
+.stav-nova { animation: blikani 1s infinite alternate; background: #ffeb66 !important; }
 .stav-domluveno { background: #99b3ff !important; }
 .stav-zruseno { background: #ff6666 !important; }
 .stav-nezveda { background: #ffad33 !important; }
@@ -157,19 +158,23 @@ setInterval(loadData, 120000);
 function sortSmart(data) {
   const today = new Date().toISOString().split("T")[0];
   return data.sort((a,b)=>{
-    const sa = stavy[a.cislo] || "novy";
-    const sb = stavy[b.cislo] || "novy";
+    const sa = stavy[a.cislo] || "nová";
+    const sb = stavy[b.cislo] || "nová";
     const da = a.datum === today ? 0 : (sa==="zruseno"?2:1);
     const db = b.datum === today ? 0 : (sb==="zruseno"?2:1);
     return da-db;
   });
 }
 
-/* 🧭 Zjednodušení adres */
+/* 🧭 Zjednodušení adres – Praha podle PSČ */
 function simplifyAddress(addr) {
   if (!addr) return "";
-  const prahaMatch = addr.match(/Praha\s*\d+/i);
-  if (prahaMatch) return prahaMatch[0];
+  const zipMatch = addr.match(/\b\d{3}\s?\d{2}\b/);
+  if (zipMatch) {
+    const zip = zipMatch[0].replace(/\s/g, "");
+    const zone = zip.startsWith("1") ? zip[1] : zip[0];
+    if (zone >= 0 && zone <= 9) return `Praha ${zone}`;
+  }
   if (addr.toLowerCase().includes("běchovice")) return "Praha 9";
   return addr.replace(/\d{3}\s?\d{2}$/, "").trim();
 }
@@ -187,12 +192,13 @@ async function loadData() {
   }
 }
 
-/* 📋 Vykreslení tabulky – OPRAVENÁ VERZE */
+/* 📋 Vykreslení tabulky */
 function renderTable(arr) {
   if (!arr.length) {
     tableContainer.innerHTML = "<div class='loading'>Žádné záznamy</div>";
     return;
   }
+
   let html = `
     <table>
       <thead>
@@ -206,10 +212,11 @@ function renderTable(arr) {
       <tbody>
   `;
 
-  arr.forEach((r,i)=>{
+  arr.forEach((r, i) => {
     const id = r.cislo || `radek-${i}`;
     let stav = stavy[id];
-    if (!stav) stav = "novy"; // ✅ zajišťuje blikání nových
+    if (!stav) stav = "nová";
+
     const adresa = r.adresa
       ? `<a href="https://waze.com/ul?q=${encodeURIComponent(r.adresa)}" target="_blank" style="color:#000;font-weight:600;">${simplifyAddress(r.adresa)}</a>`
       : "–";
@@ -217,26 +224,37 @@ function renderTable(arr) {
       ? `<a href="tel:${r.telefon.replace('+420','').trim()}" style="color:#000;font-weight:600;">${r.telefon.replace('+420','').trim()}</a>`
       : "–";
 
-    let stavText = stav;
+    let stavText = "";
     if (stav === "domluveno" && r.datum && r.cas) {
       const d = new Date(r.datum);
-      const den = d.toLocaleDateString("cs-CZ", { weekday: "short", day: "numeric", month: "numeric" });
-      stavText = `${den} ${r.cas}`; // ✅ pouze den + čas, bez „domluveno“
+      const den = d.toLocaleDateString("cs-CZ", {
+        weekday: "short",
+        day: "numeric",
+        month: "numeric"
+      });
+      stavText = `${den} ${r.cas}`;
+    } else if (stav === "zruseno") {
+      stavText = "zrušeno";
+    } else if (stav === "nezveda") {
+      stavText = "nezvedá";
     }
 
     html += `
-      <tr class="stav-${stav}" data-index="${i}" data-id="${id}">
+      <tr class="stav-${stav.normalize('NFD').replace(/[\u0300-\u036f]/g, '')}" data-index="${i}" data-id="${id}">
         <td>${r.zakaznik || "–"}</td>
         <td>${adresa}</td>
         <td>${telefon}</td>
-        <td style="font-weight:600;">${stavText}</td>
+        <td>${stavText}</td>
       </tr>`;
   });
+
   html += "</tbody></table>";
   tableContainer.innerHTML = html;
 
-  document.querySelectorAll("tbody tr").forEach(row=>{
-    row.addEventListener("click",()=>openDetail(row.getAttribute("data-index")));
+  document.querySelectorAll("tbody tr").forEach(row => {
+    row.addEventListener("click", () =>
+      openDetail(row.getAttribute("data-index"))
+    );
   });
 }
 
@@ -254,10 +272,9 @@ searchInput.addEventListener("input",()=>{
 reloadBtn.addEventListener("click", loadData);
 window.addEventListener("DOMContentLoaded", loadData);
 </script>
-<!-- 🟨 KONEC ČÁSTI 1/10 -->
-
 
 <!-- 🟨 KONEC ČÁSTI 1/10 -->
+
 <script>
 const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
 const tableContainer = document.getElementById("tableContainer");
