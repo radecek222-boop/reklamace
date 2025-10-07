@@ -9,9 +9,9 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
-<!-- ✅ Vanilla Calendar – stabilní verze 2.8.1 -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro@2.8.1/build/vanilla-calendar.min.css">
-<script src="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro@2.8.1/build/vanilla-calendar.min.js"></script>
+<!-- ✅ Vanilla Calendar – stabilní verze z unpkg -->
+<link rel="stylesheet" href="https://unpkg.com/vanilla-calendar-pro@2.8.1/build/vanilla-calendar.min.css">
+<script src="https://unpkg.com/vanilla-calendar-pro@2.8.1/build/vanilla-calendar.min.js"></script>
 
 <!-- ✅ PDF Export -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -105,14 +105,14 @@ th { background: #f8f8f8; font-weight: 700; color:#000; }
 tr:hover { background: #f1f6ff; cursor: pointer; }
 
 /* 🔹 Stavy */
-.stav-nová { animation: blikani 1s infinite alternate; background: #ffea73 !important; }
+.stav-nová { animation: blikani 0.9s infinite alternate; background: #fff066 !important; }
 .stav-domluveno { background: #99b3ff !important; }
 .stav-zruseno { background: #ff6666 !important; }
 .stav-nezveda { background: #ffad33 !important; }
 
 @keyframes blikani {
-  from { background-color: #fff26a; }
-  to { background-color: #ffe600; }
+  from { background-color: #fff066; }
+  to { background-color: #fff8a1; }
 }
 
 /* 📱 Stejná tlačítka na mobilu */
@@ -126,6 +126,7 @@ tr:hover { background: #f1f6ff; cursor: pointer; }
 }
 </style>
 </head>
+
 <body>
   <div class="wrapper">
     <h1>WHITE GLOVE SERVICE</h1>
@@ -142,9 +143,10 @@ tr:hover { background: #f1f6ff; cursor: pointer; }
     <div id="tableContainer" class="loading">Načítám data...</div>
 
 <script>
-/* ✅ API URL – definováno jen jednou */
+/* ✅ API URL – definováno pouze jednou */
 const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
 </script>
+
 <!-- 🟨 KONEC ČÁSTI 1/10 -->
 
 
@@ -167,8 +169,8 @@ const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
 
 
 
+
 <script>
-const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
 const tableContainer = document.getElementById("tableContainer");
 const searchInput = document.getElementById("search");
 const reloadBtn = document.getElementById("reloadBtn");
@@ -201,8 +203,8 @@ function hashData(arr) {
 function sortSmart(data) {
   const today = new Date().toISOString().split("T")[0];
   return data.sort((a,b)=>{
-    const sa = stavy[a.cislo] || "novy";
-    const sb = stavy[b.cislo] || "novy";
+    const sa = stavy[a.cislo] || "nová";
+    const sb = stavy[b.cislo] || "nová";
     const da = a.datum === today ? 0 : (sa==="zruseno"?2:1);
     const db = b.datum === today ? 0 : (sb==="zruseno"?2:1);
     return da-db;
@@ -268,7 +270,7 @@ function renderTable(arr) {
   `;
   arr.forEach((r,i)=>{
     const id = r.cislo || `radek-${i}`;
-    const stav = stavy[id] || "novy";
+    const stav = stavy[id] || "nová";
     const adresa = r.adresa
       ? `<a href="https://waze.com/ul?q=${encodeURIComponent(r.adresa)}" target="_blank" style="color:#000;font-weight:600;">${simplifyAddress(r.adresa)}</a>`
       : "–";
@@ -314,8 +316,8 @@ reloadBtn.addEventListener("click", loadData);
 window.addEventListener("DOMContentLoaded", loadData);
 </script>
 
-    
-    <!-- 🟨 KONEC ČÁSTI 2/10 -->
+<!-- 🟨 KONEC ČÁSTI 2/10 -->
+
 
 
 
