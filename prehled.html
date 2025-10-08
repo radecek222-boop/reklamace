@@ -482,47 +482,159 @@ async function showTechnicianStats(selectedTech) {
 
 
 <script>
-// 🎯 Otevření modálních oken po kliknutí na tlačítka
+const API_URL = "https://radecek222-boop.github.io/reklamace/hotove.json";
+let selectedClients = [];
+let selectedTech = null;
+let selectedPeriod = { from: null, to: null };
+let allOrders = [];
+
+/* 🧩 Otevření / zavření modálních oken */
 const clientModal = document.getElementById("clientModal");
-const techModal = document.getElementById("techModal");
+const techModal   = document.getElementById("techModal");
 const periodModal = document.getElementById("periodModal");
 
-document.getElementById("selectClientBtn").addEventListener("click", () => {
-  clientModal.classList.add("active");
-});
-document.getElementById("selectTechBtn").addEventListener("click", () => {
-  techModal.classList.add("active");
-});
-document.getElementById("selectPeriodBtn").addEventListener("click", () => {
-  periodModal.classList.add("active");
+document.getElementById("selectClientBtn").onclick = () => clientModal.classList.add("active");
+document.getElementById("selectTechBtn").onclick   = () => techModal.classList.add("active");
+document.getElementById("selectPeriodBtn").onclick = () => periodModal.classList.add("active");
+
+["closeClients","closeTech","closePeriod"].forEach(id=>{
+  document.getElementById(id).onclick = () =>
+    document.getElementById(id.replace("close","").toLowerCase()+"Modal").classList.remove("active");
 });
 
-// 🎯 Zavírání tlačítkem „Zavřít“ v každém okně
-document.getElementById("closeClients").addEventListener("click", () => {
+/* 💾 Potvrzení zadavatelů */
+document.getElementById("confirmClients").onclick = () => {
+  selectedClients = Array.from(document.querySelectorAll("#clientList input:checked")).map(el=>el.value);
+  localStorage.setItem("selectedClients", JSON.stringify(selectedClients));
   clientModal.classList.remove("active");
-});
-document.getElementById("closeTech").addEventListener("click", () => {
+  renderSummary();
+  renderResults();
+};
+
+/* 💾 Potvrzení technika */
+document.getElementById("confirmTech").onclick = () => {
+  const val = document.querySelector("#techList input[name='tech']:checked");
+  selectedTech = val ? val.value : null;
+  localStorage.setItem("selectedTech", selectedTech || "");
   techModal.classList.remove("active");
-});
-document.getElementById("closePeriod").addEventListener("click", () => {
+  renderSummary();
+  renderResults();
+};
+
+/* 💾 Potvrzení období */
+document.getElementById("confirmPeriod").onclick = () => {
+  const from = document.getElementById("fromDate").value;
+  const to   = document.getElementById("toDate").value;
+  selectedPeriod = { from, to };
+  localStorage.setItem("selectedPeriod", JSON.stringify(selectedPeriod));
   periodModal.classList.remove("active");
+  renderSummary();
+  renderResults();
+};
+
+/* 📅 Automatické doplnění při výběru měsíce */
+document.getElementById("monthSelect").addEventListener("change", e => {
+  const val = e.target.value;
+  if (!val) return;
+  const [year, month] = val.split("-").map(Number);
+  const firstDay = new Date(year, month - 1, 1);
+  const lastDay  = new Date(year, month, 0);
+  document.getElementById("fromDate").value = firstDay.toISOString().slice(0,10);
+  document.getElementById("toDate").value   = lastDay.toISOString().slice(0,10);
 });
 
-// 💾 Potvrzení (zatím jen zavře a dá vizuální odezvu)
-["confirmClients", "confirmTech", "confirmPeriod"].forEach(id => {
-  const btn = document.getElementById(id);
-  btn.addEventListener("click", e => {
-    btn.textContent = "✅ Uloženo";
-    btn.disabled = true;
-    btn.style.opacity = "0.8";
-    setTimeout(() => {
-      btn.textContent = "Potvrdit";
-      btn.disabled = false;
-      btn.style.opacity = "1";
-      btn.closest(".modal").classList.remove("active");
-    }, 800);
-  });
+/* 🔁 Načtení z uložených voleb */
+window.addEventListener("DOMContentLoaded", () => {
+  selectedClients = JSON.parse(localStorage.getItem("selectedClients") || "[]");
+  selectedTech = localStorage.getItem("selectedTech") || null;
+  selectedPeriod = JSON.parse(localStorage.getItem("selectedPeriod") || '{"from":null,"to":null}');
+  renderSummary();
+  loadOrders();
 });
+
+/* 📊 Načtení dat z GitHubu */
+async function loadOrders() {
+  try {
+    const res = await fetch(API_URL + "?t=" + Date.now());
+    allOrders = await res.json();
+    renderResults();
+  } catch (err) {
+    console.error("Chyba při načítání dat:", err);
+  }
+}
+
+/* 🧮 Vykreslení přehledu */
+function renderSummary() {
+  const revBox = document.getElementById("revenueBox");
+  const ordBox = document.getElementById("ordersBox");
+  revBox.textContent = "Obrat: 0 Kč";
+  ordBox.textContent = "Zakázek: 0";
+}
+
+/* 🧮 Výpočet a zobrazení výsledků */
+function renderResults() {
+  if (!allOrders.length) return;
+
+  const tbody = document.querySelector("#resultsTable tbody");
+  tbody.innerHTML = "";
+
+  const { from, to } = selectedPeriod;
+  const fromDate = from ? new Date(from) : new Date("2000-01-01");
+  const toDate   = to ? new Date(to) : new Date();
+
+  let filtered = allOrders.filter(r => {
+    const d = new Date(r.datum || r.date || r["datum_reklamace"] || "2000-01-01");
+    const inRange = d >= fromDate && d <= toDate;
+    const byClient = !selectedClients.length || selectedClients.includes(r.contract);
+    const byTech =
+      !selectedTech ||
+      (r.technik && (
+        r.technik.includes(selectedTech) ||
+        r.technik.toLowerCase().includes("oba")
+      ));
+    return inRange && byClient && byTech;
+  });
+
+  let totalRevenue = 0;
+  let techRevenue = 0;
+
+  filtered.forEach(r => {
+    const price = parseFloat(r.cenaCelkem || r.total || 0);
+    totalRevenue += price;
+    const isTechMatch =
+      selectedTech &&
+      (r.technik?.includes(selectedTech) || r.technik?.toLowerCase().includes("oba"));
+    if (isTechMatch) techRevenue += price * 0.3;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${r.zakaznik || r.customer || "–"}</td>
+      <td>${r.cislo || r.id || "–"}</td>
+      <td>${r.contract || "–"}</td>
+      <td>${price.toLocaleString("cs-CZ")} Kč</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById("revenueBox").textContent = "Obrat: " + totalRevenue.toLocaleString("cs-CZ") + " Kč";
+  document.getElementById("ordersBox").textContent  = "Zakázek: " + filtered.length;
+
+  const summary = document.getElementById("summaryInfo");
+  summary.textContent =
+    filtered.length
+      ? selectedTech
+        ? `${selectedTech}: výdělek ${techRevenue.toLocaleString("cs-CZ")} Kč (30 %)`
+        : `Celkem ${filtered.length} zakázek`
+      : "Pro zadané parametry nejsou žádná data.";
+}
+
+/* 🚪 Funkce „Odejít“ */
+function logout() {
+  localStorage.removeItem("selectedClients");
+  localStorage.removeItem("selectedTech");
+  localStorage.removeItem("selectedPeriod");
+  location.href = "index.html";
+}
 </script>
 
 
@@ -536,20 +648,121 @@ document.getElementById("closePeriod").addEventListener("click", () => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 <script>
-document.getElementById("monthSelect").addEventListener("change", e => {
-  const month = parseInt(e.target.value, 10);
-  if (!month) return;
+/* 🌐 Indikátor načítání dat */
+const loader = document.createElement("div");
+loader.id = "loaderOverlay";
+loader.innerHTML = `
+  <div class="loader-box">
+    <div class="spinner"></div>
+    <p>Načítám data z GitHubu...</p>
+  </div>`;
+document.body.appendChild(loader);
 
-  const year = new Date().getFullYear();
-  const start = new Date(year, month - 1, 1);
-  const end = new Date(year, month, 0);
+function showLoader() { loader.style.display = "flex"; }
+function hideLoader() { loader.style.display = "none"; }
 
-  const yyyy = year.toString().padStart(4, "0");
-  const mm = month.toString().padStart(2, "0");
+/* 💬 Styl pro loader */
+const style = document.createElement("style");
+style.textContent = `
+#loaderOverlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255,255,255,0.75);
+  z-index: 99999;
+  backdrop-filter: blur(2px);
+}
+.loader-box {
+  text-align: center;
+  color: #333;
+  font-weight: 600;
+}
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #ccc;
+  border-top-color: #357aff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 10px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+`;
+document.head.appendChild(style);
 
-  const endLocal = new Date(end.getTime() - end.getTimezoneOffset() * 60000);
-  document.getElementById("dateFrom").value = `${yyyy}-${mm}-01`;
-  document.getElementById("dateTo").value = endLocal.toISOString().split("T")[0];
+/* 🧠 Hook na načítání dat */
+const origLoadOrders = loadOrders;
+loadOrders = async function() {
+  try {
+    showLoader();
+    await origLoadOrders();
+    showCheckmark("✅ Data načtena");
+  } catch (e) {
+    showError("❌ Chyba při načítání");
+  } finally {
+    hideLoader();
+  }
+};
+
+/* ✅ / ❌ vizuální odezva */
+function showCheckmark(text) {
+  const msg = document.createElement("div");
+  msg.className = "fade-msg";
+  msg.textContent = text;
+  document.body.appendChild(msg);
+  setTimeout(() => msg.remove(), 1800);
+}
+function showError(text) {
+  const msg = document.createElement("div");
+  msg.className = "fade-msg error";
+  msg.textContent = text;
+  document.body.appendChild(msg);
+  setTimeout(() => msg.remove(), 2500);
+}
+
+/* ✨ Styl pro potvrzovací zprávy */
+const msgStyle = document.createElement("style");
+msgStyle.textContent = `
+.fade-msg {
+  position: fixed;
+  top: 25px;
+  right: 25px;
+  background: linear-gradient(135deg, #28a745, #5fd07b);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+  animation: fadeSlide 2s ease forwards;
+  z-index: 9999;
+}
+.fade-msg.error {
+  background: linear-gradient(135deg, #dc3545, #f87171);
+}
+@keyframes fadeSlide {
+  0% { opacity: 0; transform: translateY(-20px); }
+  20% { opacity: 1; transform: translateY(0); }
+  80% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-20px); }
+}`;
+document.head.appendChild(msgStyle);
+
+/* 🧩 Bezpečné mazání dat po odchodu */
+window.addEventListener("beforeunload", () => {
+  sessionStorage.clear();
 });
 </script>
