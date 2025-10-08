@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WHITE GLOVE SERVICE – Startovací verze</title>
+<title>WGS – White Glove Service</title>
 
 <!-- 🟦 SEKCE 1/5 – STYL -->
 <style>
@@ -22,19 +22,28 @@ body {
 }
 
 h1 {
-  font-size: 2.8em;
+  font-size: 7em;
   font-weight: 900;
-  margin-bottom: 10px;
+  margin: 0;
+  letter-spacing: -2px;
 }
 
 h2 {
-  font-size: 1.2em;
-  font-weight: 500;
-  color: #666;
-  margin-bottom: 50px;
+  font-size: 1.8em;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #333;
+  margin: 5px 0 15px;
 }
 
-/* 🧩 Obecný kontejner tlačítek */
+h3 {
+  font-size: 1.1em;
+  font-weight: 400;
+  color: #666;
+  margin-bottom: 60px;
+}
+
+/* 🧩 Kontejner tlačítek */
 .btn-container {
   display: flex;
   gap: 20px;
@@ -42,7 +51,7 @@ h2 {
   justify-content: center;
 }
 
-/* 🧩 Základ tlačítek */
+/* 🧩 Tlačítka */
 .btn {
   color: white;
   font-weight: 600;
@@ -59,15 +68,13 @@ h2 {
 }
 .btn:hover { transform: scale(1.04); opacity: 0.9; }
 
-/* 🩶 veřejná tlačítka */
+/* 🎨 Barevné varianty */
 .btn-light {
   background: linear-gradient(135deg, #888, #b5b5b5);
 }
 .btn-dark {
   background: linear-gradient(135deg, #444, #707070);
 }
-
-/* 🔵 admin tlačítka */
 .btn-admin-light {
   background: linear-gradient(135deg, #0052cc, #357aff);
 }
@@ -75,7 +82,7 @@ h2 {
   background: linear-gradient(135deg, #222, #555);
 }
 
-/* 🔝 Horní panel – admin + odhlášení */
+/* 🔝 Horní panel – ADMIN + logout */
 #adminTopBar {
   position: fixed;
   top: 10px;
@@ -107,6 +114,7 @@ h2 {
   animation: blinkRed 1s infinite;
 }
 
+/* Přihlašovací okno */
 #adminLoginOverlay {
   position: fixed;
   top:0; left:0; width:100%; height:100%;
@@ -160,31 +168,38 @@ h2 {
 }
 
 @media (max-width:768px) {
+  h1 { font-size: 4.2em; }
+  h2 { font-size: 1.4em; letter-spacing: 2px; }
+  h3 { font-size: 1em; }
   #adminTopBar { right:50%; transform:translateX(50%); top:10px; flex-direction:column; }
   .btn-container { flex-direction: column; gap: 15px; }
 }
 </style>
 </head>
-<!-- 🟩 SEKCE 2/5 – HLAVNÍ OBSAH -->
+<!-- 🟩 SEKCE 2/5 – OBSAH (HERO) -->
 <body>
-  <h1>WHITE GLOVE SERVICE</h1>
-  <h2>specializovaný autorizovaný servis Natuzzi</h2>
+  <h1>WGS</h1>
+  <h2>WHITE GLOVE SERVICE</h2>
+  <h3>specializovaný autorizovaný servis Natuzzi</h3>
 
+  <!-- Veřejná tlačítka -->
   <div class="btn-container" id="publicButtons">
     <a href="orders.html" class="btn btn-light">Nová reklamace</a>
     <a href="aftersales.html" class="btn btn-dark">Pozáruční servis</a>
   </div>
 
+  <!-- Admin tlačítka -->
   <div class="btn-container" id="adminButtons" style="display:none;">
     <a href="seznam.html" class="btn btn-admin-light">Seznam reklamací</a>
     <a href="prehled.html" class="btn btn-admin-dark">Statistika</a>
   </div>
 
+  <!-- Horní lišta -->
   <div id="adminTopBar">
     <button id="adminButton">ADMIN</button>
     <button id="logoutButton">Odhlásit se</button>
   </div>
-<!-- 🟧 SEKCE 3/5 – LOGIN OKNO -->
+<!-- 🟧 SEKCE 3/5 – LOGIN BOX -->
   <div id="adminLoginOverlay">
     <div id="adminLoginBox">
       <h2>WHITE GLOVE SERVICE</h2>
@@ -257,7 +272,7 @@ function tryLogin() {
     input.focus();
   }
 }
-<!-- 🟪 SEKCE 5/5 – INAKTIVITA, ODPOČET A OBNOVA -->
+<!-- 🟪 SEKCE 5/5 – INAKTIVITA + ODPOČET -->
 <script>
 function logout(reason = "neaktivity") {
   localStorage.removeItem("wgsAdmin");
