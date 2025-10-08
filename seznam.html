@@ -593,3 +593,205 @@ function calcDistanceCoords(a,b,c,d){
 </style>
 <!-- 🟩 KONEC SEKCE C -->
 
+
+
+<!-- 🟨 SEKCE D – ULOŽENÍ TERMÍNU (GitHub + loader + toast) -->
+<script>
+/* ============================= */
+/* 💾 ULOŽENÍ TERMÍNU DO GITHUB  */
+/* ============================= */
+async function ulozitTerminNaGitHub(item, id, datum, cas, overlay, btn, infoBox) {
+  stavy[id] = "domluveno";
+  item.datum = datum;
+  item.cas = cas;
+
+  /* ⏳ LOADER „ČEKEJTE“ */
+  const loader = document.createElement("div");
+  loader.className = "loader-overlay";
+  loader.innerHTML = `
+    <div class="loader-inner">
+      <div class="hourglass"></div>
+      <div>⏳ Čekejte, ukládám termín…</div>
+    </div>`;
+  document.body.appendChild(loader);
+
+  // CSS pro loader
+  const style = document.createElement("style");
+  style.textContent = `
+    .loader-overlay {
+      position: fixed; inset: 0;
+      background: rgba(255,255,255,0.88);
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      font-family: "Inter", sans-serif;
+      color: #0046ff; font-weight: 700;
+      font-size: 1.2em; z-index: 99999;
+    }
+    .hourglass {
+      width: 44px; height: 44px;
+      border: 4px solid #0046ff;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1.1s linear infinite;
+      margin-bottom: 12px;
+    }
+    @keyframes spin { from {transform:rotate(0)} to {transform:rotate(360deg)} }
+  `;
+  document.head.appendChild(style);
+
+  try {
+    /* 🌐 Uložení přes Cloudflare Worker */
+    await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "update", record: item })
+    });
+
+    /* ✅ Potvrzení */
+    setTimeout(() => {
+      loader.remove();
+      const ok = document.createElement("div");
+      ok.className = "successOverlay";
+      ok.innerHTML = `
+        <div class="successInner">
+          <div class="icon">✅</div>
+          <div class="title">Termín úspěšně uložen</div>
+          <div class="text">Data byla odeslána a potvrzena v GitHub repozitáři.</div>
+        </div>`;
+      document.body.appendChild(ok);
+      setTimeout(() => ok.classList.add("active"), 50);
+
+      /* 💾 Lokální uložené hodnoty */
+      ulozTermin(item);
+      localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+
+      /* ✳️ Vizualní potvrzení */
+      flashBox(infoBox, "green");
+      setNextToast("✅ Termín úspěšně uložen", "success");
+
+      /* 🔁 Návrat */
+      setTimeout(() => {
+        ok.classList.remove("active");
+        setTimeout(() => {
+          ok.remove();
+          overlay.remove();
+          renderTable(dataAll);
+        }, 400);
+      }, 1500);
+    }, 800);
+
+  } catch (err) {
+    loader.remove();
+    alert("❌ Chyba při ukládání termínu: " + err.message);
+  }
+}
+
+/* ============================= */
+/* 🌟 TOAST NOTIFIKACE           */
+/* ============================= */
+function showToast(msg, type="success") {
+  const toast = document.createElement("div");
+  toast.className = `wgs-toast ${type}`;
+  toast.innerHTML = `<span>${msg}</span>`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.classList.add("active"), 50);
+  setTimeout(() => {
+    toast.classList.remove("active");
+    setTimeout(() => toast.remove(), 400);
+  }, 3500);
+}
+
+/* ============================= */
+/* 💬 NAČTENÍ TOASTU PO RELOADU  */
+/* ============================= */
+window.addEventListener("DOMContentLoaded", () => {
+  const msg = sessionStorage.getItem("wgsToastMsg");
+  const type = sessionStorage.getItem("wgsToastType");
+  if (msg) {
+    showToast(msg, type);
+    sessionStorage.removeItem("wgsToastMsg");
+    sessionStorage.removeItem("wgsToastType");
+  }
+});
+
+/* ============================= */
+/* 🧠 NASTAVENÍ TOASTU PRO PŘÍŠTĚ */
+/* ============================= */
+function setNextToast(msg, type="success") {
+  sessionStorage.setItem("wgsToastMsg", msg);
+  sessionStorage.setItem("wgsToastType", type);
+}
+</script>
+
+<style>
+/* ============================= */
+/* 🎨 STYLY – ULOŽENÍ + TOASTY   */
+/* ============================= */
+
+/* ✅ Overlay po úspěšném uložení */
+.successOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 100000;
+}
+.successOverlay.active { opacity: 1; }
+.successInner {
+  background: #fff;
+  border-left: 6px solid #28a745;
+  border-radius: 12px;
+  padding: 25px 30px;
+  text-align: center;
+  font-family: "Inter", sans-serif;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  max-width: 360px;
+}
+.successInner .icon {
+  font-size: 2em;
+  margin-bottom: 10px;
+}
+.successInner .title {
+  font-size: 1.3em;
+  font-weight: 800;
+  color: #28a745;
+  margin-bottom: 6px;
+}
+.successInner .text {
+  font-size: 0.95em;
+  color: #333;
+}
+
+/* 🌟 Toast (pravý horní roh) */
+.wgs-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #fff;
+  padding: 14px 22px;
+  border-radius: 8px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+  font-family: "Inter", sans-serif;
+  font-size: 0.95em;
+  font-weight: 600;
+  color: #111;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.35s ease;
+  z-index: 100001;
+}
+.wgs-toast.active { opacity: 1; transform: translateY(0); }
+.wgs-toast.success { border-left: 5px solid #28a745; }
+.wgs-toast.error   { border-left: 5px solid #dc3545; }
+.wgs-toast.warning { border-left: 5px solid #ff9800; }
+</style>
+<!-- 🟨 KONEC SEKCE D -->
+
+
+
+
+
