@@ -401,13 +401,12 @@ function updateDebug(count) {
 
 <!-- 🟩 SEKCE C – DETAIL ZÁKAZNÍKA (rozdělená verze) -->
 <!-- ================================================= -->
-<!-- 🟩 C-1: OPRAVENÉ OTEVŘENÍ DETAILU (modal uprostřed, fixní overlay) -->
+<!-- 🟩 C-1: OPRAVENÉ OTEVŘENÍ DETAILU (modal + zarovnání mapy s tlačítky) -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
   if (!item) return;
 
-  // vytvoření překryvu (modalu)
   const overlay = document.createElement("div");
   overlay.className = "detail-overlay";
 
@@ -464,7 +463,6 @@ function openDetail(index) {
   document.body.appendChild(overlay);
   setTimeout(() => overlay.classList.add("active"), 20);
 
-  // zavření overlay kliknutím mimo nebo tlačítkem
   overlay.addEventListener("click", e => {
     if (e.target.classList.contains("detail-overlay")) overlay.remove();
   });
@@ -475,7 +473,7 @@ function openDetail(index) {
 }
 </script>
 
-<!-- 💅 CSS – doplnění pro správné zobrazení modalu -->
+<!-- 💅 CSS – modal, grid a zarovnání mapy s tlačítky -->
 <style>
 .detail-overlay {
   position: fixed;
@@ -488,9 +486,8 @@ function openDetail(index) {
   opacity: 0;
   transition: opacity .25s ease;
 }
-.detail-overlay.active {
-  opacity: 1;
-}
+.detail-overlay.active { opacity: 1; }
+
 .detail-modal {
   background: #fff;
   border-radius: 12px;
@@ -501,11 +498,46 @@ function openDetail(index) {
   max-height: 90vh;
   overflow-y: auto;
 }
+
+.grid-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: stretch; /* 🧩 obě části stejně vysoké */
+}
+
+/* Levý panel (fixní výška podle obsahu tlačítek) */
+.left-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
+}
+
+/* Pravý panel (mapa zarovnaná s tlačítky) */
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* 🧩 spodní hrana mapy zarovnána */
+  height: 100%;
+}
+#mapDetail {
+  flex-grow: 1;
+  height: auto;
+  min-height: 260px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  margin-top: 10px;
+}
+
 @media (max-width:700px) {
   .detail-modal { width: 95%; height: auto; }
+  .grid-layout { grid-template-columns: 1fr; }
+  .right-panel { justify-content: flex-start; }
 }
 </style>
 <!-- 🟩 KONEC OPRAVY C-1 -->
+
 
 
 
