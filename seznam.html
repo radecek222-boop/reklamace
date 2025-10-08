@@ -622,7 +622,7 @@ if (typeof renderTable !== "function") {
 
 
 
-<!-- 🟩 ZAČÁTEK ČÁSTI 4/10 (načtení dat z Workeru po DOMContentLoaded) -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 4/10 (Načtení dat z Workeru po DOMContentLoaded) -->
 <script>
 // 📦 Globální proměnné
 let dataAll = [];
@@ -640,12 +640,18 @@ document.addEventListener("DOMContentLoaded", () => {
         .then((r) => {
           if (!r.ok) throw new Error("Chyba při načítání dat (" + r.status + ")");
           return r.json();
-        
+        })
+        .then((data) => {
+          console.log("📄 renderTable start – počet záznamů:", data.length);
+          dataAll = data;
+          filteredData = [...data];
+          renderTable(dataAll);
         })
         .catch((e) => {
           console.error("❌ Chyba načtení dat z Workeru:", e);
           const t = document.getElementById("tableContainer");
-          if (t) t.innerHTML = `<div style="color:red;padding:15px;">❌ Chyba načítání dat – zkontroluj připojení nebo Worker</div>`;
+          if (t)
+            t.innerHTML = `<div style="color:red;padding:15px;">❌ Chyba načítání dat – zkontroluj připojení nebo Worker</div>`;
         });
     }
   }, 100);
@@ -657,15 +663,18 @@ function reloadData() {
   fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders")
     .then((r) => r.json())
     .then((data) => {
-      console.log("✅ Znovu načteno ", data.length, " záznamů");
+      console.log("✅ Znovu načteno", data.length, "záznamů");
       dataAll = data;
       filteredData = [...data];
       renderTable(dataAll);
     })
-    .catch((e) => alert("❌ Chyba načítání dat – " + e.message));
+    .catch((e) => {
+      alert("❌ Chyba načítání dat – " + e.message);
+    });
 }
 </script>
 <!-- 🟩 KONEC ČÁSTI 4/10 -->
+
 
 
 
