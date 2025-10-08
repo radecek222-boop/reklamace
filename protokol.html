@@ -259,13 +259,27 @@ button:hover { transform:scale(1.03); opacity:0.9; }
 <!-- 🟨 ZAČÁTEK ČÁSTI D (Textové sekce: reklamace, problém, oprava + auto-překlad) -->
 
 <style>
-  .split-section { display:flex; gap:10px; margin:10px 0; }
-  textarea {
-    width:100%; min-height:80px; resize:vertical;
-    border:1px solid #ccc; border-radius:4px;
-    padding:6px 8px; font-size:1em; color:#111; background:#fff;
-    box-sizing:border-box;
-  }
+.split-section {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0;
+}
+textarea {
+  width: 100%;
+  min-height: 80px;
+  resize: vertical;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 1em;
+  color: #111;
+  background: #fff;
+  box-sizing: border-box;
+}
+textarea[readonly] {
+  background: #f7f7f7;
+  color: #444;
+}
 </style>
 
 <!-- 🧩 Sekce: Zákazník reklamuje -->
@@ -295,10 +309,10 @@ button:hover { transform:scale(1.03); opacity:0.9; }
   <textarea id="repair-en" placeholder="EN" readonly></textarea>
 </div>
 
-<!-- 🔧 Expresní automatický překladač CZ → EN (LibreTranslate.de) -->
 <script>
+// 🌍 jednoduchý překladač CZ → EN
 async function fastTranslateCZtoEN(text) {
-  if (!text || text.trim() === "") return "";
+  if (!text || !text.trim()) return "";
   try {
     const res = await fetch("https://libretranslate.de/translate", {
       method: "POST",
@@ -308,29 +322,31 @@ async function fastTranslateCZtoEN(text) {
     const data = await res.json();
     return data.translatedText || "";
   } catch (e) {
-    console.warn("⚠️ Chyba při překladu:", e.message);
+    console.warn("⚠️ Chyba překladu:", e.message);
     return "";
   }
 }
 
-// 🪄 Okamžitý překlad při psaní (CZ → EN)
-["description","problem","repair"].forEach(prefix => {
+// ✍️ automatický překlad při psaní
+function initAutoTranslation(prefix) {
   const cz = document.getElementById(`${prefix}-cz`);
   const en = document.getElementById(`${prefix}-en`);
   if (!cz || !en) return;
-  let timer;
+
+  let timeout;
   cz.addEventListener("input", () => {
-    clearTimeout(timer);
-    timer = setTimeout(async () => {
+    clearTimeout(timeout);
+    timeout = setTimeout(async () => {
+      if (cz.value.trim().length === 0) { en.value = ""; return; }
       en.value = "⏳ Překládám...";
       en.value = await fastTranslateCZtoEN(cz.value);
-    }, 600); // krátké zpoždění pro plynulost psaní
+    }, 700);
   });
-});
+}
 
-// 📦 Automatický překlad po načtení z localStorage
-window.addEventListener("DOMContentLoaded", async () => {
-  const fields = ["description","problem","repair"];
+// 🔁 překlad po načtení z localStorage (pokud EN prázdné)
+async function translateLoadedFields() {
+  const fields = ["description", "problem", "repair"];
   for (const f of fields) {
     const cz = document.getElementById(`${f}-cz`);
     const en = document.getElementById(`${f}-en`);
@@ -339,6 +355,12 @@ window.addEventListener("DOMContentLoaded", async () => {
       en.value = await fastTranslateCZtoEN(cz.value);
     }
   }
+}
+
+// inicializace
+window.addEventListener("DOMContentLoaded", () => {
+  ["description","problem","repair"].forEach(initAutoTranslation);
+  translateLoadedFields();
 });
 </script>
 
