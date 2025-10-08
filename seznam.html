@@ -765,9 +765,9 @@ function calcDistanceCoords(a, b, c, d) {
 <!-- 🟩 KONEC C-5 -->
 
 
-<!-- 🟩 C-STYLE: CSS DETAILU ZÁKAZNÍKA -->
+<!-- 🟩 C-STYLE: CSS DETAILU ZÁKAZNÍKA (zarovnání kalendáře a tlačítek) -->
 <style>
-/* === Překryv detailu (modal uprostřed obrazovky) === */
+/* === Překryv detailu === */
 .detail-overlay {
   position: fixed;
   inset: 0;
@@ -792,7 +792,7 @@ function calcDistanceCoords(a, b, c, d) {
   overflow-y: auto;
 }
 
-/* === Rozložení dvou panelů === */
+/* === Rozložení panelů === */
 .grid-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -804,35 +804,40 @@ function calcDistanceCoords(a, b, c, d) {
 .left-panel {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  height: 100%;
+  align-items: center;
 }
 
-/* Kalendář a čas */
-#miniCalendar { margin-bottom: 12px; }
+#miniCalendar {
+  width: 100%;
+  max-width: 330px; /* stejné pro kalendář i níže */
+  margin-bottom: 12px;
+}
+
 .custom-time-picker {
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 10px;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 330px;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 .custom-time-picker select {
-  font-size: 1.1em;
+  font-size: 1.05em;
   font-weight: 600;
   border: 1px solid #ccc;
   border-radius: 8px;
-  padding: 5px 10px;
+  padding: 4px 8px;
 }
 
-/* Panel s potvrzeným termínem */
 .term-info-box {
   background: #f0f0f0;
   padding: 10px;
-  text-align: center;
   font-weight: 600;
   border-radius: 8px;
-  margin-bottom: 12px;
+  width: 100%;
+  max-width: 330px;
+  text-align: center;
   transition: background .3s;
 }
 .flash-gray  { animation: flashGray .4s; }
@@ -840,11 +845,14 @@ function calcDistanceCoords(a, b, c, d) {
 @keyframes flashGray  { 0%{background:#d6d6d6;}100%{background:#f0f0f0;} }
 @keyframes flashGreen { 0%,100%{background:#b6f7a8;}50%{background:#d8ffd2;} }
 
-/* Řádky tlačítek */
+/* === Tlačítka === */
 .button-row {
   display: flex;
   gap: 10px;
   margin-top: 10px;
+  justify-content: center;
+  width: 100%;
+  max-width: 330px;
 }
 .btn-action {
   flex: 1;
@@ -868,10 +876,11 @@ function calcDistanceCoords(a, b, c, d) {
 
 .full-width {
   width: 100%;
-  padding: 14px;
-  font-size: 1em;
+  max-width: 330px;
+  padding: 10px; /* 🔹 zmenšeno o ~50 % */
+  font-size: 0.95em;
   font-weight: 700;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 /* === Pravý panel === */
@@ -881,7 +890,7 @@ function calcDistanceCoords(a, b, c, d) {
   justify-content: flex-start;
 }
 
-/* Šedé boxy s informacemi */
+/* Šedé boxy */
 .info-box {
   background: #f4f5f7;
   border-radius: 10px;
@@ -902,7 +911,7 @@ function calcDistanceCoords(a, b, c, d) {
 .box-content p { margin: 3px 0; font-size: .92em; }
 .icon { font-size: 1.1em; color: #555; }
 
-/* === Mapa === */
+/* Mapa */
 .distance-banner {
   background: #f6f6f6;
   border-radius: 8px;
@@ -918,7 +927,7 @@ function calcDistanceCoords(a, b, c, d) {
   margin-top: 4px;
 }
 
-/* === Malé modální okno (editace zákazníka / popisu) === */
+/* Editační mini modal */
 .small-modal {
   position: fixed;
   inset: 0;
@@ -941,8 +950,7 @@ function calcDistanceCoords(a, b, c, d) {
   margin-bottom: 10px;
   font-weight: 800;
 }
-.small-inner input,
-.small-inner textarea {
+.small-inner input, .small-inner textarea {
   width: 100%;
   box-sizing: border-box;
   margin-bottom: 10px;
@@ -959,7 +967,7 @@ function calcDistanceCoords(a, b, c, d) {
   gap: 10px;
 }
 
-/* === Mobilní zobrazení === */
+/* Mobilní zobrazení */
 @media (max-width: 700px) {
   .grid-layout { grid-template-columns: 1fr; }
   .button-row { flex-direction: column; }
