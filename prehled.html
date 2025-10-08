@@ -22,12 +22,13 @@ body{
   width:100%;
   max-width:950px;
   box-sizing:border-box;
+  position:relative;
 }
 h1{text-align:center;font-size:1.9em;font-weight:900;margin:0;color:#111;}
 .sub{text-align:center;color:#777;margin-bottom:20px;}
 .btn{
-  border:none;border-radius:8px;padding:10px 24px;
-  font-size:0.95em;font-weight:600;cursor:pointer;
+  border:none;border-radius:8px;padding:8px 18px;
+  font-size:0.9em;font-weight:600;cursor:pointer;
   transition:transform .15s,opacity .25s;
   color:white;box-shadow:0 3px 8px rgba(0,0,0,0.15);
 }
@@ -81,6 +82,20 @@ h3{text-align:center;font-size:1em;color:#333;margin-bottom:10px;}
   transition:transform .15s ease,opacity .25s ease;
 }
 .login-box button:hover{transform:scale(1.05);opacity:.9;}
+
+/* 🕒 Odpočet vpravo nahoře */
+#adminBar{
+  position:absolute;
+  top:10px;right:15px;
+  display:flex;align-items:center;
+  gap:10px;
+  font-size:0.9em;
+  color:#333;
+}
+#countdown{
+  font-weight:700;
+  color:#0046ff;
+}
 </style>
 </head>
 <body>
@@ -95,8 +110,15 @@ h3{text-align:center;font-size:1em;color:#333;margin-bottom:10px;}
 </div>
 
 <div class="wrapper hidden" id="content">
+  <div id="adminBar">
+    🔓 Přihlášený administrátor
+    <span>| Odhlášení za <span id="countdown">10:00</span></span>
+    <button class="btn btn-back" style="padding:6px 12px;font-size:0.8em;" onclick="logout()">Odhlásit</button>
+  </div>
+
   <h1>Přehled WGS</h1>
   <div class="sub">Statistiky reklamací, výdělků a obratu</div>
+
   <div class="filter-bar">
     <select id="periodSelect">
       <option value="week">Poslední týden</option>
@@ -129,15 +151,11 @@ h3{text-align:center;font-size:1em;color:#333;margin-bottom:10px;}
     <h3>👨‍🔧 Výdělky techniků</h3>
     <canvas id="techChart" height="200"></canvas>
   </div>
-
-  <div style="text-align:center;margin-top:10px;">
-    <button class="btn btn-back" onclick="logout()">Odhlásit</button>
-  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-let allData=[];let logoutTimer;
+let allData=[];let logoutTimer;let countdownInterval;let remaining=600; // 10 min = 600 s
 
 // 🔒 Přihlášení
 function checkPass(){
@@ -151,15 +169,29 @@ function checkPass(){
   }else alert("Nesprávné heslo!");
 }
 
-// 🕒 Auto logout po 10 min
+// 🕒 Spuštění odpočtu a automatického odhlášení
 function startLogoutTimer(){
   clearTimeout(logoutTimer);
-  logoutTimer=setTimeout(()=>{
-    alert("Byl jste automaticky odhlášen po 10 minutách neaktivity.");
-    sessionStorage.removeItem("wgsAdminLogin");
-    location.href="index.html";
-  },600000);
+  clearInterval(countdownInterval);
+  remaining=600; // znovu 10 minut
+  updateCountdown();
+  countdownInterval=setInterval(()=>{
+    remaining--;
+    updateCountdown();
+    if(remaining<=0){
+      clearInterval(countdownInterval);
+      alert("Byl jste automaticky odhlášen po 10 minutách neaktivity.");
+      logout();
+    }
+  },1000);
 }
+function updateCountdown(){
+  const min=Math.floor(remaining/60).toString().padStart(2,"0");
+  const sec=(remaining%60).toString().padStart(2,"0");
+  document.getElementById("countdown").textContent=`${min}:${sec}`;
+}
+
+// 🖱️ Aktivita = restart odpočtu
 ["click","keydown","mousemove","touchstart"].forEach(ev=>document.addEventListener(ev,startLogoutTimer));
 
 async function loadStats(){
