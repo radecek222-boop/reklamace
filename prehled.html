@@ -1,1 +1,192 @@
-xy
+<!-- 
+====================================================================
+💎 WHITE GLOVE SERVICE – PŘEHLED / STATISTIKY
+====================================================================
+Verze systému:       v1.0
+Datum sestavení:     2025-10-08
+Autor:               Hugo (White Glove Service) & GPT-5
+Projekt:             WGS reklamace / servisní přehledy
+Soubory:             prehled.html, prehled.json
+Repozitář:           https://github.com/radecek222-boop/reklamace
+Popis:
+  Stránka pro administrativní přehled zakázek, výdělků techniků
+  a účtovaných služeb s možností filtrování podle období a zadavatele.
+
+Struktura:
+  A – HTML, HEAD, STYL
+  B – Hlavička a přístupové tlačítko
+  C – Přihlašovací dialog (heslo)
+  D – Filtry (období, zadavatel)
+  E – Tabulky a přehledy
+  F – Načítání dat z prehled.json
+  G – Zpracování statistik
+====================================================================
+-->
+
+<!-- 🟨 A – ZÁKLAD DOKUMENTU -->
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Přehled – White Glove Service</title>
+<style>
+body{
+  font-family:"Inter",system-ui,sans-serif;
+  background:#f6f7fb;margin:0;padding:0;
+  display:flex;justify-content:center;align-items:flex-start;
+  min-height:100vh;
+}
+.wrapper{
+  background:#fff;padding:25px;margin:40px 15px;
+  border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);
+  width:100%;max-width:900px;box-sizing:border-box;
+}
+h1{text-align:center;font-size:2em;font-weight:900;margin:0 0 8px;}
+h2{text-align:center;font-size:1em;color:#666;margin:0 0 25px;}
+.actions{
+  text-align:center;margin-bottom:20px;
+  display:flex;justify-content:center;gap:15px;flex-wrap:wrap;
+}
+.btn{
+  padding:10px 22px;border:none;border-radius:8px;
+  font-weight:600;font-size:1em;color:white;
+  box-shadow:0 3px 8px rgba(0,0,0,0.15);
+  cursor:pointer;transition:transform .15s,opacity .2s;
+}
+.btn:hover{transform:scale(1.04);opacity:.9;}
+.btn-admin{background:linear-gradient(135deg,#0046ff,#357aff);}
+.btn-filter{background:linear-gradient(135deg,#28a745,#5bd85b);}
+.btn-back{background:linear-gradient(135deg,#6c757d,#a0a4a7);}
+.hidden{display:none;}
+.filter-bar{
+  display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:20px;
+}
+select,input[type="date"]{
+  padding:6px 10px;font-size:0.9em;border:1px solid #ccc;border-radius:6px;
+}
+table{width:100%;border-collapse:collapse;margin-top:10px;}
+th,td{padding:8px;border-bottom:1px solid #eee;text-align:left;font-size:.9em;}
+th{background:#f8f8f8;font-weight:700;}
+tr:hover{background:#f1f6ff;}
+.loading{text-align:center;padding:30px;color:#666;}
+.login-dialog{
+  text-align:center;padding:20px;margin-top:30px;
+  background:#f8f8f8;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,0.1);
+}
+.login-dialog input{
+  padding:8px 10px;font-size:1em;border:1px solid #ccc;border-radius:6px;margin-bottom:10px;
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <!-- 🟨 B – HLAVIČKA -->
+  <h1>WHITE GLOVE SERVICE</h1>
+  <h2>Přehled zakázek a statistik</h2>
+  <div class="actions">
+    <a href="index.html" class="btn btn-back">Zpět</a>
+    <button id="adminBtn" class="btn btn-admin">Přejít na statistiku</button>
+  </div>
+
+  <!-- 🟨 C – PŘIHLÁŠENÍ -->
+  <div id="loginSection" class="login-dialog hidden">
+    <p>Zadejte heslo pro přístup:</p>
+    <input type="password" id="adminPass" placeholder="Heslo">
+    <br>
+    <button id="loginBtn" class="btn btn-admin">Přihlásit</button>
+  </div>
+
+  <!-- 🟨 D – FILTRY -->
+  <div id="filters" class="filter-bar hidden">
+    <select id="periodSelect">
+      <option value="week">Poslední týden</option>
+      <option value="month">Poslední měsíc</option>
+      <option value="year">Poslední rok</option>
+      <option value="all" selected>Vše</option>
+    </select>
+    <label>Od: <input type="date" id="dateFrom"></label>
+    <label>Do: <input type="date" id="dateTo"></label>
+    <button class="btn btn-filter" id="applyFilter">Zobrazit</button>
+  </div>
+
+  <!-- 🟨 E – TABULKY -->
+  <div id="statsContent" class="hidden">
+    <h3>📦 Přehled podle zadavatele</h3>
+    <div id="byClient" class="loading">Načítám...</div>
+
+    <h3>💰 Souhrn účtovaných služeb</h3>
+    <div id="byRevenue" class="loading">Načítám...</div>
+
+    <h3>👨‍🔧 Výdělky techniků</h3>
+    <div id="byTechnician" class="loading">Načítám...</div>
+  </div>
+
+  <!-- 🟨 F – NAČÍTÁNÍ DAT -->
+  <script>
+  let allData=[];
+
+  document.getElementById("adminBtn").addEventListener("click",()=>{
+    document.getElementById("loginSection").classList.remove("hidden");
+  });
+
+  document.getElementById("loginBtn").addEventListener("click",()=>{
+    const pass=document.getElementById("adminPass").value.trim();
+    if(pass==="Mikes332018"){
+      document.getElementById("loginSection").classList.add("hidden");
+      document.getElementById("filters").classList.remove("hidden");
+      document.getElementById("statsContent").classList.remove("hidden");
+      loadStats();
+    }else{
+      alert("Nesprávné heslo!");
+    }
+  });
+
+  async function loadStats(){
+    try{
+      const res=await fetch("prehled.json?t="+Date.now());
+      allData=await res.json();
+      renderStats();
+    }catch(e){
+      console.error(e);
+      document.getElementById("byClient").innerText="❌ Chyba načítání dat";
+    }
+  }
+
+  document.getElementById("applyFilter").addEventListener("click",renderStats);
+
+  function renderStats(){
+    if(!allData.length) return;
+
+    // jednoduché statistiky
+    const byClient={};
+    const byTech={};
+    let totalRevenue=0;
+
+    allData.forEach(r=>{
+      const client=r.contract||"Neznámý";
+      const tech=r.technician||"Neuvedeno";
+      const price=parseFloat(r.total||0);
+
+      byClient[client]=(byClient[client]||0)+price;
+      byTech[tech]=(byTech[tech]||0)+price;
+      totalRevenue+=price;
+    });
+
+    document.getElementById("byClient").innerHTML=makeTable(byClient,"Zadavatel","Celkem [Kč]");
+    document.getElementById("byRevenue").innerHTML=`<b>Celkový obrat:</b> ${totalRevenue.toLocaleString("cs-CZ")} Kč`;
+    document.getElementById("byTechnician").innerHTML=makeTable(byTech,"Technik","Výdělek [Kč]");
+  }
+
+  function makeTable(obj,labelA,labelB){
+    let html="<table><tr><th>"+labelA+"</th><th>"+labelB+"</th></tr>";
+    for(const [k,v] of Object.entries(obj)){
+      html+=`<tr><td>${k}</td><td>${v.toLocaleString("cs-CZ")} Kč</td></tr>`;
+    }
+    html+="</table>";
+    return html;
+  }
+  </script>
+</div>
+</body>
+</html>
