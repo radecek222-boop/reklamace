@@ -401,8 +401,7 @@ function updateDebug(count) {
 
 <!-- 🟩 SEKCE C – DETAIL ZÁKAZNÍKA (rozdělená verze) -->
 <!-- ================================================= -->
-
-<!-- 🟩 C-1: OTEVŘENÍ DETAILU -->
+<!-- 🟩 C-1: OTEVŘENÍ DETAILU (verze s tlačítky PROTOKOL + PDF) -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -431,6 +430,12 @@ function openDetail(index) {
             <button id="noAnswerBtn" class="btn-action btn-orange">Nezvedá (SMS)</button>
             <button id="cancelBtn" class="btn-action btn-red">Zákazník zrušil</button>
             <button id="closeBtn" class="btn-action btn-gray">Zpět</button>
+
+            <!-- 🧾 NOVÁ SEKCE: PROTOKOL + PDF -->
+            <div class="extra-buttons">
+              <button id="createProtocolBtn" class="btn-action btn-blue">Vytvořit protokol</button>
+              <button id="exportPdfBtn" class="btn-action btn-gray">Exportovat do PDF</button>
+            </div>
           </div>
         </div>
 
@@ -457,13 +462,37 @@ function openDetail(index) {
   document.body.appendChild(overlay);
   setTimeout(() => overlay.classList.add("active"), 10);
 
-  // pokračování funkcí je v následujících blocích
+  // inicializace funkcí
   initCalendarAndTime(overlay, item, index);
   initMapForDetail(overlay, item);
   initDetailButtons(overlay, item, index);
 }
 </script>
+
+<!-- 🟩 DOPLŇKOVÝ STYL PRO NOVOU SEKCI TLAČÍTEK -->
+<style>
+.extra-buttons {
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:14px;   /* mezera mezi hlavní sadou a protokoly */
+}
+.extra-buttons .btn-action {
+  flex:1;
+  font-size:0.95em;
+  padding:10px;
+}
+.btn-blue {
+  background:linear-gradient(135deg,#0046ff,#357aff);
+  color:#fff;
+}
+@media(max-width:700px){
+  .extra-buttons { flex-direction:column; }
+}
+</style>
 <!-- 🟩 KONEC C-1 -->
+
+
 
 
 <!-- 🟩 C-2: MAPA A VZDÁLENOST -->
@@ -522,13 +551,15 @@ function initCalendarAndTime(overlay, item, index) {
 <!-- 🟩 KONEC C-3 -->
 
 
-<!-- 🟩 C-4: TLAČÍTKA AKCÍ -->
+
+
+<!-- 🟩 C-4: TLAČÍTKA AKCÍ – kompletní, ověřená verze -->
 <script>
 function initDetailButtons(overlay, item, index) {
   const id = item.cislo || `radek-${index}`;
   const infoBox = overlay.querySelector("#termInfoBox");
 
-  // uložit / změnit
+  /* 💾 ULOŽIT / ZMĚNIT TERMÍN */
   overlay.querySelector("#saveTermBtn").onclick = () => {
     const datum = overlay.dataset.datum;
     const cas = `${overlay.querySelector("#hours").value}:${overlay.querySelector("#minutes").value}`;
@@ -536,7 +567,7 @@ function initDetailButtons(overlay, item, index) {
     ulozitTerminNaGitHub(item, id, datum, cas, overlay, overlay.querySelector("#saveTermBtn"), infoBox);
   };
 
-  // nezvedá
+  /* 📩 NEZVEDÁ (SMS) */
   overlay.querySelector("#noAnswerBtn").onclick = () => {
     stavy[id] = "nezveda"; item.stav = "nezveda";
     setNextToast("📩 SMS o nezvednutí byla připravena", "warning");
@@ -548,7 +579,7 @@ function initDetailButtons(overlay, item, index) {
     overlay.remove(); renderTable(dataAll);
   };
 
-  // zákazník zrušil
+  /* ❌ ZÁKAZNÍK ZRUŠIL */
   overlay.querySelector("#cancelBtn").onclick = () => {
     stavy[id] = "zruseno"; item.stav = "zruseno";
     setNextToast("❌ Termín zrušen", "error");
@@ -560,11 +591,75 @@ function initDetailButtons(overlay, item, index) {
     overlay.remove(); renderTable(dataAll);
   };
 
-  // zpět
+  /* 🔙 ZPĚT */
   overlay.querySelector("#closeBtn").onclick = () => overlay.remove();
+
+  /* 🧾 VYTVORIT PROTOKOL */
+  overlay.querySelector("#createProtocolBtn").onclick = () => {
+    try {
+      localStorage.setItem("protokolData", JSON.stringify(item));
+      window.location.href = "protokol.html";
+    } catch (e) {
+      alert("❌ Nepodařilo se uložit data pro protokol: " + e.message);
+    }
+  };
+
+  /* 📄 EXPORTOVAT DO PDF */
+  overlay.querySelector("#exportPdfBtn").onclick = async () => {
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(14);
+      doc.text("White Glove Service – Protokol", 10, 15);
+      doc.setFontSize(11);
+      let y = 30;
+      const lines = [
+        `Zákazník: ${item.zakaznik || "-"}`,
+        `Adresa: ${item.adresa || "-"}`,
+        `Telefon: ${item.telefon || "-"}`,
+        `Email: ${item.email || "-"}`,
+        `Produkt / model: ${item.produkt || "-"}`,
+        `Popis závady: ${item.popis || "-"}`,
+        `Datum servisu: ${item.datum || "-"} ${item.cas || ""}`,
+      ];
+      lines.forEach(line => { doc.text(line, 10, y); y += 8; });
+      const filename = `Protokol_${(item.cislo || "bez_cisla").replace(/\s+/g, "_")}.pdf`;
+      doc.save(filename);
+    } catch (err) {
+      alert("❌ Chyba při exportu PDF: " + err.message);
+    }
+  };
 }
 </script>
+
+<!-- 🟩 DOPLŇKOVÝ STYL (pro vizuální rozestup) -->
+<style>
+.extra-buttons {
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:14px; /* mezera mezi Zpět a protokol/PDF */
+}
+.extra-buttons .btn-action {
+  flex:1;
+  font-size:0.95em;
+  padding:10px;
+}
+.btn-blue {
+  background:linear-gradient(135deg,#0046ff,#357aff);
+  color:#fff;
+}
+@media(max-width:700px){
+  .extra-buttons { flex-direction:column; }
+}
+</style>
 <!-- 🟩 KONEC C-4 -->
+
+
+
+
+
 
 
 <!-- 🟩 C-5: POMOCNÉ FUNKCE -->
