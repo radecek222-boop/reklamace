@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Přehled – White Glove Service</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.css">
+
 <style>
 body {
   font-family: "Inter", system-ui, sans-serif;
@@ -14,131 +16,118 @@ body {
   justify-content: center;
   align-items: flex-start;
   min-height: 100vh;
-  color: #111;
 }
 
 .wrapper {
   background: #fff;
-  padding: 30px;
+  padding: 25px;
   margin: 40px 15px;
-  border-radius: 14px;
+  border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   width: 100%;
-  max-width: 1100px;
+  max-width: 950px;
   box-sizing: border-box;
   position: relative;
 }
 
 h1 {
   text-align: center;
-  font-size: 2.2em;
+  font-size: 2em;
   font-weight: 900;
   margin: 0;
   color: #111;
 }
 .sub {
   text-align: center;
-  color: #666;
-  margin-top: 6px;
-  margin-bottom: 35px;
-  font-size: 1em;
+  color: #777;
+  margin: 6px 0 25px;
 }
 
-#logoutBtn {
-  position: absolute;
-  top: 15px;
-  right: 20px;
-  background: linear-gradient(135deg, #c2c2c2, #e2e2e2);
+/* 🔘 Tlačítka */
+.btn {
   border: none;
   border-radius: 8px;
-  padding: 8px 16px;
-  color: #333;
+  padding: 8px 18px;
+  font-size: 0.95em;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  transition: background 0.3s ease;
+  transition: transform .15s, opacity .25s;
+  color: white;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  min-width: 150px;
 }
-#logoutBtn:hover {
-  background: linear-gradient(135deg, #b6b6b6, #d6d6d6);
-}
+.btn:hover { transform: scale(1.05); opacity: .9; }
 
+.btn-light { background: linear-gradient(135deg,#a0a4a7,#c7cbce); color: #fff; }
+.btn-dark  { background: linear-gradient(135deg,#0046ff,#357aff); color: #fff; }
+
+/* 🔹 Horní panel */
 .top-bar {
   display: flex;
+  gap: 10px;
   justify-content: center;
-  align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
   margin-bottom: 25px;
 }
 
-.btn {
-  color: #fff;
-  font-weight: 600;
-  padding: 12px 26px;
-  font-size: 0.95em;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-  transition: transform 0.1s ease-in-out, opacity 0.2s;
-  text-decoration: none;
-  min-width: 180px;
-  text-align: center;
-}
-.btn:hover { transform: scale(1.04); opacity: 0.9; }
-
-.btn-light { background: linear-gradient(135deg, #888, #b5b5b5); }
-.btn-dark  { background: linear-gradient(135deg, #444, #707070); }
-
+/* 🧾 Info-boxy */
 .info-box {
-  background: linear-gradient(135deg, #ececec, #fafafa);
-  border-radius: 10px;
-  padding: 12px 20px;
-  min-width: 180px;
-  text-align: center;
-  font-weight: 700;
+  background: linear-gradient(135deg,#e9ebee,#d3d6d8);
+  border-radius: 8px;
+  padding: 10px 15px;
+  font-weight: 600;
   color: #333;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  min-width: 160px;
+  text-align: center;
+  box-shadow: inset 0 1px 4px rgba(0,0,0,0.05);
 }
 
-#resultsTable {
+/* 🪶 Tabulka */
+table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
+  margin-top: 10px;
 }
-#resultsTable th, #resultsTable td {
+th, td {
   padding: 10px 8px;
   border-bottom: 1px solid #eee;
   text-align: left;
   font-size: 0.95em;
 }
-#resultsTable th {
+th {
   background: #f8f8f8;
   font-weight: 700;
   color: #333;
 }
-#resultsTable td:last-child {
-  text-align: right;
-}
+tr:hover { background: #f1f6ff; }
 
 .summary {
-  margin-top: 25px;
-  font-weight: 600;
   text-align: center;
-  color: #444;
+  margin-top: 20px;
+  color: #555;
+  font-weight: 600;
 }
 
-@media (max-width: 760px) {
-  .btn, .info-box { min-width: unset; width: 100%; }
-  .top-bar { flex-direction: column; }
+/* 🩶 Tlačítko odchodu */
+#logoutBtn {
+  position: absolute;
+  top: 12px;
+  right: 15px;
+  background: linear-gradient(135deg,#c4c7ca,#e1e4e6);
+  color: #333;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.3s, transform 0.15s;
+}
+#logoutBtn:hover {
+  opacity: 0.85;
+  transform: scale(1.04);
 }
 </style>
 </head>
-
-
-
-
-  <!-- 🟩 SEKCE 2/5 – OBSAH -->
 <body>
   <div class="wrapper">
     <button id="logoutBtn">Odejít</button>
@@ -146,12 +135,12 @@ h1 {
     <h1>Přehled WGS</h1>
     <div class="sub">Statistiky reklamací a servisních zakázek</div>
 
-    <!-- 🔹 Horní panel -->
+    <!-- 🔹 Horní panel – výběry a info -->
     <div class="top-bar">
       <button id="selectClientBtn" class="btn btn-light">Vyber zadavatele</button>
+      <button id="selectTechBtn" class="btn btn-light">Vyber technika</button>
       <button id="selectPeriodBtn" class="btn btn-dark">Období</button>
       <div id="infoObrat" class="info-box">Obrat: 0 Kč</div>
-      <div id="infoPocet" class="info-box">Zakázek: 0</div>
     </div>
 
     <!-- 🔹 Tabulka výsledků -->
@@ -167,7 +156,11 @@ h1 {
           </tr>
         </thead>
         <tbody>
-          <tr><td colspan="5" style="text-align:center;color:#888;padding:20px;">Zatím nejsou vybraná žádná data</td></tr>
+          <tr>
+            <td colspan="5" style="text-align:center;color:#888;padding:20px;">
+              Zatím nejsou vybraná žádná data
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -178,16 +171,14 @@ h1 {
     </div>
   </div>
 </body>
-<!-- 🟨 SEKCE 3/5 – MODÁLNÍ OKNA: ZADAVATEL + OBDOBÍ -->
+<!-- 🟨 SEKCE 3/5 – MODÁLNÍ OKNA -->
 
-<!-- 🔹 MODÁL PRO VÝBĚR ZADAVATELŮ -->
+<!-- 🔹 MODÁL – VÝBĚR ZADAVATELŮ -->
 <div id="clientModal" class="modal-overlay">
   <div class="modal-box">
     <h2>Vyber zadavatele</h2>
     <div id="loadingClients" class="loading">Načítám...</div>
-
     <div id="clientList" class="client-list" style="display:none;"></div>
-
     <div class="modal-actions">
       <button id="confirmClients" class="btn btn-dark">Potvrdit</button>
       <button id="closeClients" class="btn btn-light">Zavřít</button>
@@ -195,7 +186,18 @@ h1 {
   </div>
 </div>
 
-<!-- 🔹 MODÁL PRO VÝBĚR OBDOBÍ -->
+<!-- 🔹 MODÁL – VÝBĚR TECHNIKA -->
+<div id="techModal" class="modal-overlay">
+  <div class="modal-box">
+    <h2>Vyber technika</h2>
+    <p style="color:#aaa;font-size:0.9em;">(Funkce se připravuje)</p>
+    <div class="modal-actions">
+      <button id="closeTech" class="btn btn-light">Zavřít</button>
+    </div>
+  </div>
+</div>
+
+<!-- 🔹 MODÁL – VÝBĚR OBDOBÍ -->
 <div id="periodModal" class="modal-overlay">
   <div class="modal-box">
     <h2>Vyber období</h2>
@@ -205,6 +207,23 @@ h1 {
       <input type="date" id="dateFrom">
       <label>Do:</label>
       <input type="date" id="dateTo">
+
+      <label>Měsíc:</label>
+      <select id="monthSelect">
+        <option value="">– Nevybráno –</option>
+        <option value="01">Leden</option>
+        <option value="02">Únor</option>
+        <option value="03">Březen</option>
+        <option value="04">Duben</option>
+        <option value="05">Květen</option>
+        <option value="06">Červen</option>
+        <option value="07">Červenec</option>
+        <option value="08">Srpen</option>
+        <option value="09">Září</option>
+        <option value="10">Říjen</option>
+        <option value="11">Listopad</option>
+        <option value="12">Prosinec</option>
+      </select>
     </div>
 
     <div class="modal-actions">
@@ -215,7 +234,6 @@ h1 {
 </div>
 
 <style>
-/* 🎨 Společný styl modálních oken */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -243,22 +261,11 @@ h1 {
   width: 90%;
   animation: fadeIn .3s ease;
 }
-.modal-box h2 {
-  font-size: 1.3em;
-  font-weight: 700;
-  margin-top: 0;
-  margin-bottom: 20px;
-}
 .modal-actions {
   display: flex;
   justify-content: center;
   gap: 10px;
   flex-wrap: wrap;
-}
-.loading {
-  font-size: 1em;
-  color: #ccc;
-  padding: 10px;
 }
 .client-list {
   text-align: left;
@@ -270,19 +277,13 @@ h1 {
   padding: 10px;
 }
 .client-list label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  font-size: 0.95em;
+  display: block;
+  padding: 5px;
   cursor: pointer;
 }
 .client-list input {
-  transform: scale(1.1);
+  margin-right: 6px;
 }
-
-/* 📅 Styl polí období */
 .period-fields {
   display: flex;
   flex-direction: column;
@@ -292,11 +293,7 @@ h1 {
   padding: 15px 12px;
   margin-bottom: 20px;
 }
-.period-fields label {
-  font-size: 0.9em;
-  color: #ccc;
-}
-.period-fields input[type="date"] {
+.period-fields select, .period-fields input {
   width: 100%;
   background: #222;
   color: #fff;
@@ -305,311 +302,234 @@ h1 {
   padding: 10px;
   font-size: 1em;
   outline: none;
-  box-sizing: border-box;
   transition: all 0.25s ease;
 }
-.period-fields input[type="date"]:focus {
+.period-fields select:focus, .period-fields input:focus {
   border-color: #00c851;
   box-shadow: 0 0 6px rgba(0,200,81,0.4);
 }
-
-/* ✅ Animace potvrzení */
+.loading {
+  color: #ccc;
+  margin: 15px 0;
+}
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 </style>
-
+<!-- 🟧 SEKCE 4/5 – FUNKCE A DATOVÉ OPERACE -->
 <script>
+const clientModal = document.getElementById("clientModal");
+const techModal = document.getElementById("techModal");
+const periodModal = document.getElementById("periodModal");
+
+const clientList = document.getElementById("clientList");
+const loadingClients = document.getElementById("loadingClients");
+
 const selectClientBtn = document.getElementById("selectClientBtn");
+const selectTechBtn   = document.getElementById("selectTechBtn");
 const selectPeriodBtn = document.getElementById("selectPeriodBtn");
 
-/* 🟢 Otevření modálu pro zadavatele */
-selectClientBtn.addEventListener("click", async () => {
-  const modal = document.getElementById("clientModal");
-  modal.classList.add("active");
-  document.getElementById("loadingClients").style.display = "block";
-  document.getElementById("clientList").style.display = "none";
+const confirmClients  = document.getElementById("confirmClients");
+const closeClients    = document.getElementById("closeClients");
+const confirmPeriod   = document.getElementById("confirmPeriod");
+const closePeriod     = document.getElementById("closePeriod");
+const closeTech       = document.getElementById("closeTech");
 
-  // Simulace načítání (v praxi se bude načítat z hotove.json)
-  await new Promise(r => setTimeout(r, 600));
-
-  const clients = [
-    "Natuzzi Editions – Strejček",
-    "Natuzzi Editions – Vimrová",
-    "Natuzzi Italia – Bratislava",
-    "Natuzzi Italia – Jama",
-    "Natuzzi Italia – River",
-    "Natuzzi Italia – SOHO",
-    "Softaly",
-    "Phase – Klucarova",
-    "Phase – Jancova",
-    "WGS (Pozáruční servis)",
-    "Jiné"
-  ];
-
-  const list = document.getElementById("clientList");
-  list.innerHTML = clients.map(c =>
-    `<label><input type="checkbox" value="${c}"> ${c}</label>`
-  ).join("");
-
-  document.getElementById("loadingClients").style.display = "none";
-  list.style.display = "block";
-});
-
-/* 🔴 Zavřít výběr zadavatelů */
-document.getElementById("closeClients").addEventListener("click", () => {
-  document.getElementById("clientModal").classList.remove("active");
-});
-
-/* 🟢 Potvrdit výběr zadavatelů */
-document.getElementById("confirmClients").addEventListener("click", () => {
-  const checked = [...document.querySelectorAll("#clientList input:checked")].map(i => i.value);
-  if (!checked.length) {
-    alert("Vyberte alespoň jednoho zadavatele.");
-    return;
-  }
-  localStorage.setItem("selectedClients", JSON.stringify(checked));
-
-  const box = document.querySelector("#clientModal .modal-box");
-  box.innerHTML = `<div style='font-size:2.2em;color:#00c851;'>✅</div><p>Uloženo</p>`;
-  setTimeout(() => document.getElementById("clientModal").classList.remove("active"), 900);
-});
-
-/* 🟢 Otevření modálu pro období */
-selectPeriodBtn.addEventListener("click", () => {
-  document.getElementById("periodModal").classList.add("active");
-});
-
-/* 🔴 Zavřít období */
-document.getElementById("closePeriod").addEventListener("click", () => {
-  document.getElementById("periodModal").classList.remove("active");
-});
-
-/* 🟢 Potvrdit období */
-document.getElementById("confirmPeriod").addEventListener("click", () => {
-  const from = document.getElementById("dateFrom").value;
-  const to = document.getElementById("dateTo").value;
-  if (!from || !to) {
-    alert("Zadejte datum od i do.");
-    return;
-  }
-  localStorage.setItem("selectedPeriod", JSON.stringify({ from, to }));
-
-  const box = document.querySelector("#periodModal .modal-box");
-  box.innerHTML = `<div style='font-size:2.2em;color:#00c851;'>✅</div><p>Období uloženo</p>`;
-  setTimeout(() => document.getElementById("periodModal").classList.remove("active"), 900);
-});
-</script>
-<!-- 🟧 SEKCE 4/5 – NAČÍTÁNÍ DAT A ZOBRAZENÍ -->
-<script>
-const resultsTable = document.querySelector("#resultsTable tbody");
 const infoObrat = document.getElementById("infoObrat");
-const infoPocet = document.getElementById("infoPocet");
 const summaryBox = document.getElementById("summary");
+const resultsTable = document.querySelector("#resultsTable tbody");
 
 let allOrders = [];
 
-/* ================================
-   🟩 1️⃣  Načtení hotove.json z GitHubu
-================================ */
-async function loadHotoveData() {
+
+/* ==========================================================
+   🟩 1️⃣  Otevření a zavření modálních oken
+========================================================== */
+selectClientBtn.onclick = () => {
+  clientModal.classList.add("active");
+  loadClients();
+};
+selectTechBtn.onclick = () => techModal.classList.add("active");
+selectPeriodBtn.onclick = () => periodModal.classList.add("active");
+
+closeClients.onclick = () => clientModal.classList.remove("active");
+closeTech.onclick = () => techModal.classList.remove("active");
+closePeriod.onclick = () => periodModal.classList.remove("active");
+
+
+/* ==========================================================
+   🟩 2️⃣  Načtení zadavatelů z GitHubu (hotove.json)
+========================================================== */
+async function loadClients() {
+  loadingClients.style.display = "block";
+  clientList.style.display = "none";
+  clientList.innerHTML = "";
+
   try {
     const res = await fetch("https://radecek222-boop.github.io/reklamace/hotove.json?t=" + Date.now());
-    if (!res.ok) throw new Error("Nepodařilo se načíst hotove.json");
-    allOrders = await res.json();
-    console.log("✅ Načteno z GitHubu:", allOrders.length, "záznamů");
-    renderFilteredResults();
+    const data = await res.json();
+
+    // Unikátní seznam zadavatelů + doplnění ručně definovaných
+    const contracts = Array.from(new Set(
+      data.map(r => r.contract).filter(Boolean)
+    ));
+
+    const allClients = [
+      ...contracts.sort(),
+      "WGS (Pozáruční servis)",
+      "Jiné"
+    ];
+
+    const saved = JSON.parse(localStorage.getItem("selectedClients") || "[]");
+
+    clientList.innerHTML = allClients.map(c => `
+      <label>
+        <input type="checkbox" value="${c}" ${saved.includes(c) ? "checked" : ""}>
+        ${c}
+      </label>
+    `).join("");
+
+    loadingClients.style.display = "none";
+    clientList.style.display = "block";
   } catch (err) {
-    console.error("❌ Chyba při načítání:", err);
-    resultsTable.innerHTML = `<tr><td colspan="5" style="text-align:center;color:red;">Chyba načítání dat</td></tr>`;
+    loadingClients.textContent = "Chyba načítání zadavatelů";
+    console.error(err);
   }
 }
 
-/* ================================
-   🟩 2️⃣  Filtrace podle zadavatelů a období
-================================ */
-function renderFilteredResults() {
-  const selected = JSON.parse(localStorage.getItem("selectedClients") || "[]");
-  const period = JSON.parse(localStorage.getItem("selectedPeriod") || "{}");
 
-  if (!selected.length || !period.from || !period.to) {
-    resultsTable.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#777;padding:15px;">Vyberte zadavatele a období</td></tr>`;
+/* ==========================================================
+   🟩 3️⃣  Potvrzení výběru zadavatelů
+========================================================== */
+confirmClients.onclick = () => {
+  const checked = [...clientList.querySelectorAll("input:checked")].map(i => i.value);
+  localStorage.setItem("selectedClients", JSON.stringify(checked));
+
+  // Vizualizace potvrzení (malá zelená fajfka)
+  loadingClients.innerHTML = "<span style='color:#00c851;font-size:1.6em;'>✅</span> Načteno a uloženo";
+  clientList.style.display = "none";
+  setTimeout(() => {
+    clientModal.classList.remove("active");
+  }, 800);
+};
+
+
+/* ==========================================================
+   🟩 4️⃣  Potvrzení výběru období
+========================================================== */
+confirmPeriod.onclick = () => {
+  const from = document.getElementById("dateFrom").value;
+  const to = document.getElementById("dateTo").value;
+  const month = document.getElementById("monthSelect").value;
+
+  const now = new Date();
+  let fromDate = from || "";
+  let toDate = to || "";
+
+  // Pokud byl vybrán měsíc – použij celé období měsíce
+  if (month) {
+    const year = now.getFullYear();
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 0);
+    fromDate = start.toISOString().split("T")[0];
+    toDate = end.toISOString().split("T")[0];
+  }
+
+  if (!fromDate || !toDate) {
+    alert("Zadej platné období nebo měsíc.");
     return;
   }
 
-  const fromDate = new Date(period.from);
-  const toDate = new Date(period.to);
-  let filtered = allOrders.filter(o => {
-    const datum = new Date(o.datum_reklamace || o.datum || o.date || "2000-01-01");
-    const inDate = datum >= fromDate && datum <= toDate;
+  localStorage.setItem("selectedPeriod", JSON.stringify({ from: fromDate, to: toDate }));
 
-    // 💡 speciální případ pro pozáruční servis
-    const kontrakt = o.contract || "";
-    const isPozarucni = (o.typ || "").toLowerCase().includes("pozáruční");
-    const inClient = selected.includes(kontrakt) || (selected.includes("WGS (Pozáruční servis)") && isPozarucni);
+  // Fajfka potvrzení
+  document.getElementById("periodModal").querySelector("h2").innerHTML = "✅ Uloženo";
+  setTimeout(() => periodModal.classList.remove("active"), 700);
+};
+</script>
+<!-- 🟪 SEKCE 5/5 – NAČÍTÁNÍ A ZOBRAZENÍ DAT -->
+<script>
+async function loadOrders() {
+  try {
+    const res = await fetch("https://radecek222-boop.github.io/reklamace/hotove.json?t=" + Date.now());
+    const data = await res.json();
+    allOrders = Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.error("❌ Chyba načítání dat:", err);
+    allOrders = [];
+  }
+}
 
-    return inDate && inClient;
+/* ==========================================================
+   🔍 FILTRACE A ZOBRAZENÍ TABULKY
+========================================================== */
+async function renderFiltered() {
+  await loadOrders();
+
+  const selectedClients = JSON.parse(localStorage.getItem("selectedClients") || "[]");
+  const period = JSON.parse(localStorage.getItem("selectedPeriod") || "{}");
+  const { from, to } = period;
+
+  if (!selectedClients.length || !from || !to) {
+    resultsTable.innerHTML = `
+      <tr><td colspan="5" style="text-align:center;color:#888;padding:20px;">
+        Vyber zadavatele a období pro zobrazení výsledků
+      </td></tr>`;
+    summaryBox.textContent = "Celkem zakázek v období: 0  |  Celkový obrat: 0 Kč";
+    return;
+  }
+
+  const fromDate = new Date(from);
+  const toDate = new Date(to);
+  const filtered = allOrders.filter(o => {
+    const d = new Date(o.datum || o.datum_reklamace || o.datum_ukonceni || "");
+    const c = o.contract || "";
+    const isClient = selectedClients.includes(c) || (c.toLowerCase().includes("pozáruční") && selectedClients.includes("WGS (Pozáruční servis)"));
+    return isClient && d >= fromDate && d <= toDate;
   });
 
-  // Seřazení podle data (novější nahoře)
-  filtered.sort((a, b) =>
-    new Date(b.datum_reklamace || b.datum || "") - new Date(a.datum_reklamace || a.datum || "")
-  );
+  filtered.sort((a,b) => new Date(b.datum || b.datum_reklamace) - new Date(a.datum || a.datum_reklamace));
 
-  renderTable(filtered);
-}
-
-/* ================================
-   🟩 3️⃣  Vykreslení tabulky
-================================ */
-function renderTable(arr) {
-  if (!arr.length) {
-    resultsTable.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#999;padding:15px;">Žádné zakázky v tomto období</td></tr>`;
-    infoObrat.textContent = "Obrat: 0 Kč";
-    infoPocet.textContent = "Zakázek: 0";
-    summaryBox.textContent = "Celkem zakázek: 0 | Celkový obrat: 0 Kč";
-    return;
-  }
-
-  let totalSum = 0;
-  const rows = arr.map(o => {
-    const zakaznik = o.zakaznik || o["Jméno a příjmení zákazníka"] || "-";
-    const cislo = o.cislo || "-";
-    const datum = o.datum_reklamace || o.datum || "-";
-    const contract = o.contract || "-";
-    const cena = parseFloat(o.cenaCelkem || o.total || 0);
-    totalSum += cena;
-
-    return `
+  let total = 0;
+  let html = "";
+  filtered.forEach(r => {
+    const castka = parseFloat(r.castka || r.cenaCelkem || r.total || 0);
+    total += castka;
+    html += `
       <tr>
-        <td>${zakaznik}</td>
-        <td>${cislo}</td>
-        <td>${datum}</td>
-        <td>${contract}</td>
-        <td>${cena.toLocaleString("cs-CZ")} Kč</td>
-      </tr>`;
-  }).join("");
+        <td>${r.zakaznik || r.customer || "–"}</td>
+        <td>${r.cislo || r.id || "–"}</td>
+        <td>${r.datum || r.datum_reklamace || "–"}</td>
+        <td>${r.contract || "–"}</td>
+        <td>${castka.toLocaleString("cs-CZ")} Kč</td>
+      </tr>
+    `;
+  });
 
-  resultsTable.innerHTML = rows;
+  resultsTable.innerHTML = html || `
+    <tr><td colspan="5" style="text-align:center;color:#999;padding:20px;">Žádné zakázky v tomto období</td></tr>`;
 
-  // 📊 Aktualizace horních boxů
-  infoObrat.textContent = `Obrat: ${totalSum.toLocaleString("cs-CZ")} Kč`;
-  infoPocet.textContent = `Zakázek: ${arr.length}`;
-  summaryBox.textContent =
-    `Celkem zakázek v období: ${arr.length} | Celkový obrat: ${totalSum.toLocaleString("cs-CZ")} Kč`;
+  infoObrat.textContent = `Obrat: ${total.toLocaleString("cs-CZ")} Kč`;
+  summaryBox.textContent = `Celkem zakázek v období: ${filtered.length}  |  Celkový obrat: ${total.toLocaleString("cs-CZ")} Kč`;
 }
 
-/* ================================
-   🟩 4️⃣  Automatické načtení po změně výběru
-================================ */
-window.addEventListener("DOMContentLoaded", loadHotoveData);
+/* ==========================================================
+   🕓 SPUŠTĚNÍ PŘI NAČTENÍ STRÁNKY
+========================================================== */
+window.addEventListener("DOMContentLoaded", () => {
+  renderFiltered();
 
-// Kdykoliv se změní výběr → obnoví se výpis
-window.addEventListener("storage", e => {
-  if (["selectedClients", "selectedPeriod"].includes(e.key)) {
-    renderFilteredResults();
-  }
+  // kdykoliv se změní lokální výběry → znovu přepočítat
+  window.addEventListener("storage", renderFiltered);
 });
-</script>
-<!-- 🟪 SEKCE 5/5 – ANIMACE A INTERAKCE -->
-<style>
-/* 🌀 Animace načítání tabulky */
-.loading-row td {
-  text-align: center;
-  padding: 18px;
-  color: #777;
-  animation: blinkLoading 1.2s infinite;
-}
-@keyframes blinkLoading {
-  0%,100% { opacity: 0.4; }
-  50% { opacity: 1; }
-}
 
-/* ✨ Zvýraznění aktualizace bannerů */
-.info-box {
-  transition: background 0.4s ease, transform 0.25s ease;
-}
-.info-box.flash {
-  background: linear-gradient(135deg, #d0ffd8, #ffffff);
-  transform: scale(1.05);
-}
-
-/* ⚙️ Jemné fade-in tabulky při změně */
-#resultsTable tbody {
-  transition: opacity 0.3s ease;
-}
-#resultsTable.fadeout tbody {
-  opacity: 0.4;
-}
-</style>
-
-<script>
-/* 🕓 Zobrazí "Načítám..." než se data připraví */
-function showLoading() {
-  resultsTable.innerHTML = `
-    <tr class="loading-row">
-      <td colspan="5">Načítám data...</td>
-    </tr>`;
-}
-
-/* 💡 Bliknutí při aktualizaci bannerů */
-function flashBox(el) {
-  el.classList.add("flash");
-  setTimeout(() => el.classList.remove("flash"), 700);
-}
-
-/* 🌀 Vylepšení funkce renderTable – s animacemi */
-function renderTable(arr) {
-  const tbody = resultsTable;
-  document.querySelector("#resultsTable").classList.add("fadeout");
-  showLoading();
-
-  setTimeout(() => {
-    document.querySelector("#resultsTable").classList.remove("fadeout");
-
-    if (!arr.length) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#888;padding:15px;">Žádné zakázky v tomto období</td></tr>`;
-      infoObrat.textContent = "Obrat: 0 Kč";
-      infoPocet.textContent = "Zakázek: 0";
-      summaryBox.textContent = "Celkem zakázek: 0 | Celkový obrat: 0 Kč";
-      return;
-    }
-
-    let totalSum = 0;
-    const rows = arr.map(o => {
-      const zakaznik = o.zakaznik || o["Jméno a příjmení zákazníka"] || "-";
-      const cislo = o.cislo || "-";
-      const datum = o.datum_reklamace || o.datum || "-";
-      const contract = o.contract || "-";
-      const cena = parseFloat(o.cenaCelkem || o.total || 0);
-      totalSum += cena;
-      return `
-        <tr>
-          <td>${zakaznik}</td>
-          <td>${cislo}</td>
-          <td>${datum}</td>
-          <td>${contract}</td>
-          <td>${cena.toLocaleString("cs-CZ")} Kč</td>
-        </tr>`;
-    }).join("");
-
-    tbody.innerHTML = rows;
-
-    // 📊 Aktualizace bannerů + animace
-    infoObrat.textContent = `Obrat: ${totalSum.toLocaleString("cs-CZ")} Kč`;
-    infoPocet.textContent = `Zakázek: ${arr.length}`;
-    flashBox(infoObrat);
-    flashBox(infoPocet);
-
-    summaryBox.textContent =
-      `Celkem zakázek v období: ${arr.length} | Celkový obrat: ${totalSum.toLocaleString("cs-CZ")} Kč`;
-  }, 350);
-}
-
-/* 🚪 Tlačítko Odejít zpět na index */
+/* ==========================================================
+   🚪 ODEJÍT (místo Odhlásit)
+========================================================== */
 document.getElementById("logoutBtn").addEventListener("click", () => {
+  localStorage.removeItem("selectedClients");
+  localStorage.removeItem("selectedPeriod");
   window.location.href = "index.html";
 });
 </script>
-</html>
