@@ -4,169 +4,187 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WHITE GLOVE SERVICE – Startovací verze</title>
+
+<!-- 🟦 SEKCE 1/5 – STYL -->
 <style>
-  body {
-    font-family: "Inter", system-ui, sans-serif;
-    background: #f6f7fb;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    text-align: center;
-  }
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  background: #f6f7fb;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+  color: #111;
+}
 
-  h1 {
-    font-size: 2.8em;
-    font-weight: 900;
-    margin-bottom: 10px;
-    color: #111;
-  }
+h1 {
+  font-size: 2.8em;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
 
-  h2 {
-    font-size: 1.2em;
-    font-weight: 500;
-    color: #666;
-    margin-bottom: 50px;
-  }
+h2 {
+  font-size: 1.2em;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 50px;
+}
 
-  .btn-container {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
+/* 🧩 Obecný kontejner tlačítek */
+.btn-container {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
 
-  .btn {
-    color: white;
-    font-weight: 600;
-    padding: 14px 32px;
-    font-size: 1em;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-    transition: transform 0.1s ease-in-out, opacity 0.2s;
-    text-decoration: none;
-    min-width: 240px;
-    text-align: center;
-  }
-  .btn:hover { transform: scale(1.04); opacity: 0.9; }
+/* 🧩 Základ tlačítek */
+.btn {
+  color: white;
+  font-weight: 600;
+  padding: 14px 32px;
+  font-size: 1em;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+  transition: transform 0.1s ease-in-out, opacity 0.2s;
+  text-decoration: none;
+  min-width: 240px;
+  text-align: center;
+}
+.btn:hover { transform: scale(1.04); opacity: 0.9; }
 
-  .btn-list {
-    background: linear-gradient(135deg, #444, #8b8b8b);
-  }
+/* 🩶 veřejná tlačítka */
+.btn-light {
+  background: linear-gradient(135deg, #888, #b5b5b5);
+}
+.btn-dark {
+  background: linear-gradient(135deg, #444, #707070);
+}
 
-  /* ADMIN PANEL BUTTONS */
-  #adminTopBar {
-    position: fixed;
-    top: 10px;
-    right: 15px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    z-index: 2000;
-  }
+/* 🔵 admin tlačítka */
+.btn-admin-light {
+  background: linear-gradient(135deg, #0052cc, #357aff);
+}
+.btn-admin-dark {
+  background: linear-gradient(135deg, #222, #555);
+}
 
-  #adminButton, #logoutButton {
-    background: linear-gradient(135deg, #666, #999);
-    color: white;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    transition: background 0.3s ease, color 0.3s ease;
-  }
+/* 🔝 Horní panel – admin + odhlášení */
+#adminTopBar {
+  position: fixed;
+  top: 10px;
+  right: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 2000;
+}
 
-  #adminButton.blink {
-    animation: blinkRed 1s infinite;
-  }
+#adminButton, #logoutButton {
+  background: linear-gradient(135deg, #666, #999);
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: background 0.3s ease, color 0.3s ease;
+}
 
-  #logoutButton {
-    background: linear-gradient(135deg, #555, #888);
-    display: none;
-  }
+#logoutButton {
+  background: linear-gradient(135deg, #555, #888);
+  display: none;
+}
 
-  #adminLoginOverlay {
-    position: fixed;
-    top:0; left:0; width:100%; height:100%;
-    background:rgba(0,0,0,0.7);
-    display:none; justify-content:center; align-items:center;
-    z-index:3000;
-    backdrop-filter: blur(4px);
-  }
+#adminButton.blink {
+  animation: blinkRed 1s infinite;
+}
 
-  #adminLoginBox {
-    background:white;
-    padding:40px 30px;
-    border-radius:12px;
-    box-shadow:0 4px 20px rgba(0,0,0,0.3);
-    text-align:center;
-    max-width:340px;
-    width:90%;
-    animation:fadeIn 0.3s ease-in-out;
-  }
+#adminLoginOverlay {
+  position: fixed;
+  top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.7);
+  display:none; justify-content:center; align-items:center;
+  z-index:3000;
+  backdrop-filter: blur(4px);
+}
 
-  #adminLoginBox h2 { margin-top:0; font-size:1.3em; font-weight:800; color:#111; }
-  #adminLoginBox p { color:#555; font-size:0.95em; margin-bottom:20px; }
+#adminLoginBox {
+  background:white;
+  padding:40px 30px;
+  border-radius:12px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.3);
+  text-align:center;
+  max-width:340px;
+  width:90%;
+  animation:fadeIn 0.3s ease-in-out;
+}
 
-  #adminPassword {
-    width:100%; padding:10px 12px; border:1px solid #ccc; border-radius:8px;
-    font-size:1em; margin-bottom:15px; box-sizing:border-box; outline:none;
-    transition:all 0.2s ease-in-out;
-  }
-  #adminPassword:focus { border-color:#1e90ff; box-shadow:0 0 5px rgba(30,144,255,0.4); }
+#adminLoginBox h2 { margin-top:0; font-size:1.3em; font-weight:800; color:#111; }
+#adminLoginBox p { color:#555; font-size:0.95em; margin-bottom:20px; }
 
-  #adminLoginBtn {
-    background:linear-gradient(135deg,#0046ff,#357aff);
-    border:none; padding:10px 20px; border-radius:8px;
-    color:white; font-weight:600; cursor:pointer; font-size:1em;
-    transition:transform 0.1s ease-in-out, opacity 0.2s;
-  }
+#adminPassword {
+  width:100%; padding:10px 12px; border:1px solid #ccc; border-radius:8px;
+  font-size:1em; margin-bottom:15px; box-sizing:border-box; outline:none;
+  transition:all 0.2s ease-in-out;
+}
+#adminPassword:focus { border-color:#1e90ff; box-shadow:0 0 5px rgba(30,144,255,0.4); }
 
-  #adminError { color:#c00; font-size:0.9em; font-weight:600; display:none; }
+#adminLoginBtn {
+  background:linear-gradient(135deg,#0046ff,#357aff);
+  border:none; padding:10px 20px; border-radius:8px;
+  color:white; font-weight:600; cursor:pointer; font-size:1em;
+  transition:transform 0.1s ease-in-out, opacity 0.2s;
+}
 
-  @keyframes fadeIn { from {opacity:0;transform:translateY(-10px);} to {opacity:1;transform:translateY(0);} }
-  @keyframes fadeInOut {
-    0% { opacity:0; transform:scale(0.8); }
-    20% { opacity:1; transform:scale(1.1); }
-    50% { transform:scale(1); }
-    80% { opacity:1; transform:scale(1.05); }
-    100% { opacity:0; transform:scale(0.8); }
-  }
-  @keyframes blinkRed {
-    0%, 50%, 100% { background: linear-gradient(135deg, #b30000, #ff3333); }
-    25%, 75% { background: linear-gradient(135deg, #ff6666, #ff3333); }
-  }
+#adminError { color:#c00; font-size:0.9em; font-weight:600; display:none; }
 
-  @media (max-width:768px) {
-    #adminTopBar { right:50%; transform:translateX(50%); top:10px; flex-direction:column; }
-    .btn-container { flex-direction: column; gap: 15px; }
-  }
+@keyframes fadeIn { from {opacity:0;transform:translateY(-10px);} to {opacity:1;transform:translateY(0);} }
+@keyframes fadeInOut {
+  0% { opacity:0; transform:scale(0.8); }
+  20% { opacity:1; transform:scale(1.1); }
+  50% { transform:scale(1); }
+  80% { opacity:1; transform:scale(1.05); }
+  100% { opacity:0; transform:scale(0.8); }
+}
+@keyframes blinkRed {
+  0%, 50%, 100% { background: linear-gradient(135deg, #b30000, #ff3333); }
+  25%, 75% { background: linear-gradient(135deg, #ff6666, #ff3333); }
+}
+
+@media (max-width:768px) {
+  #adminTopBar { right:50%; transform:translateX(50%); top:10px; flex-direction:column; }
+  .btn-container { flex-direction: column; gap: 15px; }
+}
 </style>
 </head>
-
+<!-- 🟩 SEKCE 2/5 – HLAVNÍ OBSAH -->
 <body>
   <h1>WHITE GLOVE SERVICE</h1>
   <h2>specializovaný autorizovaný servis Natuzzi</h2>
 
-  <div class="btn-container" id="mainButtons">
-    <a href="orders.html" class="btn btn-list">Nová reklamace</a>
-    <a href="aftersales.html" class="btn btn-list">Pozáruční servis</a>
-    <a href="seznam.html" id="adminListButton" class="btn btn-list" style="display:none;">Seznam reklamací</a>
-    <a href="statistiky.html" id="adminStatsButton" class="btn btn-list" style="display:none;">Statistika</a>
+  <div class="btn-container" id="publicButtons">
+    <a href="orders.html" class="btn btn-light">Nová reklamace</a>
+    <a href="aftersales.html" class="btn btn-dark">Pozáruční servis</a>
+  </div>
+
+  <div class="btn-container" id="adminButtons" style="display:none;">
+    <a href="seznam.html" class="btn btn-admin-light">Seznam reklamací</a>
+    <a href="prehled.html" class="btn btn-admin-dark">Statistika</a>
   </div>
 
   <div id="adminTopBar">
     <button id="adminButton">ADMIN</button>
     <button id="logoutButton">Odhlásit se</button>
   </div>
-
-  <!-- Přihlašovací okno -->
+<!-- 🟧 SEKCE 3/5 – LOGIN OKNO -->
   <div id="adminLoginOverlay">
     <div id="adminLoginBox">
       <h2>WHITE GLOVE SERVICE</h2>
@@ -176,17 +194,17 @@
       <button id="adminLoginBtn">Přihlásit se</button>
     </div>
   </div>
-
+<!-- 🟥 SEKCE 4/5 – FUNKCE ADMINA -->
 <script>
 const ACCESS_CODE = "wgs2025";
 const EXPIRATION_MINUTES = 10;
 const INACTIVITY_MINUTES = 5;
 let inactivityTimer, countdownTimer, remainingTime = EXPIRATION_MINUTES * 60;
 
-const listButton = document.getElementById("adminListButton");
-const statsButton = document.getElementById("adminStatsButton");
-const adminButton = document.getElementById("adminButton");
-const logoutButton = document.getElementById("logoutButton");
+const publicButtons = document.getElementById("publicButtons");
+const adminButtons  = document.getElementById("adminButtons");
+const adminButton   = document.getElementById("adminButton");
+const logoutButton  = document.getElementById("logoutButton");
 
 function showCheckmark() {
   const overlay = document.createElement("div");
@@ -201,15 +219,15 @@ function showCheckmark() {
 }
 
 function showAdminEnvironment() {
-  listButton.style.display = "inline-block";
-  statsButton.style.display = "inline-block";
+  publicButtons.style.display = "none";
+  adminButtons.style.display = "flex";
   logoutButton.style.display = "inline-block";
   startCountdown();
 }
 
 function hideAdminEnvironment() {
-  listButton.style.display = "none";
-  statsButton.style.display = "none";
+  publicButtons.style.display = "flex";
+  adminButtons.style.display = "none";
   logoutButton.style.display = "none";
   stopCountdown();
   adminButton.textContent = "ADMIN";
@@ -239,7 +257,8 @@ function tryLogin() {
     input.focus();
   }
 }
-
+<!-- 🟪 SEKCE 5/5 – INAKTIVITA, ODPOČET A OBNOVA -->
+<script>
 function logout(reason = "neaktivity") {
   localStorage.removeItem("wgsAdmin");
   hideAdminEnvironment();
