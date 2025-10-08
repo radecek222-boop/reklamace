@@ -1645,3 +1645,16 @@ style.textContent = `
 document.head.appendChild(style);
 </script>
 <!-- 🟩 KONEC ČÁSTI 10/10 -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("📥 Načítám data z Workeru...");
+  fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders")
+    .then(r => r.json())
+    .then(d => {
+      console.log("📄 renderTable start – počet záznamů:", d.length);
+      renderTable(d);
+    })
+    .catch(e => console.error("❌ Chyba načtení:", e));
+});
+</script>
+
