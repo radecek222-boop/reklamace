@@ -126,7 +126,113 @@ tr:hover { background: #f1f6ff; }
   .btn { min-width: unset; width: 100%; }
   .top-bar { flex-direction: column; align-items: stretch; }
 }
+
+/* ================================ */
+/* 💬 MODÁLNÍ OKNA (Zadavatel / Technik / Období) */
+/* ================================ */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,0.55);
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.modal.active {
+  display: flex;
+  opacity: 1;
+}
+.modal-box {
+  background: #fff;
+  border-radius: 14px;
+  padding: 25px 30px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  width: 90%;
+  max-width: 420px;
+  text-align: center;
+  animation: fadeInModal 0.25s ease;
+}
+@keyframes fadeInModal {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.modal-box h2 {
+  font-size: 1.3em;
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: #222;
+}
+.modal-box p {
+  font-size: 0.95em;
+  color: #555;
+  margin-bottom: 15px;
+}
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+}
+
+/* ✅ Styl vnitřních inputů a seznamů */
+#techList label,
+#clientList label {
+  display: block;
+  text-align: left;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  color: #333;
+}
+#techList label:hover,
+#clientList label:hover {
+  background: #f3f4f6;
+}
+.period-inputs {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+.period-inputs input {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 0.95em;
+  text-align: center;
+}
+
+/* 📱 Responsivní */
+@media (max-width: 600px) {
+  .modal-box {
+    width: 92%;
+    padding: 20px;
+  }
+}
 </style>
+
+<script>
+// 🧠 Logika pro zavírání modálů (klik mimo nebo Escape)
+document.addEventListener("click", e => {
+  const modals = document.querySelectorAll(".modal.active");
+  modals.forEach(m => {
+    const box = m.querySelector(".modal-box");
+    if (!box.contains(e.target)) m.classList.remove("active");
+  });
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") {
+    document.querySelectorAll(".modal.active").forEach(m => m.classList.remove("active"));
+  }
+});
+</script>
+
 
 
 
