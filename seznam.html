@@ -1187,17 +1187,59 @@ async function showPlanMap(list,container){
 <!-- 🟨 SEKCE F – POMOCNÉ FUNKCE A UTILITIES -->
 <!-- ======================================= -->
 
-<!-- 🟨 F-1: NORMALIZACE ADRES PRAHY -->
+<!-- 
+====================================================================
+🧭 F-1: POMOCNÉ FUNKCE – NORMALIZACE ADRES
+====================================================================
+Účel:
+  - sjednocuje zápisy adres z různých zdrojů
+  - doplňuje chybějící městské části Prahy pro přesnou geolokaci
+  - zajišťuje správné výsledky pro OpenStreetMap (Nominatim)
+  - používá se při zobrazování adres ve Waze, mapě i detailu zákazníka
+
+Poslední úprava: 2025-10-08
+====================================================================
+-->
 <script>
 function normalizePrahaAddress(a) {
   if (!a) return "";
   let t = a.trim();
-  t = t.replace(/\bPraha\s*\d*\b/i, "Praha");
-  t = t.replace(/\bHlavní město Praha\b/i, "Praha");
-  return t.replace(/\s+/g, " ").trim();
+
+  // 💡 odstranění duplicitních označení a sjednocení mezery
+  t = t.replace(/\bHlavní město Praha\b/gi, "Praha");
+  t = t.replace(/\bPraha\s*\d*\b/gi, "Praha");
+  t = t.replace(/\s+/g, " ");
+
+  // 🧩 speciální pražské čtvrti, které Nominatim často zaměňuje:
+  const doplnky = [
+    { match: /do dubče/i, add: "Praha 9 - Běchovice" },
+    { match: /běchovic/i, add: "Praha 9 - Běchovice" },
+    { match: /horní počernic/i, add: "Praha 9 - Horní Počernice" },
+    { match: /dolní měcholup/i, add: "Praha 10 - Dolní Měcholupy" },
+    { match: /uhříněves/i, add: "Praha 22 - Uhříněves" },
+    { match: /řepy/i, add: "Praha 17 - Řepy" },
+    { match: /zličín/i, add: "Praha 5 - Zličín" },
+    { match: /koloděj/i, add: "Praha 9 - Koloděje" },
+    { match: /kyje/i, add: "Praha 14 - Kyje" },
+    { match: /dubeč/i, add: "Praha 10 - Dubeč" }
+  ];
+
+  // 🧠 kontrola a doplnění městské části, pokud v adrese chybí
+  for (const d of doplnky) {
+    if (d.match.test(t) && !t.toLowerCase().includes(d.add.toLowerCase())) {
+      if (!/praha\s*\d/i.test(t)) t += ", " + d.add;
+    }
+  }
+
+  // 🧭 doplnění defaultní části pro Prahu, pokud není uvedena
+  if (/praha/i.test(t) && !/praha\s*\d/i.test(t)) {
+    t += ", Praha 1";
+  }
+
+  return t.trim();
 }
 </script>
-<!-- 🟨 KONEC F-1 -->
+<!-- 🟩 KONEC SEKCE F-1 -->
 
 
 <!-- 🟨 F-2: LOKÁLNÍ UKLÁDÁNÍ TERMÍNŮ -->
