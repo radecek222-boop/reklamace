@@ -323,24 +323,12 @@ const adminButtons  = document.getElementById("adminButtons");
 const adminButton   = document.getElementById("adminButton");
 const logoutButton  = document.getElementById("logoutButton");
 
-function showCheckmark() {
-  const overlay = document.createElement("div");
-  overlay.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;justify-content:center;align-items:center;z-index:4000;";
-  overlay.innerHTML = `
-    <div style="text-align:center;color:white;font-weight:700;font-size:1.2em;animation:fadeInOut 1.5s ease-in-out;">
-      <div style="font-size:5em;color:#3cd67a;">✔️</div>
-      <div>Přístup potvrzen</div>
-    </div>`;
-  document.body.appendChild(overlay);
-  setTimeout(() => overlay.remove(), 1500);
-}
-
 function showAdminEnvironment() {
   publicButtons.style.display = "none";
   adminButtons.style.display = "flex";
   logoutButton.style.display = "inline-block";
 
-  // ✅ Aktivace vizuálního režimu ADMIN (tmavší + pulzování)
+  // ✅ Aktivace vizuálního režimu ADMIN
   adminButton.classList.add("active");
 
   startCountdown();
@@ -351,39 +339,120 @@ function hideAdminEnvironment() {
   adminButtons.style.display = "none";
   logoutButton.style.display = "none";
 
-  // ❎ Deaktivace vizuálního režimu ADMIN
+  // ❎ Deaktivace režimu ADMIN
   adminButton.classList.remove("active");
-
   stopCountdown();
   adminButton.textContent = "ADMIN";
   adminButton.classList.remove("blink");
 }
 
+/* 🟢 Přihlášení */
 adminButton.addEventListener("click", () => {
   document.getElementById("adminLoginOverlay").style.display = "flex";
   document.getElementById("adminPassword").focus();
 });
 
+/* 🔴 Odhlášení */
 logoutButton.addEventListener("click", () => logout("odhlášení uživatelem"));
 
+/* 🧩 Ověření kódu s animacemi ✅❌ */
 function tryLogin() {
   const input = document.getElementById("adminPassword");
-  const error = document.getElementById("adminError");
+  const errorText = document.getElementById("adminErrorText");
+  const successIcon = document.getElementById("adminSuccessIcon");
+  const errorIcon = document.getElementById("adminErrorIcon");
+
+  // Skryj vše před novou animací
+  errorText.classList.add("hidden");
+  errorIcon.classList.add("hidden");
+  successIcon.classList.add("hidden");
+
   if (input.value.trim() === ACCESS_CODE) {
+    // ✅ Správný kód
+    successIcon.classList.remove("hidden");
+
+    // Ulož přihlášení do localStorage
     localStorage.setItem("wgsAdmin", JSON.stringify({ code: "OK", time: Date.now() }));
-    document.getElementById("adminLoginOverlay").style.display = "none";
-    error.style.display = "none";
-    showCheckmark();
-    startInactivityTimer();
-    showAdminEnvironment();
+
+    // Po 1 sekundě zavři okno a přepni do admin prostředí
+    setTimeout(() => {
+      document.getElementById("adminLoginOverlay").style.display = "none";
+      input.value = "";
+      startInactivityTimer();
+      showAdminEnvironment();
+    }, 1000);
   } else {
-    error.style.display = "block";
+    // ❌ Špatný kód
+    errorIcon.classList.remove("hidden");
+    errorText.classList.remove("hidden");
     input.value = "";
     input.focus();
   }
 }
-</script>
 
+/* 🔄 Odhlášení po neaktivitě nebo vypršení */
+function logout(reason = "neaktivity") {
+  localStorage.removeItem("wgsAdmin");
+  hideAdminEnvironment();
+  console.log(`⏱️ Přístup admina ukončen (${reason}).`);
+}
+
+/* ⏱️ Inaktivita */
+function resetInactivityTimer() {
+  clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(() => logout("neaktivity"), INACTIVITY_MINUTES * 60 * 1000);
+}
+
+function startInactivityTimer() {
+  resetInactivityTimer();
+  ["click","mousemove","keypress","scroll","touchstart","focus"].forEach(evt=>{
+    document.addEventListener(evt, resetInactivityTimer, { passive: true });
+  });
+}
+
+/* ⌛ Odpočet */
+function startCountdown() {
+  clearInterval(countdownTimer);
+  remainingTime = EXPIRATION_MINUTES * 60;
+  countdownTimer = setInterval(() => {
+    remainingTime--;
+    if (remainingTime <= 0) {
+      logout("vypršení času");
+      clearInterval(countdownTimer);
+      return;
+    }
+    const m = String(Math.floor(remainingTime / 60)).padStart(2, "0");
+    const s = String(remainingTime % 60).padStart(2, "0");
+    adminButton.textContent = `${m}:${s}`;
+    if (remainingTime <= 60) adminButton.classList.add("blink");
+    else adminButton.classList.remove("blink");
+  }, 1000);
+}
+
+function stopCountdown() {
+  clearInterval(countdownTimer);
+  remainingTime = EXPIRATION_MINUTES * 60;
+}
+
+/* 🔁 Obnovení přihlášení při reloadu stránky */
+window.addEventListener("DOMContentLoaded", () => {
+  const adminData = localStorage.getItem("wgsAdmin");
+  if (adminData) {
+    const { time } = JSON.parse(adminData);
+    const now = Date.now();
+    if ((now - time) / 60000 < EXPIRATION_MINUTES) {
+      showAdminEnvironment();
+      startInactivityTimer();
+    } else localStorage.removeItem("wgsAdmin");
+  }
+});
+
+/* 🎯 Tlačítka potvrzení */
+document.getElementById("adminLoginBtn").addEventListener("click", tryLogin);
+document.getElementById("adminPassword").addEventListener("keypress", e => {
+  if (e.key === "Enter") tryLogin();
+});
+</script>
 
   
   
