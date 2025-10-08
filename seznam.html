@@ -463,8 +463,7 @@ window.addEventListener("DOMContentLoaded", loadData);
 
 
 
-
-<!-- 🟦 ZAČÁTEK ČÁSTI 3/10 – Detail zákazníka (bez zamrznutí) -->
+<!-- 🟦 ZAČÁTEK ČÁSTI 3/10 – Detail zákazníka (bez zamrznutí a bezpečný map fetch) -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -479,11 +478,12 @@ function openDetail(index) {
         <div class="left-column">
           <div class="customer-info">
             <h2>${item.zakaznik || "Zákazník"}</h2>
-            <p><strong>Adresa:</strong> 
+            <p><strong>Adresa:</strong>
               <a href="https://waze.com/ul?q=${encodeURIComponent(item.adresa)}" target="_blank">
-              ${item.adresa || "Neuvedeno"}</a>
+                ${item.adresa || "Neuvedeno"}
+              </a>
             </p>
-            <p><strong>Telefon:</strong> 
+            <p><strong>Telefon:</strong>
               <a href="tel:${item.telefon || ""}">${item.telefon || "Neuvedeno"}</a>
             </p>
             <p><strong>Email:</strong> ${item.email || "Neuvedeno"}</p>
@@ -519,46 +519,49 @@ function openDetail(index) {
   `;
   document.body.appendChild(overlay);
 
-  /* 🌍 Bezpečné načtení mapy s limitem 5 s */
+  /* 🌍 MAPA – rychlá, limitovaná a bezpečná */
   const map = L.map("detailMap").setView([49.9, 15.6], 6);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 18, attribution: "&copy; OpenStreetMap"
+    maxZoom: 18,
+    attribution: "&copy; OpenStreetMap"
   }).addTo(map);
 
   const wgsCoords = [50.081, 14.614]; // WGS Běchovice
   const controller = new AbortController();
-  setTimeout(() => controller.abort(), 5000);
+  const timeout = setTimeout(() => controller.abort(), 3500); // bezpečný timeout 3.5 s
 
   fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`, { signal: controller.signal })
     .then(r => r.json())
     .then(loc => {
-      if (loc && loc.length > 0) {
+      clearTimeout(timeout);
+      if (loc?.[0]) {
         const cust = [parseFloat(loc[0].lat), parseFloat(loc[0].lon)];
         const route = L.polyline([wgsCoords, cust], { color: "#0046ff", weight: 4 }).addTo(map);
-        if (route.getBounds && route.getBounds().isValid()) {
-          map.fitBounds(route.getBounds(), { padding: [30, 30] });
-        }
+        map.fitBounds(route.getBounds(), { padding: [30, 30] });
         L.marker(cust).addTo(map).bindPopup(`<b>${item.zakaznik}</b><br>${item.adresa}`);
       }
     })
-    .catch(() => console.warn("⏳ Mapové načtení přerušeno"));
+    .catch(() => console.warn("⏳ Načtení mapy přerušeno – timeout nebo špatná adresa"));
 
-  /* 🗓️ Bezpečné vytvoření kalendáře */
+  /* 🗓️ Mini kalendář (rychlá inicializace) */
   requestAnimationFrame(() => {
-    const miniCal = new VanillaCalendar("#miniCalendar", {
-      settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
-      actions: {
-        clickDay(e) {
-          const chosen = e.target.dataset.calendarDay;
-          if (chosen) {
-            overlay.dataset.datum = chosen;
-            e.target.classList.add("vanilla-calendar-day__btn_selected");
-            updateTermInfoBox(chosen);
+    try {
+      const miniCal = new VanillaCalendar("#miniCalendar", {
+        settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
+        actions: {
+          clickDay(e) {
+            const chosen = e.target.dataset.calendarDay;
+            if (chosen) {
+              selectedDate = chosen;
+              updateTermInfoBox(chosen);
+            }
           }
         }
-      }
-    });
-    miniCal.init();
+      });
+      miniCal.init();
+    } catch (err) {
+      console.warn("Kalendář nelze inicializovat:", err);
+    }
   });
 
   const infoBox = overlay.querySelector("#selectedInfo");
@@ -579,7 +582,7 @@ function openDetail(index) {
     }
   });
 
-  /* 💾 Uložit */
+  /* 💾 Uložit termín */
   overlay.querySelector(".btn-save").onclick = async () => {
     if (!selectedDate || !selectedTime) {
       alert("Vyberte nejprve datum a čas.");
@@ -588,24 +591,17 @@ function openDetail(index) {
     infoBox.classList.remove("blinking");
     infoBox.classList.add("saved");
     infoBox.textContent = `Termín uložen: ${selectedDate} ${selectedTime}`;
-    onSaveConfirm(infoBox);
     await ulozitTerminNaGitHub(item, index, selectedDate, selectedTime, overlay, overlay.querySelector(".btn-save"), infoBox);
   };
 
   /* 📞 Nezvedá */
   overlay.querySelector(".btn-orange").onclick = () => nezvedaTerminNaGitHub(item, index, overlay);
 
-  /* ❌ Zákazník zrušil */
+  /* ❌ Zrušil */
   overlay.querySelector(".btn-red").onclick = () => zrusitTerminNaGitHub(item, index, overlay);
 
   /* ⬅️ Zpět */
   overlay.querySelector(".btn-grey").onclick = () => overlay.remove();
-
-  function onSaveConfirm(box) {
-    box.classList.remove("blinking");
-    box.classList.add("saved");
-    setTimeout(() => box.classList.remove("saved"), 2000);
-  }
 }
 </script>
 
@@ -715,6 +711,7 @@ function openDetail(index) {
 }
 </style>
 <!-- 🟦 KONEC ČÁSTI 3/10 -->
+
 
 
 
