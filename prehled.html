@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Přehled – White Glove Service</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.css">
+
+
+
+
+<!-- 🟦 SEKCE 1/5 – STYL -->
 <style>
 body {
   font-family: "Inter", system-ui, sans-serif;
@@ -43,6 +48,7 @@ h1 { text-align: center; font-size: 1.9em; font-weight: 900; margin: 0; color: #
 .btn:hover { transform: scale(1.05); opacity: .9; }
 .btn-back { background: linear-gradient(135deg,#a0a4a7,#6c757d); }
 .btn-stats { background: linear-gradient(135deg,#0046ff,#357aff); }
+.btn-export { background: linear-gradient(135deg,#444,#666); }
 
 .stats-boxes {
   display: grid;
@@ -83,7 +89,6 @@ select, input[type="date"] {
 h3 { text-align: center; font-size: 1em; color: #333; margin-bottom: 10px; }
 .loading { text-align: center; padding: 30px; color: #666; }
 
-/* 🕒 Odpočet vpravo nahoře */
 #adminBar {
   position: absolute;
   top: 10px;
@@ -94,15 +99,61 @@ h3 { text-align: center; font-size: 1em; color: #333; margin-bottom: 10px; }
   font-size: 0.9em;
   color: #333;
 }
-#countdown { font-weight: 700; color: #0046ff; }
+
+/* 🪟 Modal zadavatelů */
+#zadavateleModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 3000;
+}
+#zadavateleBox {
+  background: #fff;
+  padding: 25px 35px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  max-width: 400px;
+  width: 90%;
+  text-align: left;
+}
+#zadavateleBox h3 {
+  margin-top: 0;
+  font-size: 1.1em;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.zadavatel-item {
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+#closeZadavatele {
+  margin-top: 15px;
+  background: linear-gradient(135deg, #b33, #e44);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
 </style>
-</head>
+
+
+
+
+
+
+
+<!-- 🟩 SEKCE 2/5 – OBSAH -->
 <body>
 
 <div class="wrapper" id="content">
   <div id="adminBar">
     🔓 Přihlášený administrátor
-    <span>| Odhlášení za <span id="countdown">10:00</span></span>
     <button class="btn btn-back" style="padding:6px 12px;font-size:0.8em;" onclick="logout()">Odhlásit</button>
   </div>
 
@@ -123,7 +174,12 @@ h3 { text-align: center; font-size: 1em; color: #333; margin-bottom: 10px; }
       <option value="reklamace">Reklamace</option>
       <option value="pozáruční">Pozáruční servis</option>
     </select>
+  </div>
+
+  <div class="filter-bar">
     <button class="btn btn-stats" id="applyFilter">Zobrazit</button>
+    <button class="btn btn-export" id="openZadavatele">Vyber zadavatele</button>
+    <button class="btn btn-export" id="exportStats">Exportovat přehled</button>
   </div>
 
   <div class="stats-boxes">
@@ -143,36 +199,67 @@ h3 { text-align: center; font-size: 1em; color: #333; margin-bottom: 10px; }
   </div>
 </div>
 
+<!-- Modal zadavatelů -->
+<div id="zadavateleModal">
+  <div id="zadavateleBox">
+    <h3>Vyber zadavatele:</h3>
+    <div id="zadavateleList"></div>
+    <button id="closeZadavatele">Zavřít</button>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+<!-- 🟧 SEKCE 3/5 – SCRIPT / DATA -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 let allData = [];
+const zadavatele = [
+  "Natuzzi Editions",
+  "Natuzzi Italia",
+  "Phase",
+  "Softaly",
+  "Emporio Home",
+  "Emil Frey Select"
+];
+
 let logoutTimer;
 let countdownInterval;
-let remaining = 600; // 10 min = 600 s
 
-// 🕒 Spuštění odpočtu a automatického odhlášení
-function startLogoutTimer(){
-  clearTimeout(logoutTimer);
-  clearInterval(countdownInterval);
-  remaining = 600;
-  updateCountdown();
-  countdownInterval = setInterval(()=>{
-    remaining--;
-    updateCountdown();
-    if(remaining<=0){
-      clearInterval(countdownInterval);
-      alert("Byl jste automaticky odhlášen po 10 minutách neaktivity.");
-      logout();
-    }
-  },1000);
-}
-function updateCountdown(){
-  const min = Math.floor(remaining/60).toString().padStart(2,"0");
-  const sec = (remaining%60).toString().padStart(2,"0");
-  document.getElementById("countdown").textContent = `${min}:${sec}`;
-}
-["click","keydown","mousemove","touchstart"].forEach(ev=>document.addEventListener(ev,startLogoutTimer));
 
+
+
+// 🪟 otevření / zavření modalu
+const modal = document.getElementById("zadavateleModal");
+const listDiv = document.getElementById("zadavateleList");
+const openBtn = document.getElementById("openZadavatele");
+const closeBtn = document.getElementById("closeZadavatele");
+
+openBtn.onclick = () => {
+  listDiv.innerHTML = zadavatele
+    .map(name => `
+      <div class="zadavatel-item">
+        <input type="checkbox" id="${name}" value="${name}">
+        <label for="${name}">${name}</label>
+      </div>`).join("");
+  modal.style.display = "flex";
+};
+closeBtn.onclick = () => modal.style.display = "none";
+modal.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
+
+
+
+
+
+
+
+
+<!-- 🟥 SEKCE 4/5 – STATISTIKY A GRAFY -->
 async function loadStats(){
   try{
     const res = await fetch("prehled.json?t="+Date.now());
@@ -180,6 +267,7 @@ async function loadStats(){
     renderStats();
   }catch(e){console.error(e);}
 }
+
 document.getElementById("applyFilter").onclick = renderStats;
 
 function renderStats(){
@@ -200,11 +288,13 @@ function renderStats(){
   if(fromInput)from=new Date(fromInput);
   if(toInput)to=new Date(toInput);
 
+  const checked = Array.from(document.querySelectorAll('#zadavateleList input:checked')).map(c => c.value);
   const filtered=allData.filter(r=>{
     const d=new Date(r.datum||r.date||r.visit||"2000-01-01");
     const inDate=d>=from && d<=to;
     const inType=(type==="all"||(r.typ||"").toLowerCase().includes(type));
-    return inDate&&inType;
+    const inClient=(checked.length===0||checked.includes(r.contract));
+    return inDate&&inType&&inClient;
   });
 
   const byClient={},byTech={};let total=0;
@@ -235,17 +325,28 @@ function drawChart(id,labels,values,color){
   else{if(chart2)chart2.destroy();chart2=new Chart(ctx,config);}
 }
 
-// 🔚 Ruční odhlášení
+
+
+
+
+
+
+
+<!-- 🟪 SEKCE 5/5 – ODHLAŠENÍ -->
 function logout(){
   sessionStorage.removeItem("wgsAdminLogin");
   location.href="index.html";
 }
 
-// ⏱ Spustí odpočet a načte data po otevření
+document.getElementById("exportStats").onclick = () => {
+  const vybrani = Array.from(document.querySelectorAll('#zadavateleList input:checked')).map(c => c.value);
+  alert(`Export přehledu pro: ${vybrani.join(", ") || "všechny zadavatele"}`);
+};
+
 window.addEventListener("DOMContentLoaded",()=>{
-  startLogoutTimer();
   loadStats();
 });
 </script>
+
 </body>
 </html>
