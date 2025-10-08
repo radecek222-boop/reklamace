@@ -401,7 +401,7 @@ function updateDebug(count) {
 
 <!-- 🟩 SEKCE C – DETAIL ZÁKAZNÍKA (rozdělená verze) -->
 <!-- ================================================= -->
-<!-- 🟩 C-1: DETAIL ZÁKAZNÍKA – přehledný layout + editace -->
+<!-- 🟩 SEKCE C-1 – DETAIL ZÁKAZNÍKA (aktualizovaná verze s rovnáním panelu a tlačítek) -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -415,64 +415,61 @@ function openDetail(index) {
     <div class="detail-modal">
       <div class="grid-layout">
 
-        <!-- 🧭 LEVÝ PANEL -->
+        <!-- 🧭 LEVÝ PANEL – sjednocená šířka, zarovnané tlačítka -->
         <div class="left-panel">
           <!-- 📅 Kalendář -->
           <div id="miniCalendar"></div>
 
-          <!-- 🕒 Výběr času -->
-          <div class="custom-time-picker">
-            <select id="hours"></select><span>:</span><select id="minutes"></select>
+          <!-- 🕒 Hodiny + panel v jedné řádce -->
+          <div class="time-row">
+            <div class="custom-time-picker">
+              <select id="hours"></select><span>:</span><select id="minutes"></select>
+            </div>
+            <div class="term-info-box" id="termInfoBox">Vyberte datum a čas</div>
           </div>
 
-          <!-- 🟢 Panel potvrzení -->
-          <div class="term-info-box" id="termInfoBox">Vyberte datum a čas</div>
-
-          <!-- 💾 / 🔙 -->
+          <!-- 💾 Uložit / Zpět -->
           <div class="button-row">
             <button id="saveTermBtn" class="btn-action btn-green">💾 Uložit / Změnit</button>
             <button id="closeBtn" class="btn-action btn-gray">🔙 Zpět</button>
           </div>
 
-          <!-- ❌ / 📩 -->
+          <!-- ❌ Zrušeno / Nezvedá -->
           <div class="button-row">
             <button id="cancelBtn" class="btn-action btn-red">❌ Zrušeno zákazníkem</button>
             <button id="noAnswerBtn" class="btn-action btn-orange">📩 Nezvedá (SMS)</button>
           </div>
 
-          <!-- Mezírka -->
-          <div style="height:14px;"></div>
-
-          <!-- 🧾 Protokol -->
+          <!-- 🧾 Vytvořit protokol -->
           <button id="createProtocolBtn" class="btn-action btn-blue full-width">🧾 Vytvořit protokol</button>
         </div>
 
-        <!-- 🧾 PRAVÝ PANEL -->
+        <!-- 🧾 PRAVÝ PANEL – informace o zákazníkovi a mapa -->
         <div class="right-panel">
-
-          <!-- 👤 ZÁKAZNÍK -->
-          <div class="info-box clickable" id="customerBox">
-            <div class="box-header">
-              <strong>Zákazník</strong><span class="icon">✏️</span>
+          <div class="customer-info">
+            <h2>${item.zakaznik || "Zákazník"}</h2>
+            <div class="info-box">
+              <div class="box-header">
+                <span>📍 Zákazník</span><span class="icon">↗︎</span>
+              </div>
+              <div class="box-content">
+                <p><strong>Adresa:</strong> <a href="https://waze.com/ul?q=${encodeURIComponent(adresaUpravena)}" target="_blank">${adresaUpravena}</a></p>
+                <p><strong>Telefon:</strong> <a href="tel:${(item.telefon||"").replace("+420","").trim()}">${(item.telefon||"").replace("+420","").trim()}</a></p>
+                <p><strong>Email:</strong> ${item.email||"–"}</p>
+                <p><strong>Produkt / model:</strong> ${item.produkt||"–"}</p>
+              </div>
             </div>
-            <div class="box-content">
-              <p><strong>Jméno:</strong> ${item.zakaznik || "–"}</p>
-              <p><strong>Adresa:</strong> ${adresaUpravena}</p>
-              <p><strong>Telefon:</strong> ${item.telefon || "–"}</p>
-              <p><strong>Email:</strong> ${item.email || "–"}</p>
-              <p><strong>Produkt / model:</strong> ${item.produkt || "–"}</p>
+
+            <div class="info-box">
+              <div class="box-header">
+                <span>🛠️ Popis závady</span><span class="icon">↗︎</span>
+              </div>
+              <div class="box-content">
+                <p>${item.popis||"–"}</p>
+              </div>
             </div>
           </div>
 
-          <!-- 🧰 POPIS ZÁVADY -->
-          <div class="info-box clickable" id="popisBox">
-            <div class="box-header">
-              <strong>Popis závady</strong><span class="icon">📝</span>
-            </div>
-            <div class="box-content" id="popisContent">${item.popis || "–"}</div>
-          </div>
-
-          <!-- 🌍 MAPA -->
           <div class="distance-banner" id="mapDistance">📍 Počítám vzdálenost…</div>
           <div id="mapDetail"></div>
         </div>
@@ -482,92 +479,14 @@ function openDetail(index) {
   document.body.appendChild(overlay);
   setTimeout(() => overlay.classList.add("active"), 10);
 
+  /* Inicializace částí detailu */
   initCalendarAndTime(overlay, item, index);
   initMapForDetail(overlay, item);
   initDetailButtons(overlay, item, index);
-
-  overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
-  overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
-}
-
-/* 👤 Upravit údaje zákazníka */
-function openCustomerDetail(item, overlay) {
-  const modal = document.createElement("div");
-  modal.className = "small-modal";
-  modal.innerHTML = `
-    <div class="small-inner">
-      <h3>Upravit údaje zákazníka</h3>
-      <label>Jméno:</label><input id="editName" value="${item.zakaznik || ""}">
-      <label>Adresa:</label><input id="editAddress" value="${item.adresa || ""}">
-      <label>Telefon:</label><input id="editPhone" value="${item.telefon || ""}">
-      <label>Email:</label><input id="editEmail" value="${item.email || ""}">
-      <label>Produkt / model:</label><input id="editModel" value="${item.produkt || ""}">
-      <div class="modal-buttons">
-        <button id="saveCustomerBtn" class="btn-action btn-green">💾 Uložit</button>
-        <button id="closeCustomerBtn" class="btn-action btn-gray">Zavřít</button>
-      </div>
-    </div>`;
-  document.body.appendChild(modal);
-
-  modal.querySelector("#closeCustomerBtn").onclick = () => modal.remove();
-  modal.querySelector("#saveCustomerBtn").onclick = async () => {
-    item.zakaznik = modal.querySelector("#editName").value.trim();
-    item.adresa = modal.querySelector("#editAddress").value.trim();
-    item.telefon = modal.querySelector("#editPhone").value.trim();
-    item.email = modal.querySelector("#editEmail").value.trim();
-    item.produkt = modal.querySelector("#editModel").value.trim();
-
-    try {
-      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({action:"update",record:item})
-      });
-      if(!res.ok) throw new Error("HTTP "+res.status);
-      modal.remove();
-      showSuccessOverlay("✅ Změny uloženy","Data zákazníka byla aktualizována v GitHub repozitáři.");
-      setNextToast("✅ Údaje zákazníka upraveny","success");
-      overlay.remove();
-      renderTable(dataAll);
-    } catch(e){ alert("❌ Chyba při ukládání: "+e.message); }
-  };
-}
-
-/* 🧰 Upravit popis závady */
-function openPopisEditor(item,overlay){
-  const modal = document.createElement("div");
-  modal.className="small-modal";
-  modal.innerHTML=`
-    <div class="small-inner">
-      <h3>Upravit popis závady</h3>
-      <textarea id="editPopis">${item.popis || ""}</textarea>
-      <div class="modal-buttons">
-        <button id="savePopisBtn" class="btn-action btn-green">💾 Uložit</button>
-        <button id="closePopisBtn" class="btn-action btn-gray">Zavřít</button>
-      </div>
-    </div>`;
-  document.body.appendChild(modal);
-
-  modal.querySelector("#closePopisBtn").onclick = () => modal.remove();
-  modal.querySelector("#savePopisBtn").onclick = async () => {
-    const val = modal.querySelector("#editPopis").value.trim();
-    item.popis = val;
-    try {
-      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({action:"update",record:item})
-      });
-      if(!res.ok) throw new Error("HTTP "+res.status);
-      modal.remove();
-      overlay.querySelector("#popisContent").textContent = val || "–";
-      showSuccessOverlay("✅ Změny uloženy","Popis závady byl aktualizován v GitHub repozitáři.");
-      setNextToast("✅ Popis závady upraven","success");
-    } catch(e){ alert("❌ Chyba při ukládání popisu: "+e.message); }
-  };
 }
 </script>
-<!-- 🟩 KONEC C-1 -->
+<!-- 🟩 KONEC SEKCE C-1 -->
+
 
 
 
@@ -765,64 +684,37 @@ function calcDistanceCoords(a, b, c, d) {
 <!-- 🟩 KONEC C-5 -->
 
 
-<!-- 🟩 C-STYLE: CSS DETAILU ZÁKAZNÍKA (rozšířený layout) -->
 <style>
-/* === Překryv detailu === */
-.detail-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.55);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  opacity: 0;
-  transition: opacity .25s ease;
-}
-.detail-overlay.active { opacity: 1; }
-
-.detail-modal {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-  padding: 20px;
-  width: 95%;
-  max-width: 1100px;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-/* === Rozložení panelů === */
-.grid-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  align-items: start;
-}
-
-/* === Levý panel === */
+/* === Levý panel (sjednocená šířka) === */
 .left-panel {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 440px;                /* 🔹 jednotná šířka pro všechny prvky */
+  box-sizing: border-box;
 }
 
 /* 📅 Kalendář */
 #miniCalendar {
   width: 100%;
-  max-width: 405px; /* původně 330px + ~2 cm */
   margin-bottom: 12px;
 }
 
-/* 🕒 Hodiny + Panel výběru */
-.custom-time-picker {
+/* 🕒 Hodiny + panel */
+.time-row {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: flex-start;
   width: 100%;
-  max-width: 405px;
   gap: 10px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+}
+.custom-time-picker {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 6px;
 }
 .custom-time-picker select {
   font-size: 1.05em;
@@ -831,15 +723,12 @@ function calcDistanceCoords(a, b, c, d) {
   border-radius: 8px;
   padding: 4px 8px;
 }
-
-/* 🟢 Panel potvrzeného termínu */
 .term-info-box {
+  flex: 1;
   background: #f0f0f0;
   padding: 10px;
   font-weight: 600;
   border-radius: 8px;
-  width: 100%;
-  max-width: 405px;
   text-align: center;
   transition: background .3s;
 }
@@ -848,18 +737,16 @@ function calcDistanceCoords(a, b, c, d) {
 @keyframes flashGray  { 0%{background:#d6d6d6;}100%{background:#f0f0f0;} }
 @keyframes flashGreen { 0%,100%{background:#b6f7a8;}50%{background:#d8ffd2;} }
 
-/* === Tlačítka === */
+/* 🔘 Tlačítka */
 .button-row {
   display: flex;
   gap: 10px;
   margin-top: 10px;
-  justify-content: center;
   width: 100%;
-  max-width: 443px; /* +1 cm oproti kalendáři */
 }
 .btn-action {
   flex: 1;
-  padding: 10px;
+  padding: 11px;
   border: none;
   border-radius: 8px;
   font-weight: 600;
@@ -871,118 +758,29 @@ function calcDistanceCoords(a, b, c, d) {
 }
 .btn-action:hover { transform: scale(1.03); opacity: .9; }
 
+/* Barvy */
 .btn-green  { background: linear-gradient(135deg,#28a745,#6fdd72); }
 .btn-orange { background: linear-gradient(135deg,#ff9800,#ffc270); color:#222; }
 .btn-red    { background: linear-gradient(135deg,#dc3545,#f87171); }
 .btn-gray   { background: linear-gradient(135deg,#6c757d,#a0a4a7); }
 .btn-blue   { background: linear-gradient(135deg,#0046ff,#357aff); color:#fff; }
 
-/* 🧾 Tlačítko vytvořit protokol (menší výška, ale širší) */
+/* 🧾 Vytvořit protokol */
 .full-width {
   width: 100%;
-  max-width: 443px;
   padding: 10px;
   font-size: 0.95em;
   font-weight: 700;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
-/* === Pravý panel === */
-.right-panel {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-}
-
-/* Šedé boxy */
-.info-box {
-  background: #f4f5f7;
-  border-radius: 10px;
-  padding: 12px 14px;
-  margin-bottom: 14px;
-  cursor: pointer;
-  transition: background .2s;
-}
-.info-box:hover { background: #e9ecf1; }
-.box-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 6px;
-}
-.box-content p { margin: 3px 0; font-size: .92em; }
-.icon { font-size: 1.1em; color: #555; }
-
-/* 🌍 Mapa */
-.distance-banner {
-  background: #f6f6f6;
-  border-radius: 8px;
-  padding: 8px;
-  text-align: center;
-  font-weight: 600;
-  margin: 10px 0 6px 0;
-}
-#mapDetail {
-  height: 280px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  margin-top: 4px;
-}
-
-/* 💬 Editační mini modal */
-.small-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.55);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-}
-.small-inner {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.25);
-  width: 90%;
-  max-width: 420px;
-}
-.small-inner h3 {
-  text-align: center;
-  margin-bottom: 10px;
-  font-weight: 800;
-}
-.small-inner input, .small-inner textarea {
-  width: 100%;
-  box-sizing: border-box;
-  margin-bottom: 10px;
-  padding: 8px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-family: Inter, sans-serif;
-  font-size: .95em;
-}
-#editPopis { min-height: 120px; resize: vertical; }
-.modal-buttons {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-/* 📱 Mobilní úpravy */
-@media (max-width: 700px) {
-  .grid-layout { grid-template-columns: 1fr; }
-  .button-row { flex-direction: column; max-width: 100%; }
-  #mapDetail { height: 240px; }
-  .detail-modal { padding: 10px; }
-  #miniCalendar, .term-info-box, .custom-time-picker, .full-width { max-width: 100%; }
+/* 📱 Mobil */
+@media (max-width:700px){
+  .left-panel{width:100%;}
+  .time-row{flex-direction:column;}
+  .button-row{flex-direction:column;}
 }
 </style>
-<!-- 🟩 KONEC C-STYLE -->
-
-
 
 
 
