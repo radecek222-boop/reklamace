@@ -611,18 +611,7 @@ function flashBox(b, color) {
 </style>
 <!-- 🟩 KONEC ČÁSTI 3/10 -->
 
-<!-- 🛠️ DOČASNÁ OCHRANA, než se načte část 4/10 -->
-<script>
-if (typeof renderTable !== "function") {
-  function renderTable() {
-    console.log("⚠️ renderTable() zatím nenačtena – placeholder aktivní");
-  }
-}
-</script>
-
-
-
-<!-- 🟩 ZAČÁTEK ČÁSTI 4/10 (Načtení dat z Workeru po DOMContentLoaded) -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 4/10 (Načtení dat z Workeru po DOMContentLoaded – s opravou časování) -->
 <script>
 // 📦 Globální proměnné
 let dataAll = [];
@@ -645,7 +634,16 @@ document.addEventListener("DOMContentLoaded", () => {
           console.log("📄 renderTable start – počet záznamů:", data.length);
           dataAll = data;
           filteredData = [...data];
-          renderTable(dataAll);
+
+          // 🕒 Počkej, až bude DOM připravený – jistota, že tabulka existuje
+          setTimeout(() => {
+            if (typeof renderTable === "function") {
+              renderTable(dataAll);
+              console.log("✅ Tabulka vykreslena");
+            } else {
+              console.warn("⚠️ renderTable() nebyla připravena ani po timeoutu");
+            }
+          }, 400);
         })
         .catch((e) => {
           console.error("❌ Chyba načtení dat z Workeru:", e);
@@ -666,7 +664,10 @@ function reloadData() {
       console.log("✅ Znovu načteno", data.length, "záznamů");
       dataAll = data;
       filteredData = [...data];
-      renderTable(dataAll);
+      if (typeof renderTable === "function") {
+        renderTable(dataAll);
+        console.log("♻️ Tabulka znovu vykreslena");
+      }
     })
     .catch((e) => {
       alert("❌ Chyba načítání dat – " + e.message);
