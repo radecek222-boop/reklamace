@@ -401,7 +401,7 @@ function updateDebug(count) {
 
 <!-- 🟩 SEKCE C – DETAIL ZÁKAZNÍKA (rozdělená verze) -->
 <!-- ================================================= -->
-<!-- 🟩 C-1: DETAIL ZÁKAZNÍKA – klikatelné rámečky + editace -->
+<!-- 🟩 C-1: DETAIL ZÁKAZNÍKA – editace + uložení na GitHub + potvrzení -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -430,6 +430,7 @@ function openDetail(index) {
             <button id="noAnswerBtn" class="btn-action btn-orange">Nezvedá (SMS)</button>
             <button id="cancelBtn" class="btn-action btn-red">Zákazník zrušil</button>
             <button id="closeBtn" class="btn-action btn-gray">Zpět</button>
+
             <div class="extra-buttons">
               <button id="createProtocolBtn" class="btn-action btn-blue">Vytvořit protokol</button>
               <button id="exportPdfBtn" class="btn-action btn-gray">Exportovat do PDF</button>
@@ -474,25 +475,21 @@ function openDetail(index) {
   document.body.appendChild(overlay);
   setTimeout(() => overlay.classList.add("active"), 10);
 
-  // Inicializace mapy, kalendáře a tlačítek
   initCalendarAndTime(overlay, item, index);
   initMapForDetail(overlay, item);
   initDetailButtons(overlay, item, index);
 
-  // Kliknutí na box zákazníka – otevře plný detail
-  overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item);
-
-  // Kliknutí na popis – otevře editor
+  overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
   overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
 }
 
-/* 🧍‍♂️ Plný detail zákazníka – editace adresy/telefonu/emailu */
-function openCustomerDetail(item) {
+/* 🧍‍♂️ Detail zákazníka */
+function openCustomerDetail(item, overlay) {
   const modal = document.createElement("div");
   modal.className = "small-modal";
   modal.innerHTML = `
     <div class="small-inner">
-      <h3>Detail zákazníka</h3>
+      <h3>Upravit údaje zákazníka</h3>
       <label>Jméno:</label>
       <input id="editName" value="${item.zakaznik || ""}">
       <label>Adresa:</label>
@@ -501,21 +498,38 @@ function openCustomerDetail(item) {
       <input id="editPhone" value="${item.telefon || ""}">
       <label>Email:</label>
       <input id="editEmail" value="${item.email || ""}">
+      <label>Produkt / model:</label>
+      <input id="editModel" value="${item.produkt || ""}">
       <div class="modal-buttons">
-        <button id="saveCustomerBtn" class="btn-action btn-green">Uložit</button>
+        <button id="saveCustomerBtn" class="btn-action btn-green">💾 Uložit</button>
         <button id="closeCustomerBtn" class="btn-action btn-gray">Zavřít</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
 
   modal.querySelector("#closeCustomerBtn").onclick = () => modal.remove();
-  modal.querySelector("#saveCustomerBtn").onclick = () => {
-    item.zakaznik = modal.querySelector("#editName").value;
-    item.adresa = modal.querySelector("#editAddress").value;
-    item.telefon = modal.querySelector("#editPhone").value;
-    item.email = modal.querySelector("#editEmail").value;
-    modal.remove();
-    showToast("✅ Údaje zákazníka upraveny", "success");
+  modal.querySelector("#saveCustomerBtn").onclick = async () => {
+    item.zakaznik = modal.querySelector("#editName").value.trim();
+    item.adresa = modal.querySelector("#editAddress").value.trim();
+    item.telefon = modal.querySelector("#editPhone").value.trim();
+    item.email = modal.querySelector("#editEmail").value.trim();
+    item.produkt = modal.querySelector("#editModel").value.trim();
+
+    try {
+      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update", record: item })
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      modal.remove();
+      showSuccessOverlay("✅ Změny uloženy", "Data zákazníka byla aktualizována v GitHub repozitáři.");
+      setNextToast("✅ Údaje zákazníka upraveny", "success");
+      overlay.remove();
+      renderTable(dataAll);
+    } catch (e) {
+      alert("❌ Chyba při ukládání: " + e.message);
+    }
   };
 }
 
@@ -528,19 +542,31 @@ function openPopisEditor(item, overlay) {
       <h3>Upravit popis závady</h3>
       <textarea id="editPopis">${item.popis || ""}</textarea>
       <div class="modal-buttons">
-        <button id="savePopisBtn" class="btn-action btn-green">Uložit</button>
+        <button id="savePopisBtn" class="btn-action btn-green">💾 Uložit</button>
         <button id="closePopisBtn" class="btn-action btn-gray">Zavřít</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
 
   modal.querySelector("#closePopisBtn").onclick = () => modal.remove();
-  modal.querySelector("#savePopisBtn").onclick = () => {
+  modal.querySelector("#savePopisBtn").onclick = async () => {
     const val = modal.querySelector("#editPopis").value.trim();
     item.popis = val;
-    overlay.querySelector("#popisContent").textContent = val || "–";
-    modal.remove();
-    showToast("✅ Popis závady aktualizován", "success");
+
+    try {
+      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update", record: item })
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      modal.remove();
+      overlay.querySelector("#popisContent").textContent = val || "–";
+      showSuccessOverlay("✅ Změny uloženy", "Popis závady byl aktualizován v GitHub repozitáři.");
+      setNextToast("✅ Popis závady upraven", "success");
+    } catch (e) {
+      alert("❌ Chyba při ukládání popisu: " + e.message);
+    }
   };
 }
 </script>
@@ -609,8 +635,6 @@ function openPopisEditor(item, overlay) {
 }
 </style>
 <!-- 🟩 KONEC C-1 -->
-
-
 
 
 
