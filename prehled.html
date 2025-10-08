@@ -1,29 +1,21 @@
 <!-- 
 ====================================================================
-💎 WHITE GLOVE SERVICE – PŘEHLED / STATISTIKY
+💎 WHITE GLOVE SERVICE – PŘEHLED / STATISTIKY (BETA 2)
 ====================================================================
-Verze systému:       v1.0
+Verze systému:       v1.1
 Datum sestavení:     2025-10-08
 Autor:               Hugo (White Glove Service) & GPT-5
 Projekt:             WGS reklamace / servisní přehledy
 Soubory:             prehled.html, prehled.json
 Repozitář:           https://github.com/radecek222-boop/reklamace
 Popis:
-  Stránka pro administrativní přehled zakázek, výdělků techniků
-  a účtovaných služeb s možností filtrování podle období a zadavatele.
-
-Struktura:
-  A – HTML, HEAD, STYL
-  B – Hlavička a přístupové tlačítko
-  C – Přihlašovací dialog (heslo)
-  D – Filtry (období, zadavatel)
-  E – Tabulky a přehledy
-  F – Načítání dat z prehled.json
-  G – Zpracování statistik
+  Administrativní přehled zakázek, výdělků techniků a obratu.
+  - chráněno heslem (Mikes332018)
+  - filtrování podle období a typu zakázky
+  - statistiky podle zadavatele a technika
 ====================================================================
 -->
 
-<!-- 🟨 A – ZÁKLAD DOKUMENTU -->
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -107,6 +99,11 @@ tr:hover{background:#f1f6ff;}
     </select>
     <label>Od: <input type="date" id="dateFrom"></label>
     <label>Do: <input type="date" id="dateTo"></label>
+    <select id="typeSelect">
+      <option value="all" selected>Všechny typy</option>
+      <option value="reklamace">Reklamace</option>
+      <option value="pozáruční">Pozáruční servis</option>
+    </select>
     <button class="btn btn-filter" id="applyFilter">Zobrazit</button>
   </div>
 
@@ -122,26 +119,22 @@ tr:hover{background:#f1f6ff;}
     <div id="byTechnician" class="loading">Načítám...</div>
   </div>
 
-  <!-- 🟨 F – NAČÍTÁNÍ DAT -->
+  <!-- 🟨 F – SCRIPTY -->
   <script>
   let allData=[];
 
-  document.getElementById("adminBtn").addEventListener("click",()=>{
-    document.getElementById("loginSection").classList.remove("hidden");
-  });
-
-  document.getElementById("loginBtn").addEventListener("click",()=>{
-    const pass=document.getElementById("adminPass").value.trim();
-    if(pass==="Mikes332018"){
-      document.getElementById("loginSection").classList.add("hidden");
-      document.getElementById("filters").classList.remove("hidden");
-      document.getElementById("statsContent").classList.remove("hidden");
+  // 🔒 Přihlášení
+  adminBtn.onclick=()=>loginSection.classList.remove("hidden");
+  loginBtn.onclick=()=>{
+    if(adminPass.value.trim()==="Mikes332018"){
+      loginSection.classList.add("hidden");
+      filters.classList.remove("hidden");
+      statsContent.classList.remove("hidden");
       loadStats();
-    }else{
-      alert("Nesprávné heslo!");
-    }
-  });
+    }else alert("Nesprávné heslo!");
+  };
 
+  // 📥 Načtení dat
   async function loadStats(){
     try{
       const res=await fetch("prehled.json?t="+Date.now());
@@ -149,42 +142,69 @@ tr:hover{background:#f1f6ff;}
       renderStats();
     }catch(e){
       console.error(e);
-      document.getElementById("byClient").innerText="❌ Chyba načítání dat";
+      byClient.innerText="❌ Chyba načítání dat";
     }
   }
 
-  document.getElementById("applyFilter").addEventListener("click",renderStats);
+  applyFilter.onclick=renderStats;
 
+  // 🧮 Filtr + výpočet statistik
   function renderStats(){
     if(!allData.length) return;
+    const type=typeSelect.value;
+    const now=new Date();
+    let from,to;
+    const period=periodSelect.value;
 
-    // jednoduché statistiky
-    const byClient={};
-    const byTech={};
-    let totalRevenue=0;
+    // období
+    switch(period){
+      case"week":from=new Date(now);from.setDate(now.getDate()-7);break;
+      case"month":from=new Date(now);from.setMonth(now.getMonth()-1);break;
+      case"year":from=new Date(now);from.setFullYear(now.getFullYear()-1);break;
+      default:from=new Date("2000-01-01");
+    }
+    to=now;
 
-    allData.forEach(r=>{
-      const client=r.contract||"Neznámý";
-      const tech=r.technician||"Neuvedeno";
-      const price=parseFloat(r.total||0);
+    // pokud jsou ručně zadána data
+    if(dateFrom.value) from=new Date(dateFrom.value);
+    if(dateTo.value) to=new Date(dateTo.value);
 
-      byClient[client]=(byClient[client]||0)+price;
-      byTech[tech]=(byTech[tech]||0)+price;
-      totalRevenue+=price;
+    // filtrování
+    const filtered=allData.filter(r=>{
+      const d=new Date(r.datum||r.date||r.visit||"2000-01-01");
+      const inDate=d>=from && d<=to;
+      const inType=(type==="all" || (r.typ||"").toLowerCase().includes(type));
+      return inDate && inType;
     });
 
-    document.getElementById("byClient").innerHTML=makeTable(byClient,"Zadavatel","Celkem [Kč]");
-    document.getElementById("byRevenue").innerHTML=`<b>Celkový obrat:</b> ${totalRevenue.toLocaleString("cs-CZ")} Kč`;
-    document.getElementById("byTechnician").innerHTML=makeTable(byTech,"Technik","Výdělek [Kč]");
+    if(!filtered.length){
+      byClient.innerHTML=byRevenue.innerHTML=byTechnician.innerHTML=
+        "<div class='loading'>Žádné záznamy v tomto období</div>";
+      return;
+    }
+
+    // výpočty
+    const byClient={},byTech={}; let total=0;
+    filtered.forEach(r=>{
+      const client=r.contract||"Neznámý";
+      const tech=r.technician||r.technik||"Neuvedeno";
+      const price=parseFloat(r.total||r.cenaCelkem||0);
+      byClient[client]=(byClient[client]||0)+price;
+      byTech[tech]=(byTech[tech]||0)+price;
+      total+=price;
+    });
+
+    byClient.innerHTML=makeTable(byClient,"Zadavatel","Celkem [Kč]");
+    byRevenue.innerHTML=`<b>Celkový obrat:</b> ${total.toLocaleString("cs-CZ")} Kč`;
+    byTechnician.innerHTML=makeTable(byTech,"Technik","Výdělek [Kč]");
   }
 
-  function makeTable(obj,labelA,labelB){
-    let html="<table><tr><th>"+labelA+"</th><th>"+labelB+"</th></tr>";
-    for(const [k,v] of Object.entries(obj)){
-      html+=`<tr><td>${k}</td><td>${v.toLocaleString("cs-CZ")} Kč</td></tr>`;
+  function makeTable(obj,a,b){
+    let h="<table><tr><th>"+a+"</th><th>"+b+"</th></tr>";
+    for(const[k,v]of Object.entries(obj)){
+      h+=`<tr><td>${k}</td><td>${v.toLocaleString("cs-CZ")} Kč</td></tr>`;
     }
-    html+="</table>";
-    return html;
+    return h+"</table>";
   }
   </script>
 </div>
