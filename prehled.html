@@ -426,6 +426,59 @@ async function showTechnicianStats(selectedTech) {
 
 
 
+<script>
+// 🎯 Otevření modálních oken po kliknutí na tlačítka
+const clientModal = document.getElementById("clientModal");
+const techModal = document.getElementById("techModal");
+const periodModal = document.getElementById("periodModal");
+
+document.getElementById("selectClientBtn").addEventListener("click", () => {
+  clientModal.classList.add("active");
+});
+document.getElementById("selectTechBtn").addEventListener("click", () => {
+  techModal.classList.add("active");
+});
+document.getElementById("selectPeriodBtn").addEventListener("click", () => {
+  periodModal.classList.add("active");
+});
+
+// 🎯 Zavírání tlačítkem „Zavřít“ v každém okně
+document.getElementById("closeClients").addEventListener("click", () => {
+  clientModal.classList.remove("active");
+});
+document.getElementById("closeTech").addEventListener("click", () => {
+  techModal.classList.remove("active");
+});
+document.getElementById("closePeriod").addEventListener("click", () => {
+  periodModal.classList.remove("active");
+});
+
+// 💾 Potvrzení (zatím jen zavře a dá vizuální odezvu)
+["confirmClients", "confirmTech", "confirmPeriod"].forEach(id => {
+  const btn = document.getElementById(id);
+  btn.addEventListener("click", e => {
+    btn.textContent = "✅ Uloženo";
+    btn.disabled = true;
+    btn.style.opacity = "0.8";
+    setTimeout(() => {
+      btn.textContent = "Potvrdit";
+      btn.disabled = false;
+      btn.style.opacity = "1";
+      btn.closest(".modal").classList.remove("active");
+    }, 800);
+  });
+});
+</script>
+
+
+
+
+
+
+
+
+
+
 
 
 <script>
