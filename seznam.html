@@ -463,7 +463,7 @@ window.addEventListener("DOMContentLoaded", loadData);
 
 
 
-<!-- 🟩 ZAČÁTEK ČÁSTI 3/10 (Detail zákazníka – finální layout se 4 tlačítky a toast napojením) -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 3/10 (Detail zákazníka – finální s tlačítky, mapou a fotkami) -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -477,7 +477,7 @@ function openDetail(index) {
     <div class="detail-modal">
       <div class="grid-layout">
 
-        <!-- 🧭 VLEVO – kalendář, čas + tlačítka -->
+        <!-- 🧭 LEVÝ PANEL – kalendář, čas + tlačítka -->
         <div class="left-panel">
           <div id="miniCalendar"></div>
 
@@ -491,21 +491,20 @@ function openDetail(index) {
             <button id="saveTermBtn"  class="btn-action btn-green">Uložit / Změnit</button>
             <button id="noAnswerBtn"  class="btn-action btn-orange">Nezvedá (SMS)</button>
             <button id="cancelBtn"    class="btn-action btn-red">Zákazník zrušil</button>
-            <button id="closeBtn"     class="btn-action btn-gray">Zpět</button>
           </div>
         </div>
 
-        <!-- 🧾 VPRAVO – detail zákazníka, banner, mapa -->
+        <!-- 🧾 PRAVÝ PANEL – detail zákazníka + mapa -->
         <div class="right-panel">
           <div class="customer-info">
             <h2>${item.zakaznik || "Zákazník"}</h2>
-            <p><strong>Adresa:</strong> 
+            <p><strong>Adresa:</strong>
               <a href="https://waze.com/ul?q=${encodeURIComponent(adresaUpravena)}" target="_blank">${adresaUpravena}</a></p>
-            <p><strong>Telefon:</strong> 
-              <a href="tel:${(item.telefon||"").replace("+420","").trim()}">${(item.telefon||"").replace("+420","").trim()}</a></p>
-            <p><strong>Email:</strong> ${item.email||"–"}</p>
-            <p><strong>Produkt / model:</strong> ${item.produkt||"–"}</p>
-            <p><strong>Popis závady:</strong> ${item.popis||"–"}</p>
+            <p><strong>Telefon:</strong>
+              <a href="tel:${(item.telefon||'').replace('+420','').trim()}">${(item.telefon||'').replace('+420','').trim()}</a></p>
+            <p><strong>Email:</strong> ${item.email || "–"}</p>
+            <p><strong>Produkt / model:</strong> ${item.produkt || "–"}</p>
+            <p><strong>Popis závady:</strong> ${item.popis || "–"}</p>
           </div>
 
           <div class="distance-banner" id="mapDistance">📍 Vzdálenost od WGS – počítám...</div>
@@ -516,176 +515,120 @@ function openDetail(index) {
   `;
 
   document.body.appendChild(overlay);
-  setTimeout(()=>overlay.classList.add("active"),10);
+  setTimeout(() => overlay.classList.add("active"), 10);
 
   const id = item.cislo || `radek-${index}`;
   const infoBox = overlay.querySelector("#termInfoBox");
 
-  /* 🗓️ Kalendář – zůstává označený den */
-  const miniCal = new VanillaCalendar("#miniCalendar",{
-    settings:{lang:"cs",selection:{day:"single"},visibility:{theme:"light"}},
-    actions:{clickDay:e=>{
-      const chosen=e.target.dataset.calendarDay;
-      if(chosen){
-        overlay.dataset.datum=chosen;
-        e.target.classList.add("vanilla-calendar-day__btn_selected");
-        updateTermInfoBox(infoBox,chosen,null);
-        flashBox(infoBox,"gray");
+  /* 🗓️ Kalendář */
+  const miniCal = new VanillaCalendar("#miniCalendar", {
+    settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
+    actions: {
+      clickDay: e => {
+        const chosen = e.target.dataset.calendarDay;
+        if (chosen) {
+          overlay.dataset.datum = chosen;
+          e.target.classList.add("vanilla-calendar-day__btn_selected");
+          updateTermInfoBox(infoBox, chosen, null);
+          flashBox(infoBox, "gray");
+        }
       }
-    }}
+    }
   });
   miniCal.init();
 
   /* 🕒 Hodiny */
-  const hSel=overlay.querySelector("#hours"),mSel=overlay.querySelector("#minutes");
-  for(let h=7;h<20;h++)hSel.innerHTML+=`<option>${String(h).padStart(2,"0")}</option>`;
-  for(let m=0;m<60;m+=5)mSel.innerHTML+=`<option>${String(m).padStart(2,"0")}</option>`;
-  hSel.addEventListener("change",()=>updateTime(infoBox,overlay));
-  mSel.addEventListener("change",()=>updateTime(infoBox,overlay));
+  const hSel = overlay.querySelector("#hours"), mSel = overlay.querySelector("#minutes");
+  for (let h = 7; h < 20; h++) hSel.innerHTML += `<option>${String(h).padStart(2, "0")}</option>`;
+  for (let m = 0; m < 60; m += 5) mSel.innerHTML += `<option>${String(m).padStart(2, "0")}</option>`;
+  hSel.addEventListener("change", () => updateTime(infoBox, overlay));
+  mSel.addEventListener("change", () => updateTime(infoBox, overlay));
 
-  /* 🗺️ Mapa + vzdálenost */
-  if(item.adresa){
-    const wgs=[50.049,14.523];
-    const map=L.map(overlay.querySelector("#mapDetail")).setView(wgs,9);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);
-    const wgsM=L.marker(wgs,{title:"WGS"}).addTo(map);
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`)
-      .then(r=>r.json()).then(d=>{
-        if(d[0]){
-          const c=[+d[0].lat,+d[0].lon];
-          const cust=L.marker(c,{title:"Zákazník"}).addTo(map);
-          L.polyline([wgs,c],{color:"#0046ff",weight:3}).addTo(map);
-          const dist=calcDistanceCoords(wgs[0],wgs[1],c[0],c[1]);
-          overlay.querySelector("#mapDistance").innerHTML=`Vzdálenost od WGS: ${dist.toFixed(1)} km`;
-          map.fitBounds(L.featureGroup([wgsM,cust]).getBounds().pad(0.3));
-        }
-      });
-  }
-
-  /* 🟩 Uložit / Změnit */
-  overlay.querySelector("#saveTermBtn").onclick=()=>{
-    const datum=overlay.dataset.datum;
-    const cas=`${hSel.value}:${mSel.value}`;
-    if(!datum||!cas)return alert("Vyberte datum a čas!");
-    ulozitTerminNaGitHub(item,id,datum,cas,overlay,overlay.querySelector("#saveTermBtn"),infoBox);
-    setNextToast("✅ Termín úspěšně uložen","success");
-    setTimeout(()=>{
-      if(item.telefon){
-        const tel=item.telefon.replace(/\+?420|\s+/g,"");
-        const d=new Date(datum);
-        const den=d.toLocaleDateString("cs-CZ",{weekday:"long",day:"numeric",month:"long"});
-        const sms=`Dobrý den, Váš termín servisu byl potvrzen na ${den} v ${cas}. WGS`;
-        window.location.href=`sms:+420${tel}?body=${encodeURIComponent(sms)}`;
-      }
-    },1600);
+  /* 🟩 Ulož / změň termín */
+  overlay.querySelector("#saveTermBtn").onclick = () => {
+    const datum = overlay.dataset.datum;
+    const cas = `${hSel.value}:${mSel.value}`;
+    if (!datum || !cas) return alert("Vyberte datum a čas!");
+    ulozitTerminNaGitHub(item, id, datum, cas, overlay, overlay.querySelector("#saveTermBtn"), infoBox);
+    setNextToast("✅ Termín úspěšně uložen", "success");
   };
 
-  /* 🟧 Nezvedá (SMS) */
-  overlay.querySelector("#noAnswerBtn").onclick=async()=>{
-    stavy[id]="nezveda"; item.stav="nezveda";
-    try{
-      await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({action:"update",record:item})
-      });
-    }catch(e){console.error(e);}
-    setNextToast("📩 SMS o nezvednutí byla odeslána","warning");
-    const smsBox=document.createElement("div");
-    smsBox.className="successOverlay";
-    smsBox.innerHTML=`<div class="successInner" style="border-left:6px solid #ff9800">
-      <div class="icon">📩</div><div class="title" style="color:#ff9800">Zákazník nezvedá</div>
-      <div class="text">Byla odeslána SMS s žádostí o zpětné volání</div></div>`;
-    document.body.appendChild(smsBox);
-    setTimeout(()=>smsBox.classList.add("active"),50);
-    if(item.telefon){
-      const tel=item.telefon.replace(/\+?420|\s+/g,"");
-      const sms=`Dobrý den, volali jsme ohledně Vaší reklamace. Prosím ozvěte se zpět. WGS`;
-      setTimeout(()=>{window.location.href=`sms:+420${tel}?body=${encodeURIComponent(sms)}`;},600);
-    }
-    setTimeout(()=>{smsBox.classList.remove("active");setTimeout(()=>{smsBox.remove();overlay.remove();renderTable(dataAll);},400);},1500);
+  /* 🟧 Nezvedá */
+  overlay.querySelector("#noAnswerBtn").onclick = async () => {
+    stavy[id] = "nezveda";
+    item.stav = "nezveda";
+    await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "update", record: item })
+    });
+    setNextToast("📩 Zákazník nezvedá", "warning");
+    overlay.remove();
+    renderTable(dataAll);
   };
 
-  /* 🟥 Zákazník zrušil (SMS + GitHub) */
-  overlay.querySelector("#cancelBtn").onclick=async()=>{
-    stavy[id]="zruseno"; item.stav="zruseno";
-    setNextToast("❌ Termín byl zrušen zákazníkem","error");
-    const msg=document.createElement("div");
-    msg.className="successOverlay";
-    msg.innerHTML=`<div class="successInner" style="border-left:6px solid #dc3545">
-      <div class="icon">❌</div><div class="title" style="color:#dc3545">Termín byl zrušen zákazníkem</div>
-      <div class="text">Záznam přesunut do „Hotové reklamace“</div></div>`;
-    document.body.appendChild(msg);
-    setTimeout(()=>msg.classList.add("active"),50);
-    try{
-      await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({action:"update",record:item})
-      });
-    }catch(e){console.error(e);}
-    setTimeout(()=>{
-      if(item.telefon){
-        const tel=item.telefon.replace(/\+?420|\s+/g,"");
-        const d=item.datum?new Date(item.datum):null;
-        let datumText="";
-        if(d){
-          const den=d.toLocaleDateString("cs-CZ",{weekday:"long",day:"numeric",month:"long"});
-          datumText=item.cas?` dne ${den} v ${item.cas}`:` dne ${den}`;
-        }
-        const sms=`Dobrý den, Váš termín servisu${datumText} byl zrušen na základě Vašeho požadavku. WGS`;
-        window.location.href=`sms:+420${tel}?body=${encodeURIComponent(sms)}`;
-      }
-    },900);
-    setTimeout(()=>{msg.classList.remove("active");setTimeout(()=>{msg.remove();overlay.remove();renderTable(dataAll);},400);},1500);
+  /* 🟥 Zákazník zrušil */
+  overlay.querySelector("#cancelBtn").onclick = async () => {
+    stavy[id] = "zruseno";
+    item.stav = "zruseno";
+    await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "update", record: item })
+    });
+    setNextToast("❌ Termín byl zrušen", "error");
+    overlay.remove();
+    renderTable(dataAll);
   };
 
-  overlay.querySelector("#closeBtn").onclick=()=>overlay.remove();
+  // 📞 Doplníme tlačítka Protokol + Zpět + mapa + fotky
+  extendOpenDetail(item);
 }
 
 /* 📦 Pomocné funkce */
-function updateTermInfoBox(b,d,c){
-  const date=new Date(d);
-  const den=date.toLocaleDateString("cs-CZ",{weekday:"long",day:"numeric",month:"long"});
-  b.textContent=c?`${den} – ${c}`:`${den}`;
+function updateTermInfoBox(box, d, c) {
+  const date = new Date(d);
+  const den = date.toLocaleDateString("cs-CZ", { weekday: "long", day: "numeric", month: "long" });
+  box.textContent = c ? `${den} – ${c}` : `${den}`;
 }
-function updateTime(b,o){
-  const d=o.dataset.datum;if(!d)return;
-  const c=`${o.querySelector("#hours").value}:${o.querySelector("#minutes").value}`;
-  updateTermInfoBox(b,d,c);flashBox(b,"green");
+function updateTime(box, overlay) {
+  const d = overlay.dataset.datum;
+  if (!d) return;
+  const c = `${overlay.querySelector("#hours").value}:${overlay.querySelector("#minutes").value}`;
+  updateTermInfoBox(box, d, c);
+  flashBox(box, "green");
 }
-function flashBox(b,color){
-  b.classList.remove("flash-gray","flash-green");void b.offsetWidth;
-  b.classList.add(color==="green"?"flash-green":"flash-gray");
-}
-function calcDistanceCoords(a,b,c,d){
-  const R=6371,dL=(c-a)*Math.PI/180,dO=(d-b)*Math.PI/180;
-  const x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dO/2)**2;
-  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+function flashBox(b, color) {
+  b.classList.remove("flash-gray", "flash-green");
+  void b.offsetWidth;
+  b.classList.add(color === "green" ? "flash-green" : "flash-gray");
 }
 </script>
 
 <style>
-.grid-layout{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-.left-panel,.right-panel{background:#fff;border-radius:10px;padding:10px;}
-#miniCalendar{margin-bottom:12px;}
-.custom-time-picker{display:flex;justify-content:center;align-items:center;gap:6px;margin-bottom:10px;}
-.custom-time-picker select{font-size:1.1em;font-weight:600;border:1px solid #ccc;border-radius:8px;padding:5px 10px;}
-.term-info-box{background:#f0f0f0;padding:10px;text-align:center;font-weight:600;border-radius:8px;margin-top:8px;transition:background .3s;}
-.flash-gray{animation:flashGray 0.4s;}
-.flash-green{animation:flashGreen 0.5s 2;}
-@keyframes flashGray{0%{background:#d6d6d6;}100%{background:#f0f0f0;}}
-@keyframes flashGreen{0%,100%{background:#b6f7a8;}50%{background:#d8ffd2;}}
-.customer-info h2{text-align:center;margin:0 0 8px;}
-.customer-info p{margin:4px 0;font-size:.95em;color:#000;}
-.distance-banner{background:#f6f6f6;border-radius:8px;padding:8px;text-align:center;font-weight:600;margin:10px 0;}
-#mapDetail{height:260px;border-radius:10px;border:1px solid #ddd;}
-.left-buttons{display:flex;flex-direction:column;gap:10px;margin-top:10px;}
-.btn-action{padding:10px;border:none;border-radius:8px;font-weight:600;color:#fff;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,0.15);}
-.btn-green{background:linear-gradient(135deg,#28a745,#6fdd72);}
-.btn-orange{background:linear-gradient(135deg,#ff9800,#ffc270);color:#222;}
-.btn-red{background:linear-gradient(135deg,#dc3545,#f87171);}
-.btn-gray{background:linear-gradient(135deg,#6c757d,#a0a4a7);}
+.grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.left-panel, .right-panel { background: #fff; border-radius: 10px; padding: 10px; }
+#miniCalendar { margin-bottom: 12px; }
+.custom-time-picker { display: flex; justify-content: center; align-items: center; gap: 6px; margin-bottom: 10px; }
+.custom-time-picker select { font-size: 1.1em; font-weight: 600; border: 1px solid #ccc; border-radius: 8px; padding: 5px 10px; }
+.term-info-box { background: #f0f0f0; padding: 10px; text-align: center; font-weight: 600; border-radius: 8px; margin-top: 8px; transition: background .3s; }
+.flash-gray { animation: flashGray 0.4s; }
+.flash-green { animation: flashGreen 0.5s 2; }
+@keyframes flashGray { 0%{background:#d6d6d6;} 100%{background:#f0f0f0;} }
+@keyframes flashGreen { 0%,100%{background:#b6f7a8;} 50%{background:#d8ffd2;} }
+.customer-info h2 { text-align: center; margin: 0 0 8px; }
+.customer-info p { margin: 4px 0; font-size: .95em; color: #000; }
+.distance-banner { background: #f6f6f6; border-radius: 8px; padding: 8px; text-align: center; font-weight: 600; margin: 10px 0; }
+#mapDetail { height: 260px; border-radius: 10px; border: 1px solid #ddd; }
+.left-buttons { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.btn-action { padding: 10px; border: none; border-radius: 8px; font-weight: 600; color: #fff; cursor: pointer; box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
+.btn-green { background: linear-gradient(135deg,#28a745,#6fdd72); }
+.btn-orange { background: linear-gradient(135deg,#ff9800,#ffc270); color: #222; }
+.btn-red { background: linear-gradient(135deg,#dc3545,#f87171); }
+.btn-gray { background: linear-gradient(135deg,#6c757d,#a0a4a7); }
 </style>
 <!-- 🟩 KONEC ČÁSTI 3/10 -->
+
 
 
 
@@ -1731,186 +1674,177 @@ document.addEventListener("DOMContentLoaded", () => {
 }
 </style>
 
-<!-- 🟨 KONEC ČÁSTI 9/10 -->
-
-<!-- 🟩 ZAČÁTEK ČÁSTI 10/10 – WGS mapa + náhled foto se slideshow -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 10/10 (Foto + Protokol + Mapa Do Dubče 364 Praha 9 Běchovice) -->
 <script>
-// 🧭 Výchozí pozice WGS (Do Dubče 364, Praha 9 – Běchovice)
+// 🧭 Výchozí pozice WGS
 const WGS_COORDS = [50.07945, 14.60178];
 const WGS_ADRESA = "Do Dubče 364, Praha 9 – Běchovice";
 
-// 🌍 Inicializace mapy
-let map = L.map("map", {
-  center: WGS_COORDS,
-  zoom: 10,
-  zoomControl: true,
-  attributionControl: false
-});
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+// 🚗 Zobrazení trasy od WGS k zákazníkovi
+function showRouteToCustomer(container, address, customerName) {
+  const map = L.map(container).setView(WGS_COORDS, 9);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{ attribution:"© OpenStreetMap" }).addTo(map);
 
-// 📍 Ikony
-const iconStart = L.icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/512/3448/3448339.png",
-  iconSize: [30, 30],
-  iconAnchor: [15, 30]
-});
-const iconCustomer = L.icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/512/447/447031.png",
-  iconSize: [30, 30],
-  iconAnchor: [15, 30]
-});
+  const iconWGS = L.icon({ iconUrl:"https://cdn-icons-png.flaticon.com/512/3448/3448339.png", iconSize:[30,30], iconAnchor:[15,30] });
+  const iconCust = L.icon({ iconUrl:"https://cdn-icons-png.flaticon.com/512/447/447031.png", iconSize:[30,30], iconAnchor:[15,30] });
 
-// 🟦 Marker pro WGS
-const markerStart = L.marker(WGS_COORDS, { icon: iconStart })
-  .addTo(map)
-  .bindPopup(`<b>WHITE GLOVE SERVICE</b><br>${WGS_ADRESA}`);
+  const wgsMarker = L.marker(WGS_COORDS,{icon:iconWGS}).addTo(map).bindPopup(`<b>WHITE GLOVE SERVICE</b><br>${WGS_ADRESA}`);
 
-// 🚗 Trasa k zákazníkovi
-function showRouteToCustomer(customerCoords, customerName) {
-  map.eachLayer(layer => {
-    if (layer instanceof L.Polyline && !layer._url) map.removeLayer(layer);
-  });
-  const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${WGS_COORDS[1]},${WGS_COORDS[0]};${customerCoords[1]},${customerCoords[0]}?overview=full&geometries=geojson`;
-  fetch(osrmUrl)
-    .then(r => r.json())
-    .then(data => {
-      if (!data.routes?.length) return;
-      const route = data.routes[0];
-      const line = L.geoJSON(route.geometry, { style: { color: "#0046ff", weight: 4, opacity: 0.8 } }).addTo(map);
-      const distKm = (route.distance / 1000).toFixed(1);
-      const timeMin = Math.round(route.duration / 60);
-      L.marker(customerCoords, { icon: iconCustomer })
-        .addTo(map)
-        .bindPopup(`<b>${customerName}</b><br>${distKm} km, ${timeMin} min`);
-      map.fitBounds(line.getBounds(), { padding: [40, 40] });
+  fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+    .then(r=>r.json()).then(data=>{
+      if(!data[0]) return;
+      const coords=[parseFloat(data[0].lat),parseFloat(data[0].lon)];
+      const cust=L.marker(coords,{icon:iconCust}).addTo(map).bindPopup(`<b>${customerName}</b><br>${address}`);
+      const line=L.polyline([WGS_COORDS,coords],{color:"#0046ff",weight:4,opacity:0.8}).addTo(map);
+      map.fitBounds(L.featureGroup([wgsMarker,cust]).getBounds().pad(0.3));
+
+      const R=6371;
+      const dLat=(coords[0]-WGS_COORDS[0])*Math.PI/180;
+      const dLon=(coords[1]-WGS_COORDS[1])*Math.PI/180;
+      const a=Math.sin(dLat/2)**2+Math.cos(WGS_COORDS[0]*Math.PI/180)*Math.cos(coords[0]*Math.PI/180)*Math.sin(dLon/2)**2;
+      const dist=R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+      const km=dist.toFixed(1);
+      document.getElementById("mapDistance").innerHTML=`📍 Vzdálenost od WGS: ${km} km`;
     });
 }
 
-// 🖼️ Tlačítko "Náhled foto" vedle jména
-function addPhotoButtonIfExists(fotky = []) {
-  const nameHeader = document.querySelector(".detail-modal h2");
-  if (!nameHeader) return;
-  const oldBtn = document.getElementById("btnPhotoView");
-  if (oldBtn) oldBtn.remove();
-
-  if (!fotky || !fotky.length) return;
-
-  const btn = document.createElement("button");
-  btn.id = "btnPhotoView";
-  btn.textContent = "Náhled foto";
-  btn.className = "btn-photo-view";
-  btn.onclick = () => openPhotoSlideshow(fotky);
-  nameHeader.insertAdjacentElement("afterend", btn);
+// 🖼️ Tlačítko Náhled foto
+function renderPhotoButton(fotky=[]) {
+  const nameHeader=document.querySelector(".detail-modal h2");
+  if(!nameHeader)return;
+  let btn=document.getElementById("btnPhotoView");
+  if(!btn){
+    btn=document.createElement("button");
+    btn.id="btnPhotoView";
+    nameHeader.insertAdjacentElement("afterend",btn);
+  }
+  btn.className="btn-photo-view";
+  btn.textContent="Náhled foto";
+  if(fotky.length){
+    btn.disabled=false;
+    btn.onclick=()=>openPhotoSlideshow(fotky);
+  }else{
+    btn.disabled=true;
+    btn.onclick=null;
+  }
 }
 
-// 🖼️ Fullscreen slideshow
-function openPhotoSlideshow(fotky = []) {
-  if (!fotky.length) return;
-
-  let current = 0;
-  const overlay = document.createElement("div");
-  overlay.className = "photo-overlay";
-  overlay.innerHTML = `
+// 📷 Slideshow fotek
+function openPhotoSlideshow(fotky=[]){
+  if(!fotky.length)return;
+  let current=0;
+  const overlay=document.createElement("div");
+  overlay.className="photo-overlay";
+  overlay.innerHTML=`
     <div class="photo-modal">
       <img id="slideImg" src="https://raw.githubusercontent.com/radecek222-boop/reklamace/main/foto/${encodeURIComponent(fotky[0])}" alt="foto">
       <button class="close-photo">×</button>
       <button class="nav prev">❮</button>
       <button class="nav next">❯</button>
-    </div>
-  `;
+    </div>`;
   document.body.appendChild(overlay);
 
-  const img = overlay.querySelector("#slideImg");
-  const close = overlay.querySelector(".close-photo");
-  const prev = overlay.querySelector(".prev");
-  const next = overlay.querySelector(".next");
+  const img=overlay.querySelector("#slideImg");
+  const prev=overlay.querySelector(".prev");
+  const next=overlay.querySelector(".next");
+  const close=overlay.querySelector(".close-photo");
 
-  function updateSlide() {
-    img.src = `https://raw.githubusercontent.com/radecek222-boop/reklamace/main/foto/${encodeURIComponent(fotky[current])}`;
-  }
-
-  close.onclick = () => overlay.remove();
-  prev.onclick = () => { current = (current - 1 + fotky.length) % fotky.length; updateSlide(); };
-  next.onclick = () => { current = (current + 1) % fotky.length; updateSlide(); };
-
-  // swipe gesta
-  let startX = 0;
-  overlay.addEventListener("touchstart", e => startX = e.touches[0].clientX);
-  overlay.addEventListener("touchend", e => {
-    const diff = e.changedTouches[0].clientX - startX;
-    if (diff > 50) prev.onclick();
-    if (diff < -50) next.onclick();
+  const update=()=>img.src=`https://raw.githubusercontent.com/radecek222-boop/reklamace/main/foto/${encodeURIComponent(fotky[current])}`;
+  close.onclick=()=>overlay.remove();
+  prev.onclick=()=>{current=(current-1+fotky.length)%fotky.length;update();};
+  next.onclick=()=>{current=(current+1)%fotky.length;update();};
+  let startX=0;
+  overlay.addEventListener("touchstart",e=>startX=e.touches[0].clientX);
+  overlay.addEventListener("touchend",e=>{
+    const diff=e.changedTouches[0].clientX-startX;
+    if(diff>50)prev.onclick();
+    if(diff<-50)next.onclick();
   });
 }
 
+// 🧾 Tlačítka pod "Zákazník zrušil"
+function renderProtocolButtons(zakaznik,email) {
+  const panel=document.querySelector(".left-buttons");
+  if(!panel)return;
+  let extra=document.getElementById("protocolButtons");
+  if(extra)extra.remove();
+
+  extra=document.createElement("div");
+  extra.id="protocolButtons";
+  extra.className="protocol-section";
+  extra.innerHTML=`
+    <button id="btnCreatePDF" class="btn-blue">Vytvořit protokol</button>
+    <button id="btnBack" class="btn-gray">Zpět</button>
+  `;
+  panel.insertAdjacentElement("afterend",extra);
+
+  document.getElementById("btnCreatePDF").onclick=()=>openProtocolModal(zakaznik,email);
+  document.getElementById("btnBack").onclick=()=>document.querySelector(".detail-overlay").remove();
+}
+
+// 📧 Modal okno – odeslání PDF
+function openProtocolModal(zakaznik,email) {
+  const modal=document.createElement("div");
+  modal.className="protocol-overlay";
+  modal.innerHTML=`
+    <div class="protocol-modal">
+      <h3>Odeslat protokol e-mailem</h3>
+      <p><strong>Zákazník:</strong> ${zakaznik}</p>
+      <input type="email" id="mailTo" placeholder="${email || 'např. info@firma.cz'}">
+      <div class="protocol-actions">
+        <button id="exportPDF" class="btn-blue">Exportovat do PDF</button>
+        <button id="closeProtocol" class="btn-gray">Zavřít</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  document.getElementById("closeProtocol").onclick=()=>modal.remove();
+  document.getElementById("exportPDF").onclick=()=>{
+    const mail=document.getElementById("mailTo").value.trim()||email||"";
+    alert(`📤 Protokol exportován a připraven k odeslání na: ${mail}`);
+    modal.remove();
+  };
+}
+
+// 💎 Volání při otevření detailu
+function extendOpenDetail(item) {
+  renderPhotoButton(item.fotky);
+  renderProtocolButtons(item.zakaznik,item.email);
+  const mapDiv=document.querySelector("#mapDetail");
+  if(mapDiv) showRouteToCustomer(mapDiv,item.adresa,item.zakaznik);
+}
+
 // 🎨 Styl
-const style = document.createElement("style");
-style.textContent = `
-  .btn-photo-view {
-    background: #eee;
-    border: 1px solid #ccc;
-    color: #333;
-    padding: 5px 10px;
-    margin-left: 10px;
-    border-radius: 6px;
-    font-size: 0.85em;
-    cursor: pointer;
-  }
-  .btn-photo-view:hover {
-    background: #ddd;
-  }
-  .photo-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.9);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 99999;
-  }
-  .photo-modal {
-    position: relative;
-    max-width: 90vw;
-    max-height: 90vh;
-  }
-  .photo-modal img {
-    width: 100%;
-    height: auto;
-    border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.4);
-  }
-  .close-photo {
-    position: absolute;
-    top: -15px;
-    right: -15px;
-    width: 36px;
-    height: 36px;
-    background: white;
-    border: none;
-    border-radius: 50%;
-    font-size: 24px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  .nav {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(255,255,255,0.5);
-    border: none;
-    font-size: 32px;
-    padding: 8px 12px;
-    border-radius: 50%;
-    cursor: pointer;
-    color: black;
-  }
-  .nav.prev { left: -50px; }
-  .nav.next { right: -50px; }
-  @media (max-width:600px) {
-    .nav.prev { left: 10px; }
-    .nav.next { right: 10px; }
-  }
+const st=document.createElement("style");
+st.textContent=`
+.btn-photo-view {
+  background:#f0f0f0;
+  border:1px solid #ccc;
+  color:#333;
+  padding:6px 12px;
+  margin-left:10px;
+  border-radius:6px;
+  font-size:0.85em;
+  cursor:pointer;
+  transition:0.2s;
+}
+.btn-photo-view:disabled{opacity:0.5;cursor:default;}
+.btn-photo-view:hover:not(:disabled){background:#ddd;}
+.photo-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;justify-content:center;align-items:center;z-index:99999;}
+.photo-modal{position:relative;max-width:90vw;max-height:90vh;}
+.photo-modal img{width:100%;height:auto;border-radius:8px;box-shadow:0 0 20px rgba(0,0,0,0.4);}
+.close-photo{position:absolute;top:-15px;right:-15px;width:36px;height:36px;background:white;border:none;border-radius:50%;font-size:24px;font-weight:bold;cursor:pointer;}
+.nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.5);border:none;font-size:32px;padding:8px 12px;border-radius:50%;cursor:pointer;color:black;}
+.nav.prev{left:-50px;}
+.nav.next{right:-50px;}
+@media(max-width:600px){.nav.prev{left:10px;}.nav.next{right:10px;}}
+.btn-blue{background:linear-gradient(135deg,#0046ff,#357aff);color:#fff;padding:10px 20px;border:none;border-radius:8px;font-weight:600;cursor:pointer;}
+.btn-gray{background:#eee;color:#333;padding:10px 20px;border:1px solid #ccc;border-radius:8px;font-weight:600;cursor:pointer;}
+.protocol-section{margin-top:15px;display:flex;flex-direction:column;gap:10px;}
+.protocol-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;justify-content:center;align-items:center;z-index:99999;}
+.protocol-modal{background:#fff;border-radius:10px;padding:25px;width:320px;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,0.3);}
+.protocol-modal input{width:100%;padding:8px;margin-top:10px;border:1px solid #ccc;border-radius:6px;font-size:0.9em;}
+.protocol-actions{display:flex;justify-content:center;gap:10px;margin-top:15px;}
 `;
-document.head.appendChild(style);
+document.head.appendChild(st);
 </script>
 <!-- 🟩 KONEC ČÁSTI 10/10 -->
