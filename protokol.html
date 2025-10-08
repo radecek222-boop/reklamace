@@ -707,41 +707,7 @@ function saveAndMail() {
   
 <!-- 🟩 KONEC ČÁSTI J -->
 
-<!-- 🟩 ZAČÁTEK ČÁSTI X – Uložení změn zákazníka přes localStorage + GitHub Worker -->
-<script>
-// 📦 Dočasné uložení změn při úpravě detailu
-function saveCustomerEdit(updatedItem) {
-  const existing = JSON.parse(localStorage.getItem("updatedRecords") || "[]");
-  const index = existing.findIndex(r => r.cislo === updatedItem.cislo);
-  if (index >= 0) existing[index] = updatedItem;
-  else existing.push(updatedItem);
-  localStorage.setItem("updatedRecords", JSON.stringify(existing));
-  console.log("💾 Lokálně uloženo k synchronizaci:", existing);
-}
 
-// 🧩 Po uzavření detailu (nebo stránka zavírána)
-window.addEventListener("beforeunload", () => {
-  const updates = localStorage.getItem("updatedRecords");
-  if (updates) sendUpdatesToGitHub(updates);
-});
-
-// 🚀 Odeslání všech lokálních změn na GitHub přes Workera
-async function sendUpdatesToGitHub(jsonData) {
-  try {
-    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/update", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: jsonData
-    });
-    if (!res.ok) throw new Error(await res.text());
-    console.log("✅ Změny úspěšně odeslány na GitHub.");
-    localStorage.removeItem("updatedRecords");
-  } catch (err) {
-    console.warn("⚠️ Nepodařilo se odeslat změny:", err.message);
-  }
-}
-</script>
-<!-- 🟩 KONEC ČÁSTI X -->
 
   </div>
 </body>
