@@ -401,7 +401,7 @@ function updateDebug(count) {
 
 <!-- 🟩 SEKCE C – DETAIL ZÁKAZNÍKA (rozdělená verze) -->
 <!-- ================================================= -->
-<!-- 🟩 C-1: OPRAVENÉ OTEVŘENÍ DETAILU (modal + zarovnání mapy s tlačítky) -->
+<!-- 🟩 C-1: OPRAVENÉ OTEVŘENÍ DETAILU (modal + zarovnání mapy se spodkem tlačítek) -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -409,7 +409,6 @@ function openDetail(index) {
 
   const overlay = document.createElement("div");
   overlay.className = "detail-overlay";
-
   const adresaUpravena = normalizePrahaAddress(item.adresa || "");
 
   overlay.innerHTML = `
@@ -418,13 +417,13 @@ function openDetail(index) {
 
         <!-- 🧭 LEVÝ PANEL – kalendář, čas, tlačítka -->
         <div class="left-panel">
-          <div id="miniCalendar"></div>
-
-          <div class="custom-time-picker">
-            <select id="hours"></select><span>:</span><select id="minutes"></select>
+          <div>
+            <div id="miniCalendar"></div>
+            <div class="custom-time-picker">
+              <select id="hours"></select><span>:</span><select id="minutes"></select>
+            </div>
+            <div class="term-info-box" id="termInfoBox">Vyberte datum a čas</div>
           </div>
-
-          <div class="term-info-box" id="termInfoBox">Vyberte datum a čas</div>
 
           <div class="left-buttons">
             <button id="saveTermBtn" class="btn-action btn-green">Uložit / Změnit</button>
@@ -444,11 +443,12 @@ function openDetail(index) {
           <div class="customer-info">
             <h2>${item.zakaznik || "Zákazník"}</h2>
             <p><strong>Adresa:</strong>
-              <a href="https://waze.com/ul?q=${encodeURIComponent(adresaUpravena)}"
-                 target="_blank">${adresaUpravena}</a></p>
+              <a href="https://waze.com/ul?q=${encodeURIComponent(adresaUpravena)}" target="_blank">${adresaUpravena}</a>
+            </p>
             <p><strong>Telefon:</strong>
               <a href="tel:${(item.telefon||"").replace("+420","").trim()}">
-                ${(item.telefon||"").replace("+420","").trim()}</a></p>
+                ${(item.telefon||"").replace("+420","").trim()}</a>
+            </p>
             <p><strong>Email:</strong> ${item.email||"–"}</p>
             <p><strong>Produkt / model:</strong> ${item.produkt||"–"}</p>
             <p><strong>Popis závady:</strong> ${item.popis||"–"}</p>
@@ -473,7 +473,7 @@ function openDetail(index) {
 }
 </script>
 
-<!-- 💅 CSS – modal, grid a zarovnání mapy s tlačítky -->
+<!-- 💅 CSS – modal + přesné zarovnání mapy s tlačítky -->
 <style>
 .detail-overlay {
   position: fixed;
@@ -503,37 +503,40 @@ function openDetail(index) {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-  align-items: stretch; /* 🧩 obě části stejně vysoké */
+  align-items: stretch;
 }
 
-/* Levý panel (fixní výška podle obsahu tlačítek) */
-.left-panel {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  height: 100%;
-}
-
-/* Pravý panel (mapa zarovnaná s tlačítky) */
+.left-panel,
 .right-panel {
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* 🧩 spodní hrana mapy zarovnána */
-  height: 100%;
+  justify-content: space-between;
 }
+
+/* mapa a tlačítka končí na stejné úrovni */
 #mapDetail {
   flex-grow: 1;
-  height: auto;
-  min-height: 260px;
   border-radius: 10px;
   border: 1px solid #ddd;
   margin-top: 10px;
+  height: 100%;
+  min-height: 260px;
+}
+
+.customer-info { margin-bottom: auto; }
+.distance-banner {
+  background:#f6f6f6;
+  border-radius:8px;
+  padding:8px;
+  text-align:center;
+  font-weight:600;
+  margin:10px 0;
 }
 
 @media (max-width:700px) {
-  .detail-modal { width: 95%; height: auto; }
   .grid-layout { grid-template-columns: 1fr; }
   .right-panel { justify-content: flex-start; }
+  #mapDetail { height: auto; }
 }
 </style>
 <!-- 🟩 KONEC OPRAVY C-1 -->
