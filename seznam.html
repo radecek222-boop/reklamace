@@ -863,150 +863,105 @@ function createProtocol(index) {
 
 
 
-
-
-  
-<!-- 🟪 ZAČÁTEK ČÁSTI 6/10 (Uložení termínu + PDF export + email) -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 6/10 (renderTable – vykreslení seznamu reklamací) -->
 <script>
-// 🧭 Uložení termínu do GitHubu přes Worker
-async function saveTerm(itemIndex, date, time) {
-  const record = { ...dataAll[itemIndex], datum: date, cas: time };
+function renderTable(data) {
+  console.log("📄 renderTable start – počet záznamů:", data.length);
 
-  try {
-    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ record })
-    });
-
-    if (!res.ok) throw new Error("Chyba při zápisu");
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.message || "Neznámá chyba");
-
-    alert(`✅ Termín uložen: ${date} ${time}`);
-    closeDetail();
-  } catch (err) {
-    alert(`❌ Chyba při ukládání termínu: ${err.message}`);
-  }
-}
-
-// 🧾 Export protokolu do PDF + email
-async function createProtocol(index) {
-  const item = dataAll[index];
-  if (!item) return alert("Záznam nenalezen");
-
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.text("WHITE GLOVE SERVICE – Protokol", 20, 20);
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  let y = 35;
-  const info = [
-    ["Zákazník:", item.zakaznik],
-    ["Adresa:", item.adresa],
-    ["Telefon:", item.telefon],
-    ["E-mail:", item.email],
-    ["Produkt:", item.produkt],
-    ["Popis závady:", item.popis],
-    ["Datum návštěvy:", item.datum || "-"],
-    ["Čas:", item.cas || "-"],
-    ["Zpracoval:", item.contract]
-  ];
-
-  info.forEach(([label, value]) => {
-    doc.text(`${label} ${value || "-"}`, 20, y);
-    y += 8;
-  });
-
-  if (item.fotky && item.fotky.length) {
-    y += 5;
-    doc.setFont("helvetica", "bold");
-    doc.text("Fotodokumentace:", 20, y);
-    y += 10;
-    doc.setFont("helvetica", "normal");
-
-    for (const f of item.fotky.slice(0, 3)) {
-      const imgUrl = `https://raw.githubusercontent.com/radecek222-boop/reklamace/main/foto/${f}`;
-      try {
-        const blob = await fetch(imgUrl).then(r => r.blob());
-        const imgData = await new Promise(r => {
-          const reader = new FileReader();
-          reader.onload = () => r(reader.result);
-          reader.readAsDataURL(blob);
-        });
-        doc.addImage(imgData, "JPEG", 20, y, 50, 40);
-      } catch (e) {
-        console.warn("❌ Nelze načíst obrázek:", f);
-      }
-      y += 45;
-    }
+  const container = document.getElementById("tableContainer");
+  if (!container) {
+    console.warn("⚠️ Table container neexistuje.");
+    return;
   }
 
-  y += 10;
-  doc.text("__________________________", 20, y + 10);
-  doc.text("Podpis technika", 20, y + 18);
+  // 🧱 HTML tabulka
+  const tableHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Typ</th>
+            <th>Číslo</th>
+            <th>Zákazník</th>
+            <th>Adresa</th>
+            <th>Telefon</th>
+            <th>Produkt</th>
+            <th>Datum</th>
+            <th>Čas</th>
+            <th>Stav</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.map((item, i) => {
+            let stavClass = "";
+            if (item.stav === "zruseno") stavClass = "zruseno";
+            else if (item.stav === "domluveno") stavClass = "domluveno";
+            else if (item.stav === "nezveda") stavClass = "nezveda";
+            else stavClass = "novy";
 
-  const pdfBlob = doc.output("blob");
-  const pdfUrl = URL.createObjectURL(pdfBlob);
-  window.open(pdfUrl, "_blank");
+            const datum = item.datum || "-";
+            const cas = item.cas || "-";
 
-  // ✉️ Připravený e-mail
-  const subject = encodeURIComponent(`Protokol – ${item.zakaznik}`);
-  const body = encodeURIComponent(`Dobrý den,\n\nv příloze zasíláme protokol k reklamaci.\n\nS pozdravem\nWhite Glove Service`);
-  const mailto = `mailto:${item.email}?subject=${subject}&body=${body}`;
-  window.open(mailto, "_self");
-}
-
-// 🗓️ Kalendářní klik – doplnění času a uložení
-function openDetail(index) {
-  const item = dataAll[index];
-  if (!item) return;
-
-  const overlay = document.createElement("div");
-  overlay.className = "detail-overlay";
-  document.body.appendChild(overlay);
-
-  overlay.innerHTML = `
-    <div class="detail-modal">
-      <h2>${item.zakaznik}</h2>
-      <p><strong>Adresa:</strong> ${item.adresa}</p>
-      <p><strong>Produkt:</strong> ${item.produkt}</p>
-      <div id="calendarSave" class="calendar"></div>
-      <div style="margin:10px 0;">
-        <label>Čas návštěvy:</label>
-        <input type="time" id="visitTime" value="${item.cas || "07:00"}" style="width:150px;">
-      </div>
-      <button class="btn-blue" id="saveDateBtn">Uložit termín</button>
-      <button class="btn-gray" onclick="closeDetail()">Zpět</button>
+            return `
+              <tr class="${stavClass}" data-index="${i}">
+                <td>${item.typ || ""}</td>
+                <td>${item.cislo || ""}</td>
+                <td>${item.zakaznik || ""}</td>
+                <td>${item.adresa || ""}</td>
+                <td><a href="tel:${(item.telefon || "").replace(/\s+/g, "")}">${item.telefon || ""}</a></td>
+                <td>${item.produkt || ""}</td>
+                <td>${datum}</td>
+                <td>${cas}</td>
+                <td>${item.stav ? item.stav.toUpperCase() : "NOVÝ"}</td>
+              </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
     </div>
   `;
 
-  const calendar = new VanillaCalendar("#calendarSave", {
-    type: "default",
-    settings: { selection: { day: "single" } },
-    actions: {
-      clickDay(event, self) {
-        const date = self.selectedDates[0];
-        const time = document.getElementById("visitTime").value;
-        if (date) {
-          document.getElementById("saveDateBtn").onclick = () => saveTerm(index, date, time);
-        }
-      }
-    }
+  container.innerHTML = tableHTML;
+
+  // 📞 Kliknutí na řádek otevře detail
+  container.querySelectorAll("tbody tr").forEach((row) => {
+    row.addEventListener("click", () => {
+      const index = row.dataset.index;
+      openDetail(index);
+    });
   });
-  calendar.init();
+
+  // 🔎 Vyhledávání
+  const searchInput = document.getElementById("search");
+  if (searchInput) {
+    searchInput.oninput = (e) => {
+      const query = e.target.value.toLowerCase();
+      const filtered = dataAll.filter(
+        (item) =>
+          (item.zakaznik && item.zakaznik.toLowerCase().includes(query)) ||
+          (item.adresa && item.adresa.toLowerCase().includes(query)) ||
+          (item.contract && item.contract.toLowerCase().includes(query))
+      );
+      renderTable(filtered);
+    };
+  }
+
+  console.log("✅ renderTable dokončeno – řádků:", data.length);
 }
 </script>
 
 <style>
-.detail-modal label { font-weight:600; display:block; margin-bottom:4px; }
-.detail-modal input[type="time"] { padding:6px 8px; font-size:1em; border:1px solid #ccc; border-radius:6px; }
+/* 🎨 Barvy stavů v tabulce */
+tr.novy { animation: blinkYellow 1s infinite alternate; }
+tr.domluveno { background: #99b3ff !important; color: #000; }
+tr.zruseno { background: #ff6666 !important; color: #fff; }
+tr.nezveda { background: #ffad33 !important; color: #000; }
+
+@keyframes blinkYellow {
+  from { background-color: #fff9b1; }
+  to { background-color: #ffee66; }
+}
 </style>
-<!-- 🟪 KONEC ČÁSTI 6/10 -->
+<!-- 🟩 KONEC ČÁSTI 6/10 -->
 
 
 
