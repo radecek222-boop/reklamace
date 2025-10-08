@@ -765,7 +765,7 @@ function calcDistanceCoords(a, b, c, d) {
 <!-- 🟩 KONEC C-5 -->
 
 
-<!-- 🟩 C-STYLE: CSS DETAILU ZÁKAZNÍKA (zarovnání kalendáře a tlačítek) -->
+<!-- 🟩 C-STYLE: CSS DETAILU ZÁKAZNÍKA (rozšířený layout) -->
 <style>
 /* === Překryv detailu === */
 .detail-overlay {
@@ -807,18 +807,20 @@ function calcDistanceCoords(a, b, c, d) {
   align-items: center;
 }
 
+/* 📅 Kalendář */
 #miniCalendar {
   width: 100%;
-  max-width: 330px; /* stejné pro kalendář i níže */
+  max-width: 405px; /* původně 330px + ~2 cm */
   margin-bottom: 12px;
 }
 
+/* 🕒 Hodiny + Panel výběru */
 .custom-time-picker {
   display: flex;
   align-items: center;
   justify-content: flex-start;
   width: 100%;
-  max-width: 330px;
+  max-width: 405px;
   gap: 10px;
   margin-bottom: 8px;
 }
@@ -830,13 +832,14 @@ function calcDistanceCoords(a, b, c, d) {
   padding: 4px 8px;
 }
 
+/* 🟢 Panel potvrzeného termínu */
 .term-info-box {
   background: #f0f0f0;
   padding: 10px;
   font-weight: 600;
   border-radius: 8px;
   width: 100%;
-  max-width: 330px;
+  max-width: 405px;
   text-align: center;
   transition: background .3s;
 }
@@ -852,7 +855,7 @@ function calcDistanceCoords(a, b, c, d) {
   margin-top: 10px;
   justify-content: center;
   width: 100%;
-  max-width: 330px;
+  max-width: 443px; /* +1 cm oproti kalendáři */
 }
 .btn-action {
   flex: 1;
@@ -874,10 +877,11 @@ function calcDistanceCoords(a, b, c, d) {
 .btn-gray   { background: linear-gradient(135deg,#6c757d,#a0a4a7); }
 .btn-blue   { background: linear-gradient(135deg,#0046ff,#357aff); color:#fff; }
 
+/* 🧾 Tlačítko vytvořit protokol (menší výška, ale širší) */
 .full-width {
   width: 100%;
-  max-width: 330px;
-  padding: 10px; /* 🔹 zmenšeno o ~50 % */
+  max-width: 443px;
+  padding: 10px;
   font-size: 0.95em;
   font-weight: 700;
   margin-top: 6px;
@@ -911,7 +915,7 @@ function calcDistanceCoords(a, b, c, d) {
 .box-content p { margin: 3px 0; font-size: .92em; }
 .icon { font-size: 1.1em; color: #555; }
 
-/* Mapa */
+/* 🌍 Mapa */
 .distance-banner {
   background: #f6f6f6;
   border-radius: 8px;
@@ -927,7 +931,7 @@ function calcDistanceCoords(a, b, c, d) {
   margin-top: 4px;
 }
 
-/* Editační mini modal */
+/* 💬 Editační mini modal */
 .small-modal {
   position: fixed;
   inset: 0;
@@ -967,16 +971,16 @@ function calcDistanceCoords(a, b, c, d) {
   gap: 10px;
 }
 
-/* Mobilní zobrazení */
+/* 📱 Mobilní úpravy */
 @media (max-width: 700px) {
   .grid-layout { grid-template-columns: 1fr; }
-  .button-row { flex-direction: column; }
+  .button-row { flex-direction: column; max-width: 100%; }
   #mapDetail { height: 240px; }
   .detail-modal { padding: 10px; }
+  #miniCalendar, .term-info-box, .custom-time-picker, .full-width { max-width: 100%; }
 }
 </style>
 <!-- 🟩 KONEC C-STYLE -->
-
 
 
 
