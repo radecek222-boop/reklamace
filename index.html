@@ -1,10 +1,3 @@
-<!DOCTYPE html>
-<html lang="cs">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WGS – White Glove Service</title>
-
 <!-- 🟦 SEKCE 1/5 – STYL -->
 <style>
 body {
@@ -35,8 +28,10 @@ h2 {
   font-weight: 700;
   letter-spacing: 3px;
   color: #333;
-  margin: 10px 0 10px;
+  margin: 10px 0 8px;
   text-transform: uppercase;
+  max-width: 460px;
+  width: 100%;
 }
 
 h3 {
@@ -44,7 +39,8 @@ h3 {
   font-weight: 400;
   color: #666;
   margin-bottom: 60px;
-  max-width: 420px;
+  max-width: 460px;
+  width: 100%;
 }
 
 /* 🧩 Kontejner tlačítek */
@@ -97,9 +93,28 @@ h3 {
   z-index: 2000;
 }
 
-#adminButton, #logoutButton {
-  background: linear-gradient(135deg, #666, #999);
-  color: white;
+/* 🩶 Veřejný režim – světlejší a decentní */
+#adminButton {
+  background: linear-gradient(135deg, #b8b8b8, #d3d3d3);
+  color: #fff;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+}
+
+/* 🩶 Po přihlášení (tmavší a jemně blikající) */
+#adminButton.active {
+  background: linear-gradient(135deg, #444, #666);
+  animation: pulseAdmin 2s infinite ease-in-out;
+}
+
+#logoutButton {
+  background: linear-gradient(135deg, #555, #888);
+  color: #fff;
   padding: 8px 16px;
   border: none;
   border-radius: 8px;
@@ -107,57 +122,16 @@ h3 {
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
   transition: background 0.3s ease, color 0.3s ease;
-}
-
-#logoutButton {
-  background: linear-gradient(135deg, #555, #888);
   display: none;
 }
 
-#adminButton.blink {
-  animation: blinkRed 1s infinite;
+/* 🔁 Jemné pulzování admin režimu */
+@keyframes pulseAdmin {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
 }
 
-/* Přihlašovací okno */
-#adminLoginOverlay {
-  position: fixed;
-  top:0; left:0; width:100%; height:100%;
-  background:rgba(0,0,0,0.7);
-  display:none; justify-content:center; align-items:center;
-  z-index:3000;
-  backdrop-filter: blur(4px);
-}
-
-#adminLoginBox {
-  background:white;
-  padding:40px 30px;
-  border-radius:12px;
-  box-shadow:0 4px 20px rgba(0,0,0,0.3);
-  text-align:center;
-  max-width:340px;
-  width:90%;
-  animation:fadeIn 0.3s ease-in-out;
-}
-
-#adminLoginBox h2 { margin-top:0; font-size:1.3em; font-weight:800; color:#111; }
-#adminLoginBox p { color:#555; font-size:0.95em; margin-bottom:20px; }
-
-#adminPassword {
-  width:100%; padding:10px 12px; border:1px solid #ccc; border-radius:8px;
-  font-size:1em; margin-bottom:15px; box-sizing:border-box; outline:none;
-  transition:all 0.2s ease-in-out;
-}
-#adminPassword:focus { border-color:#1e90ff; box-shadow:0 0 5px rgba(30,144,255,0.4); }
-
-#adminLoginBtn {
-  background:linear-gradient(135deg,#0046ff,#357aff);
-  border:none; padding:10px 20px; border-radius:8px;
-  color:white; font-weight:600; cursor:pointer; font-size:1em;
-  transition:transform 0.1s ease-in-out, opacity 0.2s;
-}
-
-#adminError { color:#c00; font-size:0.9em; font-weight:600; display:none; }
-
+/* ✨ Ostatní animace */
 @keyframes fadeIn { from {opacity:0;transform:translateY(-10px);} to {opacity:1;transform:translateY(0);} }
 @keyframes fadeInOut {
   0% { opacity:0; transform:scale(0.8); }
@@ -171,183 +145,12 @@ h3 {
   25%, 75% { background: linear-gradient(135deg, #ff6666, #ff3333); }
 }
 
+/* 📱 Responzivní úpravy */
 @media (max-width:768px) {
   h1 { font-size: 5.2em; }
-  h2 { font-size: 1.2em; letter-spacing: 2px; }
-  h3 { font-size: 1em; max-width: 320px; }
+  h2 { font-size: 1.2em; letter-spacing: 2px; max-width: 340px; }
+  h3 { font-size: 1em; max-width: 340px; }
   #adminTopBar { right:50%; transform:translateX(50%); top:10px; flex-direction:column; }
   .btn-container { flex-direction: column; gap: 15px; }
 }
 </style>
-</head>
-
-<!-- 🟩 SEKCE 2/5 – OBSAH (HERO) -->
-<body>
-  <h1>WGS</h1>
-  <h2>WHITE GLOVE SERVICE</h2>
-  <h3>specializovaný autorizovaný servis Natuzzi</h3>
-
-  <!-- Veřejná tlačítka -->
-  <div class="btn-container" id="publicButtons">
-    <a href="orders.html" class="btn btn-light">Nová reklamace</a>
-    <a href="aftersales.html" class="btn btn-dark">Pozáruční servis</a>
-  </div>
-
-  <!-- Admin tlačítka -->
-  <div class="btn-container" id="adminButtons" style="display:none;">
-    <a href="seznam.html" class="btn btn-admin-light">Seznam reklamací</a>
-    <a href="prehled.html" class="btn btn-admin-dark">Statistika</a>
-  </div>
-
-  <!-- Horní lišta s jemným ADMIN tlačítkem -->
-  <div id="adminTopBar">
-    <button id="adminButton">ADMIN</button>
-    <button id="logoutButton">Odhlásit se</button>
-  </div>
-</body>
-
-
-  
-<!-- 🟧 SEKCE 3/5 – LOGIN BOX -->
-  <div id="adminLoginOverlay">
-    <div id="adminLoginBox">
-      <h2>WHITE GLOVE SERVICE</h2>
-      <p>Zadejte přístupový kód pro administraci</p>
-      <input type="password" id="adminPassword" placeholder="••••••">
-      <div id="adminError">❌ Nesprávný kód</div>
-      <button id="adminLoginBtn">Přihlásit se</button>
-    </div>
-  </div>
-
-
-
-  
-<!-- 🟥 SEKCE 4/5 – FUNKCE ADMINA -->
-<script>
-const ACCESS_CODE = "wgs2025";
-const EXPIRATION_MINUTES = 10;
-const INACTIVITY_MINUTES = 5;
-let inactivityTimer, countdownTimer, remainingTime = EXPIRATION_MINUTES * 60;
-
-const publicButtons = document.getElementById("publicButtons");
-const adminButtons  = document.getElementById("adminButtons");
-const adminButton   = document.getElementById("adminButton");
-const logoutButton  = document.getElementById("logoutButton");
-
-function showCheckmark() {
-  const overlay = document.createElement("div");
-  overlay.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;justify-content:center;align-items:center;z-index:4000;";
-  overlay.innerHTML = `
-    <div style="text-align:center;color:white;font-weight:700;font-size:1.2em;animation:fadeInOut 1.5s ease-in-out;">
-      <div style="font-size:5em;color:#3cd67a;">✔️</div>
-      <div>Přístup potvrzen</div>
-    </div>`;
-  document.body.appendChild(overlay);
-  setTimeout(() => overlay.remove(), 1500);
-}
-
-function showAdminEnvironment() {
-  publicButtons.style.display = "none";
-  adminButtons.style.display = "flex";
-  logoutButton.style.display = "inline-block";
-  startCountdown();
-}
-
-function hideAdminEnvironment() {
-  publicButtons.style.display = "flex";
-  adminButtons.style.display = "none";
-  logoutButton.style.display = "none";
-  stopCountdown();
-  adminButton.textContent = "ADMIN";
-  adminButton.classList.remove("blink");
-}
-
-adminButton.addEventListener("click", () => {
-  document.getElementById("adminLoginOverlay").style.display = "flex";
-  document.getElementById("adminPassword").focus();
-});
-
-logoutButton.addEventListener("click", () => logout("odhlášení uživatelem"));
-
-function tryLogin() {
-  const input = document.getElementById("adminPassword");
-  const error = document.getElementById("adminError");
-  if (input.value.trim() === ACCESS_CODE) {
-    localStorage.setItem("wgsAdmin", JSON.stringify({ code: "OK", time: Date.now() }));
-    document.getElementById("adminLoginOverlay").style.display = "none";
-    error.style.display = "none";
-    showCheckmark();
-    startInactivityTimer();
-    showAdminEnvironment();
-  } else {
-    error.style.display = "block";
-    input.value = "";
-    input.focus();
-  }
-}
-
-  
-  
-  
-  <!-- 🟪 SEKCE 5/5 – INAKTIVITA + ODPOČET -->
-<script>
-function logout(reason = "neaktivity") {
-  localStorage.removeItem("wgsAdmin");
-  hideAdminEnvironment();
-  console.log(`⏱️ Přístup admina ukončen (${reason}).`);
-}
-
-function resetInactivityTimer() {
-  clearTimeout(inactivityTimer);
-  inactivityTimer = setTimeout(() => logout("neaktivity"), INACTIVITY_MINUTES * 60 * 1000);
-}
-
-function startInactivityTimer() {
-  resetInactivityTimer();
-  ["click","mousemove","keypress","scroll","touchstart","focus"].forEach(evt=>{
-    document.addEventListener(evt, resetInactivityTimer, { passive: true });
-  });
-}
-
-function startCountdown() {
-  clearInterval(countdownTimer);
-  remainingTime = EXPIRATION_MINUTES * 60;
-  countdownTimer = setInterval(() => {
-    remainingTime--;
-    if (remainingTime <= 0) {
-      logout("vypršení času");
-      clearInterval(countdownTimer);
-      return;
-    }
-    const m = String(Math.floor(remainingTime / 60)).padStart(2, "0");
-    const s = String(remainingTime % 60).padStart(2, "0");
-    adminButton.textContent = `${m}:${s}`;
-    if (remainingTime <= 60) adminButton.classList.add("blink");
-    else adminButton.classList.remove("blink");
-  }, 1000);
-}
-
-function stopCountdown() {
-  clearInterval(countdownTimer);
-  remainingTime = EXPIRATION_MINUTES * 60;
-}
-
-window.addEventListener("DOMContentLoaded", () => {
-  const adminData = localStorage.getItem("wgsAdmin");
-  if (adminData) {
-    const { time } = JSON.parse(adminData);
-    const now = Date.now();
-    if ((now - time) / 60000 < EXPIRATION_MINUTES) {
-      showAdminEnvironment();
-      startInactivityTimer();
-    } else localStorage.removeItem("wgsAdmin");
-  }
-});
-
-document.getElementById("adminLoginBtn").addEventListener("click", tryLogin);
-document.getElementById("adminPassword").addEventListener("keypress", e => {
-  if (e.key === "Enter") tryLogin();
-});
-</script>
-</body>
-</html>
