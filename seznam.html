@@ -463,23 +463,19 @@ window.addEventListener("DOMContentLoaded", loadData);
 
 
 
-<!-- 🟦 ZAČÁTEK ČÁSTI 3/10 – Stabilní detail zákazníka (nezamrzá) -->
+<!-- 🟦 ZAČÁTEK ČÁSTI 3/10 – LITE VERZE (žádné zamrznutí) -->
 <script>
 let activeMap = null;
-let activeAbort = null;
 
 function openDetail(index) {
   const item = dataAll[index];
   if (!item) return;
 
-  // 🧹 Odstranění všech předchozích detailů a map
+  // 🧹 Vyčistit případné předchozí modaly
   document.querySelectorAll(".detail-overlay").forEach(o => o.remove());
   if (activeMap && activeMap.remove) {
     activeMap.remove();
     activeMap = null;
-  }
-  if (activeAbort && typeof activeAbort.abort === "function") {
-    activeAbort.abort();
   }
 
   const overlay = document.createElement("div");
@@ -491,21 +487,28 @@ function openDetail(index) {
       <div class="detail-content">
         <div class="left-column">
           <h2>${item.zakaznik || "Zákazník"}</h2>
-          <p><strong>Adresa:</strong> <a href="https://waze.com/ul?q=${encodeURIComponent(item.adresa)}" target="_blank">${item.adresa || "Neuvedeno"}</a></p>
-          <p><strong>Telefon:</strong> <a href="tel:${item.telefon || ""}">${item.telefon || "Neuvedeno"}</a></p>
+          <p><strong>Adresa:</strong> 
+            <a href="https://waze.com/ul?q=${encodeURIComponent(item.adresa)}" target="_blank">
+              ${item.adresa || "Neuvedeno"}
+            </a>
+          </p>
+          <p><strong>Telefon:</strong> 
+            <a href="tel:${item.telefon || ""}">${item.telefon || "Neuvedeno"}</a>
+          </p>
           <p><strong>Email:</strong> ${item.email || "Neuvedeno"}</p>
           <p><strong>Popis:</strong> ${item.popis || ""}</p>
 
           <div id="miniCalendar"></div>
+
           <div class="time-select">
             <select id="timeSelect">
               <option value="">Vyber čas</option>
-              <option>07:00</option><option>08:00</option><option>09:00</option>
-              <option>10:00</option><option>11:00</option><option>12:00</option>
-              <option>13:00</option><option>14:00</option><option>15:00</option><option>16:00</option>
+              ${["07","08","09","10","11","12","13","14","15","16"].map(h=>`<option>${h}:00</option>`).join("")}
             </select>
           </div>
+
           <div id="selectedInfo" class="selected-info">Vyberte datum v kalendáři…</div>
+
           <button class="btn-save">💾 Uložit / Změnit termín</button>
           <button class="btn-orange">📞 Nezvedá (SMS)</button>
           <button class="btn-red">❌ Zákazník zrušil</button>
@@ -519,45 +522,26 @@ function openDetail(index) {
     </div>
   `;
 
-  /* 🌍  MAPA – pouze jedna instance */
-  const mapContainer = overlay.querySelector("#detailMap");
-  activeMap = L.map(mapContainer).setView([49.9, 15.6], 6);
+  /* 🗺️  Statická mapa (bez online fetch) */
+  activeMap = L.map("detailMap", { zoomControl: false }).setView([49.9, 15.6], 6);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 18, attribution: "&copy; OpenStreetMap"
+    maxZoom: 12,
+    attribution: "© OpenStreetMap"
   }).addTo(activeMap);
 
-  const wgs = [50.081, 14.614];
-  activeAbort = new AbortController();
-  const signal = activeAbort.signal;
-  const timeout = setTimeout(() => activeAbort.abort(), 4000);
-
-  fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`, { signal })
-    .then(r => r.json())
-    .then(data => {
-      clearTimeout(timeout);
-      if (!data?.[0]) return;
-      const c = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-      L.polyline([wgs, c], { color: "#0046ff", weight: 4 }).addTo(activeMap);
-      L.marker(c).addTo(activeMap).bindPopup(`<b>${item.zakaznik}</b><br>${item.adresa}`);
-      activeMap.fitBounds([wgs, c], { padding: [30, 30] });
-    })
-    .catch(() => console.warn("⚠️ Map fetch aborted nebo selhal"));
-
-  /* 🗓️ Kalendář – vždy čistý nový */
-  setTimeout(() => {
-    try {
-      const cal = new VanillaCalendar("#miniCalendar", {
-        settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
-        actions: {
-          clickDay(e) {
-            const d = e.target.dataset.calendarDay;
-            if (d) updateInfo(d);
-          }
+  /* 🗓️  Kalendář – rychlé inicializování */
+  try {
+    const cal = new VanillaCalendar("#miniCalendar", {
+      settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
+      actions: {
+        clickDay(e) {
+          const d = e.target.dataset.calendarDay;
+          if (d) updateInfo(d);
         }
-      });
-      cal.init();
-    } catch (e) { console.warn("VanillaCalendar chyba:", e); }
-  }, 100);
+      }
+    });
+    cal.init();
+  } catch (e) { console.warn("Kalendář nešel načíst:", e); }
 
   const info = overlay.querySelector("#selectedInfo");
   const timeSel = overlay.querySelector("#timeSelect");
@@ -580,44 +564,49 @@ function openDetail(index) {
   };
   overlay.querySelector(".btn-orange").onclick = () => nezvedaTerminNaGitHub(item, index, overlay);
   overlay.querySelector(".btn-red").onclick = () => zrusitTerminNaGitHub(item, index, overlay);
-
   overlay.querySelector(".btn-grey").onclick = () => {
-    overlay.remove();
     if (activeMap && activeMap.remove) activeMap.remove();
-    if (activeAbort) activeAbort.abort();
-    activeMap = null; activeAbort = null;
+    overlay.remove();
+    activeMap = null;
   };
 }
 </script>
 
 <style>
 .detail-overlay {
-  position:fixed;inset:0;background:rgba(0,0,0,0.55);
-  display:flex;justify-content:center;align-items:center;
-  z-index:9999;transition:opacity .25s ease;
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 9999; transition: opacity .25s ease;
 }
 .detail-modal {
-  background:#fff;border-radius:14px;padding:20px;
-  width:90%;max-width:1100px;box-shadow:0 4px 18px rgba(0,0,0,0.3);
-  overflow-y:auto;max-height:95vh;
+  background: #fff; border-radius: 14px; padding: 20px;
+  width: 90%; max-width: 1100px; box-shadow: 0 4px 18px rgba(0,0,0,0.3);
+  overflow-y: auto; max-height: 95vh;
 }
-.detail-content{display:flex;flex-wrap:wrap;gap:20px;}
-.left-column{flex:1 1 420px;}
-.right-column{flex:1 1 420px;display:flex;justify-content:center;align-items:center;}
-.detail-map{width:100%;height:420px;border-radius:10px;}
-.calendar-box{display:flex;flex-direction:column;align-items:center;width:100%;max-width:420px;margin:0 auto;padding:12px 0;}
-.time-select{width:100%;margin:10px 0 18px;}
-.time-select select{width:100%;max-width:420px;padding:10px;border-radius:8px;border:1px solid #ccc;font-family:"Inter",sans-serif;font-size:1em;}
-.selected-info{width:100%;max-width:420px;background:#eee;color:#333;font-weight:500;padding:10px 15px;border-radius:8px;text-align:center;margin-top:10px;}
-.calendar-box button{width:100%;max-width:420px;padding:12px 0;margin:6px 0;border:none;border-radius:10px;font-weight:600;font-size:1.05em;color:#fff;cursor:pointer;}
-.btn-save{background:linear-gradient(135deg,#009e41,#00d468);}
-.btn-orange{background:linear-gradient(135deg,#ff9800,#ffc270);color:#222;}
-.btn-red{background:linear-gradient(135deg,#d9534f,#ff6f61);}
-.btn-grey{background:linear-gradient(135deg,#999,#ccc);color:#222;}
-@media(max-width:768px){.detail-content{flex-direction:column}.detail-map{height:300px}.calendar-box{max-width:100%}}
+.detail-content { display: flex; flex-wrap: wrap; gap: 20px; }
+.left-column { flex: 1 1 420px; }
+.right-column { flex: 1 1 420px; display: flex; justify-content: center; align-items: center; }
+.detail-map { width: 100%; height: 380px; border-radius: 10px; background: #f3f3f3; }
+.time-select { width: 100%; margin: 10px 0 18px; }
+.time-select select {
+  width: 100%; max-width: 420px; padding: 10px; border-radius: 8px;
+  border: 1px solid #ccc; font-family: "Inter", sans-serif; font-size: 1em;
+}
+.selected-info {
+  width: 100%; max-width: 420px; background: #eee; color: #333; font-weight: 500;
+  padding: 10px 15px; border-radius: 8px; text-align: center; margin-top: 10px;
+}
+.calendar-box button, .btn-save, .btn-orange, .btn-red, .btn-grey {
+  width: 100%; max-width: 420px; padding: 12px 0; margin: 6px 0; border: none;
+  border-radius: 10px; font-weight: 600; font-size: 1.05em; color: #fff; cursor: pointer;
+}
+.btn-save   { background: linear-gradient(135deg,#009e41,#00d468); }
+.btn-orange { background: linear-gradient(135deg,#ff9800,#ffc270); color:#222; }
+.btn-red    { background: linear-gradient(135deg,#d9534f,#ff6f61); }
+.btn-grey   { background: linear-gradient(135deg,#999,#ccc); color:#222; }
+@media (max-width:768px){ .detail-content{flex-direction:column;} .detail-map{height:300px;} }
 </style>
-<!-- 🟦 KONEC ČÁSTI 3/10 -->
-
+<!-- 🟦 KONEC ČÁSTI 3/10 – LITE VERZE -->
 
 
 <!-- 🟩 ZAČÁTEK ČÁSTI 4/10 – správa termínů a komunikace -->
