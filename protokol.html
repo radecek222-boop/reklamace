@@ -256,45 +256,94 @@ button:hover { transform:scale(1.03); opacity:0.9; }
 
 
 
-<!-- 🟨 ZAČÁTEK ČÁSTI D (Textové sekce: reklamace, problém, oprava) -->
-  <!-- 🧩 Sekce: Zákazník reklamuje -->
-  <div class="section-title">
-    Zákazník reklamuje<span class="en-label">Customer complaint</span>
-  </div>
-  <div class="split-section">
-    <textarea id="description-cz" placeholder="CZ" oninput="syncText('description')"></textarea>
-    <textarea id="description-en" placeholder="EN"></textarea>
-  </div>
+<!-- 🟨 ZAČÁTEK ČÁSTI D (Textové sekce: reklamace, problém, oprava + auto-překlad) -->
 
-  <!-- 🧩 Sekce: Problém zjištěný technikem -->
-  <div class="section-title">
-    Problém zjištěný technikem<span class="en-label">Detected problem</span>
-  </div>
-  <div class="split-section">
-    <textarea id="problem-cz" placeholder="CZ" oninput="syncText('problem')"></textarea>
-    <textarea id="problem-en" placeholder="EN"></textarea>
-  </div>
+<style>
+  .split-section { display:flex; gap:10px; margin:10px 0; }
+  textarea {
+    width:100%; min-height:80px; resize:vertical;
+    border:1px solid #ccc; border-radius:4px;
+    padding:6px 8px; font-size:1em; color:#111; background:#fff;
+    box-sizing:border-box;
+  }
+</style>
 
-  <!-- 🧩 Sekce: Návrh opravy -->
-  <div class="section-title">
-    Návrh opravy<span class="en-label">Repair proposal</span>
-  </div>
-  <div class="split-section">
-    <textarea id="repair-cz" placeholder="CZ" oninput="syncText('repair')"></textarea>
-    <textarea id="repair-en" placeholder="EN"></textarea>
-  </div>
+<!-- 🧩 Sekce: Zákazník reklamuje -->
+<div class="section-title">
+  Zákazník reklamuje<span class="en-label">Customer complaint</span>
+</div>
+<div class="split-section">
+  <textarea id="description-cz" placeholder="CZ"></textarea>
+  <textarea id="description-en" placeholder="EN" readonly></textarea>
+</div>
 
-  <!-- 🧩 Skript pro automatické kopírování českého textu do anglické verze -->
-  <script>
-  function syncText(prefix) {
-    const cz = document.getElementById(`${prefix}-cz`);
-    const en = document.getElementById(`${prefix}-en`);
-    if (document.activeElement === cz && !en.value.trim()) {
-      en.value = cz.value;
+<!-- 🧩 Sekce: Problém zjištěný technikem -->
+<div class="section-title">
+  Problém zjištěný technikem<span class="en-label">Detected problem</span>
+</div>
+<div class="split-section">
+  <textarea id="problem-cz" placeholder="CZ"></textarea>
+  <textarea id="problem-en" placeholder="EN" readonly></textarea>
+</div>
+
+<!-- 🧩 Sekce: Návrh opravy -->
+<div class="section-title">
+  Návrh opravy<span class="en-label">Repair proposal</span>
+</div>
+<div class="split-section">
+  <textarea id="repair-cz" placeholder="CZ"></textarea>
+  <textarea id="repair-en" placeholder="EN" readonly></textarea>
+</div>
+
+<!-- 🔧 Expresní automatický překladač CZ → EN (LibreTranslate.de) -->
+<script>
+async function fastTranslateCZtoEN(text) {
+  if (!text || text.trim() === "") return "";
+  try {
+    const res = await fetch("https://libretranslate.de/translate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ q: text, source: "cs", target: "en", format: "text" })
+    });
+    const data = await res.json();
+    return data.translatedText || "";
+  } catch (e) {
+    console.warn("⚠️ Chyba při překladu:", e.message);
+    return "";
+  }
+}
+
+// 🪄 Okamžitý překlad při psaní (CZ → EN)
+["description","problem","repair"].forEach(prefix => {
+  const cz = document.getElementById(`${prefix}-cz`);
+  const en = document.getElementById(`${prefix}-en`);
+  if (!cz || !en) return;
+  let timer;
+  cz.addEventListener("input", () => {
+    clearTimeout(timer);
+    timer = setTimeout(async () => {
+      en.value = "⏳ Překládám...";
+      en.value = await fastTranslateCZtoEN(cz.value);
+    }, 600); // krátké zpoždění pro plynulost psaní
+  });
+});
+
+// 📦 Automatický překlad po načtení z localStorage
+window.addEventListener("DOMContentLoaded", async () => {
+  const fields = ["description","problem","repair"];
+  for (const f of fields) {
+    const cz = document.getElementById(`${f}-cz`);
+    const en = document.getElementById(`${f}-en`);
+    if (cz && en && cz.value && !en.value.trim()) {
+      en.value = "⏳ Překládám...";
+      en.value = await fastTranslateCZtoEN(cz.value);
     }
   }
-  </script>
+});
+</script>
+
 <!-- 🟩 KONEC ČÁSTI D -->
+
 
 
 
@@ -472,6 +521,61 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 <!-- 🟩 KONEC ČÁSTI I -->
+
+  <!-- 🟩 ZAČÁTEK ČÁSTI I.2 – Expresní překladač CZ → EN -->
+<script>
+/**
+ * 🌍 Expresní překladač CZ → EN (LibreTranslate)
+ * - žádný API klíč
+ * - používá veřejnou instanci libretranslate.de
+ * - překládá i automaticky text z localStorage při načtení
+ */
+
+async function fastTranslateCZtoEN(text) {
+  if (!text || text.trim() === "") return "";
+  try {
+    const res = await fetch("https://libretranslate.de/translate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        q: text,
+        source: "cs",
+        target: "en",
+        format: "text"
+      })
+    });
+    const data = await res.json();
+    if (data.translatedText) return data.translatedText;
+  } catch (e) {
+    console.warn("⚠️ Chyba při překladu:", e.message);
+  }
+  return text; // fallback – vrátí původní text
+}
+
+// 🔄 Přeloží text z českého pole do anglického
+async function autoTranslateField(prefix) {
+  const cz = document.getElementById(`${prefix}-cz`);
+  const en = document.getElementById(`${prefix}-en`);
+  if (!cz || !en) return;
+  en.value = "⏳ Překládám...";
+  en.value = await fastTranslateCZtoEN(cz.value);
+}
+
+// 💡 Po načtení localStorage automaticky přeloží popis, problém a návrh
+window.addEventListener("DOMContentLoaded", async () => {
+  const czFields = ["description", "problem", "repair"];
+  for (const prefix of czFields) {
+    const cz = document.getElementById(`${prefix}-cz`);
+    const en = document.getElementById(`${prefix}-en`);
+    if (cz && en && cz.value && !en.value.trim()) {
+      en.value = "⏳ Překládám...";
+      en.value = await fastTranslateCZtoEN(cz.value);
+    }
+  }
+});
+</script>
+<!-- 🟩 KONEC ČÁSTI I.2 -->
+
 
 
 
