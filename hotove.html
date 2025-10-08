@@ -1,8 +1,8 @@
 <!-- 
 ====================================================================
-💎 WHITE GLOVE SERVICE – HOTOVÉ REKLAMACE
+💎 WHITE GLOVE SERVICE – HOTOVÉ REKLAMACE (BETA)
 ====================================================================
-Verze systému:       v1.0
+Verze systému:       v1.1
 Datum sestavení:     2025-10-08
 Autor:               Hugo (White Glove Service) & GPT-5
 Projekt:             WGS reklamace / servisní plánování
@@ -11,6 +11,7 @@ Zdroje:              dataAll + stavyReklamaci (localStorage / GitHub)
 Repozitář:           https://github.com/radecek222-boop/reklamace
 Popis:
   Přehled všech hotových reklamací s možností otevřít protokol PDF.
+  Zobrazuje také datum vytvoření protokolu.
 
 Struktura souboru:
   A – HTML, HEAD, STYL
@@ -70,9 +71,16 @@ tr:hover{background:#f1f6ff;}
   color:#fff;text-decoration:none;
 }
 .btn-pdf:hover{opacity:.85;}
+.protokol-info{
+  display:flex;flex-direction:column;gap:4px;
+}
+.protokol-date{
+  font-size:.8em;color:#555;
+}
 @media(max-width:700px){
   th,td{font-size:.85em;}
   .btn{min-width:120px;padding:8px 18px;font-size:.9em;}
+  .protokol-info{align-items:flex-start;}
 }
 </style>
 </head>
@@ -113,7 +121,7 @@ tr:hover{background:#f1f6ff;}
     renderTable(hotove);
   }
 
-  // 🟨 E – GENEROVÁNÍ TABULKY
+  // 🟨 E – GENEROVÁNÍ TABULKY (s datem protokolu)
   function renderTable(hotove){
     let html=`
     <table>
@@ -124,9 +132,11 @@ tr:hover{background:#f1f6ff;}
         </tr>
       </thead><tbody>`;
     hotove.forEach((r,i)=>{
-      const proto=r.protokol?.file?
-        `<a href="#" class="btn-pdf" onclick="openProtocol('${r.cislo}')">📎 Zobrazit PDF</a>`:
-        `<span style='color:#999;'>—</span>`;
+      const hasProto=r.protokol?.file;
+      const protoBtn=hasProto?`<a href="#" class="btn-pdf" onclick="openProtocol('${r.cislo}')">📎 Zobrazit PDF</a>`:`<span style='color:#999;'>—</span>`;
+      const protoDate=r.protokol?.date?`<span class='protokol-date'>${r.protokol.date}</span>`:"";
+      const protoHtml=`<div class='protokol-info'>${protoBtn}${protoDate}</div>`;
+
       html+=`
         <tr>
           <td>${i+1}</td>
@@ -136,7 +146,7 @@ tr:hover{background:#f1f6ff;}
           <td><a href="tel:${r.telefon||""}">${r.telefon||""}</a></td>
           <td>${r.contract||(r.jinaZadavatel?.jmeno||"")}</td>
           <td>${r.typ||""}</td>
-          <td>${proto}</td>
+          <td>${protoHtml}</td>
         </tr>`;
     });
     html+=`</tbody></table>`;
@@ -152,7 +162,6 @@ tr:hover{background:#f1f6ff;}
         alert("Protokol není uložen.");
         return;
       }
-      const pdfData=`data:application/pdf;base64,${item.protokol.file}`;
       const pdfUrl=URL.createObjectURL(b64toBlob(item.protokol.file,"application/pdf"));
       window.open(pdfUrl,"_blank");
     }catch(e){console.error("❌ Chyba při otevírání protokolu:",e);}
@@ -167,9 +176,7 @@ tr:hover{background:#f1f6ff;}
     for(let offset=0;offset<byteCharacters.length;offset+=sliceSize){
       const slice=byteCharacters.slice(offset,offset+sliceSize);
       const byteNumbers=new Array(slice.length);
-      for(let i=0;i<slice.length;i++){
-        byteNumbers[i]=slice.charCodeAt(i);
-      }
+      for(let i=0;i<slice.length;i++){byteNumbers[i]=slice.charCodeAt(i);}
       const byteArray=new Uint8Array(byteNumbers);
       byteArrays.push(byteArray);
     }
