@@ -401,7 +401,7 @@ function updateDebug(count) {
 
 <!-- 🟩 SEKCE C – DETAIL ZÁKAZNÍKA (rozdělená verze) -->
 <!-- ================================================= -->
-<!-- 🟩 C-1: OPRAVENÉ OTEVŘENÍ DETAILU (s možností upravit popis závady) -->
+<!-- 🟩 C-1: DETAIL ZÁKAZNÍKA – klikatelné rámečky + editace -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -417,20 +417,19 @@ function openDetail(index) {
 
         <!-- 🧭 LEVÝ PANEL -->
         <div class="left-panel">
-          <div>
-            <div id="miniCalendar"></div>
-            <div class="custom-time-picker">
-              <select id="hours"></select><span>:</span><select id="minutes"></select>
-            </div>
-            <div class="term-info-box" id="termInfoBox">Vyberte datum a čas</div>
+          <div id="miniCalendar"></div>
+
+          <div class="custom-time-picker">
+            <select id="hours"></select><span>:</span><select id="minutes"></select>
           </div>
+
+          <div class="term-info-box" id="termInfoBox">Vyberte datum a čas</div>
 
           <div class="left-buttons">
             <button id="saveTermBtn" class="btn-action btn-green">Uložit / Změnit</button>
             <button id="noAnswerBtn" class="btn-action btn-orange">Nezvedá (SMS)</button>
             <button id="cancelBtn" class="btn-action btn-red">Zákazník zrušil</button>
-            <button id="closeBtn" class="btn-action btn-gray">Zavřít</button>
-
+            <button id="closeBtn" class="btn-action btn-gray">Zpět</button>
             <div class="extra-buttons">
               <button id="createProtocolBtn" class="btn-action btn-blue">Vytvořit protokol</button>
               <button id="exportPdfBtn" class="btn-action btn-gray">Exportovat do PDF</button>
@@ -440,26 +439,32 @@ function openDetail(index) {
 
         <!-- 🧾 PRAVÝ PANEL -->
         <div class="right-panel">
-          <div class="customer-info">
-            <h2>${item.zakaznik || "Zákazník"}</h2>
-            <p><strong>Adresa:</strong>
-              <a href="https://waze.com/ul?q=${encodeURIComponent(adresaUpravena)}" target="_blank">${adresaUpravena}</a>
-            </p>
-            <p><strong>Telefon:</strong>
-              <a href="tel:${(item.telefon||"").replace("+420","").trim()}">
-                ${(item.telefon||"").replace("+420","").trim()}</a>
-            </p>
-            <p><strong>Email:</strong> ${item.email||"–"}</p>
-            <p><strong>Produkt / model:</strong> ${item.produkt||"–"}</p>
 
-            <!-- ✏️ Popis závady + tlačítko Upravit -->
-            <div class="popis-box">
-              <p><strong>Popis závady:</strong></p>
-              <div id="popisText">${item.popis || "–"}</div>
-              <button id="editPopisBtn" class="btn-small">Upravit popis</button>
+          <!-- 🧍‍♂️ ZÁKAZNÍK -->
+          <div class="info-box clickable" id="customerBox">
+            <div class="box-header">
+              <strong>Zákazník</strong>
+              <span class="icon">✏️</span>
+            </div>
+            <div class="box-content">
+              <p><strong>Jméno:</strong> ${item.zakaznik || "–"}</p>
+              <p><strong>Adresa:</strong> ${adresaUpravena}</p>
+              <p><strong>Telefon:</strong> ${(item.telefon || "–")}</p>
+              <p><strong>Email:</strong> ${item.email || "–"}</p>
+              <p><strong>Produkt / model:</strong> ${item.produkt || "–"}</p>
             </div>
           </div>
 
+          <!-- 🧰 POPIS ZÁVADY -->
+          <div class="info-box clickable" id="popisBox">
+            <div class="box-header">
+              <strong>Popis závady</strong>
+              <span class="icon">📝</span>
+            </div>
+            <div class="box-content" id="popisContent">${item.popis || "–"}</div>
+          </div>
+
+          <!-- 🌍 MAPA -->
           <div class="distance-banner" id="mapDistance">📍 Počítám vzdálenost…</div>
           <div id="mapDetail"></div>
         </div>
@@ -467,162 +472,144 @@ function openDetail(index) {
     </div>`;
 
   document.body.appendChild(overlay);
-  setTimeout(() => overlay.classList.add("active"), 20);
+  setTimeout(() => overlay.classList.add("active"), 10);
 
-  // 🧭 Inicializace standardních částí
+  // Inicializace mapy, kalendáře a tlačítek
   initCalendarAndTime(overlay, item, index);
   initMapForDetail(overlay, item);
   initDetailButtons(overlay, item, index);
 
-  // ✏️ Otevření editoru popisu
-  overlay.querySelector("#editPopisBtn").onclick = () => openEditPopisModal(item, overlay);
+  // Kliknutí na box zákazníka – otevře plný detail
+  overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item);
+
+  // Kliknutí na popis – otevře editor
+  overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
 }
 
-/* 📝 Editor popisu závady (malý modal s textareou) */
-function openEditPopisModal(item, parentOverlay) {
+/* 🧍‍♂️ Plný detail zákazníka – editace adresy/telefonu/emailu */
+function openCustomerDetail(item) {
   const modal = document.createElement("div");
-  modal.className = "edit-popis-overlay";
+  modal.className = "small-modal";
   modal.innerHTML = `
-    <div class="edit-popis-modal">
-      <h3>Upravit popis závady</h3>
-      <textarea id="newPopis">${item.popis || ""}</textarea>
-      <div class="popis-buttons">
-        <button id="savePopisBtn" class="btn-green">Uložit</button>
-        <button id="closePopisBtn" class="btn-gray">Zavřít</button>
+    <div class="small-inner">
+      <h3>Detail zákazníka</h3>
+      <label>Jméno:</label>
+      <input id="editName" value="${item.zakaznik || ""}">
+      <label>Adresa:</label>
+      <input id="editAddress" value="${item.adresa || ""}">
+      <label>Telefon:</label>
+      <input id="editPhone" value="${item.telefon || ""}">
+      <label>Email:</label>
+      <input id="editEmail" value="${item.email || ""}">
+      <div class="modal-buttons">
+        <button id="saveCustomerBtn" class="btn-action btn-green">Uložit</button>
+        <button id="closeCustomerBtn" class="btn-action btn-gray">Zavřít</button>
       </div>
-    </div>
-  `;
+    </div>`;
   document.body.appendChild(modal);
-  setTimeout(()=>modal.classList.add("active"),20);
 
-  modal.querySelector("#closePopisBtn").onclick = ()=>modal.remove();
-  modal.querySelector("#savePopisBtn").onclick = ()=>{
-    const newText = modal.querySelector("#newPopis").value.trim();
-    item.popis = newText;
-    localStorage.setItem("upravenyPopisy", JSON.stringify({
-      ...(JSON.parse(localStorage.getItem("upravenyPopisy")||"{}")),
-      [item.cislo]: newText
-    }));
-    const textBox = parentOverlay.querySelector("#popisText");
-    if (textBox) textBox.textContent = newText || "–";
+  modal.querySelector("#closeCustomerBtn").onclick = () => modal.remove();
+  modal.querySelector("#saveCustomerBtn").onclick = () => {
+    item.zakaznik = modal.querySelector("#editName").value;
+    item.adresa = modal.querySelector("#editAddress").value;
+    item.telefon = modal.querySelector("#editPhone").value;
+    item.email = modal.querySelector("#editEmail").value;
     modal.remove();
-    showToast("Popis závady upraven", "success");
+    showToast("✅ Údaje zákazníka upraveny", "success");
+  };
+}
+
+/* 🧰 Editor popisu závady */
+function openPopisEditor(item, overlay) {
+  const modal = document.createElement("div");
+  modal.className = "small-modal";
+  modal.innerHTML = `
+    <div class="small-inner">
+      <h3>Upravit popis závady</h3>
+      <textarea id="editPopis">${item.popis || ""}</textarea>
+      <div class="modal-buttons">
+        <button id="savePopisBtn" class="btn-action btn-green">Uložit</button>
+        <button id="closePopisBtn" class="btn-action btn-gray">Zavřít</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  modal.querySelector("#closePopisBtn").onclick = () => modal.remove();
+  modal.querySelector("#savePopisBtn").onclick = () => {
+    const val = modal.querySelector("#editPopis").value.trim();
+    item.popis = val;
+    overlay.querySelector("#popisContent").textContent = val || "–";
+    modal.remove();
+    showToast("✅ Popis závady aktualizován", "success");
   };
 }
 </script>
 
-<!-- 💅 CSS – zarovnání mapy + editor popisu -->
 <style>
-.detail-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.55);
-  display: flex; justify-content: center; align-items: center;
-  z-index: 9999; opacity: 0; transition: opacity .25s ease;
-}
-.detail-overlay.active { opacity: 1; }
-
-.detail-modal {
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-  max-width: 900px; width: 95%;
-  max-height: 90vh; overflow-y: auto;
-}
-.grid-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px; align-items: stretch;
-}
-.left-panel, .right-panel {
-  display: flex; flex-direction: column; justify-content: space-between;
-}
-
-/* Zarovnání spodku mapy s tlačítky */
-#mapDetail {
-  flex-grow: 1;
-  border-radius: 10px; border: 1px solid #ddd;
-  margin-top: 10px; min-height: 260px;
-}
-
-/* ✏️ Popis závady */
-.popis-box {
-  margin-top: 10px;
-  background: #f9f9f9;
-  border-radius: 8px;
-  padding: 8px 10px;
-}
-#popisText {
-  white-space: pre-wrap;
-  font-size: 0.95em;
-  color: #111;
-  margin-bottom: 8px;
-}
-.btn-small {
-  background: linear-gradient(135deg,#0046ff,#357aff);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 0.85em;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-/* ✏️ Modal pro úpravu popisu */
-.edit-popis-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.55);
-  display: flex; justify-content: center; align-items: center;
-  z-index: 10000; opacity: 0; transition: opacity .25s ease;
-}
-.edit-popis-overlay.active { opacity: 1; }
-.edit-popis-modal {
-  background: #fff;
-  padding: 20px;
+.info-box {
+  background: #f4f5f7;
   border-radius: 10px;
-  width: 90%;
-  max-width: 500px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  cursor: pointer;
+  transition: background .2s;
 }
-.edit-popis-modal h3 {
-  margin-top: 0;
-  text-align: center;
-}
-.edit-popis-modal textarea {
-  width: 100%;
-  height: 150px;
-  font-size: 0.95em;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  resize: vertical;
-  box-sizing: border-box;
-}
-.popis-buttons {
+.info-box:hover { background: #e9ecf1; }
+.box-header {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
-  margin-top: 12px;
+  align-items: center;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 6px;
 }
-.popis-buttons button {
-  flex: 1;
-  height: 40px;
-  font-weight: 600;
-  border: none;
+.box-content p {
+  margin: 3px 0;
+  font-size: 0.92em;
+}
+.icon {
+  font-size: 1.1em;
+  color: #555;
+}
+.small-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 10000;
+}
+.small-inner {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+  width: 90%;
+  max-width: 420px;
+}
+.small-inner h3 {
+  text-align: center;
+  margin-bottom: 10px;
+  font-weight: 800;
+}
+.small-inner input, .small-inner textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+  padding: 8px;
   border-radius: 8px;
-  cursor: pointer;
-  color: #fff;
+  border: 1px solid #ccc;
+  font-family: Inter, sans-serif;
+  font-size: 0.95em;
 }
-.btn-green { background: linear-gradient(135deg,#28a745,#6fdd72); }
-.btn-gray { background: linear-gradient(135deg,#6c757d,#a0a4a7); }
-
-@media (max-width:700px){
-  .grid-layout { grid-template-columns:1fr; }
-  #mapDetail { height:auto; }
+.modal-buttons {
+  display: flex; justify-content: space-between; gap: 10px;
+}
+#editPopis {
+  min-height: 120px;
+  resize: vertical;
 }
 </style>
-<!-- 🟩 KONEC OPRAVY C-1 -->
+<!-- 🟩 KONEC C-1 -->
+
 
 
 
