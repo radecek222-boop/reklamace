@@ -408,6 +408,7 @@ confirmClients.onclick = () => {
 
 /* ==========================================================
    🟩 4️⃣  Automatické doplnění polí „Od–Do“ po výběru měsíce
+      (opraveno pro české časové pásmo)
 ========================================================== */
 document.getElementById("monthSelect").addEventListener("change", e => {
   const month = parseInt(e.target.value, 10);
@@ -423,8 +424,11 @@ document.getElementById("monthSelect").addEventListener("change", e => {
   const yyyy = year.toString().padStart(4, "0");
   const mm   = month.toString().padStart(2, "0");
 
+  // 🟢 Použijeme lokální čas, aby nedošlo k posunu o den zpět
+  const endLocal = new Date(end.getTime() - end.getTimezoneOffset() * 60000);
+
   document.getElementById("dateFrom").value = `${yyyy}-${mm}-01`;
-  document.getElementById("dateTo").value   = end.toISOString().split("T")[0];
+  document.getElementById("dateTo").value   = endLocal.toISOString().split("T")[0];
 });
 
 /* ==========================================================
@@ -450,6 +454,7 @@ confirmPeriod.onclick = () => {
   }, 800);
 };
 </script>
+
 
 <!-- 🟪 SEKCE 5/5 – NAČÍTÁNÍ DAT A VÝPOČTY -->
 <script>
