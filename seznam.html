@@ -401,14 +401,16 @@ function updateDebug(count) {
 
 <!-- 🟩 SEKCE C – DETAIL ZÁKAZNÍKA (rozdělená verze) -->
 <!-- ================================================= -->
-<!-- 🟩 C-1: OTEVŘENÍ DETAILU (verze s tlačítky PROTOKOL + PDF) -->
+<!-- 🟩 C-1: OPRAVENÉ OTEVŘENÍ DETAILU (modal uprostřed, fixní overlay) -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
   if (!item) return;
 
+  // vytvoření překryvu (modalu)
   const overlay = document.createElement("div");
   overlay.className = "detail-overlay";
+
   const adresaUpravena = normalizePrahaAddress(item.adresa || "");
 
   overlay.innerHTML = `
@@ -429,9 +431,8 @@ function openDetail(index) {
             <button id="saveTermBtn" class="btn-action btn-green">Uložit / Změnit</button>
             <button id="noAnswerBtn" class="btn-action btn-orange">Nezvedá (SMS)</button>
             <button id="cancelBtn" class="btn-action btn-red">Zákazník zrušil</button>
-            <button id="closeBtn" class="btn-action btn-gray">Zpět</button>
+            <button id="closeBtn" class="btn-action btn-gray">Zavřít</button>
 
-            <!-- 🧾 NOVÁ SEKCE: PROTOKOL + PDF -->
             <div class="extra-buttons">
               <button id="createProtocolBtn" class="btn-action btn-blue">Vytvořit protokol</button>
               <button id="exportPdfBtn" class="btn-action btn-gray">Exportovat do PDF</button>
@@ -459,38 +460,52 @@ function openDetail(index) {
         </div>
       </div>
     </div>`;
-  document.body.appendChild(overlay);
-  setTimeout(() => overlay.classList.add("active"), 10);
 
-  // inicializace funkcí
+  document.body.appendChild(overlay);
+  setTimeout(() => overlay.classList.add("active"), 20);
+
+  // zavření overlay kliknutím mimo nebo tlačítkem
+  overlay.addEventListener("click", e => {
+    if (e.target.classList.contains("detail-overlay")) overlay.remove();
+  });
+
   initCalendarAndTime(overlay, item, index);
   initMapForDetail(overlay, item);
   initDetailButtons(overlay, item, index);
 }
 </script>
 
-<!-- 🟩 DOPLŇKOVÝ STYL PRO NOVOU SEKCI TLAČÍTEK -->
+<!-- 💅 CSS – doplnění pro správné zobrazení modalu -->
 <style>
-.extra-buttons {
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  margin-top:14px;   /* mezera mezi hlavní sadou a protokoly */
+.detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity .25s ease;
 }
-.extra-buttons .btn-action {
-  flex:1;
-  font-size:0.95em;
-  padding:10px;
+.detail-overlay.active {
+  opacity: 1;
 }
-.btn-blue {
-  background:linear-gradient(135deg,#0046ff,#357aff);
-  color:#fff;
+.detail-modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  max-width: 900px;
+  width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
 }
-@media(max-width:700px){
-  .extra-buttons { flex-direction:column; }
+@media (max-width:700px) {
+  .detail-modal { width: 95%; height: auto; }
 }
 </style>
-<!-- 🟩 KONEC C-1 -->
+<!-- 🟩 KONEC OPRAVY C-1 -->
 
 
 
@@ -1160,22 +1175,18 @@ function formatTimeShort(h, m) {
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         crossorigin=""></script>
 
-<!-- 📅 Vanilla Calendar -->
+<!-- 📅 Vanilla Calendar (tvá verze z GitHubu) -->
 <link rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro@2.8.1/build/vanilla-calendar.min.css">
-<script src="https://cdn.jsdelivr.net/npm/vanilla-calendar-pro@2.8.1/build/vanilla-calendar.min.js"></script>
+      href="https://radecek222-boop.github.io/reklamace/vanilla-calendar.min.css">
+<script src="https://radecek222-boop.github.io/reklamace/vanilla-calendar.min.js"></script>
 
 <!-- 📄 jsPDF (pro export PDF – volitelné) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <!-- 🟪 KONEC G-1 -->
 
 
 <!-- 🟪 G-2: GLOBÁLNÍ INICIALIZACE A OCHRANA -->
 <script>
-/* ========================================================= */
-/* 🧩 ZÁKLADNÍ INICIALIZACE PO NAČTENÍ STRÁNKY               */
-/* ========================================================= */
 window.addEventListener("DOMContentLoaded", () => {
   console.log("✅ White Glove Service – systém spuštěn");
   console.log("🌍 Worker API:", API_URL);
@@ -1193,26 +1204,22 @@ window.addEventListener("DOMContentLoaded", () => {
     sessionStorage.removeItem("wgsToastType");
   }
 
-  // 3️⃣ Log o počtu záznamů
-  if (typeof dataAll !== "undefined" && dataAll.length) {
-    console.log(`ℹ️ Načteno ${dataAll.length} záznamů z Workera.`);
+  // 3️⃣ Kontrola knihoven + log
+  if (typeof L === "undefined") {
+    console.error("❌ Leaflet se nonačetl – zkontroluj CDN.");
+  } else {
+    console.log("🗺️ Leaflet OK");
   }
 
-  // 4️⃣ Kontrola načtení knihoven
-  if (typeof L === "undefined")
-    console.error("❌ Leaflet se nonačetl – zkontroluj CDN.");
-  if (typeof VanillaCalendar === "undefined")
-    console.error("❌ Vanilla Calendar se nonačetl – zkontroluj CDN URL.");
+  if (typeof VanillaCalendar === "undefined") {
+    console.error("❌ Vanilla Calendar se nonačetl – zkontroluj link v sekci G-1.");
+  } else {
+    console.log("📅 Vanilla Calendar inicializován (v2.8.1 – GitHub lokální verze)");
+  }
 
-  // 5️⃣ Verze a debug info
-  const dbg = document.getElementById("debugBox");
-  if (!dbg) console.warn("ℹ️ Debug panel není aktivní – sekce B.");
-  console.log("🧭 Načteno všechny sekce A–G (verze v1.0 – 10/2025)");
+  console.log("🧭 Načteny všechny sekce A–G (verze v1.0 – 10/2025)");
 });
 
-/* ========================================================= */
-/* 🧩 OCHRANA PROTI CHYBÁM PŘI FETCH                        */
-/* ========================================================= */
 window.addEventListener("error", e => {
   console.error("⚠️ Chyba:", e.message, "→", e.filename, ":", e.lineno);
 });
