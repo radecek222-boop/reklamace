@@ -1676,66 +1676,89 @@ document.addEventListener("DOMContentLoaded", () => {
 
 <!-- 🟩 ZAČÁTEK ČÁSTI 10/10 (Foto + Protokol + Mapa Do Dubče 364 Praha 9 Běchovice) -->
 <script>
-// 🧭 Výchozí pozice WGS
+// 📍 Výchozí adresa WGS
 const WGS_COORDS = [50.07945, 14.60178];
 const WGS_ADRESA = "Do Dubče 364, Praha 9 – Běchovice";
 
 // 🚗 Zobrazení trasy od WGS k zákazníkovi
 function showRouteToCustomer(container, address, customerName) {
-  const map = L.map(container).setView(WGS_COORDS, 9);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{ attribution:"© OpenStreetMap" }).addTo(map);
+  if (!container) return;
+  container.innerHTML = "";
+  const map = L.map(container).setView(WGS_COORDS, 10);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "© OpenStreetMap contributors",
+    maxZoom: 18
+  }).addTo(map);
 
-  const iconWGS = L.icon({ iconUrl:"https://cdn-icons-png.flaticon.com/512/3448/3448339.png", iconSize:[30,30], iconAnchor:[15,30] });
-  const iconCust = L.icon({ iconUrl:"https://cdn-icons-png.flaticon.com/512/447/447031.png", iconSize:[30,30], iconAnchor:[15,30] });
+  const iconWGS = L.icon({
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/3448/3448339.png",
+    iconSize: [30, 30],
+    iconAnchor: [15, 30]
+  });
+  const iconCust = L.icon({
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/447/447031.png",
+    iconSize: [30, 30],
+    iconAnchor: [15, 30]
+  });
 
-  const wgsMarker = L.marker(WGS_COORDS,{icon:iconWGS}).addTo(map).bindPopup(`<b>WHITE GLOVE SERVICE</b><br>${WGS_ADRESA}`);
+  const wgsMarker = L.marker(WGS_COORDS, { icon: iconWGS })
+    .addTo(map)
+    .bindPopup(`<b>WHITE GLOVE SERVICE</b><br>${WGS_ADRESA}`);
 
   fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
-    .then(r=>r.json()).then(data=>{
-      if(!data[0]) return;
-      const coords=[parseFloat(data[0].lat),parseFloat(data[0].lon)];
-      const cust=L.marker(coords,{icon:iconCust}).addTo(map).bindPopup(`<b>${customerName}</b><br>${address}`);
-      const line=L.polyline([WGS_COORDS,coords],{color:"#0046ff",weight:4,opacity:0.8}).addTo(map);
-      map.fitBounds(L.featureGroup([wgsMarker,cust]).getBounds().pad(0.3));
+    .then(r => r.json())
+    .then(data => {
+      if (!data[0]) return;
+      const coords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+      const cust = L.marker(coords, { icon: iconCust })
+        .addTo(map)
+        .bindPopup(`<b>${customerName}</b><br>${address}`);
+      const line = L.polyline([WGS_COORDS, coords], {
+        color: "#0046ff",
+        weight: 4,
+        opacity: 0.8
+      }).addTo(map);
+      map.fitBounds(L.featureGroup([wgsMarker, cust]).getBounds().pad(0.3));
 
-      const R=6371;
-      const dLat=(coords[0]-WGS_COORDS[0])*Math.PI/180;
-      const dLon=(coords[1]-WGS_COORDS[1])*Math.PI/180;
-      const a=Math.sin(dLat/2)**2+Math.cos(WGS_COORDS[0]*Math.PI/180)*Math.cos(coords[0]*Math.PI/180)*Math.sin(dLon/2)**2;
-      const dist=R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-      const km=dist.toFixed(1);
-      document.getElementById("mapDistance").innerHTML=`📍 Vzdálenost od WGS: ${km} km`;
+      // 🧭 Výpočet vzdálenosti
+      const R = 6371;
+      const dLat = (coords[0] - WGS_COORDS[0]) * Math.PI / 180;
+      const dLon = (coords[1] - WGS_COORDS[1]) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(WGS_COORDS[0] * Math.PI / 180) *
+                Math.cos(coords[0] * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+      const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      document.getElementById("mapDistance").textContent =
+        `📍 Vzdálenost od WGS: ${dist.toFixed(1)} km`;
+    })
+    .catch(() => {
+      document.getElementById("mapDistance").textContent =
+        "⚠️ Nepodařilo se zjistit vzdálenost";
     });
 }
 
-// 🖼️ Tlačítko Náhled foto
-function renderPhotoButton(fotky=[]) {
-  const nameHeader=document.querySelector(".detail-modal h2");
-  if(!nameHeader)return;
-  let btn=document.getElementById("btnPhotoView");
-  if(!btn){
-    btn=document.createElement("button");
-    btn.id="btnPhotoView";
-    nameHeader.insertAdjacentElement("afterend",btn);
+// 🖼️ Tlačítko „Náhled foto“
+function renderPhotoButton(fotky = []) {
+  const nameHeader = document.querySelector(".detail-modal h2");
+  if (!nameHeader) return;
+  let btn = document.getElementById("btnPhotoView");
+  if (!btn) {
+    btn = document.createElement("button");
+    btn.id = "btnPhotoView";
+    nameHeader.insertAdjacentElement("afterend", btn);
   }
-  btn.className="btn-photo-view";
-  btn.textContent="Náhled foto";
-  if(fotky.length){
-    btn.disabled=false;
-    btn.onclick=()=>openPhotoSlideshow(fotky);
-  }else{
-    btn.disabled=true;
-    btn.onclick=null;
-  }
+  btn.className = "btn-photo-view";
+  btn.textContent = "📸 Náhled foto";
+  btn.disabled = !fotky.length;
+  btn.onclick = fotky.length ? () => openPhotoSlideshow(fotky) : null;
 }
 
-// 📷 Slideshow fotek
-function openPhotoSlideshow(fotky=[]){
-  if(!fotky.length)return;
-  let current=0;
-  const overlay=document.createElement("div");
-  overlay.className="photo-overlay";
-  overlay.innerHTML=`
+// 📷 Zobrazení fotogalerie
+function openPhotoSlideshow(fotky = []) {
+  if (!fotky.length) return;
+  let current = 0;
+  const overlay = document.createElement("div");
+  overlay.className = "photo-overlay";
+  overlay.innerHTML = `
     <div class="photo-modal">
       <img id="slideImg" src="https://raw.githubusercontent.com/radecek222-boop/reklamace/main/foto/${encodeURIComponent(fotky[0])}" alt="foto">
       <button class="close-photo">×</button>
@@ -1744,107 +1767,115 @@ function openPhotoSlideshow(fotky=[]){
     </div>`;
   document.body.appendChild(overlay);
 
-  const img=overlay.querySelector("#slideImg");
-  const prev=overlay.querySelector(".prev");
-  const next=overlay.querySelector(".next");
-  const close=overlay.querySelector(".close-photo");
-
-  const update=()=>img.src=`https://raw.githubusercontent.com/radecek222-boop/reklamace/main/foto/${encodeURIComponent(fotky[current])}`;
-  close.onclick=()=>overlay.remove();
-  prev.onclick=()=>{current=(current-1+fotky.length)%fotky.length;update();};
-  next.onclick=()=>{current=(current+1)%fotky.length;update();};
-  let startX=0;
-  overlay.addEventListener("touchstart",e=>startX=e.touches[0].clientX);
-  overlay.addEventListener("touchend",e=>{
-    const diff=e.changedTouches[0].clientX-startX;
-    if(diff>50)prev.onclick();
-    if(diff<-50)next.onclick();
+  const img = overlay.querySelector("#slideImg");
+  const prev = overlay.querySelector(".prev");
+  const next = overlay.querySelector(".next");
+  const close = overlay.querySelector(".close-photo");
+  const update = () =>
+    (img.src = `https://raw.githubusercontent.com/radecek222-boop/reklamace/main/foto/${encodeURIComponent(fotky[current])}`);
+  close.onclick = () => overlay.remove();
+  prev.onclick = () => { current = (current - 1 + fotky.length) % fotky.length; update(); };
+  next.onclick = () => { current = (current + 1) % fotky.length; update(); };
+  let startX = 0;
+  overlay.addEventListener("touchstart", e => (startX = e.touches[0].clientX));
+  overlay.addEventListener("touchend", e => {
+    const diff = e.changedTouches[0].clientX - startX;
+    if (diff > 50) prev.onclick();
+    if (diff < -50) next.onclick();
   });
 }
 
-// 🧾 Tlačítka pod "Zákazník zrušil"
-function renderProtocolButtons(zakaznik,email) {
-  const panel=document.querySelector(".left-buttons");
-  if(!panel)return;
-  let extra=document.getElementById("protocolButtons");
-  if(extra)extra.remove();
-
-  extra=document.createElement("div");
-  extra.id="protocolButtons";
-  extra.className="protocol-section";
-  extra.innerHTML=`
-    <button id="btnCreatePDF" class="btn-blue">Vytvořit protokol</button>
-    <button id="btnBack" class="btn-gray">Zpět</button>
-  `;
-  panel.insertAdjacentElement("afterend",extra);
-
-  document.getElementById("btnCreatePDF").onclick=()=>openProtocolModal(zakaznik,email);
-  document.getElementById("btnBack").onclick=()=>document.querySelector(".detail-overlay").remove();
+// 🧾 Tlačítka protokolu + zpět
+function renderProtocolButtons(zakaznik, email) {
+  const panel = document.querySelector(".left-buttons");
+  if (!panel) return;
+  let extra = document.getElementById("protocolButtons");
+  if (extra) extra.remove();
+  extra = document.createElement("div");
+  extra.id = "protocolButtons";
+  extra.className = "protocol-section";
+  extra.innerHTML = `
+    <button id="btnCreatePDF" class="btn-blue">📄 Vytvořit protokol</button>
+    <button id="btnBack" class="btn-gray">↩️ Zpět</button>`;
+  panel.insertAdjacentElement("afterend", extra);
+  document.getElementById("btnCreatePDF").onclick = () => openProtocolModal(zakaznik, email);
+  document.getElementById("btnBack").onclick = () => document.querySelector(".detail-overlay").remove();
 }
 
-// 📧 Modal okno – odeslání PDF
-function openProtocolModal(zakaznik,email) {
-  const modal=document.createElement("div");
-  modal.className="protocol-overlay";
-  modal.innerHTML=`
+// 📧 Odesílací okno
+function openProtocolModal(zakaznik, email) {
+  const modal = document.createElement("div");
+  modal.className = "protocol-overlay";
+  modal.innerHTML = `
     <div class="protocol-modal">
       <h3>Odeslat protokol e-mailem</h3>
       <p><strong>Zákazník:</strong> ${zakaznik}</p>
       <input type="email" id="mailTo" placeholder="${email || 'např. info@firma.cz'}">
       <div class="protocol-actions">
-        <button id="exportPDF" class="btn-blue">Exportovat do PDF</button>
+        <button id="exportPDF" class="btn-blue">📤 Exportovat do PDF</button>
         <button id="closeProtocol" class="btn-gray">Zavřít</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
-  document.getElementById("closeProtocol").onclick=()=>modal.remove();
-  document.getElementById("exportPDF").onclick=()=>{
-    const mail=document.getElementById("mailTo").value.trim()||email||"";
-    alert(`📤 Protokol exportován a připraven k odeslání na: ${mail}`);
+  document.getElementById("closeProtocol").onclick = () => modal.remove();
+  document.getElementById("exportPDF").onclick = () => {
+    const mail = document.getElementById("mailTo").value.trim() || email || "";
+    alert(`✅ Protokol exportován a připraven k odeslání na: ${mail}`);
     modal.remove();
   };
 }
 
-// 💎 Volání při otevření detailu
+// 🔗 Rozšíření openDetail
 function extendOpenDetail(item) {
   renderPhotoButton(item.fotky);
-  renderProtocolButtons(item.zakaznik,item.email);
-  const mapDiv=document.querySelector("#mapDetail");
-  if(mapDiv) showRouteToCustomer(mapDiv,item.adresa,item.zakaznik);
+  renderProtocolButtons(item.zakaznik, item.email);
+  const mapDiv = document.querySelector("#mapDetail");
+  if (mapDiv) showRouteToCustomer(mapDiv, item.adresa, item.zakaznik);
 }
 
 // 🎨 Styl
-const st=document.createElement("style");
-st.textContent=`
+const style = document.createElement("style");
+style.textContent = `
 .btn-photo-view {
-  background:#f0f0f0;
-  border:1px solid #ccc;
-  color:#333;
-  padding:6px 12px;
-  margin-left:10px;
-  border-radius:6px;
-  font-size:0.85em;
-  cursor:pointer;
-  transition:0.2s;
+  background: #f0f0f0; border: 1px solid #ccc; color: #333;
+  padding: 6px 12px; margin-left: 10px; border-radius: 6px;
+  font-size: 0.85em; cursor: pointer; transition: 0.2s;
 }
-.btn-photo-view:disabled{opacity:0.5;cursor:default;}
-.btn-photo-view:hover:not(:disabled){background:#ddd;}
-.photo-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;justify-content:center;align-items:center;z-index:99999;}
-.photo-modal{position:relative;max-width:90vw;max-height:90vh;}
-.photo-modal img{width:100%;height:auto;border-radius:8px;box-shadow:0 0 20px rgba(0,0,0,0.4);}
-.close-photo{position:absolute;top:-15px;right:-15px;width:36px;height:36px;background:white;border:none;border-radius:50%;font-size:24px;font-weight:bold;cursor:pointer;}
-.nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.5);border:none;font-size:32px;padding:8px 12px;border-radius:50%;cursor:pointer;color:black;}
-.nav.prev{left:-50px;}
-.nav.next{right:-50px;}
-@media(max-width:600px){.nav.prev{left:10px;}.nav.next{right:10px;}}
-.btn-blue{background:linear-gradient(135deg,#0046ff,#357aff);color:#fff;padding:10px 20px;border:none;border-radius:8px;font-weight:600;cursor:pointer;}
-.btn-gray{background:#eee;color:#333;padding:10px 20px;border:1px solid #ccc;border-radius:8px;font-weight:600;cursor:pointer;}
-.protocol-section{margin-top:15px;display:flex;flex-direction:column;gap:10px;}
-.protocol-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;justify-content:center;align-items:center;z-index:99999;}
-.protocol-modal{background:#fff;border-radius:10px;padding:25px;width:320px;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,0.3);}
-.protocol-modal input{width:100%;padding:8px;margin-top:10px;border:1px solid #ccc;border-radius:6px;font-size:0.9em;}
-.protocol-actions{display:flex;justify-content:center;gap:10px;margin-top:15px;}
+.btn-photo-view:disabled { opacity: 0.5; cursor: default; }
+.btn-photo-view:hover:not(:disabled) { background: #ddd; }
+
+.photo-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+  display: flex; justify-content: center; align-items: center; z-index: 99999; }
+.photo-modal { position: relative; max-width: 90vw; max-height: 90vh; }
+.photo-modal img { width: 100%; height: auto; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.4); }
+.close-photo { position: absolute; top: -15px; right: -15px;
+  width: 36px; height: 36px; background: white; border: none; border-radius: 50%;
+  font-size: 24px; font-weight: bold; cursor: pointer; }
+.nav { position: absolute; top: 50%; transform: translateY(-50%);
+  background: rgba(255,255,255,0.5); border: none; font-size: 32px;
+  padding: 8px 12px; border-radius: 50%; cursor: pointer; color: black; }
+.nav.prev { left: -50px; } .nav.next { right: -50px; }
+@media (max-width:600px) { .nav.prev { left: 10px; } .nav.next { right: 10px; } }
+
+.btn-blue {
+  background: linear-gradient(135deg, #0046ff, #357aff); color: #fff;
+  padding: 10px 20px; border: none; border-radius: 8px;
+  font-weight: 600; cursor: pointer;
+}
+.btn-gray {
+  background: #eee; color: #333; padding: 10px 20px;
+  border: 1px solid #ccc; border-radius: 8px;
+  font-weight: 600; cursor: pointer;
+}
+.protocol-section { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
+.protocol-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  display: flex; justify-content: center; align-items: center; z-index: 99999; }
+.protocol-modal { background: #fff; border-radius: 10px; padding: 25px;
+  width: 320px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+.protocol-modal input { width: 100%; padding: 8px; margin-top: 10px;
+  border: 1px solid #ccc; border-radius: 6px; font-size: 0.9em; }
+.protocol-actions { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
 `;
-document.head.appendChild(st);
+document.head.appendChild(style);
 </script>
 <!-- 🟩 KONEC ČÁSTI 10/10 -->
