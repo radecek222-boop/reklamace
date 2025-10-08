@@ -2,89 +2,241 @@
 <html lang="cs">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>White Glove Service – Startovací verze</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Přehled – White Glove Service</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.css">
 <style>
-body {
-  font-family: "Inter", system-ui, sans-serif;
-  background: linear-gradient(180deg,#f7f8fa,#e9ecf3);
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
+body{
+  font-family:"Inter",system-ui,sans-serif;
+  background:#f6f7fb;
+  margin:0;
+  padding:0;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  min-height:100vh;
 }
-h1 {
-  font-size: 3em;
-  font-weight: 900;
-  color: #111;
-  margin: 0 0 10px 0;
+.wrapper{
+  background:#fff;
+  padding:25px;
+  margin:40px 15px;
+  border-radius:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.1);
+  width:100%;
+  max-width:950px;
+  box-sizing:border-box;
 }
-h2 {
-  font-size: 1.2em;
-  font-weight: 400;
-  color: #555;
-  margin: 0 0 30px 0;
+h1{
+  font-size:1.8em;
+  font-weight:900;
+  margin:0;
+  text-align:center;
+  color:#111;
 }
-.btn-group {
-  display: flex;
-  gap: 15px;
-  flex-wrap: wrap;
-  justify-content: center;
+.sub{
+  text-align:center;
+  color:#777;
+  margin-bottom:20px;
 }
-.btn {
-  border: none;
-  border-radius: 8px;
-  padding: 12px 28px;
-  font-size: 1em;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.15s, opacity 0.25s;
-  color: white;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-  min-width: 190px;
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-bottom:20px;
 }
-.btn:hover { transform: scale(1.05); opacity: 0.9; }
+.btn{
+  border:none;
+  border-radius:8px;
+  padding:10px 24px;
+  font-size:0.95em;
+  font-weight:600;
+  cursor:pointer;
+  color:white;
+  box-shadow:0 3px 8px rgba(0,0,0,0.15);
+  transition:transform .15s,opacity .25s;
+  min-width:150px;
+}
+.btn:hover{transform:scale(1.05);opacity:.9;}
+.btn-back{background:linear-gradient(135deg,#a0a4a7,#6c757d);}
+.btn-stats{background:linear-gradient(135deg,#0046ff,#357aff);}
 
-.btn-light {
-  background: linear-gradient(135deg,#a8a8a8,#d1d1d1);
-  color: #fff;
+.stats-boxes{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:15px;
+  margin-bottom:20px;
 }
-.btn-dark {
-  background: linear-gradient(135deg,#4b4b4b,#7a7a7a);
-  color: #fff;
+.box{
+  background:#f7f8fa;
+  border-radius:10px;
+  padding:15px;
+  text-align:center;
+  box-shadow:inset 0 1px 4px rgba(0,0,0,0.05);
 }
-@media (max-width: 600px) {
-  .btn-group {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .btn { width: 100%; }
+.box .num{
+  font-size:1.6em;
+  font-weight:800;
+  color:#0046ff;
 }
+.box .label{
+  font-size:0.9em;
+  color:#666;
+}
+.filter-bar{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+  margin-bottom:25px;
+}
+select,input[type="date"]{
+  padding:6px 10px;
+  font-size:0.9em;
+  border:1px solid #ccc;
+  border-radius:6px;
+}
+.chart-container{
+  background:#f9f9f9;
+  border-radius:10px;
+  padding:15px;
+  box-shadow:inset 0 1px 4px rgba(0,0,0,0.05);
+  margin-bottom:25px;
+}
+h3{
+  text-align:center;
+  font-size:1em;
+  color:#333;
+  margin-bottom:10px;
+}
+.loading{text-align:center;padding:30px;color:#666;}
+.hidden{display:none;}
 </style>
 </head>
 <body>
+<div class="wrapper">
+  <div class="topbar">
+    <h1>Přehled WGS</h1>
+    <button class="btn btn-back" onclick="location.href='index.html'">Zpět</button>
+  </div>
+  <div class="sub">Statistiky reklamací, výdělků a obratu</div>
 
-  <h1>WHITE GLOVE SERVICE</h1>
-  <h2>specializovaný autorizovaný servis Natuzzi</h2>
-
-  <div class="btn-group">
-    <button class="btn btn-light" onclick="location.href='seznam.html'">Seznam reklamací</button>
-    <button class="btn btn-dark" onclick="openStats()">Přejít na statistiku</button>
+  <div id="loginSection" class="loading">🔒 Pro přístup zadejte heslo: <br><br>
+    <input type="password" id="adminPass" placeholder="Heslo" style="padding:6px 10px;border-radius:6px;border:1px solid #ccc;">
+    <button class="btn btn-stats" onclick="checkPass()">Přihlásit</button>
   </div>
 
+  <div id="content" class="hidden">
+    <div class="filter-bar">
+      <select id="periodSelect">
+        <option value="week">Poslední týden</option>
+        <option value="month">Poslední měsíc</option>
+        <option value="year">Poslední rok</option>
+        <option value="all" selected>Vše</option>
+      </select>
+      <label>Od: <input type="date" id="dateFrom"></label>
+      <label>Do: <input type="date" id="dateTo"></label>
+      <select id="typeSelect">
+        <option value="all" selected>Všechny typy</option>
+        <option value="reklamace">Reklamace</option>
+        <option value="pozáruční">Pozáruční servis</option>
+      </select>
+      <button class="btn btn-stats" id="applyFilter">Zobrazit</button>
+    </div>
+
+    <div class="stats-boxes">
+      <div class="box"><div class="num" id="sumRevenue">0 Kč</div><div class="label">Celkový obrat</div></div>
+      <div class="box"><div class="num" id="sumOrders">0</div><div class="label">Počet zakázek</div></div>
+      <div class="box"><div class="num" id="sumTechs">0 Kč</div><div class="label">Výdělek techniků</div></div>
+    </div>
+
+    <div class="chart-container">
+      <h3>💰 Obrat podle zadavatelů</h3>
+      <canvas id="clientChart" height="200"></canvas>
+    </div>
+
+    <div class="chart-container">
+      <h3>👨‍🔧 Výdělky techniků</h3>
+      <canvas id="techChart" height="200"></canvas>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-function openStats() {
-  const pass = prompt("Zadejte heslo pro přístup:");
-  if (pass === "Mikes332018") {
-    location.href = "prehled.html";
-  } else if (pass !== null) {
-    alert("Nesprávné heslo!");
+let allData=[];
+function checkPass(){
+  const pass=document.getElementById("adminPass").value.trim();
+  if(pass==="Mikes332018"){
+    document.getElementById("loginSection").classList.add("hidden");
+    document.getElementById("content").classList.remove("hidden");
+    loadStats();
+  }else alert("Nesprávné heslo!");
+}
+async function loadStats(){
+  try{
+    const res=await fetch("prehled.json?t="+Date.now());
+    allData=await res.json();
+    renderStats();
+  }catch(e){
+    console.error(e);
   }
 }
-</script>
+document.getElementById("applyFilter").onclick=renderStats;
 
+function renderStats(){
+  if(!allData.length)return;
+  const period=document.getElementById("periodSelect").value;
+  const type=document.getElementById("typeSelect").value;
+  let from,to;
+  const now=new Date();
+  switch(period){
+    case"week":from=new Date(now);from.setDate(now.getDate()-7);break;
+    case"month":from=new Date(now);from.setMonth(now.getMonth()-1);break;
+    case"year":from=new Date(now);from.setFullYear(now.getFullYear()-1);break;
+    default:from=new Date("2000-01-01");
+  }
+  to=now;
+  const fromInput=document.getElementById("dateFrom").value;
+  const toInput=document.getElementById("dateTo").value;
+  if(fromInput)from=new Date(fromInput);
+  if(toInput)to=new Date(toInput);
+
+  const filtered=allData.filter(r=>{
+    const d=new Date(r.datum||r.date||r.visit||"2000-01-01");
+    const inDate=d>=from && d<=to;
+    const inType=(type==="all"||(r.typ||"").toLowerCase().includes(type));
+    return inDate&&inType;
+  });
+
+  const byClient={},byTech={};
+  let total=0;
+  filtered.forEach(r=>{
+    const c=r.contract||"Neznámý";
+    const t=r.technician||r.technik||"Neuvedeno";
+    const p=parseFloat(r.total||r.cenaCelkem||0);
+    byClient[c]=(byClient[c]||0)+p;
+    byTech[t]=(byTech[t]||0)+p;
+    total+=p;
+  });
+
+  document.getElementById("sumRevenue").textContent=total.toLocaleString("cs-CZ")+" Kč";
+  document.getElementById("sumOrders").textContent=filtered.length;
+  const totalTech=Object.values(byTech).reduce((a,b)=>a+b,0);
+  document.getElementById("sumTechs").textContent=totalTech.toLocaleString("cs-CZ")+" Kč";
+
+  drawChart("clientChart",Object.keys(byClient),Object.values(byClient),"#0046ff");
+  drawChart("techChart",Object.keys(byTech),Object.values(byTech),"#00b36b");
+}
+
+let chart1,chart2;
+function drawChart(id,labels,values,color){
+  const ctx=document.getElementById(id);
+  const data={labels,datasets:[{data:values,backgroundColor:color+"aa",borderColor:color,borderWidth:1.5}]};
+  const config={type:"bar",data,options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}};
+  if(id==="clientChart"){if(chart1)chart1.destroy();chart1=new Chart(ctx,config);}
+  else{if(chart2)chart2.destroy();chart2=new Chart(ctx,config);}
+}
+</script>
 </body>
 </html>
