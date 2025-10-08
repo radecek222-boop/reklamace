@@ -66,7 +66,6 @@ textarea { min-height:80px; resize:vertical; }
 }
 .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
 
-/* ✅ tlačítka */
 .btns {
   margin-top:20px;
   display:grid;
@@ -235,6 +234,34 @@ button:hover { transform:scale(1.03); opacity:0.9; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
+<!-- 🧩 AUTO-PŘEDVYPLNĚNÍ -->
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+  try {
+    const saved = localStorage.getItem("protokolData");
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    console.log("🧾 Načítám data z localStorage.protokolData:", data);
+
+    if (data.cislo) document.getElementById("claim-number").value = data.cislo;
+    if (data.contract) document.getElementById("brand").value = data.contract;
+    if (data.zakaznik) document.getElementById("customer").value = data.zakaznik;
+    if (data.adresa) document.getElementById("address").value = data.adresa;
+    if (data.telefon) document.getElementById("phone").value = data.telefon;
+    if (data.email) document.getElementById("email").value = data.email;
+    if (data.produkt) document.getElementById("model").value = data.produkt;
+    if (data.popis) {
+      document.getElementById("description-cz").value = data.popis;
+      document.getElementById("description-en").value = data.popis;
+    }
+    if (data.datum_reklamace) document.getElementById("claim-date").value = data.datum_reklamace;
+    if (data.datum) document.getElementById("visit-date").value = data.datum;
+  } catch (err) {
+    console.error("❌ Chyba při načítání dat pro protokol:", err);
+  }
+});
+</script>
+
 <script>
 let signaturePad;
 let lastPdfName="protokol.pdf";
@@ -284,11 +311,19 @@ async function uploadProtocol(){
 
   const { jsPDF }=window.jspdf;
   const doc=new jsPDF("p","mm","a4");
+
+  // 💧 VODOZNAK
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(48);
+  doc.setTextColor(220,220,220);
+  doc.text("WHITE GLOVE SERVICE", 105, 150, {align:"center",angle:45});
+
   const wrapper=document.querySelector(".wrapper");
   wrapper.classList.add("force-desktop");
   const canvas=await html2canvas(wrapper,{scale:2});
   const imgData=canvas.toDataURL("image/jpeg",0.95);
   doc.addImage(imgData,"JPEG",0,0,210,297);
+
   const pdfBlob=doc.output("blob");
   const pdfFile=new File([pdfBlob],buildPdfFileName(),{type:"application/pdf"});
   const data=collectFormData();
