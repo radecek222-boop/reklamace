@@ -318,11 +318,11 @@ h1 {
 <!-- 🟧 SEKCE 4/5 – FUNKCE A DATOVÉ OPERACE -->
 <script>
 const clientModal = document.getElementById("clientModal");
-const techModal = document.getElementById("techModal");
+const techModal   = document.getElementById("techModal");
 const periodModal = document.getElementById("periodModal");
 
-const clientList = document.getElementById("clientList");
-const loadingClients = document.getElementById("loadingClients");
+const clientList      = document.getElementById("clientList");
+const loadingClients  = document.getElementById("loadingClients");
 
 const selectClientBtn = document.getElementById("selectClientBtn");
 const selectTechBtn   = document.getElementById("selectTechBtn");
@@ -334,30 +334,28 @@ const confirmPeriod   = document.getElementById("confirmPeriod");
 const closePeriod     = document.getElementById("closePeriod");
 const closeTech       = document.getElementById("closeTech");
 
-const infoObrat = document.getElementById("infoObrat");
-const summaryBox = document.getElementById("summary");
+const infoObrat   = document.getElementById("infoObrat");
+const summaryBox  = document.getElementById("summary");
 const resultsTable = document.querySelector("#resultsTable tbody");
 
 let allOrders = [];
 
-
 /* ==========================================================
-   🟩 1️⃣ Otevření a zavření modálních oken
+   🟩 1️⃣  Otevření a zavření modálních oken
 ========================================================== */
 selectClientBtn.onclick = () => {
   clientModal.classList.add("active");
   loadClients();
 };
-selectTechBtn.onclick = () => techModal.classList.add("active");
+selectTechBtn.onclick   = () => techModal.classList.add("active");
 selectPeriodBtn.onclick = () => periodModal.classList.add("active");
 
 closeClients.onclick = () => clientModal.classList.remove("active");
-closeTech.onclick = () => techModal.classList.remove("active");
-closePeriod.onclick = () => periodModal.classList.remove("active");
-
+closeTech.onclick    = () => techModal.classList.remove("active");
+closePeriod.onclick  = () => periodModal.classList.remove("active");
 
 /* ==========================================================
-   🟩 2️⃣ Načtení zadavatelů z GitHubu (hotove.json)
+   🟩 2️⃣  Načtení zadavatelů z GitHubu (hotove.json)
 ========================================================== */
 async function loadClients() {
   loadingClients.style.display = "block";
@@ -395,43 +393,46 @@ async function loadClients() {
   }
 }
 
-
 /* ==========================================================
-   🟩 3️⃣ Potvrzení výběru zadavatelů
+   🟩 3️⃣  Potvrzení výběru zadavatelů
 ========================================================== */
 confirmClients.onclick = () => {
   const checked = [...clientList.querySelectorAll("input:checked")].map(i => i.value);
   localStorage.setItem("selectedClients", JSON.stringify(checked));
 
-  // ✅ Krátká odezva potvrzení
+  // ✅ Krátká vizuální odezva
   loadingClients.innerHTML = "<span style='color:#00c851;font-size:1.6em;'>✅</span> Uloženo";
   clientList.style.display = "none";
   setTimeout(() => clientModal.classList.remove("active"), 800);
 };
 
-
 /* ==========================================================
-   🟩 4️⃣ Automatické doplnění polí „Od–Do“ po výběru měsíce
+   🟩 4️⃣  Automatické doplnění polí „Od–Do“ po výběru měsíce
 ========================================================== */
 document.getElementById("monthSelect").addEventListener("change", e => {
-  const month = e.target.value;
+  const month = parseInt(e.target.value, 10);
   if (!month) return;
 
   const year = new Date().getFullYear();
+
+  // 1. den měsíce
   const start = new Date(year, month - 1, 1);
+  // Poslední den měsíce
   const end = new Date(year, month, 0);
 
-  document.getElementById("dateFrom").value = start.toISOString().split("T")[0];
-  document.getElementById("dateTo").value = end.toISOString().split("T")[0];
+  const yyyy = year.toString().padStart(4, "0");
+  const mm   = month.toString().padStart(2, "0");
+
+  document.getElementById("dateFrom").value = `${yyyy}-${mm}-01`;
+  document.getElementById("dateTo").value   = end.toISOString().split("T")[0];
 });
 
-
 /* ==========================================================
-   🟩 5️⃣ Potvrzení výběru období
+   🟩 5️⃣  Potvrzení výběru období
 ========================================================== */
 confirmPeriod.onclick = () => {
   const from = document.getElementById("dateFrom").value;
-  const to = document.getElementById("dateTo").value;
+  const to   = document.getElementById("dateTo").value;
 
   if (!from || !to) {
     alert("Zadej platné období nebo měsíc.");
@@ -441,7 +442,7 @@ confirmPeriod.onclick = () => {
   localStorage.setItem("selectedPeriod", JSON.stringify({ from, to }));
 
   // ✅ Potvrzení a zavření
-  const h2 = document.getElementById("periodModal").querySelector("h2");
+  const h2 = periodModal.querySelector("h2");
   h2.innerHTML = "✅ Uloženo";
   setTimeout(() => {
     h2.innerHTML = "Vyber období";
@@ -449,6 +450,7 @@ confirmPeriod.onclick = () => {
   }, 800);
 };
 </script>
+
 <!-- 🟪 SEKCE 5/5 – NAČÍTÁNÍ DAT A VÝPOČTY -->
 <script>
 /* ==========================================================
