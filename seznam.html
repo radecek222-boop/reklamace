@@ -197,7 +197,7 @@ tr:hover { background: #f1f6ff; cursor: pointer; }
 
 
 
-<!-- 🟦 SEKCE B – NAČÍTÁNÍ DAT (API + zpracování + tabulka + vyhledávání) -->
+<!-- 🟦 SEKCE B – NAČÍTÁNÍ DAT + TABULKA + DEBUG -->
 <script>
 /* ============================= */
 /* ⚙️ KONSTANTY A PROMĚNNÉ       */
@@ -226,14 +226,20 @@ async function loadData() {
   try {
     const res = await fetch(API_URL, { mode: "cors", cache: "no-store" });
     if (!res.ok) throw new Error(`Chyba HTTP ${res.status}`);
-    const data = await res.json();
+    let data = await res.json();
 
+    // 🧠 Normalizace – zajistí, že vždy pracujeme s polem
     if (!Array.isArray(data)) {
-      console.error("❌ Neočekávaný formát dat:", data);
-      throw new Error("Worker nevrací pole objektů");
+      if (typeof data === "object" && Object.keys(data).length > 0) {
+        data = Object.values(data);
+      } else {
+        throw new Error("Worker nevrací platné záznamy");
+      }
     }
 
     console.log("📦 Worker data:", data);
+    updateDebug(data.length); // 🔹 aktualizace panelu debug
+
     if (data.length === 0) {
       tableContainer.innerHTML = "<div>Žádné záznamy</div>";
       return;
@@ -252,6 +258,7 @@ async function loadData() {
   } catch (err) {
     console.error("❌ Chyba při načítání:", err);
     tableContainer.innerHTML = `<div style='color:red;font-weight:600;'>Chyba načítání dat: ${err.message}</div>`;
+    updateDebug(0);
   }
 }
 
@@ -332,8 +339,38 @@ window.addEventListener("DOMContentLoaded", () => {
   console.log("✅ DOM ready, data načítána.");
 });
 reloadBtn.addEventListener("click", loadData);
+
+/* ============================= */
+/* 🧩 DEBUG PANEL                */
+/* ============================= */
+function updateDebug(count) {
+  const c = document.getElementById("debugCount");
+  const t = document.getElementById("debugTime");
+  if (!c || !t) return;
+  c.textContent = count;
+  t.textContent = new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
 </script>
+
+<!-- 🧩 B-DEBUG PANEL (VIZUÁLNÍ INFO) -->
+<div id="debugBox"
+     style="font-family:Inter,sans-serif;
+            font-size:12px;
+            color:#333;
+            position:fixed;
+            bottom:10px;
+            right:12px;
+            background:#f7f7f7;
+            border:1px solid #ccc;
+            border-radius:8px;
+            padding:8px 12px;
+            box-shadow:0 2px 6px rgba(0,0,0,0.1);
+            z-index:9999;">
+  Načteno: <span id="debugCount">0</span> záznamů<br>
+  <small>Aktualizace: <span id="debugTime">–</span></small>
+</div>
 <!-- 🟦 KONEC SEKCE B -->
+
 
 
 
