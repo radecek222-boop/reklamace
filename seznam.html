@@ -623,199 +623,150 @@ if (typeof renderTable !== "function") {
 
 
 
-
-<!-- 🟩 ZAČÁTEK ČÁSTI 4/10 (uložení termínu do GitHub + loader + toast notifikace) -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 4/10 – načítání a vykreslení tabulky reklamací -->
 <script>
-async function ulozitTerminNaGitHub(item, id, datum, cas, overlay, btn, infoBox) {
-  stavy[id] = "domluveno";
-  item.datum = datum;
-  item.cas = cas;
+const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
+const tableContainer = document.getElementById("tableContainer");
+const searchInput = document.getElementById("search");
+let dataAll = [];
+let stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
+let lastDataHash = "";
 
-  /* ⏳ Loader „Čekejte“ */
-  const loader = document.createElement("div");
-  loader.className = "loader-overlay";
-  loader.innerHTML = `
-    <div class="loader-inner">
-      <div class="hourglass"></div>
-      <div>⏳ Čekejte, ukládám termín…</div>
-    </div>`;
-  document.body.appendChild(loader);
+/* 🔄 automatické načítání každé 2 minuty */
+setInterval(loadData, 120000);
 
-  const style = document.createElement("style");
-  style.textContent = `
-    .loader-overlay {
-      position: fixed; inset: 0;
-      background: rgba(255,255,255,0.88);
-      display: flex; flex-direction: column;
-      justify-content: center; align-items: center;
-      font-family: "Inter", sans-serif;
-      color: #0046ff; font-weight: 700;
-      font-size: 1.2em; z-index: 99999;
-    }
-    .hourglass {
-      width: 44px; height: 44px;
-      border: 4px solid #0046ff;
-      border-radius: 50%;
-      border-top-color: transparent;
-      animation: spin 1.1s linear infinite;
-    }
-    @keyframes spin { from {transform:rotate(0)} to {transform:rotate(360deg)} }
-  `;
-  document.head.appendChild(style);
-
+/* 🔔 zvuková notifikace při nových záznamech */
+function playNotification() {
   try {
-    /* 💾 Uložení přes Worker na GitHub */
-    await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "update", record: item })
-    });
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = "sine"; o.frequency.value = 880;
+    g.gain.value = 0.1;
+    o.start(); o.stop(ctx.currentTime + 0.25);
+  } catch(e){}
+}
 
-    /* ✅ Potvrzení „Termín úspěšně uložen“ */
-    setTimeout(() => {
-      loader.remove();
-      const ok = document.createElement("div");
-      ok.className = "successOverlay";
-      ok.innerHTML = `
-        <div class="successInner">
-          <div class="icon">✅</div>
-          <div class="title">Termín úspěšně uložen</div>
-          <div class="text">Data byla odeslána a potvrzena v GitHub repozitáři.</div>
-        </div>`;
-      document.body.appendChild(ok);
-      setTimeout(() => ok.classList.add("active"), 50);
+/* 🧩 hash pro zjištění změn */
+function hashData(arr) {
+  return arr.map(r => r.cislo || "").join("|");
+}
 
-      /* 💾 Lokální uložení */
-      ulozTermin(item);
-      localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+/* 📦 načtení dat z API */
+async function loadData() {
+  tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
+  try {
+    const res = await fetch(API_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error("Chyba při načítání dat");
+    const data = await res.json();
+    if (!Array.isArray(data)) throw new Error("Neplatný formát dat");
 
-      /* 💡 Zelené bliknutí šedého banneru */
-      flashBox(infoBox,"green");
+    dataAll = data.reverse();
+    const newHash = hashData(dataAll);
+    if (lastDataHash && newHash !== lastDataHash) playNotification();
+    lastDataHash = newHash;
 
-      /* 🔔 Toast pro návrat */
-      setNextToast("✅ Termín úspěšně uložen", "success");
-
-      /* 🔁 Návrat na seznam */
-      setTimeout(() => {
-        ok.classList.remove("active");
-        setTimeout(() => {
-          ok.remove();
-          overlay.remove();
-          renderTable(dataAll);
-        }, 400);
-      }, 1500);
-    }, 800);
-
+    renderTable(dataAll);
   } catch (err) {
-    loader.remove();
-    alert("❌ Chyba při ukládání termínu: " + err.message);
+    tableContainer.innerHTML = `<div style="color:red;">❌ ${err.message}</div>`;
   }
 }
 
-/* 🌟 Toast notifikace */
-function showToast(msg, type="success") {
-  const toast = document.createElement("div");
-  toast.className = `wgs-toast ${type}`;
-  toast.innerHTML = `<span>${msg}</span>`;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.classList.add("active"), 50);
-  setTimeout(() => {
-    toast.classList.remove("active");
-    setTimeout(() => toast.remove(), 400);
-  }, 3500);
+/* 📋 vykreslení tabulky */
+function renderTable(arr) {
+  if (!arr.length) {
+    tableContainer.innerHTML = "<div>Žádné záznamy</div>";
+    return;
+  }
+
+  let html = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Zákazník</th>
+            <th>Adresa</th>
+            <th>Telefon</th>
+            <th>Stav</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  arr.forEach((r, i) => {
+    const id = r.cislo || `radek-${i}`;
+    const stav = stavy[id] || "novy";
+
+    const adresa = r.adresa
+      ? `<a href="https://waze.com/ul?q=${encodeURIComponent(r.adresa)}" target="_blank" style="color:#000;font-weight:600;">${normalizePrahaAddress(r.adresa)}</a>`
+      : "–";
+
+    const telefon = r.telefon
+      ? `<a href="tel:${r.telefon.replace('+420','').trim()}" style="color:#000;font-weight:600;">${r.telefon.replace('+420','').trim()}</a>`
+      : "–";
+
+    let stavText = "Nový";
+    if (stav === "domluveno" && r.datum && r.cas) {
+      const d = new Date(r.datum);
+      const den = d.toLocaleDateString("cs-CZ", { weekday: "short", day: "numeric", month: "numeric" });
+      stavText = `${den} ${r.cas}`;
+    } else if (stav === "zruseno") stavText = "Zrušeno";
+    else if (stav === "nezveda") stavText = "Nezvedá";
+
+    html += `
+      <tr class="${stav}" data-index="${i}" data-id="${id}">
+        <td>${r.zakaznik || "–"}</td>
+        <td>${adresa}</td>
+        <td>${telefon}</td>
+        <td>${stavText}</td>
+      </tr>
+    `;
+  });
+
+  html += "</tbody></table></div>";
+  tableContainer.innerHTML = html;
+
+  document.querySelectorAll("tbody tr").forEach(row => {
+    row.addEventListener("click", () => openDetail(row.dataset.index));
+  });
+
+  highlightTodayRows();
 }
 
-/* 🧩 Po načtení seznamu zobraz toast z předešlé akce */
-window.addEventListener("DOMContentLoaded", () => {
-  const toastMsg = sessionStorage.getItem("wgsToastMsg");
-  const toastType = sessionStorage.getItem("wgsToastType");
-  if (toastMsg) {
-    showToast(toastMsg, toastType);
-    sessionStorage.removeItem("wgsToastMsg");
-    sessionStorage.removeItem("wgsToastType");
-  }
+/* 🔍 vyhledávání */
+searchInput.addEventListener("input", () => {
+  const q = searchInput.value.trim().toLowerCase();
+  if (!q) return renderTable(dataAll);
+  const filtered = dataAll.filter(r =>
+    (r.zakaznik || "").toLowerCase().includes(q) ||
+    (r.adresa || "").toLowerCase().includes(q) ||
+    (r.produkt || "").toLowerCase().includes(q)
+  );
+  renderTable(filtered);
 });
 
-/* 🧠 Nastavení toastu pro příští zobrazení */
-function setNextToast(msg, type="success") {
-  sessionStorage.setItem("wgsToastMsg", msg);
-  sessionStorage.setItem("wgsToastType", type);
+/* 💾 uložení stavů do LocalStorage */
+function ulozStavy() {
+  localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
 }
+
+/* 🟢 zvýraznění dnešních termínů */
+function highlightTodayRows() {
+  const today = new Date().toISOString().split("T")[0];
+  document.querySelectorAll("tbody tr").forEach(row => {
+    const i = row.dataset.index;
+    const r = dataAll[i];
+    if (r && r.datum === today && (stavy[r.cislo] === "domluveno")) {
+      row.style.animation = "blinkYellow 1.2s infinite alternate";
+    } else row.style.animation = "none";
+  });
+}
+
+window.addEventListener("DOMContentLoaded", loadData);
 </script>
-
-<style>
-/* ✅ Hláška při uložení */
-.successOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(255,255,255,0.9);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 100000;
-}
-.successOverlay.active { opacity: 1; }
-
-.successInner {
-  background: #fff;
-  border-left: 6px solid #28a745;
-  border-radius: 12px;
-  padding: 25px 30px;
-  text-align: center;
-  font-family: "Inter", sans-serif;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  max-width: 360px;
-}
-.successInner .icon {
-  font-size: 2em;
-  margin-bottom: 10px;
-}
-.successInner .title {
-  font-size: 1.3em;
-  font-weight: 800;
-  color: #28a745;
-  margin-bottom: 6px;
-}
-.successInner .text {
-  font-size: 0.95em;
-  color: #333;
-}
-
-/* 🌟 Toast notifikace (pravý horní roh) */
-.wgs-toast {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: #fff;
-  padding: 14px 22px;
-  border-radius: 8px;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.15);
-  font-family: "Inter", sans-serif;
-  font-size: 0.95em;
-  font-weight: 600;
-  color: #111;
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: all 0.35s ease;
-  z-index: 100001;
-}
-.wgs-toast.active {
-  opacity: 1;
-  transform: translateY(0);
-}
-.wgs-toast.success {
-  border-left: 5px solid #28a745;
-}
-.wgs-toast.error {
-  border-left: 5px solid #dc3545;
-}
-.wgs-toast.warning {
-  border-left: 5px solid #ff9800;
-}
-</style>
 <!-- 🟩 KONEC ČÁSTI 4/10 -->
+
 
 
 
