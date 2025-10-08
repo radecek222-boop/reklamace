@@ -257,13 +257,12 @@ button:hover { transform:scale(1.03); opacity:0.9; }
 
 
 <!-- 🟨 ZAČÁTEK ČÁSTI D (Textové sekce: reklamace, problém, oprava) -->
-
   <!-- 🧩 Sekce: Zákazník reklamuje -->
   <div class="section-title">
     Zákazník reklamuje<span class="en-label">Customer complaint</span>
   </div>
   <div class="split-section">
-    <textarea id="description-cz" placeholder="CZ"></textarea>
+    <textarea id="description-cz" placeholder="CZ" oninput="syncText('description')"></textarea>
     <textarea id="description-en" placeholder="EN"></textarea>
   </div>
 
@@ -272,7 +271,7 @@ button:hover { transform:scale(1.03); opacity:0.9; }
     Problém zjištěný technikem<span class="en-label">Detected problem</span>
   </div>
   <div class="split-section">
-    <textarea id="problem-cz" placeholder="CZ"></textarea>
+    <textarea id="problem-cz" placeholder="CZ" oninput="syncText('problem')"></textarea>
     <textarea id="problem-en" placeholder="EN"></textarea>
   </div>
 
@@ -281,10 +280,20 @@ button:hover { transform:scale(1.03); opacity:0.9; }
     Návrh opravy<span class="en-label">Repair proposal</span>
   </div>
   <div class="split-section">
-    <textarea id="repair-cz" placeholder="CZ"></textarea>
+    <textarea id="repair-cz" placeholder="CZ" oninput="syncText('repair')"></textarea>
     <textarea id="repair-en" placeholder="EN"></textarea>
   </div>
 
+  <!-- 🧩 Skript pro automatické kopírování českého textu do anglické verze -->
+  <script>
+  function syncText(prefix) {
+    const cz = document.getElementById(`${prefix}-cz`);
+    const en = document.getElementById(`${prefix}-en`);
+    if (document.activeElement === cz && !en.value.trim()) {
+      en.value = cz.value;
+    }
+  }
+  </script>
 <!-- 🟩 KONEC ČÁSTI D -->
 
 
@@ -296,27 +305,27 @@ button:hover { transform:scale(1.03); opacity:0.9; }
       <table>
         <tr>
           <td class="label">Počet opravovaných dílů<span class="en-label">Number of repaired parts</span></td>
-          <td><input id="parts"></td>
+          <td><input id="parts" type="number" min="0"></td>
         </tr>
         <tr>
           <td class="label">Cena za práci<span class="en-label">Work cost</span></td>
-          <td><input id="price-work"></td>
+          <td><input id="price-work" type="number" min="0" step="0.01" oninput="updateTotal()"></td>
         </tr>
         <tr>
           <td class="label">Cena za materiál<span class="en-label">Material cost</span></td>
-          <td><input id="price-material"></td>
+          <td><input id="price-material" type="number" min="0" step="0.01" oninput="updateTotal()"></td>
         </tr>
         <tr>
           <td class="label">Cena za druhého technika<span class="en-label">Second technician cost</span></td>
-          <td><input id="price-second"></td>
+          <td><input id="price-second" type="number" min="0" step="0.01" oninput="updateTotal()"></td>
         </tr>
         <tr>
           <td class="label">Cena za dopravu<span class="en-label">Transport cost</span></td>
-          <td><input id="price-transport"></td>
+          <td><input id="price-transport" type="number" min="0" step="0.01" oninput="updateTotal()"></td>
         </tr>
         <tr>
           <td class="label">Cena celkem<span class="en-label">Total cost</span></td>
-          <td><input id="price-total"></td>
+          <td><input id="price-total" type="number" readonly></td>
         </tr>
       </table>
     </div>
@@ -347,6 +356,18 @@ button:hover { transform:scale(1.03); opacity:0.9; }
       </table>
     </div>
   </div>
+
+  <!-- 🧩 Skript pro automatický součet ceny -->
+  <script>
+  function updateTotal() {
+    const work = parseFloat(document.getElementById("price-work").value) || 0;
+    const material = parseFloat(document.getElementById("price-material").value) || 0;
+    const second = parseFloat(document.getElementById("price-second").value) || 0;
+    const transport = parseFloat(document.getElementById("price-transport").value) || 0;
+    const total = work + material + second + transport;
+    document.getElementById("price-total").value = total.toFixed(2);
+  }
+  </script>
 <!-- 🟩 KONEC ČÁSTI E -->
 
 
