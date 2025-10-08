@@ -1198,4 +1198,129 @@ function recalcDeparture() {
 
 
 
+<!-- 🟪 ZAČÁTEK SEKCE F-1 – DOPLŇKY (fotky, blikání, overlap, ukládání) -->
+<script>
+/* ============================= */
+/* 🖼️ ZOBRAZENÍ FOTKY VE FULLSCREEN */
+/* ============================= */
+function showPhoto(src) {
+  const viewer = document.createElement("div");
+  viewer.className = "photo-viewer";
+  viewer.innerHTML = `
+    <div class="photo-viewer-inner">
+      <img src="${src}" alt="">
+      <button class="close-viewer">×</button>
+    </div>`;
+  document.body.appendChild(viewer);
+  viewer.querySelector(".close-viewer").onclick = () => viewer.remove();
+  viewer.onclick = e => { if (e.target === viewer) viewer.remove(); };
+}
+
+/* ============================= */
+/* 💾 ULOŽENÍ TERMÍNU DO LOCALSTORAGE */
+/* ============================= */
+function ulozTermin(zaznam) {
+  let data = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
+  const id = zaznam.cislo || zaznam.id;
+  data = data.filter(z => z.cislo !== id);
+  data.push(zaznam);
+  localStorage.setItem("stavyReklamaciData", JSON.stringify(data));
+}
+
+/* ============================= */
+/* 🕓 KONTROLA PŘEKRYVU TERMÍNŮ (2 h) */
+/* ============================= */
+function checkOverlap(datum, cas) {
+  const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
+  const nove = new Date(`${datum}T${cas}`);
+  return ulozene.filter(z => {
+    if (z.datum !== datum) return false;
+    const exist = new Date(`${z.datum}T${z.cas}`);
+    const diff = Math.abs((exist - nove) / 36e5);
+    return diff < 2;
+  });
+}
+
+/* ============================= */
+/* 🔆 BLIKÁNÍ DNEŠNÍCH TERMÍNŮ  */
+/* ============================= */
+function highlightTodayRows() {
+  const today = new Date().toISOString().split("T")[0];
+  document.querySelectorAll("tbody tr").forEach(row => {
+    const index = row.dataset.index;
+    const item = dataAll[index];
+    if (item && item.datum === today &&
+        stavy[item.cislo || `radek-${index}`] === "domluveno") {
+      row.classList.add("blink-today");
+    } else {
+      row.classList.remove("blink-today");
+    }
+  });
+}
+
+/* 📦 Napojení na renderTable + interval kontroly */
+const originalRenderTableBlink = renderTable;
+renderTable = function(arr) {
+  originalRenderTableBlink(arr);
+  setTimeout(highlightTodayRows, 150);
+};
+window.addEventListener("storage", e => {
+  if (e.key === "stavyReklamaci") setTimeout(highlightTodayRows, 300);
+});
+setInterval(highlightTodayRows, 30000);
+</script>
+
+<style>
+/* ============================= */
+/* 🎨 STYLY PRO FOTKY A BLIKÁNÍ */
+/* ============================= */
+
+/* 🔍 Fullscreen náhled fotky */
+.photo-viewer {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+.photo-viewer-inner {
+  position: relative;
+  max-width: 90vw;
+  max-height: 85vh;
+}
+.photo-viewer-inner img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+.close-viewer {
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  background: #ff3b30;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 1.2em;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: transform 0.2s ease;
+}
+.close-viewer:hover { transform: scale(1.1); background: #ff5c47; }
+
+/* 🔔 Blikání dnešních domluvených termínů */
+@keyframes blinkToday {
+  0% { background-color: #fff2f2; }
+  50% { background-color: #ffeb99; }
+  100% { background-color: #fff2f2; }
+}
+.blink-today { animation: blinkToday 1.2s infinite; }
+</style>
+<!-- 🟪 KONEC SEKCE F-1 -->
 
