@@ -244,20 +244,39 @@ document.addEventListener("keydown", e => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 <body>
-  <div class="wrapper">
-    <button id="logoutBtn" class="btn btn-gray" style="position:absolute;top:15px;right:20px;">Odejít</button>
+  <div class="wrapper" id="content">
 
-    <h1>Přehled WGS</h1>
-    <div class="sub">Statistiky reklamací a servisních zakázek</div>
-
-    <div class="top-bar">
-      <button id="selectClientBtn" class="btn btn-light">Vyber zadavatele</button>
-      <button id="selectTechBtn" class="btn btn-light">Vyber technika</button>
-      <button id="selectPeriodBtn" class="btn btn-gray">Období</button>
-      <div id="infoObrat" class="info-box">Obrat: 0 Kč</div>
+    <!-- 🔝 Horní panel -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div>
+        <h1>Přehled WGS</h1>
+        <div class="sub">Statistiky reklamací, výdělků a obratu</div>
+      </div>
+      <button class="btn-exit" onclick="logout()">Odejít</button>
     </div>
 
+    <!-- 🔘 Ovládací panel -->
+    <div class="top-bar">
+      <button id="selectClientBtn" class="btn btn-light">Vyber zadavatele</button>
+      <button id="selectTechBtn" class="btn btn-dark">Vyber technika</button>
+      <button id="selectPeriodBtn" class="btn btn-gray">Období</button>
+      <div class="info-box" id="revenueBox">Obrat: 0 Kč</div>
+      <div class="info-box" id="ordersBox">Zakázek: 0</div>
+    </div>
+
+    <!-- 📊 Výsledková tabulka -->
     <div id="resultsContainer">
       <table id="resultsTable">
         <thead>
@@ -278,9 +297,11 @@ document.addEventListener("keydown", e => {
       </table>
     </div>
 
-    <div id="summary" class="summary">
-      Celkem zakázek v období: 0  |  Celkový obrat: 0 Kč
+    <!-- 📈 Shrnutí -->
+    <div class="summary" id="summaryInfo">
+      Vyberte parametry pro zobrazení přehledu.
     </div>
+
   </div>
 </body>
 
@@ -294,12 +315,34 @@ document.addEventListener("keydown", e => {
 
 
 
-<!-- 🟪 MODÁL – VÝBĚR ZADAVATELE -->
-<div class="modal" id="clientModal">
+
+
+
+
+
+
+
+
+
+
+<!-- 🔸 MODÁL – VÝBĚR ZADAVATELE -->
+<div id="clientModal" class="modal">
   <div class="modal-box">
     <h2>Vyber zadavatele</h2>
-    <div id="loadingClients">🔄 Načítám zadavatele...</div>
-    <div id="clientList" style="display:none;"></div>
+    <p>Zvolte jednoho nebo více zadavatelů</p>
+    <div id="clientList">
+      <label><input type="checkbox" value="Natuzzi Editions – Strejček"> Natuzzi Editions – Strejček</label>
+      <label><input type="checkbox" value="Natuzzi Editions – Vimrová"> Natuzzi Editions – Vimrová</label>
+      <label><input type="checkbox" value="Natuzzi Italia – Bratislava"> Natuzzi Italia – Bratislava</label>
+      <label><input type="checkbox" value="Natuzzi Italia – Jama"> Natuzzi Italia – Jama</label>
+      <label><input type="checkbox" value="Natuzzi Italia – River"> Natuzzi Italia – River</label>
+      <label><input type="checkbox" value="Natuzzi Italia – SOHO"> Natuzzi Italia – SOHO</label>
+      <label><input type="checkbox" value="Softaly"> Softaly</label>
+      <label><input type="checkbox" value="Phase – Klucarova"> Phase – Klucarova</label>
+      <label><input type="checkbox" value="Phase – Jancova"> Phase – Jancova</label>
+      <label><input type="checkbox" value="WGS (Pozáruční servis)"> WGS (Pozáruční servis)</label>
+      <label><input type="checkbox" value="Jiné"> Jiné</label>
+    </div>
     <div class="modal-buttons">
       <button id="confirmClients" class="btn btn-dark">Potvrdit</button>
       <button id="closeClients" class="btn btn-light">Zavřít</button>
@@ -307,14 +350,17 @@ document.addEventListener("keydown", e => {
   </div>
 </div>
 
-<!-- 🟪 MODÁL – VÝBĚR TECHNIKA -->
-<div class="modal" id="techModal">
+
+
+
+<!-- 🔹 MODÁL – VÝBĚR TECHNIKA -->
+<div id="techModal" class="modal">
   <div class="modal-box">
     <h2>Vyber technika</h2>
-    <p>Zvolte technika, jehož zakázky chcete zobrazit:</p>
+    <p>Zvolte jednoho z techniků</p>
     <div id="techList">
-      <label><input type="radio" name="technician" value="Radek Zikmund"> Radek Zikmund</label>
-      <label><input type="radio" name="technician" value="Milan Kolín"> Milan Kolín</label>
+      <label><input type="radio" name="tech" value="Milan Kolín"> Milan Kolín</label>
+      <label><input type="radio" name="tech" value="Radek Zikmund"> Radek Zikmund</label>
     </div>
     <div class="modal-buttons">
       <button id="confirmTech" class="btn btn-dark">Potvrdit</button>
@@ -323,36 +369,45 @@ document.addEventListener("keydown", e => {
   </div>
 </div>
 
-<!-- 🟪 MODÁL – OBDOBÍ -->
-<div class="modal" id="periodModal">
+
+
+
+<!-- 🔸 MODÁL – VÝBĚR OBDOBÍ -->
+<div id="periodModal" class="modal">
   <div class="modal-box">
     <h2>Vyber období</h2>
-    <p>Vyber konkrétní měsíc nebo zadej datum od–do:</p>
-    <select id="monthSelect">
-      <option value="">-- Vyber měsíc --</option>
-      <option value="1">Leden</option>
-      <option value="2">Únor</option>
-      <option value="3">Březen</option>
-      <option value="4">Duben</option>
-      <option value="5">Květen</option>
-      <option value="6">Červen</option>
-      <option value="7">Červenec</option>
-      <option value="8">Srpen</option>
-      <option value="9">Září</option>
-      <option value="10">Říjen</option>
-      <option value="11">Listopad</option>
-      <option value="12">Prosinec</option>
+    <p>Vyberte konkrétní měsíc nebo zadejte ručně od-do</p>
+
+    <!-- 📅 Výběr měsíce -->
+    <select id="monthSelect" style="padding:8px 10px;border-radius:8px;border:1px solid #ccc;font-size:0.95em;margin-bottom:12px;">
+      <option value="">– Vyber měsíc –</option>
+      <option value="2025-01">Leden 2025</option>
+      <option value="2025-02">Únor 2025</option>
+      <option value="2025-03">Březen 2025</option>
+      <option value="2025-04">Duben 2025</option>
+      <option value="2025-05">Květen 2025</option>
+      <option value="2025-06">Červen 2025</option>
+      <option value="2025-07">Červenec 2025</option>
+      <option value="2025-08">Srpen 2025</option>
+      <option value="2025-09">Září 2025</option>
+      <option value="2025-10">Říjen 2025</option>
+      <option value="2025-11">Listopad 2025</option>
+      <option value="2025-12">Prosinec 2025</option>
     </select>
+
+    <!-- 🗓️ Ruční zadání -->
     <div class="period-inputs">
-      <label>Od: <input type="date" id="dateFrom"></label>
-      <label>Do: <input type="date" id="dateTo"></label>
+      <label>Od: <input type="date" id="fromDate"></label>
+      <label>Do: <input type="date" id="toDate"></label>
     </div>
+
     <div class="modal-buttons">
       <button id="confirmPeriod" class="btn btn-dark">Potvrdit</button>
       <button id="closePeriod" class="btn btn-light">Zavřít</button>
     </div>
   </div>
 </div>
+
 
 
 
