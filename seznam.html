@@ -401,7 +401,7 @@ function updateDebug(count) {
 
 <!-- 🟩 SEKCE C – DETAIL ZÁKAZNÍKA (rozdělená verze) -->
 <!-- ================================================= -->
-<!-- 🟩 C-1: DETAIL ZÁKAZNÍKA – editace + uložení na GitHub + potvrzení -->
+<!-- 🟩 C-1: DETAIL ZÁKAZNÍKA – přehledný layout + editace -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -417,40 +417,48 @@ function openDetail(index) {
 
         <!-- 🧭 LEVÝ PANEL -->
         <div class="left-panel">
+          <!-- 📅 Kalendář -->
           <div id="miniCalendar"></div>
 
+          <!-- 🕒 Výběr času -->
           <div class="custom-time-picker">
             <select id="hours"></select><span>:</span><select id="minutes"></select>
           </div>
 
+          <!-- 🟢 Panel potvrzení -->
           <div class="term-info-box" id="termInfoBox">Vyberte datum a čas</div>
 
-          <div class="left-buttons">
-            <button id="saveTermBtn" class="btn-action btn-green">Uložit / Změnit</button>
-            <button id="noAnswerBtn" class="btn-action btn-orange">Nezvedá (SMS)</button>
-            <button id="cancelBtn" class="btn-action btn-red">Zákazník zrušil</button>
-            <button id="closeBtn" class="btn-action btn-gray">Zpět</button>
-
-            <div class="extra-buttons">
-              <button id="createProtocolBtn" class="btn-action btn-blue">Vytvořit protokol</button>
-              <button id="exportPdfBtn" class="btn-action btn-gray">Exportovat do PDF</button>
-            </div>
+          <!-- 💾 / 🔙 -->
+          <div class="button-row">
+            <button id="saveTermBtn" class="btn-action btn-green">💾 Uložit / Změnit</button>
+            <button id="closeBtn" class="btn-action btn-gray">🔙 Zpět</button>
           </div>
+
+          <!-- ❌ / 📩 -->
+          <div class="button-row">
+            <button id="cancelBtn" class="btn-action btn-red">❌ Zrušeno zákazníkem</button>
+            <button id="noAnswerBtn" class="btn-action btn-orange">📩 Nezvedá (SMS)</button>
+          </div>
+
+          <!-- Mezírka -->
+          <div style="height:14px;"></div>
+
+          <!-- 🧾 Protokol -->
+          <button id="createProtocolBtn" class="btn-action btn-blue full-width">🧾 Vytvořit protokol</button>
         </div>
 
         <!-- 🧾 PRAVÝ PANEL -->
         <div class="right-panel">
 
-          <!-- 🧍‍♂️ ZÁKAZNÍK -->
+          <!-- 👤 ZÁKAZNÍK -->
           <div class="info-box clickable" id="customerBox">
             <div class="box-header">
-              <strong>Zákazník</strong>
-              <span class="icon">✏️</span>
+              <strong>Zákazník</strong><span class="icon">✏️</span>
             </div>
             <div class="box-content">
               <p><strong>Jméno:</strong> ${item.zakaznik || "–"}</p>
               <p><strong>Adresa:</strong> ${adresaUpravena}</p>
-              <p><strong>Telefon:</strong> ${(item.telefon || "–")}</p>
+              <p><strong>Telefon:</strong> ${item.telefon || "–"}</p>
               <p><strong>Email:</strong> ${item.email || "–"}</p>
               <p><strong>Produkt / model:</strong> ${item.produkt || "–"}</p>
             </div>
@@ -459,8 +467,7 @@ function openDetail(index) {
           <!-- 🧰 POPIS ZÁVADY -->
           <div class="info-box clickable" id="popisBox">
             <div class="box-header">
-              <strong>Popis závady</strong>
-              <span class="icon">📝</span>
+              <strong>Popis závady</strong><span class="icon">📝</span>
             </div>
             <div class="box-content" id="popisContent">${item.popis || "–"}</div>
           </div>
@@ -483,23 +490,18 @@ function openDetail(index) {
   overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
 }
 
-/* 🧍‍♂️ Detail zákazníka */
+/* 👤 Upravit údaje zákazníka */
 function openCustomerDetail(item, overlay) {
   const modal = document.createElement("div");
   modal.className = "small-modal";
   modal.innerHTML = `
     <div class="small-inner">
       <h3>Upravit údaje zákazníka</h3>
-      <label>Jméno:</label>
-      <input id="editName" value="${item.zakaznik || ""}">
-      <label>Adresa:</label>
-      <input id="editAddress" value="${item.adresa || ""}">
-      <label>Telefon:</label>
-      <input id="editPhone" value="${item.telefon || ""}">
-      <label>Email:</label>
-      <input id="editEmail" value="${item.email || ""}">
-      <label>Produkt / model:</label>
-      <input id="editModel" value="${item.produkt || ""}">
+      <label>Jméno:</label><input id="editName" value="${item.zakaznik || ""}">
+      <label>Adresa:</label><input id="editAddress" value="${item.adresa || ""}">
+      <label>Telefon:</label><input id="editPhone" value="${item.telefon || ""}">
+      <label>Email:</label><input id="editEmail" value="${item.email || ""}">
+      <label>Produkt / model:</label><input id="editModel" value="${item.produkt || ""}">
       <div class="modal-buttons">
         <button id="saveCustomerBtn" class="btn-action btn-green">💾 Uložit</button>
         <button id="closeCustomerBtn" class="btn-action btn-gray">Zavřít</button>
@@ -517,27 +519,25 @@ function openCustomerDetail(item, overlay) {
 
     try {
       const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "update", record: item })
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({action:"update",record:item})
       });
-      if (!res.ok) throw new Error("HTTP " + res.status);
+      if(!res.ok) throw new Error("HTTP "+res.status);
       modal.remove();
-      showSuccessOverlay("✅ Změny uloženy", "Data zákazníka byla aktualizována v GitHub repozitáři.");
-      setNextToast("✅ Údaje zákazníka upraveny", "success");
+      showSuccessOverlay("✅ Změny uloženy","Data zákazníka byla aktualizována v GitHub repozitáři.");
+      setNextToast("✅ Údaje zákazníka upraveny","success");
       overlay.remove();
       renderTable(dataAll);
-    } catch (e) {
-      alert("❌ Chyba při ukládání: " + e.message);
-    }
+    } catch(e){ alert("❌ Chyba při ukládání: "+e.message); }
   };
 }
 
-/* 🧰 Editor popisu závady */
-function openPopisEditor(item, overlay) {
+/* 🧰 Upravit popis závady */
+function openPopisEditor(item,overlay){
   const modal = document.createElement("div");
-  modal.className = "small-modal";
-  modal.innerHTML = `
+  modal.className="small-modal";
+  modal.innerHTML=`
     <div class="small-inner">
       <h3>Upravit popis závady</h3>
       <textarea id="editPopis">${item.popis || ""}</textarea>
@@ -552,89 +552,23 @@ function openPopisEditor(item, overlay) {
   modal.querySelector("#savePopisBtn").onclick = async () => {
     const val = modal.querySelector("#editPopis").value.trim();
     item.popis = val;
-
     try {
-      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "update", record: item })
+      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({action:"update",record:item})
       });
-      if (!res.ok) throw new Error("HTTP " + res.status);
+      if(!res.ok) throw new Error("HTTP "+res.status);
       modal.remove();
       overlay.querySelector("#popisContent").textContent = val || "–";
-      showSuccessOverlay("✅ Změny uloženy", "Popis závady byl aktualizován v GitHub repozitáři.");
-      setNextToast("✅ Popis závady upraven", "success");
-    } catch (e) {
-      alert("❌ Chyba při ukládání popisu: " + e.message);
-    }
+      showSuccessOverlay("✅ Změny uloženy","Popis závady byl aktualizován v GitHub repozitáři.");
+      setNextToast("✅ Popis závady upraven","success");
+    } catch(e){ alert("❌ Chyba při ukládání popisu: "+e.message); }
   };
 }
 </script>
-
-<style>
-.info-box {
-  background: #f4f5f7;
-  border-radius: 10px;
-  padding: 12px 14px;
-  margin-bottom: 14px;
-  cursor: pointer;
-  transition: background .2s;
-}
-.info-box:hover { background: #e9ecf1; }
-.box-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 6px;
-}
-.box-content p {
-  margin: 3px 0;
-  font-size: 0.92em;
-}
-.icon {
-  font-size: 1.1em;
-  color: #555;
-}
-.small-modal {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.55);
-  display: flex; justify-content: center; align-items: center;
-  z-index: 10000;
-}
-.small-inner {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.25);
-  width: 90%;
-  max-width: 420px;
-}
-.small-inner h3 {
-  text-align: center;
-  margin-bottom: 10px;
-  font-weight: 800;
-}
-.small-inner input, .small-inner textarea {
-  width: 100%;
-  box-sizing: border-box;
-  margin-bottom: 10px;
-  padding: 8px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-family: Inter, sans-serif;
-  font-size: 0.95em;
-}
-.modal-buttons {
-  display: flex; justify-content: space-between; gap: 10px;
-}
-#editPopis {
-  min-height: 120px;
-  resize: vertical;
-}
-</style>
 <!-- 🟩 KONEC C-1 -->
+
 
 
 
@@ -831,19 +765,19 @@ function calcDistanceCoords(a, b, c, d) {
 <!-- 🟩 KONEC C-5 -->
 
 
-<!-- 🟩 C-STYLE: CSS DETAILU -->
+<!-- 🟩 C-STYLE: CSS DETAILU ZÁKAZNÍKA -->
 <style>
-/* 🟦 Překryv – vycentrovaný modal uprostřed */
+/* === Překryv detailu (modal uprostřed obrazovky) === */
 .detail-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0,0,0,0.55);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
   opacity: 0;
-  transition: opacity 0.25s ease;
+  transition: opacity .25s ease;
 }
 .detail-overlay.active { opacity: 1; }
 
@@ -858,19 +792,23 @@ function calcDistanceCoords(a, b, c, d) {
   overflow-y: auto;
 }
 
-/* 🟦 Rozložení dvou panelů */
+/* === Rozložení dvou panelů === */
 .grid-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-}
-.left-panel, .right-panel {
-  background: #fff;
-  border-radius: 10px;
-  padding: 10px;
+  align-items: start;
 }
 
-/* 🗓️ Kalendář + čas */
+/* === Levý panel === */
+.left-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
+}
+
+/* Kalendář a čas */
 #miniCalendar { margin-bottom: 12px; }
 .custom-time-picker {
   display: flex;
@@ -887,7 +825,63 @@ function calcDistanceCoords(a, b, c, d) {
   padding: 5px 10px;
 }
 
-/* 🟨 Informační boxy */
+/* Panel s potvrzeným termínem */
+.term-info-box {
+  background: #f0f0f0;
+  padding: 10px;
+  text-align: center;
+  font-weight: 600;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  transition: background .3s;
+}
+.flash-gray  { animation: flashGray .4s; }
+.flash-green { animation: flashGreen .5s 2; }
+@keyframes flashGray  { 0%{background:#d6d6d6;}100%{background:#f0f0f0;} }
+@keyframes flashGreen { 0%,100%{background:#b6f7a8;}50%{background:#d8ffd2;} }
+
+/* Řádky tlačítek */
+.button-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.btn-action {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  text-align: center;
+  transition: transform .1s ease, opacity .2s;
+}
+.btn-action:hover { transform: scale(1.03); opacity: .9; }
+
+.btn-green  { background: linear-gradient(135deg,#28a745,#6fdd72); }
+.btn-orange { background: linear-gradient(135deg,#ff9800,#ffc270); color:#222; }
+.btn-red    { background: linear-gradient(135deg,#dc3545,#f87171); }
+.btn-gray   { background: linear-gradient(135deg,#6c757d,#a0a4a7); }
+.btn-blue   { background: linear-gradient(135deg,#0046ff,#357aff); color:#fff; }
+
+.full-width {
+  width: 100%;
+  padding: 14px;
+  font-size: 1em;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+/* === Pravý panel === */
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* Šedé boxy s informacemi */
 .info-box {
   background: #f4f5f7;
   border-radius: 10px;
@@ -905,77 +899,76 @@ function calcDistanceCoords(a, b, c, d) {
   color: #333;
   margin-bottom: 6px;
 }
-.box-content p {
-  margin: 3px 0;
-  font-size: 0.92em;
-}
-.icon {
-  font-size: 1.1em;
-  color: #555;
-}
+.box-content p { margin: 3px 0; font-size: .92em; }
+.icon { font-size: 1.1em; color: #555; }
 
-/* 🟦 Tlačítka vlevo */
-.left-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 10px;
-}
-.btn-action {
-  padding: 10px;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  color: #fff;
-  cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-}
-.btn-green  { background: linear-gradient(135deg, #28a745, #6fdd72); }
-.btn-orange { background: linear-gradient(135deg, #ff9800, #ffc270); color: #222; }
-.btn-red    { background: linear-gradient(135deg, #dc3545, #f87171); }
-.btn-gray   { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
-.btn-blue   { background: linear-gradient(135deg, #0046ff, #357aff); color: #fff; }
-
-/* 🧩 Prostor mapy */
+/* === Mapa === */
 .distance-banner {
   background: #f6f6f6;
   border-radius: 8px;
   padding: 8px;
   text-align: center;
   font-weight: 600;
-  margin: 10px 0;
+  margin: 10px 0 6px 0;
 }
 #mapDetail {
   height: 280px;
   border-radius: 10px;
   border: 1px solid #ddd;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
-/* 🔁 Animace term-info boxu */
-.term-info-box {
-  background: #f0f0f0;
-  padding: 10px;
+/* === Malé modální okno (editace zákazníka / popisu) === */
+.small-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+.small-inner {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+  width: 90%;
+  max-width: 420px;
+}
+.small-inner h3 {
   text-align: center;
-  font-weight: 600;
-  border-radius: 8px;
-  margin-top: 8px;
-  transition: background .3s;
+  margin-bottom: 10px;
+  font-weight: 800;
 }
-.flash-gray { animation: flashGray .4s; }
-.flash-green { animation: flashGreen .5s 2; }
-@keyframes flashGray { 0%{background:#d6d6d6;}100%{background:#f0f0f0;} }
-@keyframes flashGreen { 0%,100%{background:#b6f7a8;}50%{background:#d8ffd2;} }
+.small-inner input,
+.small-inner textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-family: Inter, sans-serif;
+  font-size: .95em;
+}
+#editPopis { min-height: 120px; resize: vertical; }
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
 
-/* 📱 Mobilní úpravy */
+/* === Mobilní zobrazení === */
 @media (max-width: 700px) {
   .grid-layout { grid-template-columns: 1fr; }
-  .left-buttons { flex-direction: column; }
+  .button-row { flex-direction: column; }
   #mapDetail { height: 240px; }
   .detail-modal { padding: 10px; }
 }
 </style>
 <!-- 🟩 KONEC C-STYLE -->
+
 
 
 
