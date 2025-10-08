@@ -833,28 +833,150 @@ function calcDistanceCoords(a, b, c, d) {
 
 <!-- 🟩 C-STYLE: CSS DETAILU -->
 <style>
-.grid-layout { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
-.left-panel, .right-panel { background:#fff; border-radius:10px; padding:10px; }
-#miniCalendar { margin-bottom:12px; }
-.custom-time-picker { display:flex; justify-content:center; align-items:center; gap:6px; margin-bottom:10px; }
-.custom-time-picker select { font-size:1.1em; font-weight:600; border:1px solid #ccc; border-radius:8px; padding:5px 10px; }
-.term-info-box { background:#f0f0f0; padding:10px; text-align:center; font-weight:600; border-radius:8px; margin-top:8px; transition:background .3s; }
-.flash-gray{animation:flashGray .4s;} .flash-green{animation:flashGreen .5s 2;}
-@keyframes flashGray{0%{background:#d6d6d6;}100%{background:#f0f0f0;}}
-@keyframes flashGreen{0%,100%{background:#b6f7a8;}50%{background:#d8ffd2;}}
-.customer-info h2{text-align:center;margin:0 0 8px;}
-.customer-info p{margin:4px 0;font-size:.95em;color:#000;}
-.distance-banner{background:#f6f6f6;border-radius:8px;padding:8px;text-align:center;font-weight:600;margin:10px 0;}
-#mapDetail{height:260px;border-radius:10px;border:1px solid #ddd;}
-.left-buttons{display:flex;flex-direction:column;gap:10px;margin-top:10px;}
-.btn-action{padding:10px;border:none;border-radius:8px;font-weight:600;color:#fff;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,0.15);}
-.btn-green{background:linear-gradient(135deg,#28a745,#6fdd72);}
-.btn-orange{background:linear-gradient(135deg,#ff9800,#ffc270);color:#222;}
-.btn-red{background:linear-gradient(135deg,#dc3545,#f87171);}
-.btn-gray{background:linear-gradient(135deg,#6c757d,#a0a4a7);}
-@media(max-width:700px){.grid-layout{grid-template-columns:1fr;}.left-buttons{flex-direction:column;}}
+/* 🟦 Překryv – vycentrovaný modal uprostřed */
+.detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.detail-overlay.active { opacity: 1; }
+
+.detail-modal {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  padding: 20px;
+  width: 95%;
+  max-width: 1100px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* 🟦 Rozložení dvou panelů */
+.grid-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.left-panel, .right-panel {
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+/* 🗓️ Kalendář + čas */
+#miniCalendar { margin-bottom: 12px; }
+.custom-time-picker {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.custom-time-picker select {
+  font-size: 1.1em;
+  font-weight: 600;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 5px 10px;
+}
+
+/* 🟨 Informační boxy */
+.info-box {
+  background: #f4f5f7;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  cursor: pointer;
+  transition: background .2s;
+}
+.info-box:hover { background: #e9ecf1; }
+.box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 6px;
+}
+.box-content p {
+  margin: 3px 0;
+  font-size: 0.92em;
+}
+.icon {
+  font-size: 1.1em;
+  color: #555;
+}
+
+/* 🟦 Tlačítka vlevo */
+.left-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+.btn-action {
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+.btn-green  { background: linear-gradient(135deg, #28a745, #6fdd72); }
+.btn-orange { background: linear-gradient(135deg, #ff9800, #ffc270); color: #222; }
+.btn-red    { background: linear-gradient(135deg, #dc3545, #f87171); }
+.btn-gray   { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
+.btn-blue   { background: linear-gradient(135deg, #0046ff, #357aff); color: #fff; }
+
+/* 🧩 Prostor mapy */
+.distance-banner {
+  background: #f6f6f6;
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+  font-weight: 600;
+  margin: 10px 0;
+}
+#mapDetail {
+  height: 280px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  margin-top: 8px;
+}
+
+/* 🔁 Animace term-info boxu */
+.term-info-box {
+  background: #f0f0f0;
+  padding: 10px;
+  text-align: center;
+  font-weight: 600;
+  border-radius: 8px;
+  margin-top: 8px;
+  transition: background .3s;
+}
+.flash-gray { animation: flashGray .4s; }
+.flash-green { animation: flashGreen .5s 2; }
+@keyframes flashGray { 0%{background:#d6d6d6;}100%{background:#f0f0f0;} }
+@keyframes flashGreen { 0%,100%{background:#b6f7a8;}50%{background:#d8ffd2;} }
+
+/* 📱 Mobilní úpravy */
+@media (max-width: 700px) {
+  .grid-layout { grid-template-columns: 1fr; }
+  .left-buttons { flex-direction: column; }
+  #mapDetail { height: 240px; }
+  .detail-modal { padding: 10px; }
+}
 </style>
 <!-- 🟩 KONEC C-STYLE -->
+
 
 
 
