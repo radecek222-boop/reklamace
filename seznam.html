@@ -1037,27 +1037,40 @@ function openDetail(index) {
 
 
 
-
-<!-- 🟦 ZAČÁTEK ČÁSTI 7/10 (Finální – trasa + číslované zastávky + návrat do WGS) -->
+<!-- 🟦 ZAČÁTEK ČÁSTI 7/10 (Plán dne – WGS Do Dubče 364 Praha 9 Běchovice + opravený closeMap) -->
 <script>
 let map, markersLayer, routeLayer, markerMap = {};
-const wgsCoords = [50.049, 14.523];
+const wgsCoords = [50.07945, 14.60178]; // ✅ WGS – Do Dubče 364 Praha 9 Běchovice
 let currentDate = null, currentLegs = null, currentTerminy = null;
 
 const planBtn = document.getElementById("planBtn");
-planBtn.onclick = () => {
-  const m = document.getElementById("planModal");
-  m.style.display = "flex";
-  setTimeout(() => m.classList.add("active"), 10);
-  initCalendar();
-};
-document.getElementById("closeMap").onclick = () => {
-  const m = document.getElementById("planModal");
-  m.classList.remove("active");
-  setTimeout(() => m.style.display = "none", 250);
-};
 
-/* 🗓️ Kalendář */
+/* 🧭 Otevření modalu Plán dne */
+if (planBtn) {
+  planBtn.onclick = () => {
+    const m = document.getElementById("planModal");
+    if (!m) return;
+    m.style.display = "flex";
+    setTimeout(() => m.classList.add("active"), 10);
+    initCalendar();
+  };
+}
+
+/* 🧭 Zavření modalu (bez chyby při načítání) */
+document.addEventListener("DOMContentLoaded", () => {
+  const closeMapBtn = document.getElementById("closeMap");
+  if (closeMapBtn) {
+    closeMapBtn.onclick = () => {
+      const m = document.getElementById("planModal");
+      if (m) {
+        m.classList.remove("active");
+        setTimeout(() => (m.style.display = "none"), 250);
+      }
+    };
+  }
+});
+
+/* 📅 Kalendář s modrými puntíky */
 function initCalendar() {
   const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
   const unique = [...new Set(ulozene.map(z => z.datum))];
@@ -1072,20 +1085,25 @@ function initCalendar() {
   setTimeout(() => addBlueDots(unique), 300);
 }
 
-/* 🔵 Modré puntíky */
+/* 🔵 Modré puntíky ve dnech s termíny */
 function addBlueDots(uniqueDates) {
   document.querySelectorAll(".vanilla-calendar-day__btn span.dot").forEach(d => d.remove());
   document.querySelectorAll(".vanilla-calendar-day__btn").forEach(btn => {
     if (uniqueDates.includes(btn.dataset.calendarDay)) {
       const dot = document.createElement("span");
       dot.classList.add("dot");
-      dot.style.cssText = "position:absolute;top:4px;left:50%;transform:translateX(-50%);width:8px;height:8px;border-radius:50%;background:#0046ff;";
+      dot.style.cssText = `
+        position:absolute;top:4px;left:50%;
+        transform:translateX(-50%);
+        width:8px;height:8px;border-radius:50%;
+        background:#0046ff;
+      `;
       btn.appendChild(dot);
     }
   });
 }
 
-/* 🗺️ Zobrazení plánu */
+/* 🗺️ Zobrazení plánu dne */
 async function showPlanForDay(date) {
   const overlay = document.getElementById("mapOverlay");
   const planList = document.getElementById("planList");
@@ -1113,14 +1131,18 @@ async function showPlanForDay(date) {
   currentTerminy = terminy;
 
   if (!map) {
-    map = L.map("map").setView(wgsCoords, 8);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap" }).addTo(map);
+    map = L.map("map").setView(wgsCoords, 10);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap"
+    }).addTo(map);
     markersLayer = L.layerGroup().addTo(map);
     routeLayer = L.layerGroup().addTo(map);
   }
-  markersLayer.clearLayers(); routeLayer.clearLayers(); markerMap = {};
+  markersLayer.clearLayers();
+  routeLayer.clearLayers();
+  markerMap = {};
 
-  if (!terminy.length) { overlay.style.display = "flex"; map.setView(wgsCoords, 8); return; }
+  if (!terminy.length) { overlay.style.display = "flex"; map.setView(wgsCoords, 10); return; }
 
   const cache = JSON.parse(localStorage.getItem("geoCache") || "{}");
   let coords = [wgsCoords];
@@ -1139,10 +1161,9 @@ async function showPlanForDay(date) {
     if (c) coords.push(c);
   }
 
-  // přidáme zpět WGS jako cílový bod
-  coords.push(wgsCoords);
+  coords.push(wgsCoords); // návrat zpět
 
-  // 🧭 vykreslení číslovaných markerů
+  // 🎯 marker s číslem
   const numberIcon = (n) => L.divIcon({
     className: "number-icon",
     html: `<div style="background:#0046ff;color:white;font-weight:700;width:26px;height:26px;line-height:26px;text-align:center;border-radius:50%;box-shadow:0 0 3px rgba(0,0,0,.4);">${n}</div>`,
@@ -1150,11 +1171,16 @@ async function showPlanForDay(date) {
     iconAnchor: [13,26]
   });
 
-  // start marker
-  const homeIcon = L.icon({ iconUrl: "https://cdn-icons-png.flaticon.com/512/25/25694.png", iconSize: [36, 36], iconAnchor: [18, 36] });
-  L.marker(wgsCoords, { icon: homeIcon }).addTo(markersLayer);
+  // 🏠 marker WGS
+  const homeIcon = L.icon({
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/25/25694.png",
+    iconSize: [36, 36],
+    iconAnchor: [18, 36]
+  });
+  L.marker(wgsCoords, { icon: homeIcon }).addTo(markersLayer)
+    .bindPopup(`<b>WGS</b><br>Do Dubče 364<br>Praha 9 – Běchovice`);
 
-  // zákazníci s čísly
+  // 🧍‍♂️ zákazníci
   terminy.forEach((t,i)=>{
     const pos = coords[i+1];
     if (pos) {
@@ -1165,7 +1191,7 @@ async function showPlanForDay(date) {
     }
   });
 
-  // 🧾 seznam zákazníků
+  // 🧾 Seznam zákazníků
   planList.innerHTML = terminy.map(t => `
     <div class="plan-row">
       <button class="flag-btn" data-addr="${t.adresa}">🚩</button>
@@ -1176,6 +1202,7 @@ async function showPlanForDay(date) {
       <div><button class="phone-btn" onclick="window.location.href='tel:${t.telefon?.replace('+420','').trim() || ''}'">📞</button></div>
     </div>`).join("");
 
+  // 🧭 Klik na 🚩 označí v mapě
   document.querySelectorAll(".flag-btn").forEach(b => {
     b.onclick = () => {
       const a = b.dataset.addr;
@@ -1185,16 +1212,18 @@ async function showPlanForDay(date) {
         markerMap[a]._icon.classList.add("blinking-marker");
         markerMap[a].openPopup();
       }
-    }
+    };
   });
 
-  // 🛣️ vykreslení trasy přes všechny body a zpět
+  // 🚗 Trasa přes všechny body a zpět
   const coordStr = coords.map(c => `${c[1]},${c[0]}`).join(";");
   const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson`);
   const data = await res.json();
 
   if (data.routes?.length) {
-    const r = data.routes[0]; const legs = r.legs || []; let total = 0;
+    const r = data.routes[0];
+    const legs = r.legs || [];
+    let total = 0;
     currentLegs = legs;
     routeTable.innerHTML = "<tr><th>#</th><th>Odkud</th><th>Kam</th><th>Km</th></tr>";
 
@@ -1213,18 +1242,16 @@ async function showPlanForDay(date) {
     recalcDeparture();
   }
 
-  // 🔁 přepočet při změně rychlosti
   speedSelect.onchange = () => recalcDeparture();
 }
 
-/* 🚗 Přepočet času odjezdu + doba jízdy */
+/* 🕒 Výpočet času odjezdu + doba jízdy */
 function recalcDeparture() {
   const departureBox = document.getElementById("departureTimeBox");
   const speedSelect = document.getElementById("speedSelect");
   const totalKm = document.getElementById("totalKm");
 
   if (!currentTerminy?.length || !currentLegs?.length) return;
-
   const first = currentTerminy[0];
   if (!first.cas) return;
 
@@ -1241,13 +1268,12 @@ function recalcDeparture() {
   totalKm.innerHTML = `
     <div style="text-align:center;font-weight:700;">
       🚗 Doba jízdy k prvnímu zákazníkovi: ${hDrive} h ${mDrive} min
-    </div>
-  `;
-
+    </div>`;
   departureBox.textContent = `Vyrazit na cestu nejpozději v ${hh}:${mm}`;
 }
 </script>
 <!-- 🟦 KONEC ČÁSTI 7/10 -->
+
 
 
 
