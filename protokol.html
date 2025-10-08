@@ -545,11 +545,21 @@ window.addEventListener("DOMContentLoaded", () => {
 </script>
 <!-- 🟩 KONEC ČÁSTI I -->
 
-  <script>
-// 🧠 Automatický překlad z CZ do EN (LibreTranslate, bez API klíče)
+<script>
+// 🌍 Automatický překlad CZ → EN (s odkladem a bezpečnou aktualizací)
+const translateQueue = {};
+const DEBOUNCE_DELAY = 800;
+
 async function autoTranslate(sourceId, targetId) {
-  const text = document.getElementById(sourceId).value.trim();
+  const sourceEl = document.getElementById(sourceId);
+  const targetEl = document.getElementById(targetId);
+  if (!sourceEl || !targetEl) return;
+
+  const text = sourceEl.value.trim();
   if (!text) return;
+
+  // zobraz indikátor
+  targetEl.innerText = "⏳ Překládám…";
 
   try {
     const res = await fetch("https://libretranslate.com/translate", {
@@ -562,27 +572,37 @@ async function autoTranslate(sourceId, targetId) {
         format: "text"
       })
     });
-    const data = await res.json();
-    const translated = data.translatedText || "";
 
-    const targetEl = document.getElementById(targetId);
-    if (targetEl) {
+    const data = await res.json();
+    const translated = data.translatedText?.trim();
+
+    // Pokud API vrátilo překlad, zobraz ho
+    if (translated && translated !== text) {
       if (targetEl.tagName === "TEXTAREA") targetEl.value = translated;
-      else targetEl.innerText = translated; // napíše i do divu
+      else targetEl.innerText = translated;
+    } else {
+      // fallback – nech původní překlad nebo prázdné pole
+      if (targetEl.tagName === "TEXTAREA") targetEl.value = "";
+      else targetEl.innerText = "";
     }
+
   } catch (err) {
     console.error("❌ Chyba při překladu:", err);
+    targetEl.innerText = "⚠️ Chyba při překladu";
   }
 }
 
-// 🎯 Automaticky překládej při psaní
+// 🧠 Debounce – spouští překlad až po 800 ms neaktivity
 ["description", "problem", "repair"].forEach(base => {
   const cz = document.getElementById(`${base}-cz`);
-  if (cz) {
-    cz.addEventListener("input", () => {
+  if (!cz) return;
+
+  cz.addEventListener("input", () => {
+    clearTimeout(translateQueue[base]);
+    translateQueue[base] = setTimeout(() => {
       autoTranslate(`${base}-cz`, `${base}-en`);
-    });
-  }
+    }, DEBOUNCE_DELAY);
+  });
 });
 </script>
 
