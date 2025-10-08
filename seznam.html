@@ -463,7 +463,7 @@ window.addEventListener("DOMContentLoaded", loadData);
 
 
 
-<!-- 🟦 ZAČÁTEK ČÁSTI 3/10 – LITE VERZE (žádné zamrznutí) -->
+<!-- 🟦 ZAČÁTEK ČÁSTI 3/10 – LITE VERZE S FIXEM -->
 <script>
 let activeMap = null;
 
@@ -471,12 +471,9 @@ function openDetail(index) {
   const item = dataAll[index];
   if (!item) return;
 
-  // 🧹 Vyčistit případné předchozí modaly
+  // 🧹 Vyčištění předchozího modalu
   document.querySelectorAll(".detail-overlay").forEach(o => o.remove());
-  if (activeMap && activeMap.remove) {
-    activeMap.remove();
-    activeMap = null;
-  }
+  if (activeMap && activeMap.remove) { activeMap.remove(); activeMap = null; }
 
   const overlay = document.createElement("div");
   overlay.className = "detail-overlay";
@@ -487,12 +484,12 @@ function openDetail(index) {
       <div class="detail-content">
         <div class="left-column">
           <h2>${item.zakaznik || "Zákazník"}</h2>
-          <p><strong>Adresa:</strong> 
+          <p><strong>Adresa:</strong>
             <a href="https://waze.com/ul?q=${encodeURIComponent(item.adresa)}" target="_blank">
               ${item.adresa || "Neuvedeno"}
             </a>
           </p>
-          <p><strong>Telefon:</strong> 
+          <p><strong>Telefon:</strong>
             <a href="tel:${item.telefon || ""}">${item.telefon || "Neuvedeno"}</a>
           </p>
           <p><strong>Email:</strong> ${item.email || "Neuvedeno"}</p>
@@ -522,26 +519,12 @@ function openDetail(index) {
     </div>
   `;
 
-  /* 🗺️  Statická mapa (bez online fetch) */
+  /* 🗺️ Statická mapa – žádné fetch, žádné zatížení CPU */
   activeMap = L.map("detailMap", { zoomControl: false }).setView([49.9, 15.6], 6);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 12,
     attribution: "© OpenStreetMap"
   }).addTo(activeMap);
-
-  /* 🗓️  Kalendář – rychlé inicializování */
-  try {
-    const cal = new VanillaCalendar("#miniCalendar", {
-      settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
-      actions: {
-        clickDay(e) {
-          const d = e.target.dataset.calendarDay;
-          if (d) updateInfo(d);
-        }
-      }
-    });
-    cal.init();
-  } catch (e) { console.warn("Kalendář nešel načíst:", e); }
 
   const info = overlay.querySelector("#selectedInfo");
   const timeSel = overlay.querySelector("#timeSelect");
@@ -552,11 +535,36 @@ function openDetail(index) {
     info.textContent = `Vybraný den: ${date}`;
   }
 
+  /* 🗓️ Kalendář – bezpečné načtení po DOMu */
+  setTimeout(() => {
+    const el = document.querySelector("#miniCalendar");
+    if (!el) return console.warn("❗ Kalendář #miniCalendar nebyl nalezen.");
+    try {
+      const cal = new VanillaCalendar("#miniCalendar", {
+        settings: {
+          lang: "cs",
+          selection: { day: "single" },
+          visibility: { theme: "light" }
+        },
+        actions: {
+          clickDay(e) {
+            const d = e.target.dataset.calendarDay;
+            if (d) updateInfo(d);
+          }
+        }
+      });
+      cal.init();
+    } catch (e) {
+      console.warn("Kalendář nešel načíst:", e);
+    }
+  }, 150);
+
   timeSel.onchange = () => {
     selTime = timeSel.value;
     if (selDate) info.textContent = `Vybraný termín: ${selDate} – ${selTime}`;
   };
 
+  // 🧭 Ovládací tlačítka
   overlay.querySelector(".btn-save").onclick = () => {
     if (!selDate || !selTime) return alert("Vyberte datum a čas.");
     info.textContent = `Termín uložen: ${selDate} ${selTime}`;
@@ -587,26 +595,36 @@ function openDetail(index) {
 .left-column { flex: 1 1 420px; }
 .right-column { flex: 1 1 420px; display: flex; justify-content: center; align-items: center; }
 .detail-map { width: 100%; height: 380px; border-radius: 10px; background: #f3f3f3; }
+
 .time-select { width: 100%; margin: 10px 0 18px; }
 .time-select select {
-  width: 100%; max-width: 420px; padding: 10px; border-radius: 8px;
-  border: 1px solid #ccc; font-family: "Inter", sans-serif; font-size: 1em;
+  width: 100%; max-width: 420px; padding: 10px;
+  border-radius: 8px; border: 1px solid #ccc;
+  font-family: "Inter", sans-serif; font-size: 1em;
 }
+
 .selected-info {
-  width: 100%; max-width: 420px; background: #eee; color: #333; font-weight: 500;
-  padding: 10px 15px; border-radius: 8px; text-align: center; margin-top: 10px;
+  width: 100%; max-width: 420px; background: #eee; color: #333;
+  font-weight: 500; padding: 10px 15px; border-radius: 8px;
+  text-align: center; margin-top: 10px;
 }
-.calendar-box button, .btn-save, .btn-orange, .btn-red, .btn-grey {
-  width: 100%; max-width: 420px; padding: 12px 0; margin: 6px 0; border: none;
-  border-radius: 10px; font-weight: 600; font-size: 1.05em; color: #fff; cursor: pointer;
+
+.btn-save, .btn-orange, .btn-red, .btn-grey {
+  width: 100%; max-width: 420px; padding: 12px 0; margin: 6px 0;
+  border: none; border-radius: 10px; font-weight: 600;
+  font-size: 1.05em; color: #fff; cursor: pointer;
 }
 .btn-save   { background: linear-gradient(135deg,#009e41,#00d468); }
 .btn-orange { background: linear-gradient(135deg,#ff9800,#ffc270); color:#222; }
 .btn-red    { background: linear-gradient(135deg,#d9534f,#ff6f61); }
 .btn-grey   { background: linear-gradient(135deg,#999,#ccc); color:#222; }
-@media (max-width:768px){ .detail-content{flex-direction:column;} .detail-map{height:300px;} }
+
+@media (max-width:768px){
+  .detail-content{flex-direction:column;}
+  .detail-map{height:300px;}
+}
 </style>
-<!-- 🟦 KONEC ČÁSTI 3/10 – LITE VERZE -->
+<!-- 🟦 KONEC ČÁSTI 3/10 – LITE VERZE S FIXEM -->
 
 
 <!-- 🟩 ZAČÁTEK ČÁSTI 4/10 – správa termínů a komunikace -->
