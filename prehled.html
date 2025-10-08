@@ -1,212 +1,90 @@
-<!-- 
-====================================================================
-💎 WHITE GLOVE SERVICE – PŘEHLED / STATISTIKY (BETA 2)
-====================================================================
-Verze systému:       v1.1
-Datum sestavení:     2025-10-08
-Autor:               Hugo (White Glove Service) & GPT-5
-Projekt:             WGS reklamace / servisní přehledy
-Soubory:             prehled.html, prehled.json
-Repozitář:           https://github.com/radecek222-boop/reklamace
-Popis:
-  Administrativní přehled zakázek, výdělků techniků a obratu.
-  - chráněno heslem (Mikes332018)
-  - filtrování podle období a typu zakázky
-  - statistiky podle zadavatele a technika
-====================================================================
--->
-
 <!DOCTYPE html>
 <html lang="cs">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Přehled – White Glove Service</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>White Glove Service – Startovací verze</title>
 <style>
-body{
-  font-family:"Inter",system-ui,sans-serif;
-  background:#f6f7fb;margin:0;padding:0;
-  display:flex;justify-content:center;align-items:flex-start;
-  min-height:100vh;
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  background: linear-gradient(180deg,#f7f8fa,#e9ecf3);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
 }
-.wrapper{
-  background:#fff;padding:25px;margin:40px 15px;
-  border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);
-  width:100%;max-width:900px;box-sizing:border-box;
+h1 {
+  font-size: 3em;
+  font-weight: 900;
+  color: #111;
+  margin: 0 0 10px 0;
 }
-h1{text-align:center;font-size:2em;font-weight:900;margin:0 0 8px;}
-h2{text-align:center;font-size:1em;color:#666;margin:0 0 25px;}
-.actions{
-  text-align:center;margin-bottom:20px;
-  display:flex;justify-content:center;gap:15px;flex-wrap:wrap;
+h2 {
+  font-size: 1.2em;
+  font-weight: 400;
+  color: #555;
+  margin: 0 0 30px 0;
 }
-.btn{
-  padding:10px 22px;border:none;border-radius:8px;
-  font-weight:600;font-size:1em;color:white;
-  box-shadow:0 3px 8px rgba(0,0,0,0.15);
-  cursor:pointer;transition:transform .15s,opacity .2s;
+.btn-group {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
-.btn:hover{transform:scale(1.04);opacity:.9;}
-.btn-admin{background:linear-gradient(135deg,#0046ff,#357aff);}
-.btn-filter{background:linear-gradient(135deg,#28a745,#5bd85b);}
-.btn-back{background:linear-gradient(135deg,#6c757d,#a0a4a7);}
-.hidden{display:none;}
-.filter-bar{
-  display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:20px;
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 12px 28px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, opacity 0.25s;
+  color: white;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  min-width: 190px;
 }
-select,input[type="date"]{
-  padding:6px 10px;font-size:0.9em;border:1px solid #ccc;border-radius:6px;
+.btn:hover { transform: scale(1.05); opacity: 0.9; }
+
+.btn-light {
+  background: linear-gradient(135deg,#a8a8a8,#d1d1d1);
+  color: #fff;
 }
-table{width:100%;border-collapse:collapse;margin-top:10px;}
-th,td{padding:8px;border-bottom:1px solid #eee;text-align:left;font-size:.9em;}
-th{background:#f8f8f8;font-weight:700;}
-tr:hover{background:#f1f6ff;}
-.loading{text-align:center;padding:30px;color:#666;}
-.login-dialog{
-  text-align:center;padding:20px;margin-top:30px;
-  background:#f8f8f8;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,0.1);
+.btn-dark {
+  background: linear-gradient(135deg,#4b4b4b,#7a7a7a);
+  color: #fff;
 }
-.login-dialog input{
-  padding:8px 10px;font-size:1em;border:1px solid #ccc;border-radius:6px;margin-bottom:10px;
+@media (max-width: 600px) {
+  .btn-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .btn { width: 100%; }
 }
 </style>
 </head>
 <body>
-<div class="wrapper">
-  <!-- 🟨 B – HLAVIČKA -->
+
   <h1>WHITE GLOVE SERVICE</h1>
-  <h2>Přehled zakázek a statistik</h2>
-  <div class="actions">
-    <a href="index.html" class="btn btn-back">Zpět</a>
-    <button id="adminBtn" class="btn btn-admin">Přejít na statistiku</button>
+  <h2>specializovaný autorizovaný servis Natuzzi</h2>
+
+  <div class="btn-group">
+    <button class="btn btn-light" onclick="location.href='seznam.html'">Seznam reklamací</button>
+    <button class="btn btn-dark" onclick="openStats()">Přejít na statistiku</button>
   </div>
 
-  <!-- 🟨 C – PŘIHLÁŠENÍ -->
-  <div id="loginSection" class="login-dialog hidden">
-    <p>Zadejte heslo pro přístup:</p>
-    <input type="password" id="adminPass" placeholder="Heslo">
-    <br>
-    <button id="loginBtn" class="btn btn-admin">Přihlásit</button>
-  </div>
-
-  <!-- 🟨 D – FILTRY -->
-  <div id="filters" class="filter-bar hidden">
-    <select id="periodSelect">
-      <option value="week">Poslední týden</option>
-      <option value="month">Poslední měsíc</option>
-      <option value="year">Poslední rok</option>
-      <option value="all" selected>Vše</option>
-    </select>
-    <label>Od: <input type="date" id="dateFrom"></label>
-    <label>Do: <input type="date" id="dateTo"></label>
-    <select id="typeSelect">
-      <option value="all" selected>Všechny typy</option>
-      <option value="reklamace">Reklamace</option>
-      <option value="pozáruční">Pozáruční servis</option>
-    </select>
-    <button class="btn btn-filter" id="applyFilter">Zobrazit</button>
-  </div>
-
-  <!-- 🟨 E – TABULKY -->
-  <div id="statsContent" class="hidden">
-    <h3>📦 Přehled podle zadavatele</h3>
-    <div id="byClient" class="loading">Načítám...</div>
-
-    <h3>💰 Souhrn účtovaných služeb</h3>
-    <div id="byRevenue" class="loading">Načítám...</div>
-
-    <h3>👨‍🔧 Výdělky techniků</h3>
-    <div id="byTechnician" class="loading">Načítám...</div>
-  </div>
-
-  <!-- 🟨 F – SCRIPTY -->
-  <script>
-  let allData=[];
-
-  // 🔒 Přihlášení
-  adminBtn.onclick=()=>loginSection.classList.remove("hidden");
-  loginBtn.onclick=()=>{
-    if(adminPass.value.trim()==="Mikes332018"){
-      loginSection.classList.add("hidden");
-      filters.classList.remove("hidden");
-      statsContent.classList.remove("hidden");
-      loadStats();
-    }else alert("Nesprávné heslo!");
-  };
-
-  // 📥 Načtení dat
-  async function loadStats(){
-    try{
-      const res=await fetch("prehled.json?t="+Date.now());
-      allData=await res.json();
-      renderStats();
-    }catch(e){
-      console.error(e);
-      byClient.innerText="❌ Chyba načítání dat";
-    }
+<script>
+function openStats() {
+  const pass = prompt("Zadejte heslo pro přístup:");
+  if (pass === "Mikes332018") {
+    location.href = "prehled.html";
+  } else if (pass !== null) {
+    alert("Nesprávné heslo!");
   }
+}
+</script>
 
-  applyFilter.onclick=renderStats;
-
-  // 🧮 Filtr + výpočet statistik
-  function renderStats(){
-    if(!allData.length) return;
-    const type=typeSelect.value;
-    const now=new Date();
-    let from,to;
-    const period=periodSelect.value;
-
-    // období
-    switch(period){
-      case"week":from=new Date(now);from.setDate(now.getDate()-7);break;
-      case"month":from=new Date(now);from.setMonth(now.getMonth()-1);break;
-      case"year":from=new Date(now);from.setFullYear(now.getFullYear()-1);break;
-      default:from=new Date("2000-01-01");
-    }
-    to=now;
-
-    // pokud jsou ručně zadána data
-    if(dateFrom.value) from=new Date(dateFrom.value);
-    if(dateTo.value) to=new Date(dateTo.value);
-
-    // filtrování
-    const filtered=allData.filter(r=>{
-      const d=new Date(r.datum||r.date||r.visit||"2000-01-01");
-      const inDate=d>=from && d<=to;
-      const inType=(type==="all" || (r.typ||"").toLowerCase().includes(type));
-      return inDate && inType;
-    });
-
-    if(!filtered.length){
-      byClient.innerHTML=byRevenue.innerHTML=byTechnician.innerHTML=
-        "<div class='loading'>Žádné záznamy v tomto období</div>";
-      return;
-    }
-
-    // výpočty
-    const byClient={},byTech={}; let total=0;
-    filtered.forEach(r=>{
-      const client=r.contract||"Neznámý";
-      const tech=r.technician||r.technik||"Neuvedeno";
-      const price=parseFloat(r.total||r.cenaCelkem||0);
-      byClient[client]=(byClient[client]||0)+price;
-      byTech[tech]=(byTech[tech]||0)+price;
-      total+=price;
-    });
-
-    byClient.innerHTML=makeTable(byClient,"Zadavatel","Celkem [Kč]");
-    byRevenue.innerHTML=`<b>Celkový obrat:</b> ${total.toLocaleString("cs-CZ")} Kč`;
-    byTechnician.innerHTML=makeTable(byTech,"Technik","Výdělek [Kč]");
-  }
-
-  function makeTable(obj,a,b){
-    let h="<table><tr><th>"+a+"</th><th>"+b+"</th></tr>";
-    for(const[k,v]of Object.entries(obj)){
-      h+=`<tr><td>${k}</td><td>${v.toLocaleString("cs-CZ")} Kč</td></tr>`;
-    }
-    return h+"</table>";
-  }
-  </script>
-</div>
 </body>
 </html>
