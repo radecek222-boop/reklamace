@@ -1733,11 +1733,184 @@ document.addEventListener("DOMContentLoaded", () => {
 
 <!-- 🟨 KONEC ČÁSTI 9/10 -->
 
-<!-- 📅 Vanilla Calendar – lokální kopie hostovaná v repozitáři -->
-<link rel="stylesheet" href="vanilla-calendar.min.css">
-<script src="vanilla-calendar.min.js"></script>
+<!-- 🟩 ZAČÁTEK ČÁSTI 10/10 – WGS mapa + náhled foto se slideshow -->
+<script>
+// 🧭 Výchozí pozice WGS (Do Dubče 364, Praha 9 – Běchovice)
+const WGS_COORDS = [50.07945, 14.60178];
+const WGS_ADRESA = "Do Dubče 364, Praha 9 – Běchovice";
 
-</body>
-</html>
+// 🌍 Inicializace mapy
+let map = L.map("map", {
+  center: WGS_COORDS,
+  zoom: 10,
+  zoomControl: true,
+  attributionControl: false
+});
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
 
-<!-- 🟨 KONEC ČÁSTI 10/10 -->
+// 📍 Ikony
+const iconStart = L.icon({
+  iconUrl: "https://cdn-icons-png.flaticon.com/512/3448/3448339.png",
+  iconSize: [30, 30],
+  iconAnchor: [15, 30]
+});
+const iconCustomer = L.icon({
+  iconUrl: "https://cdn-icons-png.flaticon.com/512/447/447031.png",
+  iconSize: [30, 30],
+  iconAnchor: [15, 30]
+});
+
+// 🟦 Marker pro WGS
+const markerStart = L.marker(WGS_COORDS, { icon: iconStart })
+  .addTo(map)
+  .bindPopup(`<b>WHITE GLOVE SERVICE</b><br>${WGS_ADRESA}`);
+
+// 🚗 Trasa k zákazníkovi
+function showRouteToCustomer(customerCoords, customerName) {
+  map.eachLayer(layer => {
+    if (layer instanceof L.Polyline && !layer._url) map.removeLayer(layer);
+  });
+  const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${WGS_COORDS[1]},${WGS_COORDS[0]};${customerCoords[1]},${customerCoords[0]}?overview=full&geometries=geojson`;
+  fetch(osrmUrl)
+    .then(r => r.json())
+    .then(data => {
+      if (!data.routes?.length) return;
+      const route = data.routes[0];
+      const line = L.geoJSON(route.geometry, { style: { color: "#0046ff", weight: 4, opacity: 0.8 } }).addTo(map);
+      const distKm = (route.distance / 1000).toFixed(1);
+      const timeMin = Math.round(route.duration / 60);
+      L.marker(customerCoords, { icon: iconCustomer })
+        .addTo(map)
+        .bindPopup(`<b>${customerName}</b><br>${distKm} km, ${timeMin} min`);
+      map.fitBounds(line.getBounds(), { padding: [40, 40] });
+    });
+}
+
+// 🖼️ Tlačítko "Náhled foto" vedle jména
+function addPhotoButtonIfExists(fotky = []) {
+  const nameHeader = document.querySelector(".detail-modal h2");
+  if (!nameHeader) return;
+  const oldBtn = document.getElementById("btnPhotoView");
+  if (oldBtn) oldBtn.remove();
+
+  if (!fotky || !fotky.length) return;
+
+  const btn = document.createElement("button");
+  btn.id = "btnPhotoView";
+  btn.textContent = "Náhled foto";
+  btn.className = "btn-photo-view";
+  btn.onclick = () => openPhotoSlideshow(fotky);
+  nameHeader.insertAdjacentElement("afterend", btn);
+}
+
+// 🖼️ Fullscreen slideshow
+function openPhotoSlideshow(fotky = []) {
+  if (!fotky.length) return;
+
+  let current = 0;
+  const overlay = document.createElement("div");
+  overlay.className = "photo-overlay";
+  overlay.innerHTML = `
+    <div class="photo-modal">
+      <img id="slideImg" src="https://raw.githubusercontent.com/radecek222-boop/reklamace/main/foto/${encodeURIComponent(fotky[0])}" alt="foto">
+      <button class="close-photo">×</button>
+      <button class="nav prev">❮</button>
+      <button class="nav next">❯</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const img = overlay.querySelector("#slideImg");
+  const close = overlay.querySelector(".close-photo");
+  const prev = overlay.querySelector(".prev");
+  const next = overlay.querySelector(".next");
+
+  function updateSlide() {
+    img.src = `https://raw.githubusercontent.com/radecek222-boop/reklamace/main/foto/${encodeURIComponent(fotky[current])}`;
+  }
+
+  close.onclick = () => overlay.remove();
+  prev.onclick = () => { current = (current - 1 + fotky.length) % fotky.length; updateSlide(); };
+  next.onclick = () => { current = (current + 1) % fotky.length; updateSlide(); };
+
+  // swipe gesta
+  let startX = 0;
+  overlay.addEventListener("touchstart", e => startX = e.touches[0].clientX);
+  overlay.addEventListener("touchend", e => {
+    const diff = e.changedTouches[0].clientX - startX;
+    if (diff > 50) prev.onclick();
+    if (diff < -50) next.onclick();
+  });
+}
+
+// 🎨 Styl
+const style = document.createElement("style");
+style.textContent = `
+  .btn-photo-view {
+    background: #eee;
+    border: 1px solid #ccc;
+    color: #333;
+    padding: 5px 10px;
+    margin-left: 10px;
+    border-radius: 6px;
+    font-size: 0.85em;
+    cursor: pointer;
+  }
+  .btn-photo-view:hover {
+    background: #ddd;
+  }
+  .photo-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+  }
+  .photo-modal {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+  }
+  .photo-modal img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.4);
+  }
+  .close-photo {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    width: 36px;
+    height: 36px;
+    background: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.5);
+    border: none;
+    font-size: 32px;
+    padding: 8px 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: black;
+  }
+  .nav.prev { left: -50px; }
+  .nav.next { right: -50px; }
+  @media (max-width:600px) {
+    .nav.prev { left: 10px; }
+    .nav.next { right: 10px; }
+  }
+`;
+document.head.appendChild(style);
+</script>
+<!-- 🟩 KONEC ČÁSTI 10/10 -->
