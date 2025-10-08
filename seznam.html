@@ -794,4 +794,408 @@ function setNextToast(msg, type="success") {
 
 
 
+<!-- 🟦 SEKCE E – PLÁN DNE (kalendář + mapa + legendy + trasa) -->
+<style>
+/* ============================= */
+/* 🗓️ STYL PLÁNU DNE MODALU      */
+/* ============================= */
+#planModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+#planModal.active { display:flex; opacity:1; }
+
+#planModal .modal-inner {
+  background: #fff;
+  border-radius: 14px;
+  width: 95%;
+  max-width: 1300px;
+  height: 90vh;
+  box-shadow: 0 10px 25px rgba(0,0,0,.3);
+  display: grid;
+  grid-template-columns: 35% 65%;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+  padding: 20px;
+  gap: 20px;
+}
+
+/* 🔹 Levý panel */
+.left-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+}
+.panel {
+  border: 1px solid #d5d7db;
+  border-radius: 12px;
+  background: #fafafa;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  overflow: hidden;
+  transition: box-shadow .25s ease;
+}
+.panel:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+#calendar { flex: 1; min-height: 320px; }
+
+/* 🗒️ Legenda */
+.legend {
+  background: #fff;
+  padding: 10px;
+  font-size: 0.9em;
+  color: #333;
+  border-top: 1px solid #ddd;
+}
+.legend table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+.legend th, .legend td {
+  border-bottom: 1px solid #eee;
+  padding: 5px 6px;
+  text-align: left;
+}
+.legend th {
+  background: #f6f7fb;
+  font-weight:600;
+  color: #000;
+  border-bottom: 2px solid #ddd;
+}
+.legend-total {
+  text-align: right;
+  font-weight: 800;
+  margin-top: 6px;
+  color: #111;
+}
+
+/* 🔴 Výstraha (čas odjezdu) */
+.departure-alert {
+  margin-top: 10px;
+  padding: 10px 12px;
+  text-align: center;
+  font-weight: 700;
+  color: white;
+  font-size: 1em;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ff4d4d, #cc0000);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+/* 🕐 Volba rychlosti pro výpočet času odjezdu */
+.speed-select {
+  width: 100%;
+  margin-top: 8px;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-weight: 600;
+  background: #f6f7fb;
+  cursor: pointer;
+  color: #000;
+}
+
+/* 🔘 Tlačítko Zpět */
+#closeMap {
+  margin-top: auto;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #6c757d, #a0a4a7);
+  cursor: pointer;
+}
+
+/* 🔹 Pravý panel (mapa + zákazníci) */
+.right-block {
+  display: flex;
+  flex-direction: column;
+}
+#map {
+  flex: 1;
+  min-height: 440px;
+  border-radius: 12px;
+  background: #eaeaea;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  position: relative;
+}
+#mapOverlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  background: rgba(255,255,255,0.85);
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #444;
+}
+.plan-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.plan-row {
+  display: grid;
+  grid-template-columns: 30px 70px 1.8fr 0.8fr 1.3fr 110px;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fff;
+  font-size: 0.9em;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.phone-btn, .waze-btn {
+  border: none;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85em;
+}
+.phone-btn { background: linear-gradient(135deg,#007bff,#399bff); color:#fff; }
+.waze-btn {
+  border: 1px solid #0046ff;
+  background: #f0f4ff;
+  color: #0046ff;
+}
+.waze-btn:hover { background:#0046ff;color:#fff; }
+.flag-btn { background:none;border:none;font-size:1.2em;cursor:pointer; }
+
+/* 🟦 Animace markerů */
+.blinking-marker { animation: blinkMarker 1s infinite; }
+@keyframes blinkMarker {
+  0%{transform:scale(1);}
+  50%{transform:scale(1.3);}
+  100%{transform:scale(1);}
+}
+
+/* Responsivita */
+@media(max-width:900px){
+  #planModal .modal-inner{grid-template-columns:1fr;grid-template-rows:auto auto auto auto;height:95vh;}
+  #map{min-height:300px;}
+}
+</style>
+
+<!-- 🔷 HTML MODALU PLÁNU DNE -->
+<div id="planModal">
+  <div class="modal-inner">
+    <div class="left-block">
+      <div class="panel" id="calendar"></div>
+      <div class="panel legend" id="legendBox">
+        <table id="routeTable"></table>
+        <div class="legend-total" id="totalKm"></div>
+        <select id="speedSelect" class="speed-select">
+          <option value="60">Průměrná rychlost: 60 km/h</option>
+          <option value="70" selected>Průměrná rychlost: 70 km/h</option>
+          <option value="80">Průměrná rychlost: 80 km/h</option>
+          <option value="100">Průměrná rychlost: 100 km/h</option>
+        </select>
+        <div class="departure-alert" id="departureTimeBox">
+          Vyrazit na cestu nejpozději v —
+        </div>
+      </div>
+      <button id="closeMap">Zpět</button>
+    </div>
+
+    <div class="right-block">
+      <div id="map"><div id="mapOverlay">Žádný plán na dnešní den</div></div>
+      <div class="plan-list" id="planList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================= */
+/* 🗺️ LOGIKA PLÁNU DNE           */
+/* ============================= */
+let map, markersLayer, routeLayer, markerMap = {};
+const wgsCoords = [50.049,14.523];
+let currentDate = null, currentLegs = null, currentTerminy = null;
+
+/* 🔘 Otevření Plánu dne */
+const planBtn = document.getElementById("planBtn");
+planBtn.onclick = () => {
+  const m = document.getElementById("planModal");
+  m.style.display="flex";
+  setTimeout(()=>m.classList.add("active"),10);
+  initCalendar();
+};
+/* ❌ Zavření Plánu dne */
+document.getElementById("closeMap").onclick = () => {
+  const m = document.getElementById("planModal");
+  m.classList.remove("active");
+  setTimeout(()=>m.style.display="none",250);
+};
+
+/* 📅 Kalendář + modré tečky */
+function initCalendar() {
+  const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData")||"[]");
+  const unique = [...new Set(ulozene.map(z=>z.datum))];
+  const cal = new VanillaCalendar("#calendar", {
+    settings:{lang:"cs",visibility:{theme:"light"}},
+    actions:{clickDay:e=>{
+      const d = e.target.dataset.calendarDay;
+      if(d) showPlanForDay(d);
+    }}
+  });
+  cal.init();
+  setTimeout(()=>addBlueDots(unique),300);
+}
+function addBlueDots(uniqueDates) {
+  document.querySelectorAll(".vanilla-calendar-day__btn span.dot").forEach(d=>d.remove());
+  document.querySelectorAll(".vanilla-calendar-day__btn").forEach(btn=>{
+    if(uniqueDates.includes(btn.dataset.calendarDay)){
+      const dot=document.createElement("span");
+      dot.classList.add("dot");
+      dot.style.cssText="position:absolute;top:4px;left:50%;transform:translateX(-50%);width:8px;height:8px;border-radius:50%;background:#0046ff;";
+      btn.appendChild(dot);
+    }
+  });
+}
+
+/* 🗺️ Zobrazení plánu na zvolený den */
+async function showPlanForDay(date) {
+  const overlay=document.getElementById("mapOverlay");
+  const planList=document.getElementById("planList");
+  const routeTable=document.getElementById("routeTable");
+  const totalKm=document.getElementById("totalKm");
+  const departureBox=document.getElementById("departureTimeBox");
+  const speedSelect=document.getElementById("speedSelect");
+
+  overlay.style.display="none";
+  planList.innerHTML=""; routeTable.innerHTML=""; totalKm.textContent="";
+  departureBox.textContent="Vyrazit na cestu nejpozději v —";
+
+  let terminy=JSON.parse(localStorage.getItem("stavyReklamaciData")||"[]").filter(t=>t.datum===date);
+  terminy.sort((a,b)=>a.cas?.localeCompare(b.cas)||1);
+  currentDate=date; currentTerminy=terminy;
+
+  if(!map){
+    map=L.map("map").setView(wgsCoords,8);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);
+    markersLayer=L.layerGroup().addTo(map);
+    routeLayer=L.layerGroup().addTo(map);
+  }
+  markersLayer.clearLayers(); routeLayer.clearLayers(); markerMap={};
+
+  if(!terminy.length){overlay.style.display="flex";map.setView(wgsCoords,8);return;}
+
+  const cache=JSON.parse(localStorage.getItem("geoCache")||"{}");
+  let coords=[wgsCoords];
+  for(const t of terminy){
+    let c=cache[t.adresa];
+    if(!c){
+      const res=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(t.adresa)}`);
+      const data=await res.json();
+      if(data[0]){c=[+data[0].lat,+data[0].lon];cache[t.adresa]=c;localStorage.setItem("geoCache",JSON.stringify(cache));}
+    }
+    if(c) coords.push(c);
+  }
+  coords.push(wgsCoords);
+
+  /* 📍 Markery s číslováním */
+  const numberIcon = n=>L.divIcon({
+    className:"number-icon",
+    html:`<div style="background:#0046ff;color:white;font-weight:700;width:26px;height:26px;line-height:26px;text-align:center;border-radius:50%;box-shadow:0 0 3px rgba(0,0,0,.4);">${n}</div>`,
+    iconSize:[26,26],iconAnchor:[13,26]
+  });
+  const homeIcon=L.icon({iconUrl:"https://cdn-icons-png.flaticon.com/512/25/25694.png",iconSize:[36,36],iconAnchor:[18,36]});
+  L.marker(wgsCoords,{icon:homeIcon}).addTo(markersLayer);
+
+  terminy.forEach((t,i)=>{
+    const pos=coords[i+1];
+    if(pos){
+      const m=L.marker(pos,{icon:numberIcon(i+1)})
+        .addTo(markersLayer)
+        .bindPopup(`<b>${t.zakaznik}</b><br>${t.adresa}<br>${t.cas}`);
+      markerMap[t.adresa]=m;
+    }
+  });
+
+  /* 📜 Seznam zákazníků */
+  planList.innerHTML=terminy.map(t=>`
+    <div class="plan-row">
+      <button class="flag-btn" data-addr="${t.adresa}">🚩</button>
+      <div>${t.cas||""}</div>
+      <div>${t.adresa}</div>
+      <div><button class="waze-btn" onclick="window.open('waze://?q=${encodeURIComponent(t.adresa)}','_blank')">Waze</button></div>
+      <div><b>${t.zakaznik}</b></div>
+      <div><button class="phone-btn" onclick="window.location.href='tel:${t.telefon?.replace('+420','').trim()||''}'">📞</button></div>
+    </div>`).join("");
+  document.querySelectorAll(".flag-btn").forEach(b=>{
+    b.onclick=()=>{
+      const a=b.dataset.addr;
+      Object.values(markerMap).forEach(m=>m._icon.classList.remove("blinking-marker"));
+      if(markerMap[a]){
+        map.setView(markerMap[a].getLatLng(),12);
+        markerMap[a]._icon.classList.add("blinking-marker");
+        markerMap[a].openPopup();
+      }
+    };
+  });
+
+  /* 🛣️ Trasa přes OSRM */
+  const coordStr=coords.map(c=>`${c[1]},${c[0]}`).join(";");
+  const res=await fetch(`https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson`);
+  const data=await res.json();
+
+  if(data.routes?.length){
+    const r=data.routes[0];const legs=r.legs||[];let total=0;
+    currentLegs=legs;
+    routeTable.innerHTML="<tr><th>#</th><th>Odkud</th><th>Kam</th><th>Km</th></tr>";
+    legs.forEach((leg,i)=>{
+      const km=(leg.distance/1000).toFixed(1);
+      total+=+km;
+      const from=i===0?"WGS":terminy[i-1]?.zakaznik||"Zákazník";
+      const to=i<terminy.length?terminy[i]?.zakaznik:"WGS";
+      routeTable.innerHTML+=`<tr><td>${i+1}</td><td>${from}</td><td>${to}</td><td>${km}</td></tr>`;
+      L.geoJSON(leg.geometry,{style:{color:"#0046ff",weight:4,opacity:.85}}).addTo(routeLayer);
+    });
+    totalKm.innerHTML=`<div style="text-align:center;font-weight:700;">CELKEM: ${total.toFixed(1)} km</div>`;
+    if(coords.length>1) map.fitBounds(L.latLngBounds(coords).pad(0.2));
+    recalcDeparture();
+  }
+  speedSelect.onchange=()=>recalcDeparture();
+}
+
+/* 🚗 Výpočet času odjezdu */
+function recalcDeparture() {
+  const box=document.getElementById("departureTimeBox");
+  const speed=parseInt(document.getElementById("speedSelect").value);
+  if(!currentTerminy?.length||!currentLegs?.length) return;
+  const first=currentTerminy[0]; if(!first.cas) return;
+  const driveMinutes=(currentLegs[0].distance/1000)/speed*60+10;
+  const [h,m]=first.cas.split(":").map(Number);
+  const d=new Date(); d.setHours(h,m-driveMinutes);
+  const hh=String(d.getHours()).padStart(2,"0");
+  const mm=String(d.getMinutes()).padStart(2,"0");
+  const hDrive=Math.floor(driveMinutes/60);
+  const mDrive=Math.round(driveMinutes%60);
+  document.getElementById("totalKm").innerHTML += `
+    <div style="text-align:center;font-weight:700;">
+      🚗 Doba jízdy k 1. zákazníkovi: ${hDrive}h ${mDrive}min
+    </div>`;
+  box.innerHTML=`Vyrazit nejpozději v <b>${hh}:${mm}</b>`;
+}
+</script>
+<!-- 🟦 KONEC SEKCE E -->
+
+
+
+
+
 
