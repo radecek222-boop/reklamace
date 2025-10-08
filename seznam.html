@@ -623,149 +623,86 @@ if (typeof renderTable !== "function") {
 
 
 
-<!-- 🟩 ZAČÁTEK ČÁSTI 4/10 – načítání a vykreslení tabulky reklamací -->
+<!-- 🟦 ZAČÁTEK ČÁSTI 4/10 (renderTable + vykreslení seznamu reklamací) -->
 <script>
-const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
-const tableContainer = document.getElementById("tableContainer");
-const searchInput = document.getElementById("search");
 let dataAll = [];
-let stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
-let lastDataHash = "";
 
-/* 🔄 automatické načítání každé 2 minuty */
-setInterval(loadData, 120000);
+// 🟢 Po načtení dat z GitHubu se zavolá renderTable(dataAll)
+function renderTable(data) {
+  console.log("📄 renderTable start – počet záznamů:", data?.length || 0);
+  const tbody = document.getElementById("tbodyList");
+  if (!tbody) return console.warn("⚠️ Tabulka tbody neexistuje.");
+  tbody.innerHTML = "";
 
-/* 🔔 zvuková notifikace při nových záznamech */
-function playNotification() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
-    o.type = "sine"; o.frequency.value = 880;
-    g.gain.value = 0.1;
-    o.start(); o.stop(ctx.currentTime + 0.25);
-  } catch(e){}
-}
-
-/* 🧩 hash pro zjištění změn */
-function hashData(arr) {
-  return arr.map(r => r.cislo || "").join("|");
-}
-
-/* 📦 načtení dat z API */
-async function loadData() {
-  tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
-  try {
-    const res = await fetch(API_URL, { cache: "no-store" });
-    if (!res.ok) throw new Error("Chyba při načítání dat");
-    const data = await res.json();
-    if (!Array.isArray(data)) throw new Error("Neplatný formát dat");
-
-    dataAll = data.reverse();
-    const newHash = hashData(dataAll);
-    if (lastDataHash && newHash !== lastDataHash) playNotification();
-    lastDataHash = newHash;
-
-    renderTable(dataAll);
-  } catch (err) {
-    tableContainer.innerHTML = `<div style="color:red;">❌ ${err.message}</div>`;
-  }
-}
-
-/* 📋 vykreslení tabulky */
-function renderTable(arr) {
-  if (!arr.length) {
-    tableContainer.innerHTML = "<div>Žádné záznamy</div>";
+  dataAll = Array.isArray(data) ? data : [];
+  if (!dataAll.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;color:#777;">
+      Žádné záznamy k zobrazení
+    </td></tr>`;
     return;
   }
 
-  let html = `
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Zákazník</th>
-            <th>Adresa</th>
-            <th>Telefon</th>
-            <th>Stav</th>
-          </tr>
-        </thead>
-        <tbody>
-  `;
-
-  arr.forEach((r, i) => {
-    const id = r.cislo || `radek-${i}`;
-    const stav = stavy[id] || "novy";
-
-    const adresa = r.adresa
-      ? `<a href="https://waze.com/ul?q=${encodeURIComponent(r.adresa)}" target="_blank" style="color:#000;font-weight:600;">${normalizePrahaAddress(r.adresa)}</a>`
-      : "–";
-
-    const telefon = r.telefon
-      ? `<a href="tel:${r.telefon.replace('+420','').trim()}" style="color:#000;font-weight:600;">${r.telefon.replace('+420','').trim()}</a>`
-      : "–";
-
-    let stavText = "Nový";
-    if (stav === "domluveno" && r.datum && r.cas) {
-      const d = new Date(r.datum);
-      const den = d.toLocaleDateString("cs-CZ", { weekday: "short", day: "numeric", month: "numeric" });
-      stavText = `${den} ${r.cas}`;
-    } else if (stav === "zruseno") stavText = "Zrušeno";
-    else if (stav === "nezveda") stavText = "Nezvedá";
-
-    html += `
-      <tr class="${stav}" data-index="${i}" data-id="${id}">
-        <td>${r.zakaznik || "–"}</td>
-        <td>${adresa}</td>
-        <td>${telefon}</td>
-        <td>${stavText}</td>
-      </tr>
-    `;
+  // 🔹 Seřadit podle času (datum+čas)
+  dataAll.sort((a,b)=>{
+    const da = new Date(a.datum + "T" + (a.cas || "00:00"));
+    const db = new Date(b.datum + "T" + (b.cas || "00:00"));
+    return da - db;
   });
 
-  html += "</tbody></table></div>";
-  tableContainer.innerHTML = html;
+  for (let i=0; i<dataAll.length; i++) {
+    const z = dataAll[i];
+    const stav = (z.stav || "").toLowerCase();
+    let trClass = "";
+    if (stav === "zruseno") trClass = "row-canceled";
+    else if (stav === "domluveno") trClass = "row-confirmed";
+    else if (!stav || stav === "novy") trClass = "row-new";
 
-  document.querySelectorAll("tbody tr").forEach(row => {
-    row.addEventListener("click", () => openDetail(row.dataset.index));
-  });
+    const tr = document.createElement("tr");
+    tr.className = trClass;
+    tr.innerHTML = `
+      <td>${z.cislo || "-"}</td>
+      <td>${z.zakaznik || "-"}</td>
+      <td>${z.adresa || "-"}</td>
+      <td>${z.telefon || "-"}</td>
+      <td>${z.contract || "-"}</td>
+      <td>
+        <button class="btn-blue" onclick="openDetail(${i})">Detail</button>
+      </td>`;
+    tbody.appendChild(tr);
+  }
 
-  highlightTodayRows();
+  console.log("✅ Tabulka vykreslena –", dataAll.length, "záznamů");
 }
 
-/* 🔍 vyhledávání */
-searchInput.addEventListener("input", () => {
-  const q = searchInput.value.trim().toLowerCase();
-  if (!q) return renderTable(dataAll);
-  const filtered = dataAll.filter(r =>
-    (r.zakaznik || "").toLowerCase().includes(q) ||
-    (r.adresa || "").toLowerCase().includes(q) ||
-    (r.produkt || "").toLowerCase().includes(q)
-  );
-  renderTable(filtered);
-});
-
-/* 💾 uložení stavů do LocalStorage */
-function ulozStavy() {
-  localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
-}
-
-/* 🟢 zvýraznění dnešních termínů */
-function highlightTodayRows() {
-  const today = new Date().toISOString().split("T")[0];
-  document.querySelectorAll("tbody tr").forEach(row => {
-    const i = row.dataset.index;
-    const r = dataAll[i];
-    if (r && r.datum === today && (stavy[r.cislo] === "domluveno")) {
-      row.style.animation = "blinkYellow 1.2s infinite alternate";
-    } else row.style.animation = "none";
-  });
-}
-
-window.addEventListener("DOMContentLoaded", loadData);
+// 🧾 Stylování stavů
 </script>
+
+<style>
+.row-new { animation: blinkYellow 1.5s infinite; background:#fff9d6; }
+.row-confirmed { background:#d6e7ff; }
+.row-canceled { background:#ffd6d6; }
+@keyframes blinkYellow { 50%{background:#fff0a8;} }
+
+.btn-blue {
+  background:linear-gradient(135deg,#0046ff,#357aff);
+  color:white;border:none;border-radius:6px;
+  padding:6px 14px;font-weight:600;cursor:pointer;
+  transition:opacity .2s,transform .2s;
+}
+.btn-blue:hover { opacity:.85; transform:scale(1.05); }
+
+#listTable { width:100%; border-collapse:collapse; }
+#listTable th, #listTable td {
+  border-bottom:1px solid #ddd;
+  padding:10px; text-align:left;
+}
+#listTable th {
+  background:#f6f7fb; font-weight:700; color:#333;
+}
+</style>
+
 <!-- 🟩 KONEC ČÁSTI 4/10 -->
+
 
 
 
