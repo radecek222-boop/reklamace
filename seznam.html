@@ -401,7 +401,7 @@ function updateDebug(count) {
 
 <!-- 🟩 SEKCE C – DETAIL ZÁKAZNÍKA (rozdělená verze) -->
 <!-- ================================================= -->
-<!-- 🟩 C-1: OPRAVENÉ OTEVŘENÍ DETAILU (modal + zarovnání mapy se spodkem tlačítek) -->
+<!-- 🟩 C-1: OPRAVENÉ OTEVŘENÍ DETAILU (s možností upravit popis závady) -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -415,7 +415,7 @@ function openDetail(index) {
     <div class="detail-modal">
       <div class="grid-layout">
 
-        <!-- 🧭 LEVÝ PANEL – kalendář, čas, tlačítka -->
+        <!-- 🧭 LEVÝ PANEL -->
         <div class="left-panel">
           <div>
             <div id="miniCalendar"></div>
@@ -438,7 +438,7 @@ function openDetail(index) {
           </div>
         </div>
 
-        <!-- 🧾 PRAVÝ PANEL – info + mapa -->
+        <!-- 🧾 PRAVÝ PANEL -->
         <div class="right-panel">
           <div class="customer-info">
             <h2>${item.zakaznik || "Zákazník"}</h2>
@@ -451,7 +451,13 @@ function openDetail(index) {
             </p>
             <p><strong>Email:</strong> ${item.email||"–"}</p>
             <p><strong>Produkt / model:</strong> ${item.produkt||"–"}</p>
-            <p><strong>Popis závady:</strong> ${item.popis||"–"}</p>
+
+            <!-- ✏️ Popis závady + tlačítko Upravit -->
+            <div class="popis-box">
+              <p><strong>Popis závady:</strong></p>
+              <div id="popisText">${item.popis || "–"}</div>
+              <button id="editPopisBtn" class="btn-small">Upravit popis</button>
+            </div>
           </div>
 
           <div class="distance-banner" id="mapDistance">📍 Počítám vzdálenost…</div>
@@ -463,28 +469,55 @@ function openDetail(index) {
   document.body.appendChild(overlay);
   setTimeout(() => overlay.classList.add("active"), 20);
 
-  overlay.addEventListener("click", e => {
-    if (e.target.classList.contains("detail-overlay")) overlay.remove();
-  });
-
+  // 🧭 Inicializace standardních částí
   initCalendarAndTime(overlay, item, index);
   initMapForDetail(overlay, item);
   initDetailButtons(overlay, item, index);
+
+  // ✏️ Otevření editoru popisu
+  overlay.querySelector("#editPopisBtn").onclick = () => openEditPopisModal(item, overlay);
+}
+
+/* 📝 Editor popisu závady (malý modal s textareou) */
+function openEditPopisModal(item, parentOverlay) {
+  const modal = document.createElement("div");
+  modal.className = "edit-popis-overlay";
+  modal.innerHTML = `
+    <div class="edit-popis-modal">
+      <h3>Upravit popis závady</h3>
+      <textarea id="newPopis">${item.popis || ""}</textarea>
+      <div class="popis-buttons">
+        <button id="savePopisBtn" class="btn-green">Uložit</button>
+        <button id="closePopisBtn" class="btn-gray">Zavřít</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  setTimeout(()=>modal.classList.add("active"),20);
+
+  modal.querySelector("#closePopisBtn").onclick = ()=>modal.remove();
+  modal.querySelector("#savePopisBtn").onclick = ()=>{
+    const newText = modal.querySelector("#newPopis").value.trim();
+    item.popis = newText;
+    localStorage.setItem("upravenyPopisy", JSON.stringify({
+      ...(JSON.parse(localStorage.getItem("upravenyPopisy")||"{}")),
+      [item.cislo]: newText
+    }));
+    const textBox = parentOverlay.querySelector("#popisText");
+    if (textBox) textBox.textContent = newText || "–";
+    modal.remove();
+    showToast("Popis závady upraven", "success");
+  };
 }
 </script>
 
-<!-- 💅 CSS – modal + přesné zarovnání mapy s tlačítky -->
+<!-- 💅 CSS – zarovnání mapy + editor popisu -->
 <style>
 .detail-overlay {
-  position: fixed;
-  inset: 0;
+  position: fixed; inset: 0;
   background: rgba(0,0,0,0.55);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  opacity: 0;
-  transition: opacity .25s ease;
+  display: flex; justify-content: center; align-items: center;
+  z-index: 9999; opacity: 0; transition: opacity .25s ease;
 }
 .detail-overlay.active { opacity: 1; }
 
@@ -493,50 +526,100 @@ function openDetail(index) {
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-  max-width: 900px;
-  width: 95%;
-  max-height: 90vh;
-  overflow-y: auto;
+  max-width: 900px; width: 95%;
+  max-height: 90vh; overflow-y: auto;
 }
-
 .grid-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  align-items: stretch;
+  gap: 20px; align-items: stretch;
+}
+.left-panel, .right-panel {
+  display: flex; flex-direction: column; justify-content: space-between;
 }
 
-.left-panel,
-.right-panel {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-/* mapa a tlačítka končí na stejné úrovni */
+/* Zarovnání spodku mapy s tlačítky */
 #mapDetail {
   flex-grow: 1;
-  border-radius: 10px;
-  border: 1px solid #ddd;
+  border-radius: 10px; border: 1px solid #ddd;
+  margin-top: 10px; min-height: 260px;
+}
+
+/* ✏️ Popis závady */
+.popis-box {
   margin-top: 10px;
-  height: 100%;
-  min-height: 260px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+#popisText {
+  white-space: pre-wrap;
+  font-size: 0.95em;
+  color: #111;
+  margin-bottom: 8px;
+}
+.btn-small {
+  background: linear-gradient(135deg,#0046ff,#357aff);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.85em;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.customer-info { margin-bottom: auto; }
-.distance-banner {
-  background:#f6f6f6;
-  border-radius:8px;
-  padding:8px;
-  text-align:center;
-  font-weight:600;
-  margin:10px 0;
+/* ✏️ Modal pro úpravu popisu */
+.edit-popis-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 10000; opacity: 0; transition: opacity .25s ease;
 }
+.edit-popis-overlay.active { opacity: 1; }
+.edit-popis-modal {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+}
+.edit-popis-modal h3 {
+  margin-top: 0;
+  text-align: center;
+}
+.edit-popis-modal textarea {
+  width: 100%;
+  height: 150px;
+  font-size: 0.95em;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+.popis-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+}
+.popis-buttons button {
+  flex: 1;
+  height: 40px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #fff;
+}
+.btn-green { background: linear-gradient(135deg,#28a745,#6fdd72); }
+.btn-gray { background: linear-gradient(135deg,#6c757d,#a0a4a7); }
 
-@media (max-width:700px) {
-  .grid-layout { grid-template-columns: 1fr; }
-  .right-panel { justify-content: flex-start; }
-  #mapDetail { height: auto; }
+@media (max-width:700px){
+  .grid-layout { grid-template-columns:1fr; }
+  #mapDetail { height:auto; }
 }
 </style>
 <!-- 🟩 KONEC OPRAVY C-1 -->
