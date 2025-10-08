@@ -444,25 +444,26 @@ window.addEventListener("DOMContentLoaded", () => {
 
 
 
-<!-- 🟨 ZAČÁTEK ČÁSTI F (Podpis a ovládací tlačítka) -->
+<!-- 🟨 ZAČÁTEK ČÁSTI F (Podpis a ovládací tlačítka – nové funkce) -->
 
-  <!-- 🧩 Sekce: Podpis zákazníka -->
-  <div class="section-title">
-    Podpis zákazníka<span class="en-label">Customer signature</span>
-  </div>
+<!-- 🧩 Sekce: Podpis zákazníka -->
+<div class="section-title">
+  Podpis zákazníka<span class="en-label">Customer signature</span>
+</div>
 
-  <canvas id="signature-pad"></canvas>
-  <div class="signature-label">Podepište se prstem nebo myší</div>
+<canvas id="signature-pad"></canvas>
+<div class="signature-label">Podepište se prstem nebo myší</div>
 
-  <!-- 🧩 Tlačítka ovládání -->
-  <div class="btns">
-    <button class="btn-clear" type="button" onclick="signaturePad.clear()">Vymazat podpis</button>
-    <button class="btn-back" type="button" onclick="window.location.href='index.html'">Zpět</button>
-    <button class="btn-pdf" type="button" onclick="uploadProtocol()">Odeslat na server</button>
-    <button class="btn-email" type="button" onclick="saveAndMail()">Odeslat e-mail</button>
-  </div>
+<!-- 🧩 Tlačítka ovládání -->
+<div class="btns">
+  <button class="btn-clear" type="button" onclick="signaturePad.clear()">Vymazat podpis</button>
+  <button class="btn-back" type="button" onclick="window.location.href='index.html'">Zpět</button>
+  <button class="btn-pdf" type="button" onclick="exportPDF()">Exportovat PDF</button>
+  <button class="btn-email" type="button" onclick="mailCustomer()">Odeslat zákazníkovi</button>
+</div>
 
 <!-- 🟩 KONEC ČÁSTI F -->
+
 
 
 
@@ -602,132 +603,115 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 
 
-<!-- 🟨 ZAČÁTEK ČÁSTI J (Hlavní logika: podpis, PDF export, upload, e-mail) -->
+<!-- 🟨 ZAČÁTEK ČÁSTI J (Export PDF, email, uložení k zákazníkovi) -->
 <script>
 let signaturePad;
-let lastPdfName = "protokol.pdf";
 
+// 📋 Inicializace podpisu
 window.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById("signature-pad");
-
-  // 🖊️ Přizpůsobení plátna podpisu
   function resizeCanvas() {
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
   }
   resizeCanvas();
   window.addEventListener("resize", resizeCanvas, { passive: true });
-
-  // ✍️ Inicializace podpisu
   signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
 
-  // 📅 Předvyplnění dnešního data
+  // vyplnit dnešní datum automaticky
   const today = new Date().toISOString().split("T")[0];
-  document.getElementById("visit-date").value = today;
-  document.getElementById("sign-date").value = today;
+  document.getElementById("visit-date").value ||= today;
+  document.getElementById("sign-date").value ||= today;
 });
 
-function collectFormData() {
-  return {
-    order: order-number.value,
-    claim: claim-number.value,
-    customer: customer.value,
-    address: address.value,
-    phone: phone.value,
-    email: email.value,
-    technician: technician.value,
-    visit: visit-date.value,
-    delivery: delivery-date.value,
-    claimDate: claim-date.value,
-    brand: brand.value,
-    model: model.value,
-    descriptionCZ: description-cz.value,
-    descriptionEN: description-en.value,
-    problemCZ: problem-cz.value,
-    problemEN: problem-en.value,
-    repairCZ: repair-cz.value,
-    repairEN: repair-en.value,
-    prices: {
-      parts: parts.value,
-      work: price-work.value,
-      material: price-material.value,
-      second: price-second.value,
-      transport: price-transport.value,
-      total: price-total.value
-    },
-    solved: solved.value,
-    dealer: dealer.value,
-    damage: damage.value,
-    payment: payment.value,
-    signDate: sign-date.value
-  };
-}
-
-// 📤 Odeslání protokolu na server + export do PDF
-async function uploadProtocol() {
-  const wait = document.getElementById("waitOverlay");
-  wait.classList.add("active");
-
+// 🧾 GENEROVÁNÍ PDF z celé stránky
+async function generatePDF() {
   const { jsPDF } = window.jspdf;
+  const wrapper = document.querySelector(".wrapper");
   const doc = new jsPDF("p", "mm", "a4");
 
-  // 💧 VODOZNAK
+  // 💧 Vodoznak
   doc.setFont("helvetica", "bold");
   doc.setFontSize(48);
   doc.setTextColor(220, 220, 220);
   doc.text("WHITE GLOVE SERVICE", 105, 150, { align: "center", angle: 45 });
 
-  // 🧾 Převod obsahu stránky do PDF
-  const wrapper = document.querySelector(".wrapper");
+  // 🧱 Převod celé stránky do obrázku
   wrapper.classList.add("force-desktop");
   const canvas = await html2canvas(wrapper, { scale: 2 });
   const imgData = canvas.toDataURL("image/jpeg", 0.95);
-  doc.addImage(imgData, "JPEG", 0, 0, 210, 297);
+  wrapper.classList.remove("force-desktop");
 
-  const pdfBlob = doc.output("blob");
-  const pdfFile = new File([pdfBlob], buildPdfFileName(), { type: "application/pdf" });
-  const data = collectFormData();
-  data.signature = signaturePad.toDataURL();
-
-  try {
-    const formData = new FormData();
-    formData.append("pdf", pdfFile);
-    formData.append("data", JSON.stringify(data));
-
-    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/protokol", {
-      method: "POST",
-      body: formData
-    });
-
-    if (!res.ok) throw new Error(await res.text());
-    wait.classList.remove("active");
-    document.getElementById("successCheck").classList.add("active");
-    setTimeout(() => window.location.href = "index.html", 2500);
-
-  } catch (err) {
-    wait.classList.remove("active");
-    alert("Chyba při odesílání: " + err.message);
-  } finally {
-    wrapper.classList.remove("force-desktop");
+  // ✍️ Přidání podpisu, pokud existuje
+  if (!signaturePad.isEmpty()) {
+    const signatureData = signaturePad.toDataURL("image/png");
+    doc.addImage(signatureData, "PNG", 30, 250, 60, 20);
   }
+
+  doc.addImage(imgData, "JPEG", 0, 0, 210, 297);
+  return doc;
 }
 
-// 🧾 Generování názvu PDF souboru
-function buildPdfFileName() {
-  const today = new Date().toISOString().split("T")[0];
-  return `${customer.value || "zakaznik"}_${claim-number.value || "reklamace"}_${today}.pdf`;
+// 📄 EXPORTOVAT PDF – zobrazit PDF + nabídnout uložení
+async function exportPDF() {
+  const doc = await generatePDF();
+  const pdfBlob = doc.output("blob");
+  const pdfUrl = URL.createObjectURL(pdfBlob);
+  window.open(pdfUrl, "_blank"); // otevře náhled PDF
+  saveProtocolToCustomer(pdfBlob); // uloží protokol zákazníkovi
 }
 
-// 📧 Odeslání e-mailu
-function saveAndMail() {
+// ✉️ ODESLAT ZÁKAZNÍKOVI – vytvoří PDF, otevře e-mail klienta
+async function mailCustomer() {
+  const doc = await generatePDF();
+  const pdfBlob = doc.output("blob");
+  saveProtocolToCustomer(pdfBlob); // uloží PDF zákazníkovi
+
   const email = document.getElementById("email").value || "";
   const subject = "Reklamační protokol White Glove Service";
-  const body = "Dobrý den,\n\nv příloze zasíláme protokol z návštěvy.\n\nS pozdravem,\nWHITE GLOVE SERVICE";
+  const body =
+    "Dobrý den,\n\nv příloze zasíláme reklamační protokol z návštěvy.\n\nS pozdravem,\nWHITE GLOVE SERVICE s.r.o.";
+
+  // otevře výchozí mail klient (bez přílohy – tu lze připojit ručně)
   window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
+
+// 💾 ULOŽENÍ PDF K ZÁKAZNÍKOVI (localStorage + GitHub sync)
+async function saveProtocolToCustomer(pdfBlob) {
+  try {
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64pdf = reader.result.split(",")[1];
+      const claim = document.getElementById("claim-number").value;
+      const customer = document.getElementById("customer").value;
+      const today = new Date().toISOString().split("T")[0];
+      const fileName = `Protokol_${customer}_${claim}_${today}.pdf`;
+
+      const record = {
+        cislo: claim,
+        protokol: {
+          name: fileName,
+          date: today,
+          file: base64pdf
+        }
+      };
+
+      // pokud je dostupná funkce z wgs-sync.js, uloží lokálně i syncne na GitHub
+      if (typeof saveCustomerEdit === "function") {
+        saveCustomerEdit(record);
+        console.log("📎 Protokol uložen k zákazníkovi:", fileName);
+      } else {
+        console.warn("⚠️ Funkce saveCustomerEdit() není dostupná.");
+      }
+    };
+    reader.readAsDataURL(pdfBlob);
+  } catch (e) {
+    console.error("❌ Chyba při ukládání protokolu:", e);
+  }
+}
 </script>
-  
 <!-- 🟩 KONEC ČÁSTI J -->
+
 
 
 
