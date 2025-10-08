@@ -338,7 +338,51 @@ reloadBtn.addEventListener("click", loadData);
 
 
 
+<!-- 🧩 SEKCE B-DEBUG – Diagnostický panel -->
+<div id="debugBox"
+     style="font-family:Inter, sans-serif;
+            font-size:12px;
+            color:#444;
+            position:fixed;
+            bottom:10px;
+            right:15px;
+            background:#f7f7f7;
+            border:1px solid #ccc;
+            border-radius:8px;
+            padding:8px 12px;
+            box-shadow:0 2px 6px rgba(0,0,0,0.1);
+            z-index:9999;">
+  Načteno: <span id="debugCount">0</span> záznamů<br>
+  <small>Aktualizace: <span id="debugTime">–</span></small>
+</div>
 
+<script>
+function updateDebug(count) {
+  document.getElementById("debugCount").textContent = count;
+  document.getElementById("debugTime").textContent =
+    new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+// Po úspěšném načtení dat v loadData()
+async function loadData() {
+  console.log("📥 Načítám data z Workeru…");
+  tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
+
+  try {
+    const res = await fetch(API_URL, { mode: "cors", cache: "no-store" });
+    if (!res.ok) throw new Error(`Chyba HTTP ${res.status}`);
+    const data = await res.json();
+    if (!Array.isArray(data)) throw new Error("Worker nevrací pole objektů");
+
+    console.log("📦 Worker data:", data);
+    updateDebug(data.length); // 🔹 aktualizace panelu
+    ...
+  } catch (err) {
+    updateDebug(0);
+  }
+}
+</script>
+<!-- 🧩 KONEC SEKCE B-DEBUG -->
 
 
 
