@@ -34,21 +34,22 @@ body {
 }
 h1 { text-align: center; font-size: 1.9em; font-weight: 900; margin: 0; color: #111; }
 .sub { text-align: center; color: #777; margin-bottom: 20px; }
+
 .btn {
   border: none;
   border-radius: 8px;
-  padding: 8px 18px;
-  font-size: 0.9em;
+  padding: 10px 22px;
+  font-size: 0.95em;
   font-weight: 600;
   cursor: pointer;
   transition: transform .15s, opacity .25s;
   color: white;
   box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  min-width: 160px;
 }
-.btn:hover { transform: scale(1.05); opacity: .9; }
-.btn-back { background: linear-gradient(135deg,#a0a4a7,#6c757d); }
-.btn-stats { background: linear-gradient(135deg,#0046ff,#357aff); }
-.btn-export { background: linear-gradient(135deg,#444,#666); }
+.btn:hover { transform: scale(1.04); opacity: .9; }
+.btn-light { background: linear-gradient(135deg,#a0a4a7,#c0c3c5); }
+.btn-dark { background: linear-gradient(135deg,#555,#777); }
 
 .stats-boxes {
   display: grid;
@@ -74,10 +75,10 @@ h1 { text-align: center; font-size: 1.9em; font-weight: 900; margin: 0; color: #
   margin-bottom: 25px;
 }
 select, input[type="date"] {
-  padding: 6px 10px;
-  font-size: 0.9em;
+  padding: 8px 12px;
+  font-size: 0.95em;
   border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 .chart-container {
   background: #f9f9f9;
@@ -87,7 +88,6 @@ select, input[type="date"] {
   margin-bottom: 25px;
 }
 h3 { text-align: center; font-size: 1em; color: #333; margin-bottom: 10px; }
-.loading { text-align: center; padding: 30px; color: #666; }
 
 #adminBar {
   position: absolute;
@@ -98,6 +98,19 @@ h3 { text-align: center; font-size: 1em; color: #333; margin-bottom: 10px; }
   gap: 10px;
   font-size: 0.9em;
   color: #333;
+}
+#logoutButton {
+  background: linear-gradient(135deg, #555, #888);
+  color: #fff;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+#logoutButton:hover {
+  background: linear-gradient(135deg, #333, #666);
 }
 
 /* 🪟 Modal zadavatelů */
@@ -147,14 +160,12 @@ h3 { text-align: center; font-size: 1em; color: #333; margin-bottom: 10px; }
 
 
 
-
 <!-- 🟩 SEKCE 2/5 – OBSAH -->
 <body>
 
-<div class="wrapper" id="content">
+<div class="wrapper">
   <div id="adminBar">
-    🔓 Přihlášený administrátor
-    <button class="btn btn-back" style="padding:6px 12px;font-size:0.8em;" onclick="logout()">Odhlásit</button>
+    <button id="logoutButton" onclick="logout()">Odhlásit</button>
   </div>
 
   <h1>Přehled WGS</h1>
@@ -169,17 +180,11 @@ h3 { text-align: center; font-size: 1em; color: #333; margin-bottom: 10px; }
     </select>
     <label>Od: <input type="date" id="dateFrom"></label>
     <label>Do: <input type="date" id="dateTo"></label>
-    <select id="typeSelect">
-      <option value="all" selected>Všechny typy</option>
-      <option value="reklamace">Reklamace</option>
-      <option value="pozáruční">Pozáruční servis</option>
-    </select>
   </div>
 
   <div class="filter-bar">
-    <button class="btn btn-stats" id="applyFilter">Zobrazit</button>
-    <button class="btn btn-export" id="openZadavatele">Vyber zadavatele</button>
-    <button class="btn btn-export" id="exportStats">Exportovat přehled</button>
+    <button class="btn btn-light" id="openZadavatele">Vyber zadavatele</button>
+    <button class="btn btn-dark" id="applyFilter">Zobrazit</button>
   </div>
 
   <div class="stats-boxes">
@@ -213,46 +218,42 @@ h3 { text-align: center; font-size: 1em; color: #333; margin-bottom: 10px; }
 
 
 
-
-
-<!-- 🟧 SEKCE 3/5 – SCRIPT / DATA -->
+<!-- 🟧 SEKCE 3/5 – DATA + FUNKCE -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 let allData = [];
 const zadavatele = [
-  "Natuzzi Editions",
-  "Natuzzi Italia",
-  "Phase",
-  "Softaly",
-  "Emporio Home",
-  "Emil Frey Select"
+  "Natuzzi Editions","Natuzzi Italia","Phase","Softaly","Emporio Home","Emil Frey Select"
 ];
 
-let logoutTimer;
-let countdownInterval;
-
-
-
-
-// 🪟 otevření / zavření modalu
 const modal = document.getElementById("zadavateleModal");
 const listDiv = document.getElementById("zadavateleList");
 const openBtn = document.getElementById("openZadavatele");
 const closeBtn = document.getElementById("closeZadavatele");
 
+function loadSelected(){
+  try{return JSON.parse(localStorage.getItem("selectedZadavatele")||"[]");}
+  catch{return [];}
+}
+function saveSelected(list){
+  localStorage.setItem("selectedZadavatele",JSON.stringify(list));
+}
+
 openBtn.onclick = () => {
-  listDiv.innerHTML = zadavatele
-    .map(name => `
-      <div class="zadavatel-item">
-        <input type="checkbox" id="${name}" value="${name}">
-        <label for="${name}">${name}</label>
-      </div>`).join("");
+  const saved = loadSelected();
+  listDiv.innerHTML = zadavatele.map(name => `
+    <div class="zadavatel-item">
+      <input type="checkbox" id="${name}" value="${name}" ${saved.includes(name)?"checked":""}>
+      <label for="${name}">${name}</label>
+    </div>`).join("");
   modal.style.display = "flex";
 };
-closeBtn.onclick = () => modal.style.display = "none";
-modal.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
-
-
+closeBtn.onclick = () => {
+  const selected = Array.from(document.querySelectorAll('#zadavateleList input:checked')).map(c=>c.value);
+  saveSelected(selected);
+  modal.style.display = "none";
+};
+modal.onclick = (e)=>{ if(e.target===modal) modal.style.display="none"; };
 
 
 
@@ -273,7 +274,6 @@ document.getElementById("applyFilter").onclick = renderStats;
 function renderStats(){
   if(!allData.length)return;
   const period=document.getElementById("periodSelect").value;
-  const type=document.getElementById("typeSelect").value;
   let from,to;
   const now=new Date();
   switch(period){
@@ -288,13 +288,12 @@ function renderStats(){
   if(fromInput)from=new Date(fromInput);
   if(toInput)to=new Date(toInput);
 
-  const checked = Array.from(document.querySelectorAll('#zadavateleList input:checked')).map(c => c.value);
+  const checked=loadSelected();
   const filtered=allData.filter(r=>{
     const d=new Date(r.datum||r.date||r.visit||"2000-01-01");
     const inDate=d>=from && d<=to;
-    const inType=(type==="all"||(r.typ||"").toLowerCase().includes(type));
     const inClient=(checked.length===0||checked.includes(r.contract));
-    return inDate&&inType&&inClient;
+    return inDate&&inClient;
   });
 
   const byClient={},byTech={};let total=0;
@@ -330,22 +329,13 @@ function drawChart(id,labels,values,color){
 
 
 
-
-
 <!-- 🟪 SEKCE 5/5 – ODHLAŠENÍ -->
 function logout(){
   sessionStorage.removeItem("wgsAdminLogin");
   location.href="index.html";
 }
 
-document.getElementById("exportStats").onclick = () => {
-  const vybrani = Array.from(document.querySelectorAll('#zadavateleList input:checked')).map(c => c.value);
-  alert(`Export přehledu pro: ${vybrani.join(", ") || "všechny zadavatele"}`);
-};
-
-window.addEventListener("DOMContentLoaded",()=>{
-  loadStats();
-});
+window.addEventListener("DOMContentLoaded",()=>{ loadStats(); });
 </script>
 
 </body>
