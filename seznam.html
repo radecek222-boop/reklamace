@@ -1324,3 +1324,79 @@ setInterval(highlightTodayRows, 30000);
 </style>
 <!-- 🟪 KONEC SEKCE F-1 -->
 
+
+
+<!-- 🟪 ZAČÁTEK SEKCE F-2 – EXPORT PDF + POMOCNÉ FUNKCE -->
+<script>
+/* ============================= */
+/* 📄 EXPORT PLÁNU DNE DO PDF     */
+/* ============================= */
+async function exportPlanToPDF() {
+  const { jsPDF } = window.jspdf;
+  const selectedDate = document.querySelector(".vanilla-calendar-day__btn_selected");
+  if (!selectedDate) return alert("Nejprve vyberte den v kalendáři.");
+  const date = selectedDate.dataset.calendarDay;
+
+  const terminy = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]")
+    .filter(t => t.datum === date);
+  if (!terminy.length) return alert("Na tento den není naplánován žádný zákazník.");
+
+  const doc = new jsPDF();
+  doc.setFontSize(14);
+  doc.text(`Plán dne – ${date}`, 14, 20);
+  doc.setFontSize(11);
+
+  let y = 30;
+  terminy.forEach(t => {
+    doc.text(`• ${t.zakaznik || "Zákazník"} – ${t.adresa || ""}`, 14, y); y += 6;
+    doc.text(`  Model: ${t.produkt || ""} | Tel: ${t.telefon || ""} | Čas: ${t.cas || ""}`, 14, y); y += 8;
+    if (y > 270) { doc.addPage(); y = 20; }
+  });
+  doc.save(`Plan_${date}.pdf`);
+}
+
+/* ============================= */
+/* 🔘 OTEVŘENÍ A ZAVŘENÍ PLÁNU DNE */
+/* ============================= */
+planBtn.onclick = () => {
+  const modal = document.getElementById("planModal");
+  modal.style.display = "flex";
+  setTimeout(() => modal.classList.add("active"), 10);
+  initCalendar();
+};
+document.addEventListener("click", (e) => {
+  if (e.target?.id === "closeMap") {
+    const modal = document.getElementById("planModal");
+    if (modal) {
+      modal.classList.remove("active");
+      setTimeout(() => modal.style.display = "none", 250);
+    }
+  }
+});
+
+/* ============================= */
+/* 🧠 ZACHOVÁNÍ FUNKČNOSTI PO RELOADU */
+/* ============================= */
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("planBtn");
+  if (btn) {
+    btn.addEventListener("click", () => {
+      const modal = document.getElementById("planModal");
+      modal.style.display = "flex";
+      setTimeout(() => modal.classList.add("active"), 10);
+      initCalendar();
+    });
+  }
+});
+</script>
+<!-- 🟪 KONEC SEKCE F-2 -->
+
+
+
+<!-- 📅 ZAČÁTEK SEKCE G – VANILLA CALENDAR -->
+<link rel="stylesheet" href="vanilla-calendar.min.css">
+<script src="vanilla-calendar.min.js"></script>
+<!-- 📅 KONEC SEKCE G – VANILLA CALENDAR -->
+</body>
+</html>
+
