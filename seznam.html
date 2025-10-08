@@ -640,12 +640,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .then((r) => {
           if (!r.ok) throw new Error("Chyba při načítání dat (" + r.status + ")");
           return r.json();
-        })
-        .then((data) => {
-          console.log("📄 renderTable start – počet záznamů:", data.length);
-          dataAll = data;
-          filteredData = [...data];
-          renderTable(dataAll);
+        
         })
         .catch((e) => {
           console.error("❌ Chyba načtení dat z Workeru:", e);
