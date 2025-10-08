@@ -622,86 +622,56 @@ if (typeof renderTable !== "function") {
 
 
 
-
-<!-- 🟦 ZAČÁTEK ČÁSTI 4/10 (renderTable + vykreslení seznamu reklamací) -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 4/10 (načtení dat z Workeru po DOMContentLoaded) -->
 <script>
+// 📦 Globální proměnné
 let dataAll = [];
+let filteredData = [];
 
-// 🟢 Po načtení dat z GitHubu se zavolá renderTable(dataAll)
-function renderTable(data) {
-  console.log("📄 renderTable start – počet záznamů:", data?.length || 0);
-  const tbody = document.getElementById("tbodyList");
-  if (!tbody) return console.warn("⚠️ Tabulka tbody neexistuje.");
-  tbody.innerHTML = "";
+// 📥 Načtení dat z Workeru po úplném načtení stránky
+document.addEventListener("DOMContentLoaded", () => {
+  const containerCheck = setInterval(() => {
+    const tableContainer = document.getElementById("tableContainer");
+    if (tableContainer && typeof renderTable === "function") {
+      clearInterval(containerCheck);
+      console.log("📥 Načítám data z Workeru (po DOMContentLoaded)…");
 
-  dataAll = Array.isArray(data) ? data : [];
-  if (!dataAll.length) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;color:#777;">
-      Žádné záznamy k zobrazení
-    </td></tr>`;
-    return;
-  }
+      fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders")
+        .then((r) => {
+          if (!r.ok) throw new Error("Chyba při načítání dat (" + r.status + ")");
+          return r.json();
+        })
+        .then((data) => {
+          console.log("📄 renderTable start – počet záznamů:", data.length);
+          dataAll = data;
+          filteredData = [...data];
+          renderTable(dataAll);
+        })
+        .catch((e) => {
+          console.error("❌ Chyba načtení dat z Workeru:", e);
+          const t = document.getElementById("tableContainer");
+          if (t) t.innerHTML = `<div style="color:red;padding:15px;">❌ Chyba načítání dat – zkontroluj připojení nebo Worker</div>`;
+        });
+    }
+  }, 100);
+});
 
-  // 🔹 Seřadit podle času (datum+čas)
-  dataAll.sort((a,b)=>{
-    const da = new Date(a.datum + "T" + (a.cas || "00:00"));
-    const db = new Date(b.datum + "T" + (b.cas || "00:00"));
-    return da - db;
-  });
-
-  for (let i=0; i<dataAll.length; i++) {
-    const z = dataAll[i];
-    const stav = (z.stav || "").toLowerCase();
-    let trClass = "";
-    if (stav === "zruseno") trClass = "row-canceled";
-    else if (stav === "domluveno") trClass = "row-confirmed";
-    else if (!stav || stav === "novy") trClass = "row-new";
-
-    const tr = document.createElement("tr");
-    tr.className = trClass;
-    tr.innerHTML = `
-      <td>${z.cislo || "-"}</td>
-      <td>${z.zakaznik || "-"}</td>
-      <td>${z.adresa || "-"}</td>
-      <td>${z.telefon || "-"}</td>
-      <td>${z.contract || "-"}</td>
-      <td>
-        <button class="btn-blue" onclick="openDetail(${i})">Detail</button>
-      </td>`;
-    tbody.appendChild(tr);
-  }
-
-  console.log("✅ Tabulka vykreslena –", dataAll.length, "záznamů");
+// 🔁 Tlačítko „Načíst znovu“
+function reloadData() {
+  console.log("🔄 Načítám znovu data z Workeru…");
+  fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders")
+    .then((r) => r.json())
+    .then((data) => {
+      console.log("✅ Znovu načteno ", data.length, " záznamů");
+      dataAll = data;
+      filteredData = [...data];
+      renderTable(dataAll);
+    })
+    .catch((e) => alert("❌ Chyba načítání dat – " + e.message));
 }
-
-// 🧾 Stylování stavů
 </script>
-
-<style>
-.row-new { animation: blinkYellow 1.5s infinite; background:#fff9d6; }
-.row-confirmed { background:#d6e7ff; }
-.row-canceled { background:#ffd6d6; }
-@keyframes blinkYellow { 50%{background:#fff0a8;} }
-
-.btn-blue {
-  background:linear-gradient(135deg,#0046ff,#357aff);
-  color:white;border:none;border-radius:6px;
-  padding:6px 14px;font-weight:600;cursor:pointer;
-  transition:opacity .2s,transform .2s;
-}
-.btn-blue:hover { opacity:.85; transform:scale(1.05); }
-
-#listTable { width:100%; border-collapse:collapse; }
-#listTable th, #listTable td {
-  border-bottom:1px solid #ddd;
-  padding:10px; text-align:left;
-}
-#listTable th {
-  background:#f6f7fb; font-weight:700; color:#333;
-}
-</style>
-
 <!-- 🟩 KONEC ČÁSTI 4/10 -->
+
 
 
 
