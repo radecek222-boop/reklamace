@@ -707,376 +707,332 @@ function renderTable(data) {
 
 
 
-<!-- 🟩 ZAČÁTEK ČÁSTI 5/10 – Uložení termínu, SMS, toast notifikace -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 5/10 (Detail zákazníka + mapa + kalendář + náhled fotek) -->
 <script>
-async function ulozitTerminNaGitHub(item, id, datum, cas, overlay, btn, infoBox) {
-  stavy[id] = "domluveno";
-  item.datum = datum;
-  item.cas = cas;
+// 🧭 Pomocná funkce – normalizace adresy Praha
+function normalizePrahaAddress(adresa) {
+  if (!adresa) return "";
+  if (/Praha\s?\d*/i.test(adresa) && !adresa.includes("Hlavní město Praha"))
+    return adresa.replace(/Praha\s?\d*/i, "Hlavní město Praha");
+  return adresa;
+}
 
-  /* ⏳ Loader */
-  const loader = document.createElement("div");
-  loader.className = "loader-overlay";
-  loader.innerHTML = `
-    <div class="loader-inner">
-      <div class="hourglass"></div>
-      <div>⏳ Ukládám termín…</div>
-    </div>`;
-  document.body.appendChild(loader);
+// 🌍 Výchozí adresa WGS – Do Dubče 364, Praha 9 – Běchovice
+const WGS_HOME = {
+  lat: 50.0793,
+  lon: 14.6221,
+  label: "Do Dubče 364, Praha 9 – Běchovice"
+};
 
-  try {
-    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "update", record: item })
-    });
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.message || "Chyba při zápisu");
+// 🧩 Funkce pro otevření detailu zákazníka
+function openDetail(index) {
+  const item = dataAll[index];
+  if (!item) return;
 
-    ulozTermin(item);
-    localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+  const overlay = document.createElement("div");
+  overlay.className = "detail-overlay";
+  document.body.appendChild(overlay);
 
-    setTimeout(() => {
-      loader.remove();
-      showSuccess("✅ Termín úspěšně uložen", "Data byla potvrzena v repozitáři GitHub.");
-      flashBox(infoBox, "green");
-      overlay.remove();
-      renderTable(dataAll);
-    }, 800);
+  const adresaUpravena = normalizePrahaAddress(item.adresa || "");
+  const fotky = item.fotky || [];
 
-  } catch (err) {
-    loader.remove();
-    alert("❌ Chyba při ukládání: " + err.message);
+  overlay.innerHTML = `
+    <div class="detail-modal">
+      <div class="detail-header">
+        <h2>${item.zakaznik || "Zákazník"}</h2>
+        <div class="photo-btn" onclick="openPhotoGallery(${index})">📷 Náhled foto</div>
+      </div>
+      <p><strong>Adresa:</strong> 
+        <a href="https://waze.com/ul?q=${encodeURIComponent(adresaUpravena)}" target="_blank">
+          ${adresaUpravena}
+        </a>
+      </p>
+      <p><strong>Telefon:</strong> <a href="tel:${item.telefon}">${item.telefon}</a></p>
+      <p><strong>Email:</strong> <a href="mailto:${item.email}">${item.email}</a></p>
+      <p><strong>Produkt:</strong> ${item.produkt || "-"}</p>
+      <p><strong>Popis:</strong> ${item.popis || "-"}</p>
+
+      <div id="mapDetail" class="map"></div>
+      <div id="calendarDetail" class="calendar"></div>
+
+      <div class="detail-actions">
+        <button class="btn-blue" onclick="createProtocol(${index})">Vytvořit protokol (PDF + Email)</button>
+        <button class="btn-gray" onclick="closeDetail()">Zpět</button>
+      </div>
+    </div>
+  `;
+
+  // 🗺️ Mapa + výpočet vzdálenosti
+  const map = L.map("mapDetail", { zoomControl: false }).setView([WGS_HOME.lat, WGS_HOME.lon], 10);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+  if (item.adresa) {
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.length > 0) {
+          const { lat, lon } = data[0];
+          const route = L.polyline([[WGS_HOME.lat, WGS_HOME.lon], [lat, lon]], { color: "#0046ff", weight: 3 }).addTo(map);
+          L.marker([WGS_HOME.lat, WGS_HOME.lon]).addTo(map).bindPopup("WGS – Do Dubče 364, Praha 9");
+          L.marker([lat, lon]).addTo(map).bindPopup(item.zakaznik);
+          map.fitBounds(route.getBounds(), { padding: [40, 40] });
+        }
+      });
   }
+
+  // 📅 Kalendář VanillaCalendar
+  const calendar = new VanillaCalendar("#calendarDetail", {
+    type: "default",
+    settings: { selection: { day: "single" } },
+    actions: {
+      clickDay(event, self) {
+        const date = self.selectedDates[0];
+        if (date) {
+          alert(`📆 Vybráno: ${date}`);
+        }
+      }
+    }
+  });
+  calendar.init();
 }
 
-/* 💾 Lokální uložení termínu */
-function ulozTermin(zaznam) {
-  let data = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
-  const id = zaznam.cislo || zaznam.id;
-  data = data.filter(z => z.cislo !== id);
-  data.push(zaznam);
-  localStorage.setItem("stavyReklamaciData", JSON.stringify(data));
+function closeDetail() {
+  document.querySelector(".detail-overlay")?.remove();
 }
 
-/* ✅ Vizuální potvrzení */
-function showSuccess(title, text) {
-  const box = document.createElement("div");
-  box.className = "successOverlay";
-  box.innerHTML = `
-    <div class="successInner">
-      <div class="icon">✅</div>
-      <div class="title">${title}</div>
-      <div class="text">${text}</div>
-    </div>`;
-  document.body.appendChild(box);
-  setTimeout(() => box.classList.add("active"), 50);
-  setTimeout(() => { box.classList.remove("active"); setTimeout(()=>box.remove(),400); }, 1600);
+// 🖼️ Galerie fotek
+function openPhotoGallery(index) {
+  const item = dataAll[index];
+  if (!item || !item.fotky?.length) return alert("Žádné fotky k zobrazení.");
+  const gallery = document.createElement("div");
+  gallery.className = "photo-gallery";
+
+  gallery.innerHTML = `
+    <div class="gallery-content">
+      <button class="gallery-close" onclick="this.parentElement.parentElement.remove()">×</button>
+      <div class="gallery-track">
+        ${item.fotky.map(f => `<img src="https://github.com/radecek222-boop/reklamace/raw/main/foto/${f}" alt="foto">`).join("")}
+      </div>
+    </div>
+  `;
+  document.body.appendChild(gallery);
 }
 
-/* 🌟 Toast krátká zpráva */
-function showToast(msg, type="success") {
-  const toast = document.createElement("div");
-  toast.className = `wgs-toast ${type}`;
-  toast.textContent = msg;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.classList.add("active"), 30);
-  setTimeout(() => { toast.classList.remove("active"); setTimeout(()=>toast.remove(),400); }, 3000);
+function createProtocol(index) {
+  const item = dataAll[index];
+  alert(`📄 Protokol pro: ${item.zakaznik}\nFunkce exportu do PDF a emailu se připravuje.`);
 }
 </script>
 
 <style>
-/* Loader */
-.loader-overlay {
+.detail-overlay {
   position: fixed; inset: 0;
-  background: rgba(255,255,255,0.9);
-  display: flex; flex-direction: column;
-  justify-content: center; align-items: center;
-  z-index: 10000; font-family: "Inter", sans-serif;
-  color: #0046ff; font-weight: 700;
-}
-.hourglass {
-  width: 42px; height: 42px;
-  border: 4px solid #0046ff; border-top-color: transparent;
-  border-radius: 50%; animation: spin 1.1s linear infinite;
-}
-@keyframes spin { from {transform:rotate(0)} to {transform:rotate(360deg)} }
-
-/* Potvrzení */
-.successOverlay {
-  position: fixed; inset: 0;
-  background: rgba(255,255,255,0.9);
+  background: rgba(0,0,0,0.5);
   display: flex; justify-content: center; align-items: center;
-  opacity: 0; transition: opacity .3s ease; z-index: 10001;
+  z-index: 9999;
 }
-.successOverlay.active { opacity: 1; }
-.successInner {
-  background: #fff; border-left: 6px solid #28a745;
-  border-radius: 12px; padding: 25px 30px;
-  text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,.2);
-  max-width: 340px;
+.detail-modal {
+  background: white; padding: 25px; border-radius: 12px;
+  width: 95%; max-width: 700px;
+  max-height: 90vh; overflow-y: auto;
 }
-.successInner .icon { font-size: 2em; margin-bottom: 10px; }
-.successInner .title { font-weight: 800; color: #28a745; margin-bottom: 6px; }
-.successInner .text { font-size: .95em; color: #333; }
+.detail-header {
+  display:flex; justify-content:space-between; align-items:center;
+}
+.photo-btn {
+  background:#e5e5e5; padding:6px 10px;
+  border-radius:6px; font-weight:600;
+  cursor:pointer; color:#333;
+  border:1px solid #ccc;
+}
+.photo-btn:hover { background:#d8d8d8; }
 
-/* Toast */
-.wgs-toast {
-  position: fixed; top: 20px; right: 20px;
-  background: #fff; padding: 12px 20px;
-  border-radius: 8px; box-shadow: 0 3px 10px rgba(0,0,0,.15);
-  font-weight: 600; opacity: 0; transform: translateY(-10px);
-  transition: all .35s ease; z-index: 10002;
+.map {
+  width:100%; height:260px; border-radius:10px;
+  margin:20px 0;
 }
-.wgs-toast.active { opacity: 1; transform: translateY(0); }
-.wgs-toast.success { border-left: 5px solid #28a745; }
-.wgs-toast.error   { border-left: 5px solid #dc3545; }
-.wgs-toast.warning { border-left: 5px solid #ff9800; }
+.calendar {
+  width:100%; background:#f9fafc;
+  border-radius:10px; padding:10px;
+  margin-bottom:20px;
+}
+
+.photo-gallery {
+  position:fixed; inset:0; background:rgba(0,0,0,0.9);
+  display:flex; justify-content:center; align-items:center;
+  z-index:10000;
+}
+.gallery-content {
+  position:relative; width:90%; height:80%;
+  overflow:hidden; display:flex; justify-content:center; align-items:center;
+}
+.gallery-close {
+  position:absolute; top:15px; right:20px;
+  background:#fff; border:none; font-size:1.5em;
+  border-radius:50%; width:36px; height:36px;
+  cursor:pointer; color:#f00;
+}
+.gallery-track {
+  display:flex; gap:15px; overflow-x:auto;
+  scroll-snap-type:x mandatory;
+}
+.gallery-track img {
+  height:75vh; object-fit:contain;
+  scroll-snap-align:center;
+  border-radius:12px;
+}
+.detail-actions {
+  display:flex; flex-direction:column; gap:10px; margin-top:15px;
+}
 </style>
 <!-- 🟩 KONEC ČÁSTI 5/10 -->
 
 
 
 
+
   
-<!-- 🟩 ZAČÁTEK ČÁSTI 6/10 (vylepšená – kalendář, legenda, výstraha bez blikání) -->
-<style>
-#planModal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.55);
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  opacity: 0;
-  transition: opacity .25s ease;
-}
-#planModal.active { display:flex; opacity:1; }
+<!-- 🟪 ZAČÁTEK ČÁSTI 6/10 (Uložení termínu + PDF export + email) -->
+<script>
+// 🧭 Uložení termínu do GitHubu přes Worker
+async function saveTerm(itemIndex, date, time) {
+  const record = { ...dataAll[itemIndex], datum: date, cas: time };
 
-#planModal .modal-inner {
-  background: #fff;
-  border-radius: 14px;
-  width: 95%;
-  max-width: 1300px;
-  height: 90vh;
-  box-shadow: 0 10px 25px rgba(0,0,0,.3);
-  display: grid;
-  grid-template-columns: 35% 65%;
-  grid-template-rows: auto 1fr auto;
-  overflow: hidden;
-  padding: 20px;
-  gap: 20px;
+  try {
+    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ record })
+    });
+
+    if (!res.ok) throw new Error("Chyba při zápisu");
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.message || "Neznámá chyba");
+
+    alert(`✅ Termín uložen: ${date} ${time}`);
+    closeDetail();
+  } catch (err) {
+    alert(`❌ Chyba při ukládání termínu: ${err.message}`);
+  }
 }
 
-/* 🔹 Levý blok */
-.left-block {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 14px;
-}
-.panel {
-  border: 1px solid #d5d7db;
-  border-radius: 12px;
-  background: #fafafa;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  overflow: hidden;
-  transition: box-shadow .25s ease;
-}
-.panel:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+// 🧾 Export protokolu do PDF + email
+async function createProtocol(index) {
+  const item = dataAll[index];
+  if (!item) return alert("Záznam nenalezen");
 
-#calendar { flex: 1; min-height: 320px; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
 
-/* 🗒️ Legenda */
-.legend {
-  background: #fff;
-  padding: 10px;
-  font-size: 0.9em;
-  color: #333;
-  border-top: 1px solid #ddd;
-}
-.legend table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9em;
-}
-.legend th, .legend td {
-  border-bottom: 1px solid #eee;
-  padding: 5px 6px;
-  text-align: left;
-}
-.legend th {
-  background: #f6f7fb;
-  font-weight:600;
-  color: #000;
-  border-bottom: 2px solid #ddd;
-}
-.legend-total {
-  text-align: right;
-  font-weight: 800;
-  margin-top: 6px;
-  color: #111;
-}
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("WHITE GLOVE SERVICE – Protokol", 20, 20);
 
-/* 🔴 Výstraha – červený gradient, bez blikání */
-.departure-alert {
-  margin-top: 10px;
-  padding: 10px 12px;
-  text-align: center;
-  font-weight: 700;
-  color: white;
-  font-size: 1em;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #ff4d4d, #cc0000);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-  letter-spacing: 0.3px;
-  transition: background .25s ease;
-}
-.departure-alert:hover {
-  background: linear-gradient(135deg, #ff6666, #e00000);
-}
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  let y = 35;
+  const info = [
+    ["Zákazník:", item.zakaznik],
+    ["Adresa:", item.adresa],
+    ["Telefon:", item.telefon],
+    ["E-mail:", item.email],
+    ["Produkt:", item.produkt],
+    ["Popis závady:", item.popis],
+    ["Datum návštěvy:", item.datum || "-"],
+    ["Čas:", item.cas || "-"],
+    ["Zpracoval:", item.contract]
+  ];
 
-.speed-select {
-  width: 100%;
-  margin-top: 8px;
-  padding: 6px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-weight: 600;
-  background: #f6f7fb;
-  cursor: pointer;
-  color: #000;
-  transition: box-shadow .2s ease, border-color .2s ease;
-}
-.speed-select:focus {
-  border-color: #0046ff;
-  box-shadow: 0 0 0 3px rgba(0,70,255,0.2);
+  info.forEach(([label, value]) => {
+    doc.text(`${label} ${value || "-"}`, 20, y);
+    y += 8;
+  });
+
+  if (item.fotky && item.fotky.length) {
+    y += 5;
+    doc.setFont("helvetica", "bold");
+    doc.text("Fotodokumentace:", 20, y);
+    y += 10;
+    doc.setFont("helvetica", "normal");
+
+    for (const f of item.fotky.slice(0, 3)) {
+      const imgUrl = `https://raw.githubusercontent.com/radecek222-boop/reklamace/main/foto/${f}`;
+      try {
+        const blob = await fetch(imgUrl).then(r => r.blob());
+        const imgData = await new Promise(r => {
+          const reader = new FileReader();
+          reader.onload = () => r(reader.result);
+          reader.readAsDataURL(blob);
+        });
+        doc.addImage(imgData, "JPEG", 20, y, 50, 40);
+      } catch (e) {
+        console.warn("❌ Nelze načíst obrázek:", f);
+      }
+      y += 45;
+    }
+  }
+
+  y += 10;
+  doc.text("__________________________", 20, y + 10);
+  doc.text("Podpis technika", 20, y + 18);
+
+  const pdfBlob = doc.output("blob");
+  const pdfUrl = URL.createObjectURL(pdfBlob);
+  window.open(pdfUrl, "_blank");
+
+  // ✉️ Připravený e-mail
+  const subject = encodeURIComponent(`Protokol – ${item.zakaznik}`);
+  const body = encodeURIComponent(`Dobrý den,\n\nv příloze zasíláme protokol k reklamaci.\n\nS pozdravem\nWhite Glove Service`);
+  const mailto = `mailto:${item.email}?subject=${subject}&body=${body}`;
+  window.open(mailto, "_self");
 }
 
-#closeMap {
-  margin-top: auto;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  color: #fff;
-  background: linear-gradient(135deg, #6c757d, #a0a4a7);
-  cursor: pointer;
-  transition: transform .2s ease, opacity .2s;
-}
-#closeMap:hover { transform:scale(1.04); opacity:.9; }
+// 🗓️ Kalendářní klik – doplnění času a uložení
+function openDetail(index) {
+  const item = dataAll[index];
+  if (!item) return;
 
-/* 🔹 Pravý blok (mapa + zákazníci) */
-.right-block {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-}
-#map {
-  flex: 1;
-  min-height: 440px;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #eaeaea;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  position: relative;
-}
-#mapOverlay {
-  position: absolute;
-  inset: 0;
-  display: none;
-  background: rgba(255,255,255,0.85);
-  justify-content: center;
-  align-items: center;
-  font-size: 1.2em;
-  font-weight: 600;
-  color: #444;
-}
+  const overlay = document.createElement("div");
+  overlay.className = "detail-overlay";
+  document.body.appendChild(overlay);
 
-/* 🔹 Zákazníci */
-.plan-list {
-  margin-top: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-height: 180px;
-  overflow-y: auto;
-}
-.plan-row {
-  display: grid;
-  grid-template-columns: 30px 70px 1.8fr 0.8fr 1.3fr 110px;
-  align-items: center;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 8px 10px;
-  background: #fff;
-  font-size: 0.9em;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  column-gap: 10px;
-}
-.plan-row b { font-weight:600; color:#000; }
-.plan-row div { color:#000; }
-.phone-btn, .waze-btn {
-  border: none;
-  cursor: pointer;
-  padding: 5px 10px;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.85em;
-}
-.phone-btn { background: linear-gradient(135deg,#007bff,#399bff); color:#fff; }
-.waze-btn {
-  border: 1px solid #0046ff;
-  background: #f0f4ff;
-  color: #0046ff;
-}
-.waze-btn:hover { background: #0046ff; color:#fff; }
-.flag-btn { background:none; border:none; font-size:1.2em; cursor:pointer; }
-
-/* 🟦 Animace markerů */
-.blinking-marker { animation: blinkMarker 1s infinite; }
-@keyframes blinkMarker {
-  0%{transform:scale(1);filter:brightness(1);}
-  50%{transform:scale(1.3);filter:brightness(1.8);}
-  100%{transform:scale(1);filter:brightness(1);}
-}
-
-/* Responsivita */
-@media(max-width:900px){
-  #planModal .modal-inner{grid-template-columns:1fr;grid-template-rows:auto auto auto auto;height:95vh;}
-  .plan-row{grid-template-columns:26px 60px 1.5fr 0.8fr 1.2fr 90px;font-size:0.85em;}
-  #map{min-height:300px;}
-}
-</style>
-
-<div id="planModal">
-  <div class="modal-inner">
-    <div class="left-block">
-      <div class="panel" id="calendar"></div>
-      <div class="panel legend" id="legendBox">
-        <table id="routeTable"></table>
-        <div class="legend-total" id="totalKm"></div>
-        <select id="speedSelect" class="speed-select">
-          <option value="60">Průměrná rychlost: 60 km/h</option>
-          <option value="70" selected>Průměrná rychlost: 70 km/h</option>
-          <option value="80">Průměrná rychlost: 80 km/h</option>
-          <option value="100">Průměrná rychlost: 100 km/h</option>
-        </select>
-        <div class="departure-alert" id="departureTimeBox">
-          Vyrazit na cestu nejpozději v —
-        </div>
+  overlay.innerHTML = `
+    <div class="detail-modal">
+      <h2>${item.zakaznik}</h2>
+      <p><strong>Adresa:</strong> ${item.adresa}</p>
+      <p><strong>Produkt:</strong> ${item.produkt}</p>
+      <div id="calendarSave" class="calendar"></div>
+      <div style="margin:10px 0;">
+        <label>Čas návštěvy:</label>
+        <input type="time" id="visitTime" value="${item.cas || "07:00"}" style="width:150px;">
       </div>
-      <button id="closeMap">Zpět</button>
+      <button class="btn-blue" id="saveDateBtn">Uložit termín</button>
+      <button class="btn-gray" onclick="closeDetail()">Zpět</button>
     </div>
+  `;
 
-    <div class="right-block">
-      <div id="map"><div id="mapOverlay">Žádný plán na dnešní den</div></div>
-      <div class="plan-list" id="planList"></div>
-    </div>
-  </div>
-</div>
-<!-- 🟩 KONEC ČÁSTI 6/10 -->
+  const calendar = new VanillaCalendar("#calendarSave", {
+    type: "default",
+    settings: { selection: { day: "single" } },
+    actions: {
+      clickDay(event, self) {
+        const date = self.selectedDates[0];
+        const time = document.getElementById("visitTime").value;
+        if (date) {
+          document.getElementById("saveDateBtn").onclick = () => saveTerm(index, date, time);
+        }
+      }
+    }
+  });
+  calendar.init();
+}
+</script>
+
+<style>
+.detail-modal label { font-weight:600; display:block; margin-bottom:4px; }
+.detail-modal input[type="time"] { padding:6px 8px; font-size:1em; border:1px solid #ccc; border-radius:6px; }
+</style>
+<!-- 🟪 KONEC ČÁSTI 6/10 -->
+
 
 
 
