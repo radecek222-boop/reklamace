@@ -171,6 +171,62 @@ tr:hover { background: #f1f6ff; }
     </div>
   </div>
 </body>
+
+  <body>
+  <div class="wrapper">
+    <button id="logoutBtn">Odejít</button>
+
+    <h1>Přehled WGS</h1>
+    <div class="sub">Statistiky reklamací a servisních zakázek</div>
+
+    <!-- 🔹 Horní panel – výběry a info -->
+    <div class="top-bar">
+      <button id="selectClientBtn" class="btn btn-light">Vyber zadavatele</button>
+      <button id="selectTechBtn" class="btn btn-light">Vyber technika</button>
+      <button id="selectPeriodBtn" class="btn btn-gray">Období</button>
+      <div id="infoObrat" class="info-box">Obrat: 0 Kč</div>
+    </div>
+
+    <!-- 🔹 Tabulka výsledků -->
+    <div id="resultsContainer">
+      <table id="resultsTable">
+        <thead>
+          <tr>
+            <th>Jméno zákazníka</th>
+            <th>Číslo reklamace</th>
+            <th>Datum</th>
+            <th>Zadavatel</th>
+            <th>Částka</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="5" style="text-align:center;color:#888;padding:20px;">
+              Zatím nejsou vybraná žádná data
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 🔹 Shrnutí -->
+    <div id="summary" class="summary">
+      Celkem zakázek v období: 0  |  Celkový obrat: 0 Kč
+    </div>
+  </div>
+</body>
+
+<style>
+.btn-gray {
+  background: linear-gradient(135deg, #666, #999);
+  color: #fff;
+}
+.btn-gray:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+</style>
+
 <!-- 🟨 SEKCE 3/5 – MODÁLNÍ OKNA -->
 
 <!-- 🔹 MODÁL – VÝBĚR ZADAVATELŮ -->
@@ -342,7 +398,6 @@ const resultsTable = document.querySelector("#resultsTable tbody");
 
 let allOrders = [];
 
-
 /* ==========================================================
    🟩 1️⃣  Otevření a zavření modálních oken
 ========================================================== */
@@ -370,7 +425,6 @@ async function loadClients() {
     const res = await fetch("https://radecek222-boop.github.io/reklamace/hotove.json?t=" + Date.now());
     const data = await res.json();
 
-    // Unikátní seznam zadavatelů + doplnění ručně definovaných
     const contracts = Array.from(new Set(
       data.map(r => r.contract).filter(Boolean)
     ));
@@ -406,7 +460,6 @@ confirmClients.onclick = () => {
   const checked = [...clientList.querySelectorAll("input:checked")].map(i => i.value);
   localStorage.setItem("selectedClients", JSON.stringify(checked));
 
-  // Vizualizace potvrzení (malá zelená fajfka)
   loadingClients.innerHTML = "<span style='color:#00c851;font-size:1.6em;'>✅</span> Načteno a uloženo";
   clientList.style.display = "none";
   setTimeout(() => {
@@ -416,20 +469,35 @@ confirmClients.onclick = () => {
 
 
 /* ==========================================================
-   🟩 4️⃣  Potvrzení výběru období
+   🟩 4️⃣  Automatické doplnění polí „Od–Do“ po výběru měsíce
+========================================================== */
+document.getElementById("monthSelect").addEventListener("change", e => {
+  const month = e.target.value;
+  const now = new Date();
+  if (!month) return;
+
+  const year = now.getFullYear();
+  const start = new Date(year, month - 1, 1);
+  const end = new Date(year, month, 0);
+
+  document.getElementById("dateFrom").value = start.toISOString().split("T")[0];
+  document.getElementById("dateTo").value = end.toISOString().split("T")[0];
+});
+
+
+/* ==========================================================
+   🟩 5️⃣  Potvrzení výběru období
 ========================================================== */
 confirmPeriod.onclick = () => {
   const from = document.getElementById("dateFrom").value;
   const to = document.getElementById("dateTo").value;
   const month = document.getElementById("monthSelect").value;
 
-  const now = new Date();
   let fromDate = from || "";
   let toDate = to || "";
 
-  // Pokud byl vybrán měsíc – použij celé období měsíce
-  if (month) {
-    const year = now.getFullYear();
+  if (month && (!fromDate || !toDate)) {
+    const year = new Date().getFullYear();
     const start = new Date(year, month - 1, 1);
     const end = new Date(year, month, 0);
     fromDate = start.toISOString().split("T")[0];
@@ -443,11 +511,11 @@ confirmPeriod.onclick = () => {
 
   localStorage.setItem("selectedPeriod", JSON.stringify({ from: fromDate, to: toDate }));
 
-  // Fajfka potvrzení
   document.getElementById("periodModal").querySelector("h2").innerHTML = "✅ Uloženo";
   setTimeout(() => periodModal.classList.remove("active"), 700);
 };
 </script>
+
 <!-- 🟪 SEKCE 5/5 – NAČÍTÁNÍ A ZOBRAZENÍ DAT -->
 <script>
 async function loadOrders() {
