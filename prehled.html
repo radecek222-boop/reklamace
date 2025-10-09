@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Přehled – White Glove Service</title>
 
-<!-- 📊 Chart.js (knihovna pro grafy) -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- 📊 Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
 <style>
 body {
@@ -28,108 +28,65 @@ body {
   width: 100%;
   max-width: 960px;
   position: relative;
-  box-sizing: border-box;
 }
-h1 {
-  text-align: center;
-  font-size: 2.1em;
-  font-weight: 900;
-  color: #111;
-  margin: 0 0 8px;
-}
-.sub {
-  text-align: center;
-  color: #666;
-  margin-bottom: 35px;
-  font-size: 1em;
-}
+h1 { text-align:center;font-size:2.1em;font-weight:900;color:#111;margin:0 0 8px; }
+.sub { text-align:center;color:#666;margin-bottom:35px;font-size:1em; }
 .top-bar {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 30px;
+  display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-bottom:30px;
 }
 .btn {
-  border: none;
-  border-radius: 8px;
-  padding: 10px 24px;
-  font-size: .95em;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform .15s, opacity .25s;
-  color: #fff;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-  min-width: 160px;
+  border:none;border-radius:8px;padding:10px 24px;font-size:.95em;font-weight:600;
+  cursor:pointer;transition:transform .15s,opacity .25s;color:#fff;
+  box-shadow:0 3px 8px rgba(0,0,0,0.15);min-width:160px;
 }
-.btn:hover {
-  transform: scale(1.05);
-  opacity: .9;
+.btn:hover{transform:scale(1.05);opacity:.9;}
+.btn-light{background:linear-gradient(135deg,#888,#b5b5b5);}
+.btn-dark{background:linear-gradient(135deg,#444,#707070);}
+.info-box{
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#e0e0e0,#f0f0f0);
+  color:#111;font-weight:700;border-radius:8px;padding:10px 20px;font-size:.95em;
+  min-width:160px;box-shadow:inset 0 1px 3px rgba(0,0,0,0.1);
 }
-.btn-light {
-  background: linear-gradient(135deg,#888,#b5b5b5);
+#resultsTable{width:100%;border-collapse:collapse;margin-top:15px;}
+#resultsTable th,#resultsTable td{
+  padding:10px 8px;border-bottom:1px solid #eee;text-align:left;font-size:.9em;
 }
-.btn-dark {
-  background: linear-gradient(135deg,#444,#707070);
+#resultsTable th{background:#f8f8f8;font-weight:700;color:#333;}
+.summary{text-align:center;margin-top:25px;font-weight:600;color:#333;}
+#logoutBtn{
+  position:absolute;top:15px;right:20px;
+  background:linear-gradient(135deg,#b8b8b8,#d3d3d3);
+  border:none;color:#333;font-weight:600;border-radius:8px;padding:8px 16px;cursor:pointer;
 }
-.btn-gray {
-  background: linear-gradient(135deg,#666,#999);
+#techChart{max-height:220px;max-width:400px;margin:auto;display:block;}
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.6);
+  display:none;justify-content:center;align-items:center;
+  z-index:4000;backdrop-filter:blur(4px);opacity:0;transition:opacity .25s ease;
 }
-.info-box {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg,#e0e0e0,#f0f0f0);
-  color: #111;
-  font-weight: 700;
-  border-radius: 8px;
-  padding: 10px 20px;
-  font-size: .95em;
-  min-width: 160px;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+.modal-overlay.active{display:flex;opacity:1;}
+.modal-box{
+  background:rgba(40,40,40,.95);color:#fff;padding:40px 30px;border-radius:14px;
+  box-shadow:0 4px 25px rgba(0,0,0,.45);text-align:center;max-width:380px;width:90%;
 }
-#resultsTable {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 15px;
+.modal-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:20px;}
+.client-list{
+  text-align:left;margin-bottom:25px;max-height:240px;overflow-y:auto;
+  border-radius:8px;background:rgba(255,255,255,0.08);padding:10px;
 }
-#resultsTable th,
-#resultsTable td {
-  padding: 10px 8px;
-  border-bottom: 1px solid #eee;
-  text-align: left;
-  font-size: .9em;
+.client-list label{display:block;padding:5px;cursor:pointer;}
+.client-list input{margin-right:6px;}
+.period-fields{
+  display:flex;flex-direction:column;gap:12px;background:rgba(255,255,255,0.08);
+  border-radius:10px;padding:15px 12px;margin-bottom:20px;
 }
-#resultsTable th {
-  background: #f8f8f8;
-  font-weight: 700;
-  color: #333;
+.period-fields select,.period-fields input{
+  width:100%;background:#222;color:#fff;border:1px solid #555;border-radius:8px;
+  padding:10px;font-size:1em;outline:none;
 }
-.summary {
-  text-align: center;
-  margin-top: 25px;
-  font-weight: 600;
-  color: #333;
-}
-#logoutBtn {
-  position: absolute;
-  top: 15px;
-  right: 20px;
-  background: linear-gradient(135deg,#b8b8b8,#d3d3d3);
-  border: none;
-  color: #333;
-  font-weight: 600;
-  border-radius: 8px;
-  padding: 8px 16px;
-  cursor: pointer;
-  transition: opacity .25s;
-}
-#logoutBtn:hover { opacity: .85; }
-#techChart {
-  max-height: 220px;
-  max-width: 400px;
-  margin: auto;
-  display: block;
+.period-fields select:focus,.period-fields input:focus{
+  border-color:#00c851;box-shadow:0 0 6px rgba(0,200,81,0.4);
 }
 </style>
 </head>
@@ -148,108 +105,16 @@ h1 {
   </div>
 
   <table id="resultsTable">
-    <thead>
-      <tr>
-        <th>Zákazník</th>
-        <th>Číslo</th>
-        <th>Zadavatel</th>
-        <th>Technik</th>
-        <th>Částka (EUR)</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td colspan="5" style="text-align:center;color:#888;padding:20px;">
-          Zatím nejsou vybraná žádná data
-        </td>
-      </tr>
-    </tbody>
+    <thead><tr><th>Zákazník</th><th>Číslo</th><th>Zadavatel</th><th>Technik</th><th>Částka (EUR)</th></tr></thead>
+    <tbody><tr><td colspan="5" style="text-align:center;color:#888;padding:20px;">Zatím nejsou vybraná žádná data</td></tr></tbody>
   </table>
 
   <div id="summary" class="summary"></div>
   <canvas id="techChart"></canvas>
-  <div id="cnbInfo" style="text-align:center;font-size:0.8em;color:#666;margin-top:12px;"></div>
+  <div id="rateInfo" style="text-align:center;font-size:0.8em;color:#666;margin-top:12px;"></div>
 </div>
-<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 2/10 – Modální okna -->
-<style>
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 4000;
-  backdrop-filter: blur(4px);
-  opacity: 0;
-  transition: opacity .25s ease;
-}
-.modal-overlay.active {
-  display: flex;
-  opacity: 1;
-}
-.modal-box {
-  background: rgba(40,40,40,.95);
-  color: #fff;
-  padding: 40px 30px;
-  border-radius: 14px;
-  box-shadow: 0 4px 25px rgba(0,0,0,.45);
-  text-align: center;
-  max-width: 380px;
-  width: 90%;
-}
-.modal-actions {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 20px;
-}
-.client-list {
-  text-align: left;
-  margin-bottom: 25px;
-  max-height: 240px;
-  overflow-y: auto;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.08);
-  padding: 10px;
-}
-.client-list label {
-  display: block;
-  padding: 5px;
-  cursor: pointer;
-}
-.client-list input {
-  margin-right: 6px;
-}
-.period-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 10px;
-  padding: 15px 12px;
-  margin-bottom: 20px;
-}
-.period-fields select,
-.period-fields input {
-  width: 100%;
-  background: #222;
-  color: #fff;
-  border: 1px solid #555;
-  border-radius: 8px;
-  padding: 10px;
-  font-size: 1em;
-  outline: none;
-}
-.period-fields select:focus,
-.period-fields input:focus {
-  border-color: #00c851;
-  box-shadow: 0 0 6px rgba(0,200,81,0.4);
-}
-</style>
 
-<!-- 🧾 Výběr zadavatele -->
+<!-- 🧾 Modály -->
 <div id="clientModal" class="modal-overlay">
   <div class="modal-box">
     <h2>Vyber zadavatele</h2>
@@ -261,11 +126,7 @@ h1 {
     </div>
   </div>
 </div>
-
-<!-- 🧰 Výběr technika -->
 <div id="techModal" class="modal-overlay"></div>
-
-<!-- 📅 Výběr období -->
 <div id="periodModal" class="modal-overlay">
   <div class="modal-box">
     <h2>Vyber období</h2>
@@ -275,18 +136,10 @@ h1 {
       <label>Měsíc:</label>
       <select id="monthSelect">
         <option value="">– Nevybráno –</option>
-        <option value="01">Leden</option>
-        <option value="02">Únor</option>
-        <option value="03">Březen</option>
-        <option value="04">Duben</option>
-        <option value="05">Květen</option>
-        <option value="06">Červen</option>
-        <option value="07">Červenec</option>
-        <option value="08">Srpen</option>
-        <option value="09">Září</option>
-        <option value="10">Říjen</option>
-        <option value="11">Listopad</option>
-        <option value="12">Prosinec</option>
+        <option value="01">Leden</option><option value="02">Únor</option><option value="03">Březen</option>
+        <option value="04">Duben</option><option value="05">Květen</option><option value="06">Červen</option>
+        <option value="07">Červenec</option><option value="08">Srpen</option><option value="09">Září</option>
+        <option value="10">Říjen</option><option value="11">Listopad</option><option value="12">Prosinec</option>
       </select>
     </div>
     <div class="modal-actions">
@@ -295,476 +148,134 @@ h1 {
     </div>
   </div>
 </div>
-<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 3–5 – Proměnné + Kurz ČNB + Pomocné funkce -->
-  <!-- Chart.js bez .map -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
 <script>
-/* 🧱 Globální proměnné */
-let allOrders = [];
-let cnbRate = null;
-let cnbRateDate = null;
+let allOrders=[], eurRate=null, eurRateDate=null;
 
-const clientModal       = document.getElementById("clientModal");
-const techModal         = document.getElementById("techModal");
-const periodModal       = document.getElementById("periodModal");
-const clientList        = document.getElementById("clientList");
-const loadingClients    = document.getElementById("loadingClients");
-const selectClientBtn   = document.getElementById("selectClientBtn");
-const selectTechBtn     = document.getElementById("selectTechBtn");
-const selectPeriodBtn   = document.getElementById("selectPeriodBtn");
-const confirmClients    = document.getElementById("confirmClients");
-const closeClients      = document.getElementById("closeClients");
-const confirmPeriod     = document.getElementById("confirmPeriod");
-const closePeriod       = document.getElementById("closePeriod");
-const infoObrat         = document.getElementById("infoObrat");
-const summaryBox        = document.getElementById("summary");
-const resultsTableBody  = document.querySelector("#resultsTable tbody");
-const cnbInfo           = document.getElementById("cnbInfo");
-
-
-
-
-// 🔹 Sekce 4 – Načtení kurzu EUR/CZK (spolehlivější zdroj + zálohy)
-async function loadCNBrate() {
-  let source = "exchangerate.host";
-  try {
-    const resp = await fetch("https://api.exchangerate.host/latest?base=EUR&symbols=CZK");
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
-    if (data && data.rates && typeof data.rates.CZK === "number") {
-      cnbRate = data.rates.CZK;
-      cnbRateDate = data.date || new Date().toISOString().split("T")[0];
-      source = "exchangerate.host";
-      console.log(`📈 Kurz EUR/CZK z exchangerate.host: ${cnbRate} (${cnbRateDate})`);
-    } else throw new Error("Neplatná data z API");
-  } catch (err) {
-    console.warn("⚠️ Nelze načíst kurz z exchangerate.host:", err);
-    try {
-      const res = await fetch("https://radecek222-boop.github.io/reklamace/lastRate.json?t=" + Date.now());
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const backup = await res.json();
-      if (backup && backup.rate) {
-        cnbRate = backup.rate;
-        cnbRateDate = backup.date || "neuvedeno";
-        source = "GitHub záloha";
-        console.log(`💾 Kurz EUR/CZK z GitHub záloha: ${cnbRate} (${cnbRateDate})`);
-      } else throw new Error("Neplatná data zálohy");
-    } catch (err2) {
-      console.error("❌ Nepodařilo se načíst ani GitHub zálohu:", err2);
-      const stored = JSON.parse(localStorage.getItem("lastCnbRate") || "{}");
-      if (stored.value) {
-        cnbRate = stored.value;
-        cnbRateDate = stored.date || "neuvedeno";
-        source = "uložený kurz (localStorage)";
-        console.warn("⚙️ Použit uložený kurz:", cnbRate);
-      }
+// Kurz z ECB (Frankfurter)
+async function loadRate(){
+  let source="frankfurter.app (ECB)";
+  try{
+    const resp=await fetch("https://api.frankfurter.app/latest?from=EUR&to=CZK",{cache:"no-cache"});
+    if(!resp.ok)throw new Error(`HTTP ${resp.status}`);
+    const data=await resp.json();
+    if(data?.rates?.CZK){
+      eurRate=data.rates.CZK; eurRateDate=data.date||new Date().toISOString().split("T")[0];
+    }else throw new Error("Neplatná data");
+  }catch(err){
+    console.warn("⚠️ Nelze načíst kurz:",err);
+    try{
+      const res=await fetch("https://radecek222-boop.github.io/reklamace/lastRate.json?t="+Date.now());
+      const backup=await res.json();
+      if(backup?.rate){eurRate=backup.rate;eurRateDate=backup.date;source="GitHub záloha";}
+      else throw new Error("Neplatná záloha");
+    }catch{
+      const stored=JSON.parse(localStorage.getItem("lastRate")||"{}");
+      if(stored.value){eurRate=stored.value;eurRateDate=stored.date;source="uložený";}
+      else{eurRate=25.5;eurRateDate="ručně";source="fallback";}
     }
   }
-
-  if (cnbRate && cnbRateDate) {
-    localStorage.setItem("lastCnbRate", JSON.stringify({
-      value: cnbRate,
-      date: cnbRateDate,
-      time: Date.now()
-    }));
-  }
-
-  const foot = document.getElementById("cnbInfo");
-  if (foot) {
-    if (cnbRate && cnbRateDate) {
-      foot.textContent = `Kurz ${source}: 1 € = ${cnbRate.toLocaleString("cs-CZ", {
-        minimumFractionDigits: 4,
-        maximumFractionDigits: 4
-      })} Kč (platný k ${cnbRateDate})`;
-    } else {
-      foot.textContent = "⚠️ Kurz není k dispozici – zkontrolujte připojení nebo soubor lastRate.json";
-    }
-  }
-}
-</script>
-  
-<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 6 – Zadavatelé (fixní + automatické doplnění nových + zpětná vazba) -->
-<script>
-async function loadClients() {
-  loadingClients.style.display = "block";
-  clientList.style.display = "none";
-  clientList.innerHTML = "";
-
-  // 📋 Fixní seznam zadavatelů
-  let knownClients = [
-    "Natuzzi Editions - Strejcek",
-    "Natuzzi Editions - Vimrova",
-    "Natuzzi Italia - Bratislava",
-    "Natuzzi Italia - Jama",
-    "Natuzzi Italia - Rvier",
-    "Natuzzi Italia - Soho",
-    "Softaly - Soho",
-    "Phase - Klucarova",
-    "Phase - Jancova",
-    "WGS pozáruční servis",
-    "Jiné"
-  ];
-
-  try {
-    const res = await fetch("https://radecek222-boop.github.io/reklamace/hotove.json?t=" + Date.now());
-    const data = await res.json();
-
-    // 🔍 Noví zadavatelé z JSONu
-    const newClients = [
-      ...new Set(
-        data.map(r => r.contract || r.zadavatel || r.klient || r.partner || "")
-           .filter(Boolean)
-      )
-    ];
-
-    // 🧩 Spojení všech – fixní + uložené + nové
-    const saved = JSON.parse(localStorage.getItem("persistentClients") || "[]");
-    const allClients = [...new Set([...knownClients, ...saved, ...newClients])].sort();
-
-    // 💾 Uložení kompletního seznamu
-    localStorage.setItem("persistentClients", JSON.stringify(allClients));
-
-    // ✅ Výběr uložených
-    const selected = JSON.parse(localStorage.getItem("selectedClients") || "[]");
-
-    clientList.innerHTML = allClients.map(c => `
-      <label>
-        <input type="checkbox" value="${c}" ${selected.includes(c) ? "checked" : ""}>
-        ${c}
-      </label>
-    `).join("");
-
-    loadingClients.style.display = "none";
-    clientList.style.display = "block";
-  } catch (err) {
-    loadingClients.textContent = "❌ Chyba načítání zadavatelů";
-  }
+  localStorage.setItem("lastRate",JSON.stringify({value:eurRate,date:eurRateDate}));
+  const el=document.getElementById("rateInfo");
+  el.textContent=`Kurz ${source}: 1 € = ${eurRate.toFixed(4)} Kč (k ${eurRateDate})`;
 }
 
-// ✅ potvrzení výběru zadavatelů
-confirmClients.onclick = () => {
-  const checked = [...clientList.querySelectorAll("input:checked")].map(i => i.value);
-  localStorage.setItem("selectedClients", JSON.stringify(checked));
-  clientModal.classList.remove("active");
+// 🧩 Výběr zadavatelů
+async function loadClients(){
+  const clientList=document.getElementById("clientList");
+  const loading=document.getElementById("loadingClients");
+  loading.style.display="block";clientList.style.display="none";clientList.innerHTML="";
+  const known=["Natuzzi Editions - Strejcek","Natuzzi Editions - Vimrova","Natuzzi Italia - Bratislava","Natuzzi Italia - Jama","Natuzzi Italia - Rvier","Natuzzi Italia - Soho","Softaly - Soho","Phase - Klucarova","Phase - Jancova","WGS pozáruční servis","Jiné"];
+  try{
+    const res=await fetch("https://radecek222-boop.github.io/reklamace/hotove.json?t="+Date.now());
+    const data=await res.json();
+    const newClients=[...new Set(data.map(r=>r.contract||r.zadavatel||r.partner||"").filter(Boolean))];
+    const saved=JSON.parse(localStorage.getItem("persistentClients")||"[]");
+    const all=[...new Set([...known,...saved,...newClients])].sort();
+    localStorage.setItem("persistentClients",JSON.stringify(all));
+    const selected=JSON.parse(localStorage.getItem("selectedClients")||"[]");
+    clientList.innerHTML=all.map(c=>`<label><input type="checkbox" value="${c}" ${selected.includes(c)?"checked":""}>${c}</label>`).join("");
+    loading.style.display="none";clientList.style.display="block";
+  }catch{loading.textContent="❌ Chyba načítání";}
+}
+
+document.getElementById("confirmClients").onclick=()=>{
+  const checked=[...document.querySelectorAll("#clientList input:checked")].map(i=>i.value);
+  localStorage.setItem("selectedClients",JSON.stringify(checked));
+  document.getElementById("clientModal").classList.remove("active");
+  document.querySelector(".sub").textContent=checked.length?"Zobrazen přehled pro: "+checked.join(", "):"Statistiky reklamací a servisních zakázek";
   renderResults();
-
-  // 🧾 Zpětná vazba – zobrazení výběru nad tabulkou
-  const sub = document.querySelector(".sub");
-  if (checked.length) {
-    sub.textContent = "Zobrazen přehled pro: " + checked.join(", ");
-  } else {
-    sub.textContent = "Statistiky reklamací a servisních zakázek";
-  }
 };
-</script>
 
-  <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 7 – Výběr technika -->
-<script>
-// 🔧 Seznam techniků – staticky definovaný
-const techList = [
-  { name: "Milan Kolín", key: "kolin" },
-  { name: "Radek Zikmund", key: "zikmund" }
-];
-
-// 🧱 Vložení obsahu modálu do <div id="techModal">
-techModal.innerHTML = `
-  <div class="modal-box">
-    <h2>Vyber technika</h2>
-    <div style="margin-bottom:20px;text-align:left;">
-      ${techList.map(t => `
-        <label style="display:block;margin:6px 0;">
-          <input type="radio" name="techSelect" value="${t.key}">
-          ${t.name}
-        </label>`).join("")}
-    </div>
-    <div class="modal-actions">
-      <button id="confirmTech" class="btn btn-dark">Potvrdit</button>
-      <button id="closeTech" class="btn btn-light">Zavřít</button>
-    </div>
-  </div>
-`;
-
-// 🟢 Při kliknutí na tlačítko "Potvrdit"
-document.addEventListener("click", (e) => {
-  if (e.target.id === "confirmTech") {
-    const sel = document.querySelector("input[name='techSelect']:checked");
-    if (!sel) {
-      alert("Vyber technika, prosím.");
-      return;
-    }
-    localStorage.setItem("selectedTech", sel.value);
-    techModal.classList.remove("active");
+// Technici
+const techList=[{name:"Milan Kolín",key:"kolin"},{name:"Radek Zikmund",key:"zikmund"}];
+document.getElementById("techModal").innerHTML=`<div class="modal-box"><h2>Vyber technika</h2><div style="margin-bottom:20px;text-align:left;">${techList.map(t=>`<label><input type='radio' name='techSelect' value='${t.key}'>${t.name}</label>`).join("")}</div><div class='modal-actions'><button id='confirmTech' class='btn btn-dark'>Potvrdit</button><button id='closeTech' class='btn btn-light'>Zavřít</button></div></div>`;
+document.addEventListener("click",e=>{
+  if(e.target.id==="confirmTech"){
+    const sel=document.querySelector("input[name='techSelect']:checked");
+    if(!sel)return alert("Vyber technika, prosím.");
+    localStorage.setItem("selectedTech",sel.value);
+    document.getElementById("techModal").classList.remove("active");
     renderResults();
   }
-
-  // 🔴 Zavření bez výběru
-  if (e.target.id === "closeTech") {
-    techModal.classList.remove("active");
-  }
+  if(e.target.id==="closeTech")document.getElementById("techModal").classList.remove("active");
 });
-</script>
-  
-<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 8 – Načtení zakázek + vykreslení -->
-<script>
-/**
- * 📥 Načtení všech hotových zakázek z GitHubu
- * a spuštění výpočtu / renderu.
- */
-async function loadOrders() {
-  await loadCNBrate(); // nejdřív kurz ČNB
-  try {
-    const res = await fetch("https://radecek222-boop.github.io/reklamace/hotove.json?t=" + Date.now());
-    allOrders = await res.json();
+
+// Načtení + výpočet
+async function loadOrders(){
+  await loadRate();
+  try{
+    const res=await fetch("https://radecek222-boop.github.io/reklamace/hotove.json?t="+Date.now());
+    allOrders=await res.json();
     renderResults();
-  } catch (err) {
-    console.error("❌ Chyba načítání dat zakázek:", err);
-    summaryBox.textContent = "❌ Nepodařilo se načíst data z GitHubu.";
-  }
+  }catch{document.getElementById("summary").textContent="❌ Nelze načíst data.";}
 }
 
-/**
- * 📊 Filtrování + výpočet + zobrazení výsledků
- */
-function renderResults() {
-  if (!allOrders.length) return;
+function parseMoney(v){if(!v)return 0;return parseFloat(String(v).replace(/[^\d,.-]/g,"").replace(",",".")||0);}
+function fmtEUR(v){return v.toLocaleString("cs-CZ",{style:"currency",currency:"EUR"});}
+function getDate(r){return new Date(r.datum_servisu||r.datum_reklamace||r.date||0);}
+function convertToEUR(v){const n=parseMoney(v);if(String(v).includes("€"))return n;if(String(v).includes("K"))return eurRate?n/eurRate:n/25.5;return n;}
 
-  // 🔸 Načtení uložených filtrů
-  const selClients = JSON.parse(localStorage.getItem("selectedClients") || "[]");
-  const selPeriod  = JSON.parse(localStorage.getItem("selectedPeriod") || "{}");
-  const selTech    = localStorage.getItem("selectedTech") || "";
-  const from = selPeriod.from ? new Date(selPeriod.from) : null;
-  const to   = selPeriod.to ? new Date(selPeriod.to) : null;
-
-  // 🔸 Kopie dat
-  let filtered = allOrders.slice();
-
-  // 🧭 Filtry
-  if (selClients.length)
-    filtered = filtered.filter(r => selClients.includes(r.contract));
-  if (from && to)
-    filtered = filtered.filter(r => { const d = getDate(r); return d >= from && d <= to; });
-  if (selTech)
-    filtered = filtered.filter(r => (r.technik || "").toLowerCase().includes(selTech));
-
-  // 🗓️ Seřazení podle data protokolu
-  filtered.sort((a, b) => getDate(b) - getDate(a));
-
-  // 💶 Výpočty
-  const techTotals = { "Radek Zikmund": 0, "Milan Kolín": 0 };
-  let totalEUR = 0;
-
-  filtered.forEach(r => {
-    const eurVal = convertToEUR(r.cenaCelkem || r.total || r.cena);
-    totalEUR += eurVal;
-
-    const t = (r.technik || "").toLowerCase();
-    const hasRadek = t.includes("zikmund");
-    const hasMilan = t.includes("kolin");
-
-    // Každý technik má fixních 30 %
-    if (hasRadek) techTotals["Radek Zikmund"] += eurVal * 0.30;
-    if (hasMilan) techTotals["Milan Kolín"] += eurVal * 0.30;
+function renderResults(){
+  if(!allOrders.length)return;
+  const selClients=JSON.parse(localStorage.getItem("selectedClients")||"[]");
+  const selTech=localStorage.getItem("selectedTech")||"";
+  const selPeriod=JSON.parse(localStorage.getItem("selectedPeriod")||"{}");
+  const from=selPeriod.from?new Date(selPeriod.from):null,to=selPeriod.to?new Date(selPeriod.to):null;
+  let filtered=allOrders.slice();
+  if(selClients.length)filtered=filtered.filter(r=>selClients.includes(r.contract));
+  if(from&&to)filtered=filtered.filter(r=>{const d=getDate(r);return d>=from&&d<=to;});
+  if(selTech)filtered=filtered.filter(r=>(r.technik||"").toLowerCase().includes(selTech));
+  filtered.sort((a,b)=>getDate(b)-getDate(a));
+  const totals={"Radek Zikmund":0,"Milan Kolín":0};let total=0;
+  filtered.forEach(r=>{
+    const val=convertToEUR(r.cenaCelkem||r.total||r.cena);total+=val;
+    const t=(r.technik||"").toLowerCase();
+    if(t.includes("zikmund"))totals["Radek Zikmund"]+=val*0.3;
+    if(t.includes("kolin"))totals["Milan Kolín"]+=val*0.3;
   });
-
-  // 📋 Tabulka výsledků
-  resultsTableBody.innerHTML = filtered.map(r => {
-    const val = convertToEUR(r.cenaCelkem || r.total || r.cena);
-    return `
-      <tr>
-        <td>${r.zakaznik || "–"}</td>
-        <td>${r.cislo || "–"}</td>
-        <td>${r.contract || "–"}</td>
-        <td>${r.technik || "–"}</td>
-        <td>${fmtEUR(val)}</td>
-      </tr>
-    `;
-  }).join("") || `
-    <tr>
-      <td colspan="5" style="text-align:center;color:#888;padding:20px;">Žádné výsledky</td>
-    </tr>
-  `;
-
-  // 🧾 Shrnutí a podíly
-  let shareText = "";
-  Object.entries(techTotals).forEach(([name, v]) => {
-    const pct = totalEUR > 0 ? ((v / totalEUR) * 100).toFixed(1) : "0.0";
-    shareText += `${name}: ${fmtEUR(v)} (${pct} %) | `;
-  });
-
-  infoObrat.textContent = `Celkový obrat: ${fmtEUR(totalEUR)}`;
-  summaryBox.textContent = `Zakázek: ${filtered.length} | ${shareText.slice(0, -2)}`;
-
-  // 🧮 Kurz ČNB – zobrazení dole
-  if (cnbInfo) {
-    if (cnbRate && cnbRateDate) {
-      cnbInfo.textContent = `kurz ČNB: 1 € = ${cnbRate.toLocaleString("cs-CZ",{minimumFractionDigits:4,maximumFractionDigits:4})} Kč (platný k ${cnbRateDate})`;
-    } else {
-      cnbInfo.textContent = `⚠️ Kurz ČNB nebyl nalezen, použit poslední známý nebo záložní.`;
-    }
-  }
+  document.querySelector("#resultsTable tbody").innerHTML=filtered.map(r=>`<tr><td>${r.zakaznik||"–"}</td><td>${r.cislo||"–"}</td><td>${r.contract||"–"}</td><td>${r.technik||"–"}</td><td>${fmtEUR(convertToEUR(r.cenaCelkem||r.total||r.cena))}</td></tr>`).join("")||`<tr><td colspan='5' style='text-align:center;color:#888;padding:20px;'>Žádné výsledky</td></tr>`;
+  let share="";Object.entries(totals).forEach(([n,v])=>{const pct=total?((v/total)*100).toFixed(1):"0.0";share+=`${n}: ${fmtEUR(v)} (${pct} %) | `;});
+  document.getElementById("infoObrat").textContent=`Celkový obrat: ${fmtEUR(total)}`;
+  document.getElementById("summary").textContent=`Zakázek: ${filtered.length} | ${share.slice(0,-2)}`;
 }
-</script>
-<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 9 – Inicializace + automatické vyplnění období -->
-<script>
-window.addEventListener("DOMContentLoaded", () => {
-  // 🟢 Načtení zakázek a kurzů
+
+// Inicializace
+window.addEventListener("DOMContentLoaded",()=>{
   loadOrders();
-
-  // 🎯 Otevření modálů
-  selectClientBtn.addEventListener("click", () => {
-    loadClients();
-    clientModal.classList.add("active");
-  });
-
-  selectTechBtn.addEventListener("click", () => {
-    techModal.classList.add("active");
-  });
-
-  selectPeriodBtn.addEventListener("click", () => {
-    periodModal.classList.add("active");
-  });
-
-  // 📅 Automatické vyplnění Od/Do při výběru měsíce
-  const monthSelect = document.getElementById("monthSelect");
-  const dateFrom = document.getElementById("dateFrom");
-  const dateTo = document.getElementById("dateTo");
-
-  if (monthSelect) {
-    monthSelect.addEventListener("change", () => {
-      const year = new Date().getFullYear();
-      const month = monthSelect.value;
-      if (!month) {
-        dateFrom.value = "";
-        dateTo.value = "";
-        return;
-      }
-      const first = new Date(year, month - 1, 1);
-const last = new Date(year, month, 0);
-
-const formatLocal = (d) => {
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-};
-
-dateFrom.value = formatLocal(first);
-dateTo.value = formatLocal(last);
-
-    });
-  }
-
-  // 🎯 Zavírání tlačítky
-  closeClients.addEventListener("click", () => clientModal.classList.remove("active"));
-  closePeriod.addEventListener("click", () => periodModal.classList.remove("active"));
-
-  // 🚪 Odhlášení
-  const logoutBtn = document.getElementById("logoutBtn");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      localStorage.clear();
-      window.location.href = "index.html";
-    });
-  }
-
+  document.getElementById("selectClientBtn").onclick=()=>{loadClients();document.getElementById("clientModal").classList.add("active");};
+  document.getElementById("selectTechBtn").onclick=()=>document.getElementById("techModal").classList.add("active");
+  document.getElementById("selectPeriodBtn").onclick=()=>document.getElementById("periodModal").classList.add("active");
+  document.getElementById("closeClients").onclick=()=>document.getElementById("clientModal").classList.remove("active");
+  document.getElementById("closePeriod").onclick=()=>document.getElementById("periodModal").classList.remove("active");
+  document.getElementById("logoutBtn").onclick=()=>{localStorage.clear();location.href="index.html";};
+  const m=document.getElementById("monthSelect"),f=document.getElementById("dateFrom"),t=document.getElementById("dateTo");
+  if(m)m.onchange=()=>{const y=new Date().getFullYear(),mm=m.value;if(!mm){f.value="";t.value="";return;}
+    const first=new Date(y,mm-1,1),last=new Date(y,mm,0);
+    const fmt=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    f.value=fmt(first);t.value=fmt(last);
+  };
   console.log("✅ Přehled WGS inicializován");
 });
 </script>
-
-<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 10 – Dokumentační shrnutí -->
-<!--
-📘 White Glove Service – přehled statistik (prehled.html)
------------------------------------------------------------
-
-🧱 STRUKTURA SOUBORU
-  1. CSS + rozvržení – styl a design
-  2. HTML struktura – tlačítka, tabulka, graf, modály
-  3. Kurz ČNB – získání, uložení, záložní hodnota
-  4. Pomocné funkce – převody měn, formátování čísel
-  5. Zadavatelé – výběr z databáze + uložení volby
-  6. Výběr období – ruční nebo automatický podle měsíce
-  7. Výběr technika – Milan Kolín / Radek Zikmund
-  8. Načtení a vykreslení – hlavní logika
-  9. Inicializace – propojení všeho dohromady
-  10. Dokumentace – tato část
-
------------------------------------------------------------
-
-📦 HLAVNÍ FUNKCE
-
-1️⃣ loadCNBrate()
-   ▪ načte aktuální kurz z denního TXT feedu ČNB  
-   ▪ hledá řádek s „|EUR|“  
-   ▪ pokud selže, načte poslední uložený kurz z localStorage  
-   ▪ výsledek uloží do proměnných cnbRate a cnbRateDate
-
-2️⃣ parseMoney() / fmtEUR() / getDate()
-   ▪ pomocné funkce pro číselné převody  
-   ▪ parseMoney() převede text (např. „1.234,56 Kč“) na číslo  
-   ▪ fmtEUR() naformátuje číslo do českého zápisu s €  
-   ▪ getDate() vrací objekt Date z libovolného pole dat
-
-3️⃣ loadClients()
-   ▪ načítá všechny možné zadavatele z hotove.json  
-   ▪ doplní známé značky (Natuzzi, Softaly, Phase, WGS, …)  
-   ▪ umožňuje uživateli zaškrtnout 1+ klientů  
-   ▪ uloží výběr do localStorage
-
-4️⃣ Výběr období
-   ▪ reaguje na změnu selectu měsíce  
-   ▪ automaticky doplní první a poslední den měsíce  
-   ▪ potvrzení uloží {from, to} do localStorage  
-   ▪ při potvrzení se volá renderResults()
-
-5️⃣ Výběr technika
-   ▪ obsahuje dva záznamy: Milan Kolín, Radek Zikmund  
-   ▪ ukládá vybraného technika do localStorage  
-   ▪ po potvrzení přepočítá výsledky (renderResults)
-
-6️⃣ loadOrders()
-   ▪ stáhne JSON hotových zakázek z GitHubu  
-   ▪ zavolá renderResults()
-
-7️⃣ renderResults()
-   ▪ aplikuje všechny filtry (zadavatele, období, technika)
-   ▪ přepočítá částky na EUR podle ČNB
-   ▪ vypočítá podíl techniků (fixně 30 % pro každého)
-   ▪ vykreslí tabulku, shrnutí a kurz ČNB
-
-8️⃣ Inicializace
-   ▪ spouští loadOrders() při načtení stránky
-   ▪ připojuje event listenery ke všem tlačítkům
-   ▪ zajišťuje zavírání modálů
-   ▪ odhlašování = smazání localStorage + redirect na index.html
-
------------------------------------------------------------
-
-📊 PŘEVOD MĚN
-  – Pokud cena obsahuje znak €, použije se přímo.
-  – Pokud je uvedeno v Kč a je k dispozici kurz ČNB, přepočte se na EUR.
-  – Pokud kurz ČNB nelze načíst, zobrazí se hláška:
-      „Kurz ČNB nebyl k dispozici – použit poslední známý.“
-
------------------------------------------------------------
-
-💶 PODÍLY TECHNIKŮ
-  – Každý technik má 30 % z hodnoty svých zakázek.
-  – Pokud jsou u zakázky oba, každý dostane 30 %.
-  – Filtr „technik“ umožňuje zobrazit jen jeho zakázky.
-
------------------------------------------------------------
-
-📈 BUDOUCÍ ROZŠÍŘENÍ (doporučení)
-  ▪ přidat přepočet CZK→EUR i na základě uloženého kurzu v protokolu
-  ▪ přidat export do CSV / PDF
-  ▪ přidat grafy dle zadavatele nebo typu opravy
-  ▪ rozšířit o měsíční souhrny po letech
-
------------------------------------------------------------
-
-🧩 AUTOR
-  White Glove Service s.r.o.  
-  Systém navržen pro interní přehled servisu a reklamací.
-  Poslední revize: říjen 2025
--->
+</html>
