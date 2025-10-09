@@ -1,97 +1,59 @@
+<!-- 🟨 ZAČÁTEK ČÁSTI 1/10 -->
 <!DOCTYPE html>
 <html lang="cs">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Pozáruční servis – White Glove Service</title>
 
+  <!-- 📍 Leaflet mapa -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
+  <!-- 📅 Vanilla Calendar – zachováno pro budoucí použití, ale zde se nepoužije -->
+  <link rel="stylesheet" href="vanilla-calendar.min.css">
+  <script src="vanilla-calendar.min.js"></script>
 
   <style>
     body {
       font-family: "Inter", system-ui, sans-serif;
       background: #f6f7fb;
-      margin: 0; padding: 0;
-      display: flex; justify-content: center; align-items: flex-start;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
       min-height: 100vh;
     }
     .wrapper {
       background: #fff;
-      padding: 30px; margin: 40px 15px;
+      padding: 30px;
+      margin: 40px 15px;
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      width: 100%; max-width: 700px;
+      width: 100%;
+      max-width: 700px;
       box-sizing: border-box;
     }
     h1, h2 { text-align: center; margin: 0 0 20px; }
-    h1 { font-size: 2.6em; font-weight: 900; color: #111; }
-    h2 { font-size: 1.2em; font-weight: 500; color: #666; margin-bottom: 25px; }
+    h1 { font-size: 2.4em; font-weight: 900; color: #111; }
+    h2 { font-size: 1.1em; font-weight: 500; color: #666; margin-bottom: 25px; }
 
     label { display: block; font-weight: 600; margin-top: 15px; margin-bottom: 5px; }
     input, textarea, select {
-      width: 100%; padding: 10px; font-size: 1em;
-      border: 1px solid #ccc; border-radius: 6px;
-      box-sizing: border-box; transition: border 0.2s;
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+      transition: border 0.2s;
     }
-    input:focus, textarea:focus, select:focus { border-color: #0046ff; outline: none; }
+    input:focus, textarea:focus, select:focus {
+      border-color: #0046ff; outline: none;
+    }
     textarea { height: 100px; resize: vertical; }
     small { font-size: 0.8em; color: #666; }
-    .invalid { border: 2px solid; border-image: linear-gradient(45deg, #ff4d4d, #ff7b7b) 1; }
-
-    .btn {
-      display: inline-block;
-      padding: 12px 28px; border-radius: 8px;
-      font-weight: 600; border: none; color: white;
-      cursor: pointer; font-size: 1em;
-      transition: transform 0.15s ease-in-out, opacity 0.2s;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-      min-width: 140px;
-    }
-    .btn:hover { transform: scale(1.04); opacity: 0.9; }
-    .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
-    .btn-send { background: linear-gradient(135deg, #0046ff, #357aff); }
-    .actions { text-align: center; margin-top: 25px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
-
-    .address-wrapper { position: relative; }
-    .suggestions {
-      position: absolute; top: 100%; left: 0; width: 100%;
-      background: #fff; border: 1px solid #ccc; border-radius: 6px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      max-height: 180px; overflow-y: auto; z-index: 1000;
-    }
-    .suggestions div { padding: 8px; cursor: pointer; }
-    .suggestions div:hover { background: #f0f0f0; }
-
-    #mapPreview {
-      width: 100%; height: 250px; margin-top: 10px;
-      border-radius: 14px; overflow: hidden;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-
-    .vanilla-calendar {
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      margin-top: 10px;
-    }
-
-    .preview { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
-    .preview-item { width: 90px; height: 90px; position: relative; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
-    .preview-item img { width: 100%; height: 100%; object-fit: cover; }
-    .progress-bar { position: absolute; bottom: 0; left: 0; height: 6px; background: linear-gradient(90deg,#0046ff,#357aff); width: 0%; border-radius: 0 0 8px 8px; transition: width 0.4s ease, background 0.4s ease; }
-    .preview-status { position: absolute; bottom: 6px; right: 6px; background: rgba(255,255,255,0.8); padding: 2px 5px; font-size: 0.7em; font-weight: 600; border-radius: 4px; color: #333; }
-    .remove-btn { position: absolute; top: 4px; right: 4px; background: rgba(255,255,255,0.85); border: none; border-radius: 50%; width: 20px; height: 20px; font-weight: bold; cursor: pointer; color: #f00; }
-
-    .wait-overlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.85); backdrop-filter: blur(2px); justify-content: center; align-items: center; flex-direction: column; font-weight: 600; color: #333; z-index: 2000; }
-    .wait-overlay.active { display: flex; }
-    .hourglass { border: 4px solid #ccc; border-top: 4px solid #0046ff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 10px; }
-    @keyframes spin { 0% { transform: rotate(0) } 100% { transform: rotate(360deg) } }
-
-    .success-check { display: none; position: fixed; inset: 0; justify-content: center; align-items: center; background: rgba(255,255,255,0.9); z-index: 2100; }
-    .success-check.active { display: flex; }
-    .checkmark { width: 80px; height: 80px; stroke-width: 3; stroke: url(#grad1); fill: none; stroke-dasharray: 48; stroke-dashoffset: 48; animation: draw 1s ease forwards; }
-    @keyframes draw { to { stroke-dashoffset: 0; } }
   </style>
 </head>
 
@@ -101,9 +63,12 @@
     <h2>Pozáruční servis</h2>
 
     <form id="servisForm" novalidate>
-      <label>Typ požadavku:</label>
-      <input type="text" name="typ" value="Pozáruční servis" readonly />
+<!-- 🟨 KONEC ČÁSTI 1/10 -->
 
+
+
+
+<!-- 🟨 ZAČÁTEK ČÁSTI 2/10 -->
       <label>Jméno a příjmení zákazníka:</label>
       <input type="text" name="zakaznik" required placeholder="např. Jan Novák" />
 
@@ -121,7 +86,7 @@
       <input type="text" id="psc" name="psc" required pattern="\\d{3}\\s?\\d{2}" placeholder="např. 110 00" />
 
       <label>Telefon:</label>
-      <div style="display:flex; gap:8px;">
+      <div style="display:flex;gap:8px;">
         <select id="predvolba" style="max-width:130px;">
           <option value="+420">🇨🇿 +420</option>
           <option value="+421">🇸🇰 +421</option>
@@ -136,87 +101,399 @@
       <label>Model / Název produktu:</label>
       <input type="text" name="produkt" required placeholder="např. C142" />
 
-      <!-- ✅ Nové datumové výběry -->
-      <label>Datum požadavku:</label>
-      <input type="hidden" id="datum_pozadavku" name="datum_pozadavku" required />
-      <div id="calendarPozadavku"></div>
-
-      <label>Datum plánované návštěvy:</label>
-      <input type="hidden" id="datum_navstevy" name="datum_navstevy" required />
-      <div id="calendarNavstevy"></div>
-
       <label>Popis závady / požadavku:</label>
-      <textarea name="popis" required placeholder="Popište problém nebo požadavek..."></textarea>
+      <textarea name="popis" required placeholder="Popište problém nebo požadavek…"></textarea>
+<!-- 🟨 KONEC ČÁSTI 2/10 -->
 
-      <label>Přiložit fotografie (max. 5):</label>
-      <small>Podporované formáty: JPG, PNG, HEIC (max 5 MB / soubor)</small>
-      <input type="file" id="fotky" accept="image/jpeg,image/png,image/heic" multiple />
-      <div id="preview" class="preview"></div>
 
-      <div class="actions">
-        <a href="index.html" class="btn btn-back">Zpět</a>
-        <button type="submit" class="btn btn-send">Odeslat</button>
-      </div>
-    </form>
+
+
+
+      <!-- 🟨 ZAČÁTEK ČÁSTI 3–5/10 – FOTODOKUMENTACE -->
+
+<label>Fotodokumentace:</label>
+<div class="photo-frame">
+  <div class="photo-frame__header">
+    <div class="photo-frame__title">Fotodokumentace</div>
+    <div class="photo-frame__info">Max. 5 fotografií (JPG / PNG / HEIC, ≤ 5 MB na soubor)</div>
+    <button type="button" id="openPhotoModal" class="btn-photo">Nahrát fotografie</button>
   </div>
+  <div id="photoPreviewBox" class="photo-preview-box"></div>
+</div>
 
-  <div class="wait-overlay" id="waitOverlay">
-    <div class="hourglass"></div>
-    <p>Prosím čekejte…</p>
+<!-- Modal pro nahrávání fotek -->
+<div id="photoModal" class="photo-modal">
+  <div class="photo-modal-content">
+    <h3>Nahrát fotografie</h3>
+    <p class="photo-info">Můžeš nahrát až 5 fotografií (JPG, PNG, HEIC). Každá se automaticky zmenší na max. 800×533 px (≤ 500 KB).</p>
+    <input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple />
+    <div id="photoPreview" class="photo-preview"></div>
+    <div class="photo-actions">
+      <button type="button" id="selectPhotos" class="btn-gray">Vyber soubory</button>
+      <button type="button" id="uploadPhotos" class="btn-green">Nahrát fotografie</button>
+      <button type="button" id="closePhotoModal" class="btn-white">Zavřít</button>
+    </div>
   </div>
+</div>
 
-  <div class="success-check" id="successCheck">
-    <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-      <defs>
-        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#00d084;stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#00a86b;stop-opacity:1" />
-        </linearGradient>
-      </defs>
-      <circle cx="26" cy="26" r="25" fill="none"/>
-      <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<style>
+/* Rámeček Fotodokumentace */
+.photo-frame {
+  border:1px solid #d9d9d9;
+  border-radius:10px;
+  padding:16px;
+  margin-top:18px;
+  background:linear-gradient(180deg,#f9f9f9 0%,#efefef 100%);
+}
+.photo-frame__header {
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+}
+.photo-frame__title{font-weight:700;color:#111;}
+.photo-frame__info{font-size:0.8em;color:#555;}
+.btn-photo{
+  padding:8px 14px;border-radius:8px;
+  border:1px solid #cfcfcf;
+  background:linear-gradient(180deg,#fff 0%,#f3f3f3 100%);
+  color:#111;font-weight:600;cursor:pointer;
+  transition:all 0.2s ease;
+}
+.btn-photo:hover{transform:scale(1.03);}
+.photo-preview-box{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;
+}
+.photo-item{
+  width:90px;height:90px;position:relative;border-radius:8px;overflow:hidden;
+  box-shadow:0 2px 6px rgba(0,0,0,0.15);
+}
+.photo-item img{width:100%;height:100%;object-fit:cover;}
+.photo-remove{
+  position:absolute;top:4px;right:4px;
+  background:rgba(255,255,255,0.9);
+  border:none;border-radius:50%;
+  width:20px;height:20px;
+  color:#d40000;font-weight:bold;cursor:pointer;
+}
+.photo-progress{
+  position:absolute;inset:0;
+  background:rgba(255,255,255,0.75);
+  display:flex;justify-content:center;align-items:center;
+  font-size:0.8em;font-weight:600;border-radius:8px;
+}
+.photo-check{
+  position:absolute;top:4px;left:4px;
+  width:20px;height:20px;background:rgba(255,255,255,0.9);
+  border-radius:50%;display:flex;justify-content:center;align-items:center;
+  color:#00b56a;font-weight:bold;font-size:14px;
+}
+
+/* Modal */
+.photo-modal{
+  display:none;position:fixed;inset:0;
+  background:rgba(40,40,40,0.8);
+  justify-content:center;align-items:center;z-index:9999;
+}
+.photo-modal.active{display:flex;}
+.photo-modal-content{
+  background:#f0f0f0;
+  border:2px solid #000;
+  border-radius:12px;
+  padding:20px;
+  width:90%;max-width:520px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.3);
+}
+.photo-info{font-size:0.75em;color:#555;margin-bottom:10px;}
+.photo-preview{
+  display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;justify-content:center;
+}
+.photo-actions{
+  display:flex;justify-content:space-between;margin-top:18px;gap:10px;flex-wrap:wrap;
+}
+.btn-gray,.btn-green,.btn-white{
+  flex:1;min-width:130px;padding:10px 16px;border-radius:8px;font-weight:600;cursor:pointer;
+  box-shadow:0 2px 6px rgba(0,0,0,0.15);font-size:1em;
+}
+.btn-gray{background:linear-gradient(135deg,#a0a4a7,#6c757d);color:#fff;border:none;}
+.btn-green{background:linear-gradient(135deg,#00a86b,#00d084);color:#fff;border:none;}
+.btn-white{background:linear-gradient(135deg,#ffffff,#e6e6e6);color:#111;border:1px solid #ccc;}
+</style>
 
 <script>
-/* --- Geoapify + mapa + odeslání zůstává beze změn --- */
+(function(){
+  const openBtn=document.getElementById("openPhotoModal");
+  const modal=document.getElementById("photoModal");
+  const closeBtn=document.getElementById("closePhotoModal");
+  const input=document.getElementById("photoInput");
+  const preview=document.getElementById("photoPreview");
+  const box=document.getElementById("photoPreviewBox");
+  const uploadBtn=document.getElementById("uploadPhotos");
+  const selectBtn=document.getElementById("selectPhotos");
 
-/* --- Vanilla Calendar --- */
-document.addEventListener("DOMContentLoaded", () => {
-  const pozadInput = document.getElementById("datum_pozadavku");
-  const calPozad = new VanillaCalendar("#calendarPozadavku", {
-    settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
-    actions: {
-      clickDay: e => {
-        const chosen = e.target.dataset.calendarDay;
-        if (chosen) {
-          pozadInput.value = chosen;
-          e.target.closest(".vanilla-calendar").querySelectorAll(".vanilla-calendar-day__btn_selected")
-            .forEach(b => b.classList.remove("vanilla-calendar-day__btn_selected"));
-          e.target.classList.add("vanilla-calendar-day__btn_selected");
-        }
-      }
+  let photoFiles=[];let compressedPhotos=[];
+
+  // otevření modalu
+  openBtn.addEventListener("click",()=>modal.classList.add("active"));
+  closeBtn.addEventListener("click",()=>modal.classList.remove("active"));
+  selectBtn.addEventListener("click",()=>input.click());
+
+  // komprese obrázku
+  async function compressImage(file,maxSizeKB=500,maxDim=800){
+    const img=await createImageBitmap(file);
+    const canvas=document.createElement("canvas");
+    let[w,h]=[img.width,img.height];
+    if(w>h&&w>maxDim){h=Math.round(h*(maxDim/w));w=maxDim;}
+    else if(h>w&&h>maxDim){w=Math.round(w*(maxDim/h));h=maxDim;}
+    canvas.width=w;canvas.height=h;
+    const ctx=canvas.getContext("2d");ctx.drawImage(img,0,0,w,h);
+    let q=0.9;let blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));
+    while(blob.size/1024>maxSizeKB&&q>0.4){q-=0.1;blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));}
+    return blob;
+  }
+
+  // výběr fotek
+  input.addEventListener("change",async()=>{
+    const files=Array.from(input.files).slice(0,5);
+    for(const file of files){
+      if(photoFiles.some(f=>f.name===file.name)) continue; // 🧱 duplicity
+      photoFiles.push(file);
+      const item=document.createElement("div");
+      item.className="photo-item";
+      const img=document.createElement("img");
+      const progress=document.createElement("div");
+      progress.className="photo-progress";progress.textContent="Zpracování…";
+      const remove=document.createElement("button");
+      remove.className="photo-remove";remove.textContent="×";
+      remove.onclick=()=>{item.remove();photoFiles=photoFiles.filter(f=>f!==file);compressedPhotos=compressedPhotos.filter(p=>p.file!==file);};
+      item.append(img,progress,remove);
+      preview.append(item);
+      const reader=new FileReader();
+      reader.onload=e=>(img.src=e.target.result);
+      reader.readAsDataURL(file);
+      const blob=await compressImage(file);
+      compressedPhotos.push({file,blob,element:item});
+      progress.textContent="Připraveno";
     }
   });
-  calPozad.init();
 
-  const navstInput = document.getElementById("datum_navstevy");
-  const calNavst = new VanillaCalendar("#calendarNavstevy", {
-    settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
-    actions: {
-      clickDay: e => {
-        const chosen = e.target.dataset.calendarDay;
-        if (chosen) {
-          navstInput.value = chosen;
-          e.target.closest(".vanilla-calendar").querySelectorAll(".vanilla-calendar-day__btn_selected")
-            .forEach(b => b.classList.remove("vanilla-calendar-day__btn_selected"));
-          e.target.classList.add("vanilla-calendar-day__btn_selected");
-        }
+  // upload
+  uploadBtn.addEventListener("click",async()=>{
+    for(const p of compressedPhotos){
+      const item=p.element;
+      const progress=item.querySelector(".photo-progress");
+      progress.textContent="Nahrávám…";
+      const formData=new FormData();
+      formData.append("file",p.blob,p.file.name);
+      try{
+        const r=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload",{method:"POST",body:formData});
+        const res=await r.json();
+        progress.remove();
+        const check=document.createElement("div");
+        check.className="photo-check";check.textContent="✓";
+        item.append(check);
+        p.filename=res.filename;
+      }catch{
+        progress.textContent="Chyba";
+        progress.style.color="#f00";
       }
     }
+    modal.classList.remove("active");
+    renderFinal();
   });
-  calNavst.init();
+
+  // render finální náhled
+  function renderFinal(){
+    box.innerHTML="";
+    for(const p of compressedPhotos){
+      const item=document.createElement("div");
+      item.className="photo-item";
+      const img=document.createElement("img");
+      const reader=new FileReader();
+      reader.onload=e=>(img.src=e.target.result);
+      reader.readAsDataURL(p.file);
+      const remove=document.createElement("button");
+      remove.className="photo-remove";remove.textContent="×";
+      remove.onclick=()=>{item.remove();compressedPhotos=compressedPhotos.filter(x=>x!==p);};
+      item.append(img,remove);
+      box.append(item);
+    }
+    window.uploadedPhotos=compressedPhotos;
+  }
+})();
+</script>
+<!-- 🟨 KONEC ČÁSTI 3–5/10 -->
+
+
+
+
+
+      <!-- 🟨 ZAČÁTEK ČÁSTI 6–10/10 -->
+
+<style>
+.actions {
+  text-align:center;margin-top:25px;
+  display:flex;justify-content:center;gap:20px;flex-wrap:wrap;
+}
+.btn {
+  display:inline-block;padding:12px 28px;border-radius:8px;
+  font-weight:600;border:none;color:white;cursor:pointer;
+  font-size:1em;transition:transform .15s ease,opacity .2s;
+  box-shadow:0 3px 8px rgba(0,0,0,.15);min-width:140px;
+}
+.btn:hover{transform:scale(1.04);opacity:.9;}
+.btn-back{background:linear-gradient(135deg,#6c757d,#a0a4a7);}
+.btn-send{background:linear-gradient(135deg,#00a86b,#00d084);}
+.wait-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(255,255,255,.85);backdrop-filter:blur(2px);
+  justify-content:center;align-items:center;flex-direction:column;
+  font-weight:600;color:#333;z-index:2000;
+}
+.wait-overlay.active{display:flex;}
+.hourglass{
+  border:4px solid #ccc;border-top:4px solid #00a86b;
+  border-radius:50%;width:40px;height:40px;
+  animation:spin 1s linear infinite;margin-bottom:10px;
+}
+@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+.success-check{
+  display:none;position:fixed;inset:0;
+  justify-content:center;align-items:center;
+  background:rgba(255,255,255,.9);z-index:2100;
+}
+.success-check.active{display:flex;}
+.checkmark{
+  width:80px;height:80px;stroke-width:3;stroke:url(#grad1);
+  fill:none;stroke-dasharray:48;stroke-dashoffset:48;
+  animation:draw 1s ease forwards;
+}
+@keyframes draw{to{stroke-dashoffset:0}}
+.suggestions{
+  position:absolute;top:100%;left:0;width:100%;
+  background:#fff;border:1px solid #ccc;border-radius:6px;
+  box-shadow:0 4px 10px rgba(0,0,0,.1);
+  max-height:180px;overflow-y:auto;z-index:1000;
+}
+.suggestions div{padding:8px;cursor:pointer;}
+.suggestions div:hover{background:#f0f0f0;}
+#mapPreview{
+  width:100%;height:250px;margin-top:10px;
+  border-radius:14px;overflow:hidden;
+  box-shadow:0 4px 10px rgba(0,0,0,.1);
+}
+</style>
+
+<div class="actions">
+  <a href="index.html" class="btn btn-back">Zpět</a>
+  <button type="submit" class="btn btn-send">Odeslat</button>
+</div>
+</form>
+</div>
+
+<!-- Overlay načítání -->
+<div class="wait-overlay" id="waitOverlay">
+  <div class="hourglass"></div>
+  <p>Prosím čekejte…</p>
+</div>
+
+<!-- ✅ potvrzení -->
+<div class="success-check" id="successCheck">
+  <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+    <defs>
+      <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#00d084;stop-opacity:1"/>
+        <stop offset="100%" style="stop-color:#00a86b;stop-opacity:1"/>
+      </linearGradient>
+    </defs>
+    <circle cx="26" cy="26" r="25" fill="none"/>
+    <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</div>
+
+<script>
+/* 🛰️ Geoapify – autocomplete + mapa */
+const inputUlice=document.getElementById("ulice");
+const mapContainer=document.getElementById("mapPreview");
+const suggestions=document.getElementById("suggestions");
+let map,marker;
+
+function initMap(lat=50.0755,lng=14.4378){
+  if(map)return;
+  map=L.map(mapContainer).setView([lat,lng],11);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+  marker=L.marker([lat,lng]).addTo(map);
+}
+
+inputUlice.addEventListener("input",async()=>{
+  const q=inputUlice.value.trim();
+  if(q.length<3){suggestions.innerHTML="";return;}
+  const url=`https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(q)}&apiKey=7d8c6c6e9c5d4e1b9d2c2302cb17f0b3`;
+  const res=await fetch(url);const data=await res.json();
+  suggestions.innerHTML="";
+  data.features.forEach(f=>{
+    const d=document.createElement("div");
+    d.textContent=f.properties.formatted;
+    d.addEventListener("click",()=>{
+      inputUlice.value=f.properties.address_line1;
+      document.getElementById("mesto").value=f.properties.city||"";
+      document.getElementById("psc").value=f.properties.postcode||"";
+      suggestions.innerHTML="";
+      const [lat,lng]=[f.properties.lat,f.properties.lon];
+      if(!map)initMap(lat,lng);
+      map.setView([lat,lng],14);
+      marker.setLatLng([lat,lng]);
+    });
+    suggestions.appendChild(d);
+  });
+});
+document.addEventListener("click",e=>{
+  if(!suggestions.contains(e.target)&&e.target!==inputUlice)
+    suggestions.innerHTML="";
+});
+
+/* 📨 Odeslání formuláře přes Worker */
+document.getElementById("servisForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const overlay=document.getElementById("waitOverlay");
+  overlay.classList.add("active");
+
+  const formData=new FormData(e.target);
+  const zakaznik=formData.get("zakaznik");
+  const adresa=`${formData.get("ulice")}, ${formData.get("mesto")} ${formData.get("psc")}`;
+  const telefon=document.getElementById("predvolba").value+" "+formData.get("telefon");
+  const email=formData.get("email");
+  const produkt=formData.get("produkt");
+  const popis=formData.get("popis");
+
+  const fotky=(window.uploadedPhotos||[]).map(p=>p.filename||p.file.name);
+
+  const payload={
+    typ:"pozarucni",
+    zakaznik,adresa,telefon,email,produkt,popis,fotky,
+    contract:"Pozáruční servis",
+    datum: new Date().toISOString().split("T")[0]
+  };
+
+  try{
+    const res=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(payload)
+    });
+    if(res.ok){
+      overlay.classList.remove("active");
+      document.getElementById("successCheck").classList.add("active");
+      setTimeout(()=>location.href="hotove.html",1500);
+    }else{
+      overlay.classList.remove("active");
+      alert("Chyba při odesílání formuláře.");
+    }
+  }catch(err){
+    overlay.classList.remove("active");
+    alert("Nepodařilo se odeslat data.");
+  }
 });
 </script>
+
 </body>
 </html>
+<!-- 🟨 KONEC ČÁSTI 6–10/10 -->
