@@ -15,6 +15,31 @@
 
 
   <style>
+    /* 📅 Kalendáře vedle sebe */
+.calendar-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.calendar-box {
+  flex: 1;
+  min-width: 250px;
+}
+
+.calendar-box label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.vanilla-calendar {
+  width: 100%;
+  max-width: 100%;
+}
+
     body {
       font-family: "Inter", system-ui, sans-serif;
       background: #f6f7fb;
@@ -197,13 +222,21 @@
       <label>Model / Název produktu:</label>
       <input type="text" name="produkt" required placeholder="např. C142" />
 
-   <label>Datum prodeje:</label>
-<input type="hidden" id="datum_prodeje" name="datum_prodeje" required />
-<div id="calendarProdej" style="margin-top:10px;"></div>
+<!-- 📅 Dvojice kalendářů vedle sebe -->
+<div class="calendar-row">
+  <div class="calendar-box">
+    <label>Datum prodeje:</label>
+    <input type="hidden" id="datum_prodeje" name="datum_prodeje" required />
+    <div id="calendarProdej"></div>
+  </div>
 
-<label>Datum reklamace:</label>
-<input type="hidden" id="datum_reklamace" name="datum_reklamace" required />
-<div id="calendarReklamace" style="margin-top:10px;"></div>
+  <div class="calendar-box">
+    <label>Datum reklamace:</label>
+    <input type="hidden" id="datum_reklamace" name="datum_reklamace" required />
+    <div id="calendarReklamace"></div>
+  </div>
+</div>
+
 
 
 
