@@ -1286,45 +1286,64 @@ function initPlanCalendar(overlay){
 <!-- 🟦 KONEC E-2 -->
 
 
-<!-- 🟦 E-3: NAČTENÍ A ZOBRAZENÍ DNĚ -->
+<!-- 🟦 E-3: NAČTENÍ A ZOBRAZENÍ DNĚ (aktualizováno pro E-5) -->
 <script>
-async function loadPlanForDay(date,overlay){
-  const list=dataAll.filter(r=>r.datum===date && r.stav!=="zruseno");
-  const planList=overlay.querySelector("#planList");
-  const planLegend=overlay.querySelector("#planLegend");
-  const planMap=overlay.querySelector("#planMap");
+async function loadPlanForDay(date, overlay) {
+  const list = dataAll.filter(r => r.datum === date && r.stav !== "zruseno");
+  const planList = overlay.querySelector("#planList");
+  const planLegend = overlay.querySelector("#planLegend");
+  const planMap = overlay.querySelector("#planMap");
 
-  if(!list.length){
-    planList.innerHTML="<div class='empty'>Žádné zakázky pro tento den</div>";
-    planLegend.innerHTML="";
-    planMap.innerHTML="";
+  if (!list.length) {
+    planList.innerHTML = "<div class='empty'>Žádné zakázky pro tento den</div>";
+    planLegend.innerHTML = "";
+    planMap.innerHTML = "";
+    // 🟦 i bez zakázek zobrazíme mapu s WGS bodem
+    try {
+      await renderPlanDetail([]);
+      console.log("ℹ️ E-5 vykreslena bez zakázek");
+    } catch (err) {
+      console.warn("⚠️ Nepodařilo se vykreslit E-5:", err);
+    }
     return;
   }
 
-  // seřadit podle času
-  list.sort((a,b)=>(a.cas||"").localeCompare(b.cas||""));
-  planList.innerHTML="";
-  planLegend.innerHTML="";
+  // 🕒 seřadit podle času
+  list.sort((a, b) => (a.cas || "").localeCompare(b.cas || ""));
+  planList.innerHTML = "";
+  planLegend.innerHTML = "";
 
-  let legendHTML="<table class='legendTable'><tr><th>#</th><th>Čas</th><th>Zákazník</th></tr>";
-  list.forEach((r,i)=>{
-    legendHTML+=`<tr><td>${i+1}</td><td>${r.cas||"-"}</td><td>${r.zakaznik}</td></tr>`;
+  // 🧾 legenda
+  let legendHTML = "<table class='legendTable'><tr><th>#</th><th>Čas</th><th>Zákazník</th></tr>";
+  list.forEach((r, i) => {
+    legendHTML += `<tr><td>${i + 1}</td><td>${r.cas || "-"}</td><td>${r.zakaznik}</td></tr>`;
   });
-  legendHTML+="</table>";
-  planLegend.innerHTML=legendHTML;
+  legendHTML += "</table>";
+  planLegend.innerHTML = legendHTML;
 
-  planList.innerHTML=list.map((r,i)=>`
+  // 📋 seznam zákazníků v denním plánu
+  planList.innerHTML = list.map((r, i) => `
     <div class="planItem">
-      <div class="planNum">${i+1}</div>
+      <div class="planNum">${i + 1}</div>
       <div class="planName">${r.zakaznik}</div>
       <div class="planAddr">${r.adresa}</div>
-      <div class="planTime">${r.cas}</div>
+      <div class="planTime">${r.cas || ""}</div>
     </div>`).join("");
 
-  await showPlanMap(list,planMap);
+  // 🗺️ vykreslení mapy z E-4
+  await showPlanMap(list, planMap);
+
+  // 🟩 navíc – automaticky vykreslí E-5 s trasou, vzdálenostmi a klikacími odkazy
+  try {
+    await renderPlanDetail(list);
+    console.log("✅ E-5 (detailní mapa a plán) úspěšně načtena");
+  } catch (err) {
+    console.error("❌ Chyba při vykreslování E-5:", err);
+  }
 }
 </script>
 <!-- 🟦 KONEC E-3 -->
+
 
 
 <!-- 🟦 E-4: MAPA A TRASA (stabilní, s výpočtem vzdáleností) -->
