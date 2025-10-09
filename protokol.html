@@ -165,6 +165,79 @@ button:hover { transform:scale(1.03); opacity:0.9; }
 
   <div class="section-title">Návrh opravy<span class="en-label">Repair proposal</span></div>
   <div class="split-section"><textarea id="repair-cz" placeholder="CZ"></textarea><textarea id="repair-en" placeholder="EN" readonly></textarea></div>
+
+</div> <!-- ✅ doplněno pro správné uzavření hlavního obsahu -->
+  <!-- 🟨 Sekce E – Ceny a stavy -->
+  <div class="two-col-table">
+    <div class="col">
+      <table>
+        <tr><td class="label">Počet opravovaných dílů<span class="en-label">Number of repaired parts</span></td><td><input id="parts" type="number" min="0"></td></tr>
+        <tr><td class="label">Cena za práci<span class="en-label">Work cost</span></td><td><input id="price-work" type="number" step="0.01" oninput="updateTotal()"></td></tr>
+        <tr><td class="label">Cena za materiál<span class="en-label">Material cost</span></td><td><input id="price-material" type="number" step="0.01" oninput="updateTotal()"></td></tr>
+        <tr><td class="label">Cena za druhého technika<span class="en-label">Second technician cost</span></td><td><input id="price-second" type="number" step="0.01" oninput="updateTotal()"></td></tr>
+        <tr><td class="label">Cena za dopravu<span class="en-label">Transport cost</span></td><td><input id="price-transport" type="number" step="0.01" oninput="updateTotal()"></td></tr>
+        <tr><td class="label">Cena celkem<span class="en-label">Total cost</span></td><td><input id="price-total" readonly></td></tr>
+      </table>
+    </div>
+    <div class="col">
+      <table>
+        <tr><td class="label">Reklamace vyřešena?<span class="en-label">Complaint solved?</span></td><td><select id="solved"><option>ANO</option><option>NE</option></select></td></tr>
+        <tr><td class="label">Čeká se na vyjádření prodejce?<span class="en-label">Waiting for dealer?</span></td><td><select id="dealer"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Poškození technikem?<span class="en-label">Damage by technician?</span></td><td><select id="damage"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Úhradu provede zákazník?<span class="en-label">Customer will pay?</span></td><td><select id="payment"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Datum podpisu<span class="en-label">Signature date</span></td><td><input id="sign-date" type="date"></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <script>
+  function updateTotal() {
+    const work = parseFloat(priceWork.value) || 0;
+    const material = parseFloat(priceMaterial.value) || 0;
+    const second = parseFloat(priceSecond.value) || 0;
+    const transport = parseFloat(priceTransport.value) || 0;
+    priceTotal.value = (work + material + second + transport).toFixed(2);
+  }
+  const priceWork=document.getElementById("price-work");
+  const priceMaterial=document.getElementById("price-material");
+  const priceSecond=document.getElementById("price-second");
+  const priceTransport=document.getElementById("price-transport");
+  const priceTotal=document.getElementById("price-total");
+  </script>
+
+  <!-- 🟨 Sekce F – Podpis a tlačítka -->
+  <div class="section-title">Podpis zákazníka<span class="en-label">Customer signature</span></div>
+  <canvas id="signature-pad"></canvas>
+  <div class="signature-label">Podepište se prstem nebo myší</div>
+
+  <div class="btns">
+    <button class="btn-clear" type="button" onclick="signaturePad.clear()">Vymazat podpis</button>
+    <button class="btn-back" type="button" onclick="window.location.href='index.html'">Zpět</button>
+    <button class="btn-pdf" type="button" onclick="exportPDF()">Exportovat PDF</button>
+    <button class="btn-email" type="button" onclick="mailCustomer()">Odeslat zákazníkovi</button>
+  </div>
+
+  <!-- 🟨 Sekce G – Překryvné vrstvy -->
+  <div class="wait-overlay" id="waitOverlay">
+    <div class="hourglass"></div><p>Odesílám protokol…</p>
+  </div>
+  <div class="success-check" id="successCheck">
+    <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+      <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#00d084"/><stop offset="100%" style="stop-color:#00a86b"/>
+        </linearGradient>
+      </defs>
+      <circle cx="26" cy="26" r="25" fill="none"/>
+      <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <!-- 🟨 Sekce H – Externí knihovny -->
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="wgs-sync.js"></script>
   <!-- 🟨 Sekce I – Auto-předvyplnění dat z localStorage -->
   <script>
   window.addEventListener("DOMContentLoaded", () => {
@@ -271,25 +344,38 @@ button:hover { transform:scale(1.03); opacity:0.9; }
   window.addEventListener("DOMContentLoaded", loadProtocolFromOrders);
   </script>
 
-  <!-- 🟨 Sekce J – PDF, e-mail, uložení -->
+  <!-- 🟨 Sekce J – PDF, e-mail, uložení, podpis fix -->
   <script>
   let signaturePad;
 
-  window.addEventListener("DOMContentLoaded",()=>{
-    const canvas=document.getElementById("signature-pad");
-    function resizeCanvas(){
-      canvas.width=canvas.offsetWidth;
-      canvas.height=canvas.offsetHeight;
+  // 🖊️ Inicializace podpisu s jistým vykreslením
+  window.addEventListener("DOMContentLoaded", () => {
+    const canvas = document.getElementById("signature-pad");
+    if (!canvas) return;
+    setTimeout(() => {
+      canvas.style.display = "block";
+      canvas.style.background = "#fff";
+      canvas.style.border = "2px dashed #888";
+      canvas.style.width = "100%";
+      canvas.style.height = "200px";
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
+    }, 50);
+
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("visit-date").value ||= today;
+    document.getElementById("sign-date").value ||= today;
+
+    const btns = document.querySelector(".btns");
+    if (btns) {
+      btns.style.display = "grid";
+      btns.style.visibility = "visible";
+      btns.style.opacity = "1";
     }
-    resizeCanvas();
-    window.addEventListener("resize",resizeCanvas,{passive:true});
-    signaturePad=new SignaturePad(canvas,{backgroundColor:"white"});
-    const today=new Date().toISOString().split("T")[0];
-    visitDate.value ||= today;
-    signDate.value ||= today;
   });
 
-  // 🧾 GENEROVÁNÍ PDF – tlačítka skryta, podpis vždy viditelný
+  // 🧾 PDF export – tlačítka skryta, podpis vždy viditelný
   async function generatePDF(){
     const { jsPDF } = window.jspdf;
     const wrapper=document.querySelector(".wrapper");
@@ -300,7 +386,6 @@ button:hover { transform:scale(1.03); opacity:0.9; }
     doc.setTextColor(220,220,220);
     doc.text("WHITE GLOVE SERVICE",105,150,{align:"center",angle:45});
 
-    // skrytí tlačítek během exportu
     const btns=document.querySelector(".btns");
     const originalVis=btns.style.visibility;
     btns.style.visibility="hidden";
@@ -311,7 +396,6 @@ button:hover { transform:scale(1.03); opacity:0.9; }
     wrapper.classList.remove("force-desktop");
     btns.style.visibility=originalVis;
 
-    // podpis (nebo fallback text)
     if(!signaturePad.isEmpty()){
       const sig=signaturePad.toDataURL("image/png");
       doc.addImage(sig,"PNG",30,250,60,20);
