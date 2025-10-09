@@ -523,55 +523,72 @@ confirmClients.onclick = () => {
 
 
 
-  <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 6 – Výběr období -->
-<script>
-/**
- * 📅 Reakce na změnu výběru měsíce
- * Po volbě měsíce se automaticky vyplní pole "Od" a "Do"
- * s ohledem na aktuální rok.
- */
-document.getElementById("monthSelect").addEventListener("change", (e) => {
-  const month = parseInt(e.target.value, 10);
-  if (!month) return;
+// 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 6 – Zadavatelé (fixní + automatické doplnění nových)
+async function loadClients() {
+  loadingClients.style.display = "block";
+  clientList.style.display = "none";
+  clientList.innerHTML = "";
 
-  const year = new Date().getFullYear();
-  const start = new Date(year, month - 1, 1);
-  const end = new Date(year, month, 0);
+  // 📋 Fixní seznam zadavatelů
+  let knownClients = [
+    "Natuzzi Editions - Strejcek",
+    "Natuzzi Editions - Vimrova",
+    "Natuzzi Italia - Bratislava",
+    "Natuzzi Italia - Jama",
+    "Natuzzi Italia - Rvier",
+    "Natuzzi Italia - Soho",
+    "Softaly - Soho",
+    "Phase - Klucarova",
+    "Phase - Jancova",
+    "WGS pozáruční servis",
+    "Jiné"
+  ];
 
-  const yyyy = year.toString().padStart(4, "0");
-  const mm = month.toString().padStart(2, "0");
-  const fromStr = `${yyyy}-${mm}-01`;
-  const toStr = `${yyyy}-${mm}-${String(end.getDate()).padStart(2, "0")}`;
+  try {
+    const res = await fetch("https://radecek222-boop.github.io/reklamace/hotove.json?t=" + Date.now());
+    const data = await res.json();
 
-  document.getElementById("dateFrom").value = fromStr;
-  document.getElementById("dateTo").value = toStr;
-});
+    // 🔍 Získání nových zadavatelů z JSONu
+    const newClients = [
+      ...new Set(
+        data.map(r =>
+          r.contract || r.zadavatel || r.klient || r.partner || ""
+        ).filter(Boolean)
+      )
+    ];
 
-/**
- * 🧾 Potvrzení výběru období
- * Uloží do localStorage a přepočítá výsledky.
- */
-confirmPeriod.onclick = () => {
-  const from = document.getElementById("dateFrom").value;
-  const to = document.getElementById("dateTo").value;
+    // 🧩 Sloučení s uloženými (localStorage) + fixními
+    const saved = JSON.parse(localStorage.getItem("persistentClients") || "[]");
+    const allClients = [...new Set([...knownClients, ...saved, ...newClients])].sort();
 
-  if (!from || !to) {
-    alert("Zadej platné období nebo měsíc.");
-    return;
+    // 💾 Uložení kompletního seznamu zpět do localStorage
+    localStorage.setItem("persistentClients", JSON.stringify(allClients));
+
+    // ✅ Výběr uložených pro zaškrtnutí
+    const selected = JSON.parse(localStorage.getItem("selectedClients") || "[]");
+
+    clientList.innerHTML = allClients
+      .map(c => `
+        <label>
+          <input type="checkbox" value="${c}" ${selected.includes(c) ? "checked" : ""}>
+          ${c}
+        </label>
+      `).join("");
+
+    loadingClients.style.display = "none";
+    clientList.style.display = "block";
+  } catch (err) {
+    loadingClients.textContent = "❌ Chyba načítání zadavatelů";
   }
+}
 
-  localStorage.setItem("selectedPeriod", JSON.stringify({ from, to }));
-  periodModal.classList.remove("active");
+confirmClients.onclick = () => {
+  const checked = [...clientList.querySelectorAll("input:checked")].map(i => i.value);
+  localStorage.setItem("selectedClients", JSON.stringify(checked));
+  clientModal.classList.remove("active");
   renderResults();
 };
 
-/**
- * 🚪 Zavření okna bez uložení
- */
-closePeriod.addEventListener("click", () => {
-  periodModal.classList.remove("active");
-});
-</script>
 
 
 
