@@ -286,7 +286,7 @@ async function loadData() {
 }
 
 /* ============================= */
-/* 📋 VYKRESLENÍ TABULKY          */
+/* 📋 VYKRESLENÍ TABULKY         */
 /* ============================= */
 function renderTable(arr) {
   if (!arr || !arr.length) {
@@ -306,9 +306,10 @@ function renderTable(arr) {
     </thead>
     <tbody>`;
 
+  // 🧩 Smyčka přes všechny záznamy
   arr.forEach((r, i) => {
     const id = r.cislo || `radek-${i}`;
-    const stav = stavy[id] || "novy";
+    const stav = stavy[id] || r.stav || "novy";
 
     const adresa = r.adresa
       ? `<a href="https://waze.com/ul?q=${encodeURIComponent(r.adresa)}"
@@ -321,26 +322,34 @@ function renderTable(arr) {
            style="color:#000;font-weight:600;">${r.telefon.replace('+420','').trim()}</a>`
       : "–";
 
+    // 🟩 Nastavení barvy a textu podle stavu
+    let barva = "";
     let stavText = stav;
-    if (stav === "domluveno" && r.datum && r.cas) {
+
+    if (r.stav && r.stav.toLowerCase() === "hotovo") {
+      barva = "background:#b6f2c0; color:#116d2b; font-weight:700;";
+      stavText = "HOTOVO";
+    } else if (stav === "domluveno" && r.datum && r.cas) {
       const d = new Date(r.datum);
       const den = d.toLocaleDateString("cs-CZ",
         { weekday: "short", day: "numeric", month: "numeric" });
       stavText = `${den} ${r.cas}`;
     }
 
+    // 🧱 Jeden řádek tabulky
     html += `
       <tr class="stav-${stav}" data-index="${i}" data-id="${id}">
         <td>${r.zakaznik || "–"}</td>
         <td>${adresa}</td>
         <td>${telefon}</td>
-        <td style="font-weight:400;">${stavText}</td>
+        <td style="${barva} text-align:center;">${stavText}</td>
       </tr>`;
   });
 
   html += "</tbody></table>";
   tableContainer.innerHTML = html;
 
+  // 🧭 Akce po kliknutí na řádek
   document.querySelectorAll("tbody tr").forEach(row => {
     row.addEventListener("click", () => openDetail(row.dataset.index));
   });
@@ -357,6 +366,7 @@ searchInput.addEventListener("input", () => {
     (r.adresa || "").toLowerCase().includes(q)
   ));
 });
+
 
 /* ============================= */
 /* 🔁 RUČNÍ NAČTENÍ DAT           */
