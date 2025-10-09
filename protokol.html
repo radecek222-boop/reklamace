@@ -455,6 +455,42 @@ button:hover { transform:scale(1.03); opacity:0.9; }
       console.error("❌ Chyba při ukládání:",e);
     }
   }
+async function exportPDF() {
+  const doc = await generatePDF();
+  const blob = doc.output("blob");
+  const url = URL.createObjectURL(blob);
+  window.open(url, "_blank");
+  saveProtocolToCustomer(blob);
+  markAsCompleted(); // ✅ označí hotovo
+}
+
+async function mailCustomer() {
+  const doc = await generatePDF();
+  const blob = doc.output("blob");
+  saveProtocolToCustomer(blob);
+  markAsCompleted(); // ✅ označí hotovo
+  const email = document.getElementById("email").value || "";
+  const subject = "Reklamační protokol White Glove Service";
+  const body = "Dobrý den,\n\nv příloze zasíláme reklamační protokol z návštěvy.\n\nS pozdravem,\nWHITE GLOVE SERVICE s.r.o.";
+  window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+/* 🟢 Označení reklamace jako hotové */
+function markAsCompleted() {
+  const protokol = JSON.parse(localStorage.getItem("protokolData") || "{}");
+  if (!protokol.cislo) return;
+
+  // 🔄 uloží do localStorage
+  const stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
+  stavy[protokol.cislo] = "hotovo";
+  localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+
+  // 🟩 volitelný toast (zobrazí po návratu do seznam.html)
+  sessionStorage.setItem("wgsToastMsg", `✅ Reklamace ${protokol.cislo} označena jako hotová`);
+  sessionStorage.setItem("wgsToastType", "success");
+}
+</script>
+
   </script>
 
 </div> <!-- ✅ konec hlavního wrapperu -->
