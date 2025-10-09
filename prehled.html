@@ -168,7 +168,7 @@ h1 {
 
   <div id="summary" class="summary"></div>
   <canvas id="techChart"></canvas>
-  <div id="rateInfo" style="text-align:center;font-size:0.8em;color:#666;margin-top:12px;"></div>
+  <div id="cnbInfo" style="text-align:center;font-size:0.8em;color:#666;margin-top:12px;"></div>
 </div>
 <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 2/10 – Modální okna -->
 <style>
@@ -302,8 +302,8 @@ h1 {
 <script>
 /* 🧱 Globální proměnné */
 let allOrders = [];
-let eurRate = null;
-let eurRateDate = null;
+let cnbRate = null;
+let cnbRateDate = null;
 
 const clientModal       = document.getElementById("clientModal");
 const techModal         = document.getElementById("techModal");
@@ -320,96 +320,69 @@ const closePeriod       = document.getElementById("closePeriod");
 const infoObrat         = document.getElementById("infoObrat");
 const summaryBox        = document.getElementById("summary");
 const resultsTableBody  = document.querySelector("#resultsTable tbody");
-const rateInfo           = document.getElementById("rateInfo");
+const cnbInfo           = document.getElementById("cnbInfo");
 
 
 
 
-          
-          
-          
-          
-          
-          
-          
-          
-<script>          
-          
-<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 4 – Načtení kurzu EUR/CZK (frankfurter.app + zálohy) -->
-
-async function loadeurRate() {
-  let source = "frankfurter.app (ECB)";
+// 🔹 Sekce 4 – Načtení kurzu EUR/CZK (spolehlivější zdroj + zálohy)
+async function loadCNBrate() {
+  let source = "exchangerate.host";
   try {
-    // 🟢 1️⃣ Načtení z Frankfurter API (ECB)
-    const resp = await fetch("https://api.frankfurter.app/latest?from=EUR&to=CZK", { cache: "no-cache" });
+    const resp = await fetch("https://api.exchangerate.host/latest?base=EUR&symbols=CZK");
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
-
     if (data && data.rates && typeof data.rates.CZK === "number") {
-      eurRate = data.rates.CZK;
-      eurRateDate = data.date || new Date().toISOString().split("T")[0];
-      source = "frankfurter.app (ECB)";
-      console.log(`📈 Kurz EUR/CZK: ${eurRate} (${eurRateDate})`);
+      cnbRate = data.rates.CZK;
+      cnbRateDate = data.date || new Date().toISOString().split("T")[0];
+      source = "exchangerate.host";
+      console.log(`📈 Kurz EUR/CZK z exchangerate.host: ${cnbRate} (${cnbRateDate})`);
     } else throw new Error("Neplatná data z API");
-
   } catch (err) {
-    console.warn("⚠️ Nelze načíst kurz z frankfurter.app:", err);
-
-    // 🟡 2️⃣ Fallback – pokus o GitHub zálohu
+    console.warn("⚠️ Nelze načíst kurz z exchangerate.host:", err);
     try {
       const res = await fetch("https://radecek222-boop.github.io/reklamace/lastRate.json?t=" + Date.now());
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const backup = await res.json();
       if (backup && backup.rate) {
-        eurRate = backup.rate;
-        eurRateDate = backup.date || "neuvedeno";
+        cnbRate = backup.rate;
+        cnbRateDate = backup.date || "neuvedeno";
         source = "GitHub záloha";
-        console.log(`💾 Kurz EUR/CZK z GitHub záloha: ${eurRate} (${eurRateDate})`);
+        console.log(`💾 Kurz EUR/CZK z GitHub záloha: ${cnbRate} (${cnbRateDate})`);
       } else throw new Error("Neplatná data zálohy");
     } catch (err2) {
       console.error("❌ Nepodařilo se načíst ani GitHub zálohu:", err2);
-
-      // 🔴 3️⃣ Poslední možnost – localStorage
-      const stored = JSON.parse(localStorage.getItem("lasteurRate") || "{}");
+      const stored = JSON.parse(localStorage.getItem("lastCnbRate") || "{}");
       if (stored.value) {
-        eurRate = stored.value;
-        eurRateDate = stored.date || "neuvedeno";
+        cnbRate = stored.value;
+        cnbRateDate = stored.date || "neuvedeno";
         source = "uložený kurz (localStorage)";
-        console.warn("⚙️ Použit uložený kurz:", eurRate);
-      } else {
-        // ⚫ 4️⃣ Nouzová hodnota
-        eurRate = 25.50;
-        eurRateDate = "ručně";
-        source = "fallback (ručně)";
-        console.warn("⚫ Použit nouzový kurz 25.50 Kč");
+        console.warn("⚙️ Použit uložený kurz:", cnbRate);
       }
     }
   }
 
-  // 💾 Uložení kurzu do localStorage
-  if (eurRate && eurRateDate) {
-    localStorage.setItem("lasteurRate", JSON.stringify({
-      value: eurRate,
-      date: eurRateDate,
+  if (cnbRate && cnbRateDate) {
+    localStorage.setItem("lastCnbRate", JSON.stringify({
+      value: cnbRate,
+      date: cnbRateDate,
       time: Date.now()
     }));
   }
 
-  // 🧾 Zobrazení v patičce
-  const foot = document.getElementById("rateInfo");
+  const foot = document.getElementById("cnbInfo");
   if (foot) {
-    if (eurRate && eurRateDate) {
-      foot.textContent = `Kurz ${source}: 1 € = ${eurRate.toLocaleString("cs-CZ", {
+    if (cnbRate && cnbRateDate) {
+      foot.textContent = `Kurz ${source}: 1 € = ${cnbRate.toLocaleString("cs-CZ", {
         minimumFractionDigits: 4,
         maximumFractionDigits: 4
-      })} Kč (platný k ${eurRateDate})`;
+      })} Kč (platný k ${cnbRateDate})`;
     } else {
       foot.textContent = "⚠️ Kurz není k dispozici – zkontrolujte připojení nebo soubor lastRate.json";
     }
   }
 }
 </script>
-
   
 <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 6 – Zadavatelé (fixní + automatické doplnění nových + zpětná vazba) -->
 <script>
@@ -539,7 +512,7 @@ document.addEventListener("click", (e) => {
  * a spuštění výpočtu / renderu.
  */
 async function loadOrders() {
-  await loadeurRate(); // nejdřív kurz ČNB
+  await loadCNBrate(); // nejdřív kurz ČNB
   try {
     const res = await fetch("https://radecek222-boop.github.io/reklamace/hotove.json?t=" + Date.now());
     allOrders = await res.json();
@@ -623,14 +596,12 @@ function renderResults() {
   summaryBox.textContent = `Zakázek: ${filtered.length} | ${shareText.slice(0, -2)}`;
 
   // 🧮 Kurz ČNB – zobrazení dole
- if (rateInfo) {
-  if (eurRate && eurRateDate) {
-    rateInfo.textContent = `Kurz frankfurter.app (ECB): 1 € = ${eurRate.toLocaleString("cs-CZ",{
-      minimumFractionDigits:4,
-      maximumFractionDigits:4
-    })} Kč (platný k ${eurRateDate})`;
-  } else {
-    rateInfo.textContent = `⚠️ Kurz nebyl dostupný – použit poslední známý nebo záložní.`;
+  if (cnbInfo) {
+    if (cnbRate && cnbRateDate) {
+      cnbInfo.textContent = `kurz ČNB: 1 € = ${cnbRate.toLocaleString("cs-CZ",{minimumFractionDigits:4,maximumFractionDigits:4})} Kč (platný k ${cnbRateDate})`;
+    } else {
+      cnbInfo.textContent = `⚠️ Kurz ČNB nebyl nalezen, použit poslední známý nebo záložní.`;
+    }
   }
 }
 </script>
@@ -722,11 +693,11 @@ dateTo.value = formatLocal(last);
 
 📦 HLAVNÍ FUNKCE
 
-1️⃣ loadeurRate()
+1️⃣ loadCNBrate()
    ▪ načte aktuální kurz z denního TXT feedu ČNB  
    ▪ hledá řádek s „|EUR|“  
    ▪ pokud selže, načte poslední uložený kurz z localStorage  
-   ▪ výsledek uloží do proměnných eurRate a eurRateDate
+   ▪ výsledek uloží do proměnných cnbRate a cnbRateDate
 
 2️⃣ parseMoney() / fmtEUR() / getDate()
    ▪ pomocné funkce pro číselné převody  
@@ -797,4 +768,3 @@ dateTo.value = formatLocal(last);
   Systém navržen pro interní přehled servisu a reklamací.
   Poslední revize: říjen 2025
 -->
-
