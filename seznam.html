@@ -1957,22 +1957,45 @@ function formatTimeShort(h, m) {
 <!-- ===================================================== -->
 
 <!-- 🟪 G-1: IMPORTY KNIHOVEN -->
+<!-- ===================================================== -->
+<!-- 📁 White Glove Service – Import všech externích knihoven -->
+<!-- Pořadí je důležité: nejprve Leaflet + konfigurace WGS,
+     poté kalendář, nakonec jsPDF -->
+<!-- ===================================================== -->
+
 <!-- 🗺️ Leaflet (mapa) -->
 <link rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         crossorigin=""></script>
+
+<!-- 🧭 WGS – konfigurace sídla firmy (musí být načteno před mapou a trasami) -->
 <script src="wgs-config-map.js"></script>
 
-<!-- 📅 Vanilla Calendar (tvá verze z GitHubu) -->
+<!-- 📅 Vanilla Calendar (tvá lokální verze z GitHubu) -->
 <link rel="stylesheet"
       href="https://radecek222-boop.github.io/reklamace/vanilla-calendar.min.css">
 <script src="https://radecek222-boop.github.io/reklamace/vanilla-calendar.min.js"></script>
 
-<!-- 📄 jsPDF (pro export PDF – volitelné) -->
+<!-- 📄 jsPDF (pro export PDF protokolů a plánu dne) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- ✅ Kontrolní logy -->
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    if (window.WGS_CONFIG) {
+      console.log("🌍 WGS config loaded:", window.WGS_CONFIG);
+    } else {
+      console.error("❌ WGS konfigurace nebyla načtena – zkontroluj wgs-config-map.js");
+    }
+    if (typeof L === "undefined") console.error("❌ Leaflet se nenačetl!");
+    if (typeof VanillaCalendar === "undefined") console.error("❌ Vanilla Calendar se nenačetl!");
+  });
+</script>
+
 <!-- 🟪 KONEC G-1 -->
+
 
 <!-- 🟪 G-2: GLOBÁLNÍ INICIALIZACE A OCHRANA -->
 <script>
