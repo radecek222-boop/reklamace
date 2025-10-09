@@ -721,7 +721,7 @@ function initCalendarAndTime(overlay, item, index) {
 
 
 
-<!-- 🟩 C-4: TLAČÍTKA AKCÍ – včetně „Zákazník čeká na díly“ -->
+<!-- 🟩 C-4: TLAČÍTKA AKCÍ – včetně „Zákazník čeká na díly“ s uložením -->
 <script>
 function initDetailButtons(overlay, item, index) {
   const id = item.cislo || `radek-${index}`;
@@ -747,7 +747,7 @@ function initDetailButtons(overlay, item, index) {
     overlay.remove(); renderTable(dataAll);
   };
 
-  /* 🟣 ZÁKAZNÍK ČEKÁ NA DÍLY – vloží se až po vytvoření DOM */
+  /* 🟣 ZÁKAZNÍK ČEKÁ NA DÍLY – uloží i na GitHub */
   setTimeout(() => {
     const leftButtons = overlay.querySelector(".left-buttons");
     const cancelBtn = overlay.querySelector("#cancelBtn");
@@ -758,15 +758,23 @@ function initDetailButtons(overlay, item, index) {
       waitBtn.textContent = "Zákazník čeká na díly";
       leftButtons.insertBefore(waitBtn, cancelBtn);
 
-      waitBtn.onclick = () => {
-        stavy[id] = "ceka";
-        item.stav = "čekáme na díly";
-        setNextToast("🟣 Zákazník čeká na díly", "warning");
-        overlay.remove();
-        renderTable(dataAll);
+      waitBtn.onclick = async () => {
+        try {
+          stavy[id] = "ceka";
+          item.stav = "ceka";
+          const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "update", record: item })
+          });
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          setNextToast("🟣 Zákazník čeká na díly", "warning");
+          overlay.remove();
+          renderTable(dataAll);
+        } catch (err) {
+          alert("❌ Chyba při ukládání: " + err.message);
+        }
       };
-    } else {
-      console.warn("⚠️ Nelze vložit tlačítko – prvek .left-buttons nebo #cancelBtn nenalezen.");
     }
   }, 150);
 
@@ -836,6 +844,7 @@ function initDetailButtons(overlay, item, index) {
   font-weight:700;
 }
 </style>
+
 
 <!-- 🟩 KONEC C-4 -->
 
@@ -1517,7 +1526,6 @@ function formatTimeShort(h, m) {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <!-- 🟪 KONEC G-1 -->
 
-
 <!-- 🟪 G-2: GLOBÁLNÍ INICIALIZACE A OCHRANA -->
 <script>
 window.addEventListener("DOMContentLoaded", () => {
@@ -1537,7 +1545,14 @@ window.addEventListener("DOMContentLoaded", () => {
     sessionStorage.removeItem("wgsToastType");
   }
 
-  // 3️⃣ Kontrola knihoven + log
+  // 3️⃣ Napojení hlavních tlačítek
+  const planBtn = document.getElementById("planBtn");
+  if (planBtn) planBtn.onclick = openPlanModal; // 🔵 „Plán dne“
+
+  const reloadBtn = document.getElementById("reloadBtn");
+  if (reloadBtn) reloadBtn.onclick = loadData;  // 🔄 „Načíst znovu“
+
+  // 4️⃣ Kontrola načtených knihoven
   if (typeof L === "undefined") {
     console.error("❌ Leaflet se nonačetl – zkontroluj CDN.");
   } else {
@@ -1560,6 +1575,8 @@ window.addEventListener("unhandledrejection", e => {
   console.error("⚠️ Nezpracované Promise:", e.reason);
 });
 </script>
+<!-- 🟪 KONEC G-2 -->
+
 <!-- 🟪 KONEC G-2 -->
 
 
