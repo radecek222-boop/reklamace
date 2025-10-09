@@ -193,12 +193,12 @@ button:hover { transform:scale(1.03); opacity:0.9; }
   });
   </script>
 
-  <!-- 🟨 Sekce I.2 – Překladač CZ → EN (libretranslate.com) -->
+  <!-- 🟨 Sekce I.2 – Překladač CZ → EN (translate.com) -->
   <script>
   async function translateCZtoEN(text) {
     if (!text.trim()) return "";
     try {
-      const res = await fetch("https://libretranslate.com/translate", {
+      const res = await fetch("https://translate.argosopentech.com/translate", {
         method: "POST",
         headers: {"Content-Type":"application/json"},
         body: JSON.stringify({ q:text, source:"cs", target:"en", format:"text" })
@@ -292,40 +292,43 @@ button:hover { transform:scale(1.03); opacity:0.9; }
     signDate.value ||= today;
   });
 
-  // 🧾 GENEROVÁNÍ PDF – tlačítka překryta bílou vrstvou
-  async function generatePDF(){
-    const { jsPDF } = window.jspdf;
-    const wrapper=document.querySelector(".wrapper");
-    const doc=new jsPDF("p","mm","a4");
+// 🧾 GENEROVÁNÍ PDF – tlačítka se nezobrazí v PDF
+async function generatePDF(){
+  const { jsPDF } = window.jspdf;
+  const wrapper = document.querySelector(".wrapper");
+  const doc = new jsPDF("p","mm","a4");
 
-    // 💧 vodoznak
-    doc.setFont("helvetica","bold");
-    doc.setFontSize(48);
-    doc.setTextColor(220,220,220);
-    doc.text("WHITE GLOVE SERVICE",105,150,{align:"center",angle:45});
+  // 💧 Vodoznak
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(48);
+  doc.setTextColor(220,220,220);
+  doc.text("WHITE GLOVE SERVICE",105,150,{align:"center",angle:45});
 
-    // dočasné skrytí tlačítek (překrytí bílou)
-    const btns = document.querySelector(".btns");
-    const originalDisplay = btns.style.display;
-    btns.style.opacity = "0";
+  // ⛔️ Dočasné skrytí tlačítek (zůstanou neviditelné jen během exportu)
+  const btns = document.querySelector(".btns");
+  const originalVisibility = btns.style.visibility;
+  btns.style.visibility = "hidden";
 
-    // převod celé stránky do obrázku
-    wrapper.classList.add("force-desktop");
-    const canvas = await html2canvas(wrapper,{scale:2,backgroundColor:"#fff"});
-    const imgData = canvas.toDataURL("image/jpeg",0.95);
-    wrapper.classList.remove("force-desktop");
+  // 🧱 Převod stránky do obrázku (bez tlačítek)
+  wrapper.classList.add("force-desktop");
+  const canvas = await html2canvas(wrapper,{scale:2,backgroundColor:"#fff"});
+  const imgData = canvas.toDataURL("image/jpeg",0.95);
+  wrapper.classList.remove("force-desktop");
 
-    // vrátit tlačítka zpět
-    btns.style.opacity = "1";
+  // ✅ Vrátíme tlačítka zpět
+  btns.style.visibility = originalVisibility;
 
-    if(!signaturePad.isEmpty()){
-      const sig=signaturePad.toDataURL("image/png");
-      doc.addImage(sig,"PNG",30,250,60,20);
-    }
-
-    doc.addImage(imgData,"JPEG",0,0,210,297);
-    return doc;
+  // ✍️ Podpis zákazníka se přidá navíc (zůstává viditelný)
+  if(!signaturePad.isEmpty()){
+    const sig = signaturePad.toDataURL("image/png");
+    doc.addImage(sig,"PNG",30,250,60,20);
   }
+
+  // 📄 Obrázek celé stránky do PDF
+  doc.addImage(imgData,"JPEG",0,0,210,297);
+  return doc;
+}
+
 
   async function exportPDF(){
     const doc=await generatePDF();
