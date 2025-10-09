@@ -395,3 +395,477 @@ async function loadCNBrate() {
 }
 </script>
 
+
+
+
+
+  <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 4 – Pomocné funkce -->
+<script>
+/**
+ * 🔢 parseMoney()
+ * Převádí textový vstup (např. "12 345,50 Kč" nebo "120 €") na číslo.
+ * Vrací 0 pokud není možné převést.
+ */
+const parseMoney = (v) => {
+  if (!v) return 0;
+  const s = String(v).replace(/[^\d.,-]/g, "").replace(",", ".");
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+};
+
+/**
+ * 💶 fmtEUR()
+ * Formátuje číslo na EUR s českou lokalizací (2 desetinná místa).
+ */
+const fmtEUR = (n) =>
+  `${Number(n || 0).toLocaleString("cs-CZ", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} €`;
+
+/**
+ * 📅 getDate()
+ * Vrací objekt Date z různých položek záznamu – preferuje datum protokolu, pak reklamace, pak prodeje.
+ * Při neplatném datu vrací "2000-01-01" (kvůli bezpečnému řazení).
+ */
+const getDate = (r) => {
+  const raw =
+    r.datum_protokolu ||
+    r.datum_reklamace ||
+    r.datum_prodeje ||
+    "";
+  const d = new Date(raw);
+  return isNaN(d) ? new Date("2000-01-01") : d;
+};
+
+/**
+ * 💱 convertToEUR()
+ * Pokud je hodnota v Kč a existuje kurz ČNB, přepočítá na EUR.
+ * Pokud je částka už v €, nepřepočítává ji.
+ */
+const convertToEUR = (value) => {
+  const val = parseMoney(value);
+  const str = String(value);
+  if (!cnbRate) return val; // když není kurz, vrátí původní hodnotu
+  if (str.includes("€")) return val;
+  return val / cnbRate;
+};
+
+/**
+ * 🧮 sumValues()
+ * Spočítá celkový součet částek v EUR z pole objektů (r)
+ */
+const sumValues = (arr, field) => {
+  return arr.reduce((acc, r) => acc + convertToEUR(r[field]), 0);
+};
+</script>
+
+
+
+
+
+  <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 5 – Zadavatelé -->
+<script>
+async function loadClients() {
+  loadingClients.style.display = "block";
+  clientList.style.display = "none";
+  clientList.innerHTML = "";
+
+  try {
+    // 🔹 načtení dat ze souboru hotove.json
+    const res = await fetch("https://radecek222-boop.github.io/reklamace/hotove.json?t=" + Date.now());
+    const data = await res.json();
+
+    // 🔸 známí zadavatelé
+    const known = [
+      "Natuzzi Editions",
+      "Natuzzi Italia",
+      "Softaly",
+      "Phase",
+      "WGS (Pozáruční servis)"
+    ];
+
+    // 🔸 extrahování všech záznamů z dat
+    const fromData = [...new Set(data.map(r => r.contract).filter(Boolean))];
+    const allClients = [...new Set([...known, ...fromData])].sort();
+
+    // 🔸 načtení uloženého výběru
+    const saved = JSON.parse(localStorage.getItem("selectedClients") || "[]");
+
+    // 🧾 vytvoření seznamu
+    clientList.innerHTML = allClients
+      .map(c => `
+        <label>
+          <input type="checkbox" value="${c}" ${saved.includes(c) ? "checked" : ""}>
+          ${c}
+        </label>`)
+      .join("");
+
+    loadingClients.style.display = "none";
+    clientList.style.display = "block";
+  } catch (err) {
+    console.error("❌ Chyba načítání zadavatelů:", err);
+    loadingClients.textContent = "❌ Chyba při načítání seznamu zadavatelů";
+  }
+}
+
+// ✅ potvrzení výběru zadavatelů
+confirmClients.onclick = () => {
+  const checked = [...clientList.querySelectorAll("input:checked")].map(i => i.value);
+  localStorage.setItem("selectedClients", JSON.stringify(checked));
+  clientModal.classList.remove("active");
+  renderResults();
+};
+</script>
+
+
+
+
+
+
+  <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 6 – Výběr období -->
+<script>
+/**
+ * 📅 Reakce na změnu výběru měsíce
+ * Po volbě měsíce se automaticky vyplní pole "Od" a "Do"
+ * s ohledem na aktuální rok.
+ */
+document.getElementById("monthSelect").addEventListener("change", (e) => {
+  const month = parseInt(e.target.value, 10);
+  if (!month) return;
+
+  const year = new Date().getFullYear();
+  const start = new Date(year, month - 1, 1);
+  const end = new Date(year, month, 0);
+
+  const yyyy = year.toString().padStart(4, "0");
+  const mm = month.toString().padStart(2, "0");
+  const fromStr = `${yyyy}-${mm}-01`;
+  const toStr = `${yyyy}-${mm}-${String(end.getDate()).padStart(2, "0")}`;
+
+  document.getElementById("dateFrom").value = fromStr;
+  document.getElementById("dateTo").value = toStr;
+});
+
+/**
+ * 🧾 Potvrzení výběru období
+ * Uloží do localStorage a přepočítá výsledky.
+ */
+confirmPeriod.onclick = () => {
+  const from = document.getElementById("dateFrom").value;
+  const to = document.getElementById("dateTo").value;
+
+  if (!from || !to) {
+    alert("Zadej platné období nebo měsíc.");
+    return;
+  }
+
+  localStorage.setItem("selectedPeriod", JSON.stringify({ from, to }));
+  periodModal.classList.remove("active");
+  renderResults();
+};
+
+/**
+ * 🚪 Zavření okna bez uložení
+ */
+closePeriod.addEventListener("click", () => {
+  periodModal.classList.remove("active");
+});
+</script>
+
+
+
+
+
+  <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 7 – Výběr technika -->
+<script>
+// 🔧 Seznam techniků – staticky definovaný
+const techList = [
+  { name: "Milan Kolín", key: "kolin" },
+  { name: "Radek Zikmund", key: "zikmund" }
+];
+
+// 🧱 Vložení obsahu modálu do <div id="techModal">
+techModal.innerHTML = `
+  <div class="modal-box">
+    <h2>Vyber technika</h2>
+    <div style="margin-bottom:20px;text-align:left;">
+      ${techList.map(t => `
+        <label style="display:block;margin:6px 0;">
+          <input type="radio" name="techSelect" value="${t.key}">
+          ${t.name}
+        </label>`).join("")}
+    </div>
+    <div class="modal-actions">
+      <button id="confirmTech" class="btn btn-dark">Potvrdit</button>
+      <button id="closeTech" class="btn btn-light">Zavřít</button>
+    </div>
+  </div>
+`;
+
+// 🟢 Při kliknutí na tlačítko "Potvrdit"
+document.addEventListener("click", (e) => {
+  if (e.target.id === "confirmTech") {
+    const sel = document.querySelector("input[name='techSelect']:checked");
+    if (!sel) {
+      alert("Vyber technika, prosím.");
+      return;
+    }
+    localStorage.setItem("selectedTech", sel.value);
+    techModal.classList.remove("active");
+    renderResults();
+  }
+
+  // 🔴 Zavření bez výběru
+  if (e.target.id === "closeTech") {
+    techModal.classList.remove("active");
+  }
+});
+</script>
+
+
+
+
+  <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 8 – Načtení zakázek + vykreslení -->
+<script>
+/**
+ * 📥 Načtení všech hotových zakázek z GitHubu
+ * a spuštění výpočtu / renderu.
+ */
+async function loadOrders() {
+  await loadCNBrate(); // nejdřív kurz ČNB
+  try {
+    const res = await fetch("https://radecek222-boop.github.io/reklamace/hotove.json?t=" + Date.now());
+    allOrders = await res.json();
+    renderResults();
+  } catch (err) {
+    console.error("❌ Chyba načítání dat zakázek:", err);
+    summaryBox.textContent = "❌ Nepodařilo se načíst data z GitHubu.";
+  }
+}
+
+/**
+ * 📊 Filtrování + výpočet + zobrazení výsledků
+ */
+function renderResults() {
+  if (!allOrders.length) return;
+
+  // 🔸 Načtení uložených filtrů
+  const selClients = JSON.parse(localStorage.getItem("selectedClients") || "[]");
+  const selPeriod  = JSON.parse(localStorage.getItem("selectedPeriod") || "{}");
+  const selTech    = localStorage.getItem("selectedTech") || "";
+  const from = selPeriod.from ? new Date(selPeriod.from) : null;
+  const to   = selPeriod.to ? new Date(selPeriod.to) : null;
+
+  // 🔸 Kopie dat
+  let filtered = allOrders.slice();
+
+  // 🧭 Filtry
+  if (selClients.length)
+    filtered = filtered.filter(r => selClients.includes(r.contract));
+  if (from && to)
+    filtered = filtered.filter(r => { const d = getDate(r); return d >= from && d <= to; });
+  if (selTech)
+    filtered = filtered.filter(r => (r.technik || "").toLowerCase().includes(selTech));
+
+  // 🗓️ Seřazení podle data protokolu
+  filtered.sort((a, b) => getDate(b) - getDate(a));
+
+  // 💶 Výpočty
+  const techTotals = { "Radek Zikmund": 0, "Milan Kolín": 0 };
+  let totalEUR = 0;
+
+  filtered.forEach(r => {
+    const eurVal = convertToEUR(r.cenaCelkem || r.total || r.cena);
+    totalEUR += eurVal;
+
+    const t = (r.technik || "").toLowerCase();
+    const hasRadek = t.includes("zikmund");
+    const hasMilan = t.includes("kolin");
+
+    // Každý technik má fixních 30 %
+    if (hasRadek) techTotals["Radek Zikmund"] += eurVal * 0.30;
+    if (hasMilan) techTotals["Milan Kolín"] += eurVal * 0.30;
+  });
+
+  // 📋 Tabulka výsledků
+  resultsTableBody.innerHTML = filtered.map(r => {
+    const val = convertToEUR(r.cenaCelkem || r.total || r.cena);
+    return `
+      <tr>
+        <td>${r.zakaznik || "–"}</td>
+        <td>${r.cislo || "–"}</td>
+        <td>${r.contract || "–"}</td>
+        <td>${r.technik || "–"}</td>
+        <td>${fmtEUR(val)}</td>
+      </tr>
+    `;
+  }).join("") || `
+    <tr>
+      <td colspan="5" style="text-align:center;color:#888;padding:20px;">Žádné výsledky</td>
+    </tr>
+  `;
+
+  // 🧾 Shrnutí a podíly
+  let shareText = "";
+  Object.entries(techTotals).forEach(([name, v]) => {
+    const pct = totalEUR > 0 ? ((v / totalEUR) * 100).toFixed(1) : "0.0";
+    shareText += `${name}: ${fmtEUR(v)} (${pct} %) | `;
+  });
+
+  infoObrat.textContent = `Celkový obrat: ${fmtEUR(totalEUR)}`;
+  summaryBox.textContent = `Zakázek: ${filtered.length} | ${shareText.slice(0, -2)}`;
+
+  // 🧮 Kurz ČNB – zobrazení dole
+  if (cnbInfo) {
+    if (cnbRate && cnbRateDate) {
+      cnbInfo.textContent = `kurz ČNB: 1 € = ${cnbRate.toLocaleString("cs-CZ",{minimumFractionDigits:4,maximumFractionDigits:4})} Kč (platný k ${cnbRateDate})`;
+    } else {
+      cnbInfo.textContent = `⚠️ Kurz ČNB nebyl nalezen, použit poslední známý nebo záložní.`;
+    }
+  }
+}
+</script>
+
+
+
+
+
+  <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 9 – Inicializace stránky -->
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+  // 🟢 Načtení zakázek a kurzů
+  loadOrders();
+
+  // 🎯 Otevření modálních oken
+  selectClientBtn.addEventListener("click", () => {
+    loadClients();
+    clientModal.classList.add("active");
+  });
+
+  selectTechBtn.addEventListener("click", () => {
+    techModal.classList.add("active");
+  });
+
+  selectPeriodBtn.addEventListener("click", () => {
+    periodModal.classList.add("active");
+  });
+
+  // 🎯 Zavírání tlačítky
+  closeClients.addEventListener("click", () => clientModal.classList.remove("active"));
+  closePeriod.addEventListener("click", () => periodModal.classList.remove("active"));
+
+  // 🚪 Odhlášení
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      localStorage.clear();
+      window.location.href = "index.html";
+    });
+  }
+
+  console.log("✅ Přehled WGS inicializován");
+});
+</script>
+
+
+
+
+  <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 10 – Dokumentační shrnutí -->
+<!--
+📘 White Glove Service – přehled statistik (prehled.html)
+-----------------------------------------------------------
+
+🧱 STRUKTURA SOUBORU
+  1. CSS + rozvržení – styl a design
+  2. HTML struktura – tlačítka, tabulka, graf, modály
+  3. Kurz ČNB – získání, uložení, záložní hodnota
+  4. Pomocné funkce – převody měn, formátování čísel
+  5. Zadavatelé – výběr z databáze + uložení volby
+  6. Výběr období – ruční nebo automatický podle měsíce
+  7. Výběr technika – Milan Kolín / Radek Zikmund
+  8. Načtení a vykreslení – hlavní logika
+  9. Inicializace – propojení všeho dohromady
+  10. Dokumentace – tato část
+
+-----------------------------------------------------------
+
+📦 HLAVNÍ FUNKCE
+
+1️⃣ loadCNBrate()
+   ▪ načte aktuální kurz z denního TXT feedu ČNB  
+   ▪ hledá řádek s „|EUR|“  
+   ▪ pokud selže, načte poslední uložený kurz z localStorage  
+   ▪ výsledek uloží do proměnných cnbRate a cnbRateDate
+
+2️⃣ parseMoney() / fmtEUR() / getDate()
+   ▪ pomocné funkce pro číselné převody  
+   ▪ parseMoney() převede text (např. „1.234,56 Kč“) na číslo  
+   ▪ fmtEUR() naformátuje číslo do českého zápisu s €  
+   ▪ getDate() vrací objekt Date z libovolného pole dat
+
+3️⃣ loadClients()
+   ▪ načítá všechny možné zadavatele z hotove.json  
+   ▪ doplní známé značky (Natuzzi, Softaly, Phase, WGS, …)  
+   ▪ umožňuje uživateli zaškrtnout 1+ klientů  
+   ▪ uloží výběr do localStorage
+
+4️⃣ Výběr období
+   ▪ reaguje na změnu selectu měsíce  
+   ▪ automaticky doplní první a poslední den měsíce  
+   ▪ potvrzení uloží {from, to} do localStorage  
+   ▪ při potvrzení se volá renderResults()
+
+5️⃣ Výběr technika
+   ▪ obsahuje dva záznamy: Milan Kolín, Radek Zikmund  
+   ▪ ukládá vybraného technika do localStorage  
+   ▪ po potvrzení přepočítá výsledky (renderResults)
+
+6️⃣ loadOrders()
+   ▪ stáhne JSON hotových zakázek z GitHubu  
+   ▪ zavolá renderResults()
+
+7️⃣ renderResults()
+   ▪ aplikuje všechny filtry (zadavatele, období, technika)
+   ▪ přepočítá částky na EUR podle ČNB
+   ▪ vypočítá podíl techniků (fixně 30 % pro každého)
+   ▪ vykreslí tabulku, shrnutí a kurz ČNB
+
+8️⃣ Inicializace
+   ▪ spouští loadOrders() při načtení stránky
+   ▪ připojuje event listenery ke všem tlačítkům
+   ▪ zajišťuje zavírání modálů
+   ▪ odhlašování = smazání localStorage + redirect na index.html
+
+-----------------------------------------------------------
+
+📊 PŘEVOD MĚN
+  – Pokud cena obsahuje znak €, použije se přímo.
+  – Pokud je uvedeno v Kč a je k dispozici kurz ČNB, přepočte se na EUR.
+  – Pokud kurz ČNB nelze načíst, zobrazí se hláška:
+      „Kurz ČNB nebyl k dispozici – použit poslední známý.“
+
+-----------------------------------------------------------
+
+💶 PODÍLY TECHNIKŮ
+  – Každý technik má 30 % z hodnoty svých zakázek.
+  – Pokud jsou u zakázky oba, každý dostane 30 %.
+  – Filtr „technik“ umožňuje zobrazit jen jeho zakázky.
+
+-----------------------------------------------------------
+
+📈 BUDOUCÍ ROZŠÍŘENÍ (doporučení)
+  ▪ přidat přepočet CZK→EUR i na základě uloženého kurzu v protokolu
+  ▪ přidat export do CSV / PDF
+  ▪ přidat grafy dle zadavatele nebo typu opravy
+  ▪ rozšířit o měsíční souhrny po letech
+
+-----------------------------------------------------------
+
+🧩 AUTOR
+  White Glove Service s.r.o.  
+  Systém navržen pro interní přehled servisu a reklamací.
+  Poslední revize: říjen 2025
+-->
+
+
