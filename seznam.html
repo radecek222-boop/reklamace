@@ -1447,6 +1447,193 @@ async function showPlanMap(list, container) {
 <!-- 🟦 KONEC E-4 -->
 
 
+<!-- 🟦 E-5: DETAIL ZÁKAZNÍKA V PLÁNU DNE -->
+<style>
+#planDetail {
+  padding: 15px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  margin-top: 15px;
+}
+.plan-banner {
+  background: linear-gradient(90deg, #ff4d4d, #ff7b7b);
+  color: #fff;
+  font-weight: 700;
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  text-align: center;
+  font-size: 1em;
+}
+#planMap {
+  width: 100%;
+  height: 350px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+.plan-list {
+  margin-top: 10px;
+}
+.plan-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f7f8fc;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.plan-item strong {
+  font-size: 1em;
+}
+.plan-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.btn-waze {
+  background: #0055ff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.btn-phone {
+  background: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.distance {
+  color: #555;
+  font-size: 0.85em;
+  margin-top: 3px;
+}
+@media (max-width:600px) {
+  .plan-item { flex-direction: column; align-items: flex-start; }
+  .plan-actions { margin-top: 6px; }
+}
+</style>
+
+<div id="planDetail">
+  <div id="planBanner" class="plan-banner">🚗 Nejpozději vyrazit: výpočet…</div>
+  <div id="planMap"></div>
+  <div id="planList" class="plan-list"></div>
+</div>
+
+<script>
+const WGS_COORDS = [50.080815, 14.612493]; // Václava Kovaříka, Praha 9 – Běchovice
+
+async function renderPlanDetail(list = []) {
+  const mapDiv = document.getElementById("planMap");
+  mapDiv.innerHTML = "";
+  const map = L.map(mapDiv).setView(WGS_COORDS, 11);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18 }).addTo(map);
+
+  const points = [WGS_COORDS];
+  const markers = [];
+  const planList = document.getElementById("planList");
+  planList.innerHTML = "";
+
+  if (!list.length) {
+    L.marker(WGS_COORDS).addTo(map).bindPopup("White Glove Service – Běchovice");
+    L.polyline([WGS_COORDS, WGS_COORDS], { color: "#0046ff", weight: 3 }).addTo(map);
+    document.getElementById("planBanner").textContent = "🚗 Žádné trasy pro dnešní den";
+    return;
+  }
+
+  let totalKm = 0;
+  let prevPoint = WGS_COORDS;
+
+  for (let i = 0; i < list.length; i++) {
+    const r = list[i];
+    if (!r.adresa) continue;
+
+    try {
+      const geo = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(r.adresa)}`
+      ).then((res) => res.json());
+      if (geo[0]) {
+        const point = [parseFloat(geo[0].lat), parseFloat(geo[0].lon)];
+        points.push(point);
+        markers.push(L.marker(point).addTo(map).bindPopup(`${r.zakaznik}<br>${r.adresa}`));
+
+        // vzdálenost mezi body (hrubý výpočet)
+        const km = getDistanceKm(prevPoint, point);
+        totalKm += km;
+        prevPoint = point;
+
+        const phoneClean = (r.telefon || "").replace(/\s+/g, "");
+        const planItem = document.createElement("div");
+        planItem.className = "plan-item";
+        planItem.innerHTML = `
+          <div>
+            <strong>${i + 1}. ${r.zakaznik || "Neznámý"}</strong><br>
+            ${r.adresa || "-"}<br>
+            <span class="distance">📏 ${km.toFixed(1)} km od předchozího</span>
+          </div>
+          <div class="plan-actions">
+            <button class="btn-waze" onclick="openWaze('${r.adresa}')">Waze</button>
+            <a class="btn-phone" href="tel:${phoneClean}">📞</a>
+          </div>
+        `;
+        planList.appendChild(planItem);
+      }
+    } catch (err) {
+      console.warn("❌ Geocode error", r.adresa);
+    }
+  }
+
+  // návrat do WGS
+  points.push(WGS_COORDS);
+  L.polyline(points, { color: "#0046ff", weight: 3 }).addTo(map);
+  const group = L.featureGroup(markers);
+  if (group.getBounds().isValid()) map.fitBounds(group.getBounds().pad(0.3));
+
+  const departTime = calcDeparture(totalKm);
+  document.getElementById("planBanner").textContent =
+    `🚗 Nejpozději vyrazit v ${departTime} (hodin) • Celkem ${totalKm.toFixed(1)} km`;
+}
+
+function getDistanceKm(a, b) {
+  const R = 6371;
+  const dLat = ((b[0] - a[0]) * Math.PI) / 180;
+  const dLon = ((b[1] - a[1]) * Math.PI) / 180;
+  const lat1 = (a[0] * Math.PI) / 180;
+  const lat2 = (b[0] * Math.PI) / 180;
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+function openWaze(address) {
+  const url = `https://waze.com/ul?q=${encodeURIComponent(address)}`;
+  window.open(url, "_blank");
+}
+
+function calcDeparture(totalKm) {
+  const avgSpeed = 50; // km/h
+  const hours = totalKm / avgSpeed;
+  const minutes = Math.round(hours * 60);
+  const now = new Date();
+  now.setMinutes(now.getMinutes() + minutes);
+  return now.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" });
+}
+</script>
+<!-- 🟦 KONEC E-5 -->
+
+
+
 
 
 <!-- 🟦 E-STYLE: MAPA + LEGENDA + ROZLOŽENÍ -->
