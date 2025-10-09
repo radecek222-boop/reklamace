@@ -375,7 +375,6 @@
 <label>Popis závady:</label>
 <textarea name="popis" required placeholder="Popište závadu nebo problém..."></textarea>
 
-<!-- 📸 Rámeček Fotodokumentace -->
 <div class="photo-frame">
   <div class="photo-frame__header">
     <div class="photo-frame__title">Fotodokumentace</div>
@@ -385,7 +384,6 @@
   <div id="photoPreviewMain" class="photo-preview-main"></div>
 </div>
 
-<!-- 💜 Modal pro nahrání fotek -->
 <div id="photoModal" class="photo-modal">
   <div class="photo-modal-content">
     <h3>Nahrát fotografie</h3>
@@ -405,100 +403,77 @@
 </div>
 
 <style>
-/* 📸 Rámeček fotodokumentace */
 .photo-frame {
-  border: 1px solid #000;
-  border-radius: 10px;
-  padding: 14px;
-  margin-top: 18px;
-  background: linear-gradient(180deg,#f4f4f6 0%,#e8e8eb 100%);
+  border:1px solid #000;
+  border-radius:10px;
+  padding:14px;
+  margin-top:18px;
+  background:linear-gradient(180deg,#f4f4f6 0%,#e8e8eb 100%);
 }
-.photo-frame__header {
-  display:flex;justify-content:space-between;align-items:center;
-}
-.photo-frame__title {
-  font-weight:700;color:#111;font-size:1.05em;
-}
-.btn-photo {
+.photo-frame__header{display:flex;justify-content:space-between;align-items:center;}
+.photo-frame__title{font-weight:700;color:#111;font-size:1.05em;}
+.btn-photo{
   padding:8px 16px;border-radius:8px;
   border:1px solid #aaa;background:linear-gradient(180deg,#fff 0%,#f2f2f2 100%);
-  font-weight:600;cursor:pointer;
-  transition:all .2s ease;
+  font-weight:600;cursor:pointer;transition:all .2s ease;
 }
-.btn-photo:hover{transform:scale(1.04);}
-
-.photo-frame__info {
-  font-size:0.7em;color:#555;margin-top:3px;
-}
-.photo-preview-main {
+.photo-frame__info{font-size:0.7em;color:#555;margin-top:3px;}
+.photo-preview-main{
   display:flex;flex-direction:column;gap:6px;margin-top:10px;
 }
-.photo-item-main {
-  display:flex;align-items:center;gap:8px;
-}
-.photo-thumb {
-  width:60px;height:60px;border-radius:6px;object-fit:cover;
+.photo-item-main{display:flex;align-items:center;gap:8px;}
+.photo-thumb{
+  width:80px;height:80px;border-radius:6px;object-fit:cover;
   box-shadow:0 2px 5px rgba(0,0,0,0.15);
 }
-.photo-name {
-  font-size:0.8em;color:#333;word-break:break-all;
-}
+.photo-name{font-size:0.8em;color:#333;word-break:break-all;}
 
-/* 💜 Modal */
-.photo-modal {
+/* Modal overlay – tmavě šedý a průhledný */
+.photo-modal{
   display:none;position:fixed;inset:0;
-  background:rgba(100,80,150,0.35);
-  backdrop-filter:blur(3px);
+  background:rgba(20,20,20,0.7);
   justify-content:center;align-items:center;z-index:9999;
 }
-.photo-modal.active {display:flex;}
-.photo-modal-content {
-  background:rgba(245,245,247,0.9);
+.photo-modal.active{display:flex;}
+.photo-modal-content{
+  background:#ececec;
   border:2px solid #000;border-radius:12px;
-  padding:20px;max-width:550px;width:90%;
-  box-shadow:0 6px 18px rgba(0,0,0,0.3);
-  animation:fadeIn .25s ease;
+  padding:20px;max-width:700px;width:90%;
+  box-shadow:0 6px 18px rgba(0,0,0,0.4);
 }
-@keyframes fadeIn{from{opacity:0;transform:scale(.96);}to{opacity:1;transform:scale(1);}}
 
-/* 🖼️ Miniatury uvnitř modalu */
-.photo-preview {
-  display:flex;flex-wrap:nowrap;overflow-x:auto;
-  gap:10px;margin:15px 0;
-  padding-bottom:6px;
+/* Náhledy – 5 vedle sebe, vycentrované */
+.photo-preview{
+  display:flex;justify-content:center;gap:12px;flex-wrap:nowrap;
+  margin:20px 0;
 }
-.photo-item {
-  flex:0 0 80px;height:80px;border-radius:8px;overflow:hidden;
-  position:relative;background:#ddd;
-  box-shadow:0 2px 6px rgba(0,0,0,0.15);
+.photo-item{
+  width:100px;height:100px;border-radius:10px;overflow:hidden;
+  position:relative;background:#ddd;box-shadow:0 2px 6px rgba(0,0,0,0.15);
 }
-.photo-item img {
-  width:100%;height:100%;object-fit:cover;
-}
-.progress-bar {
+.photo-item img{width:100%;height:100%;object-fit:cover;}
+.progress-bar{
   position:absolute;bottom:0;left:0;height:5px;
   background:#7d5fff;width:0%;transition:width .4s ease;
 }
 .photo-item.processing::after{
   content:"";position:absolute;inset:0;
-  background:rgba(255,255,255,0.5);
+  background:rgba(255,255,255,0.45);
   animation:pulse 1s infinite;
 }
 @keyframes pulse{0%{opacity:.6;}50%{opacity:1;}100%{opacity:.6;}}
 
-/* 🔘 Tlačítka dole */
-.photo-modal-actions {
-  display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;
+/* Tlačítka – stejná šířka a výška vedle sebe */
+.photo-modal-actions{
+  display:flex;justify-content:space-between;gap:10px;
 }
-.btn-gray,.btn-green,.btn-white {
+.btn-gray,.btn-green,.btn-white{
   flex:1;text-align:center;padding:10px 12px;
   border-radius:8px;font-weight:600;cursor:pointer;
-  transition:transform .15s ease;
 }
-.btn-gray {background:linear-gradient(135deg,#bfbfbf,#9b9b9b);color:#fff;border:none;}
-.btn-green {background:linear-gradient(135deg,#00b56a,#00da80);color:#fff;border:none;}
-.btn-white {background:linear-gradient(135deg,#fff,#f5f5f5);color:#333;border:1px solid #ccc;}
-.btn-gray:hover,.btn-green:hover,.btn-white:hover{transform:scale(1.05);}
+.btn-gray{background:linear-gradient(135deg,#bfbfbf,#9b9b9b);color:#fff;border:none;}
+.btn-green{background:linear-gradient(135deg,#00b56a,#00da80);color:#fff;border:none;}
+.btn-white{background:linear-gradient(135deg,#fff,#f5f5f5);color:#333;border:1px solid #ccc;}
 .photo-small{font-size:0.65em;color:#555;margin-top:4px;}
 </style>
 
@@ -520,14 +495,11 @@
   const uploadBtn=document.getElementById("uploadPhotos");
   const photoPreviewMain=document.getElementById("photoPreviewMain");
 
-  let photoFiles=[];           // vybrané originály
-  let compressedPhotos=[];     // zkomprimované verze
-  window.uploadedPhotos=[];    // uložené na serveru
+  let photoFiles=[];
+  let compressedPhotos=[];
+  window.uploadedPhotos=[];
 
-  openPhotoModal.addEventListener("click",()=>{
-    renderSelected();
-    photoModal.classList.add("active");
-  });
+  openPhotoModal.addEventListener("click",()=>{renderSelected();photoModal.classList.add("active");});
   closePhotoModal.addEventListener("click",()=>photoModal.classList.remove("active"));
 
   async function compressImage(file,maxSizeKB=500,maxDim=800){
@@ -540,9 +512,7 @@
     const ctx=canvas.getContext("2d");
     ctx.drawImage(img,0,0,w,h);
     let q=0.9;let blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));
-    while(blob.size/1024>maxSizeKB&&q>0.4){
-      q-=0.1;blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));
-    }
+    while(blob.size/1024>maxSizeKB&&q>0.4){q-=0.1;blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));}
     return blob;
   }
 
@@ -563,17 +533,16 @@
       bar.className="progress-bar";
       item.append(img,bar);
       photoPreview.append(item);
+
       const reader=new FileReader();
       reader.onload=e=>(img.src=e.target.result);
       reader.readAsDataURL(file);
 
-      // animace progressu při kompresi
       let p=0;const prog=setInterval(()=>{p+=15;if(p>90)p=90;bar.style.width=p+"%";},200);
       const blob=await compressImage(file);
-      clearInterval(prog);
-      bar.style.width="100%";
+      clearInterval(prog);bar.style.width="100%";
       setTimeout(()=>item.classList.remove("processing"),300);
-      compressedPhotos.push({file,blob});
+      compressedPhotos.push({file,blob,preview:img.src});
     }
   }
 
@@ -587,7 +556,7 @@
       try{
         const r=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload",{method:"POST",body:formData});
         const res=await r.json();
-        window.uploadedPhotos.push({filename:res.filename,name:p.file.name});
+        window.uploadedPhotos.push({filename:res.filename,name:p.file.name,preview:p.preview});
       }catch(e){console.error(e);}
     }
     renderMainPreview();
@@ -602,7 +571,7 @@
       row.className="photo-item-main";
       const img=document.createElement("img");
       img.className="photo-thumb";
-      img.src=`https://raw.githubusercontent.com/radecek222-boop/reklamace/main/foto/${p.filename}`;
+      img.src=p.preview; // zobrazí náhled komprimované fotky bez otazníku
       const name=document.createElement("div");
       name.className="photo-name";
       name.textContent=p.name;
@@ -614,7 +583,6 @@
 </script>
 
 <!-- 🟨 KONEC ČÁSTI 5/10 – LOGIKA PRO FOTKY -->
-
 
 
 
