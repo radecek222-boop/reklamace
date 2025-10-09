@@ -1,42 +1,3 @@
-<!-- 
-====================================================================
-💎 WHITE GLOVE SERVICE – PROTOKOL REKLAMACE
-====================================================================
-Verze systému:       v1.0
-Datum sestavení:     2025-10-08
-Autor:               Hugo (White Glove Service) & GPT-5
-Projekt:             WGS reklamace / servisní protokoly
-Soubory:             protokol.html (export protokolu s podpisem)
-Worker:              https://wgs-token.72nvwf4pb2.workers.dev/protokol
-Repozitář:           https://github.com/radecek222-boop/reklamace
-Popis:
-  Formulář pro zápis servisního protokolu.
-  - Automatické předvyplnění údajů zákazníka
-  - Podpis prstem / myší (SignaturePad)
-  - Export do PDF (jsPDF + html2canvas)
-  - Odeslání dat na server (Cloudflare Worker)
-  - Odeslání e-mailu zákazníkovi
-
-Struktura souboru:
-  A – Základ dokumentu (HTML, meta, styly)
-  B – Hlavička firmy
-  C – Údaje o zákazníkovi a reklamaci
-  D – Textové sekce (popis, problém, oprava)
-  E – Ceny a stavy (řešeno, dealer, poškození, platba)
-  F – Podpis a ovládací tlačítka
-  G – Překryvné vrstvy (načítání, potvrzení ✓)
-  H – Externí knihovny (SignaturePad, jsPDF, html2canvas)
-  I – Auto-předvyplnění dat z localStorage
-  J – Hlavní logika (podpis, export, upload, e-mail)
-
-Poslední úprava:     2025-10-08 / 17:20  
-====================================================================
--->
-
-
-
-
-<!-- 🟨 ZAČÁTEK ČÁSTI A (Základ dokumentu: HTML, HEAD, STYL) -->
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -165,324 +126,116 @@ button:hover { transform:scale(1.03); opacity:0.9; }
 }
 </style>
 </head>
-<!-- 🟩 KONEC ČÁSTI A -->
 
-
-
-<!-- 🟨 ZAČÁTEK ČÁSTI B (Hlavička firmy) -->
 <body>
 <div class="wrapper">
   <div class="header">
     <div>WHITE GLOVE SERVICE</div>
-    <div>
-      Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO: 09769684
-    </div>
+    <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO 09769684</div>
   </div>
-<!-- 🟩 KONEC ČÁSTI B -->
 
-
-
-<!-- 🟨 ZAČÁTEK ČÁSTI C (Údaje o zákazníkovi a reklamaci) -->
+  <!-- 🟨 Údaje o zákazníkovi -->
   <div class="two-col-table">
-    <!-- 🧩 Levý sloupec – zákazník -->
     <div class="col">
       <table>
-        <tr>
-          <td class="label">Číslo objednávky<span class="en-label">Order number</span></td>
-          <td><input id="order-number"></td>
-        </tr>
-        <tr>
-          <td class="label">Číslo reklamace<span class="en-label">Claim number</span></td>
-          <td><input id="claim-number"></td>
-        </tr>
-        <tr>
-          <td class="label">Zákazník<span class="en-label">Customer</span></td>
-          <td><input id="customer"></td>
-        </tr>
-        <tr>
-          <td class="label">Adresa zákazníka<span class="en-label">Customer address</span></td>
-          <td><input id="address"></td>
-        </tr>
-        <tr>
-          <td class="label">Telefon<span class="en-label">Phone</span></td>
-          <td><input id="phone"></td>
-        </tr>
-        <tr>
-          <td class="label">Email<span class="en-label">Email</span></td>
-          <td><input id="email"></td>
-        </tr>
+        <tr><td class="label">Číslo objednávky<span class="en-label">Order number</span></td><td><input id="order-number"></td></tr>
+        <tr><td class="label">Číslo reklamace<span class="en-label">Claim number</span></td><td><input id="claim-number"></td></tr>
+        <tr><td class="label">Zákazník<span class="en-label">Customer</span></td><td><input id="customer"></td></tr>
+        <tr><td class="label">Adresa zákazníka<span class="en-label">Customer address</span></td><td><input id="address"></td></tr>
+        <tr><td class="label">Telefon<span class="en-label">Phone</span></td><td><input id="phone"></td></tr>
+        <tr><td class="label">Email<span class="en-label">Email</span></td><td><input id="email"></td></tr>
       </table>
     </div>
-
-    <!-- 🧩 Pravý sloupec – technické údaje -->
     <div class="col">
       <table>
-        <tr>
-          <td class="label">Technik<span class="en-label">Technician</span></td>
-          <td>
-            <select id="technician">
-              <option>Milan Kolín</option>
-              <option>Radek Zikmund</option>
-              <option>Kolín/Zikmund</option>
-            </select>
-          </td>
-        </tr>
-        <tr>
-          <td class="label">Datum návštěvy<span class="en-label">Visit date</span></td>
-          <td><input id="visit-date" type="date"></td>
-        </tr>
-        <tr>
-          <td class="label">Datum doručení<span class="en-label">Delivery date</span></td>
-          <td><input id="delivery-date" type="date"></td>
-        </tr>
-        <tr>
-          <td class="label">Datum podání reklamace<span class="en-label">Complaint date</span></td>
-          <td><input id="claim-date" type="date"></td>
-        </tr>
-        <tr>
-          <td class="label">Značka / Contract<span class="en-label">Brand / Contract</span></td>
-          <td><input id="brand"></td>
-        </tr>
-        <tr>
-          <td class="label">Model<span class="en-label">Model</span></td>
-          <td><input id="model"></td>
-        </tr>
+        <tr><td class="label">Technik<span class="en-label">Technician</span></td><td>
+          <select id="technician"><option>Milan Kolín</option><option>Radek Zikmund</option><option>Kolín/Zikmund</option></select></td></tr>
+        <tr><td class="label">Datum návštěvy<span class="en-label">Visit date</span></td><td><input id="visit-date" type="date"></td></tr>
+        <tr><td class="label">Datum doručení<span class="en-label">Delivery date</span></td><td><input id="delivery-date" type="date"></td></tr>
+        <tr><td class="label">Datum podání reklamace<span class="en-label">Complaint date</span></td><td><input id="claim-date" type="date"></td></tr>
+        <tr><td class="label">Značka / Contract<span class="en-label">Brand / Contract</span></td><td><input id="brand"></td></tr>
+        <tr><td class="label">Model<span class="en-label">Model</span></td><td><input id="model"></td></tr>
       </table>
     </div>
   </div>
-<!-- 🟩 KONEC ČÁSTI C -->
 
+  <!-- 🟨 Textové sekce s překladačem -->
+  <div class="section-title">Zákazník reklamuje<span class="en-label">Customer complaint</span></div>
+  <div class="split-section">
+    <textarea id="description-cz" placeholder="CZ"></textarea>
+    <textarea id="description-en" placeholder="EN" readonly></textarea>
+  </div>
 
+  <div class="section-title">Problém zjištěný technikem<span class="en-label">Detected problem</span></div>
+  <div class="split-section">
+    <textarea id="problem-cz" placeholder="CZ"></textarea>
+    <textarea id="problem-en" placeholder="EN" readonly></textarea>
+  </div>
 
-
-
-<!-- 🟨 ZAČÁTEK ČÁSTI D (Textové sekce: reklamace, problém, oprava + auto-překlad) -->
-
-<style>
-.split-section {
-  display: flex;
-  gap: 10px;
-  margin: 10px 0;
-}
-textarea {
-  width: 100%;
-  min-height: 80px;
-  resize: vertical;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 6px 8px;
-  font-size: 1em;
-  color: #111;
-  background: #fff;
-  box-sizing: border-box;
-}
-textarea[readonly] {
-  background: #f7f7f7;
-  color: #444;
-}
-</style>
-
-<!-- 🧩 Sekce: Zákazník reklamuje -->
-<div class="section-title">
-  Zákazník reklamuje<span class="en-label">Customer complaint</span>
-</div>
-<div class="split-section">
-  <textarea id="description-cz" placeholder="CZ"></textarea>
-  <textarea id="description-en" placeholder="EN" readonly></textarea>
-</div>
-
-<!-- 🧩 Sekce: Problém zjištěný technikem -->
-<div class="section-title">
-  Problém zjištěný technikem<span class="en-label">Detected problem</span>
-</div>
-<div class="split-section">
-  <textarea id="problem-cz" placeholder="CZ"></textarea>
-  <textarea id="problem-en" placeholder="EN" readonly></textarea>
-</div>
-
-<!-- 🧩 Sekce: Návrh opravy -->
-<div class="section-title">
-  Návrh opravy<span class="en-label">Repair proposal</span>
-</div>
-<div class="split-section">
-  <textarea id="repair-cz" placeholder="CZ"></textarea>
-  <textarea id="repair-en" placeholder="EN" readonly></textarea>
-</div>
-
-<script>
-// 🌍 jednoduchý překladač CZ → EN
-async function fastTranslateCZtoEN(text) {
-  if (!text || !text.trim()) return "";
-  try {
-    const res = await fetch("https://libretranslate.de/translate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ q: text, source: "cs", target: "en", format: "text" })
-    });
-    const data = await res.json();
-    return data.translatedText || "";
-  } catch (e) {
-    console.warn("⚠️ Chyba překladu:", e.message);
-    return "";
-  }
-}
-
-// ✍️ automatický překlad při psaní
-function initAutoTranslation(prefix) {
-  const cz = document.getElementById(`${prefix}-cz`);
-  const en = document.getElementById(`${prefix}-en`);
-  if (!cz || !en) return;
-
-  let timeout;
-  cz.addEventListener("input", () => {
-    clearTimeout(timeout);
-    timeout = setTimeout(async () => {
-      if (cz.value.trim().length === 0) { en.value = ""; return; }
-      en.value = "⏳ Překládám...";
-      en.value = await fastTranslateCZtoEN(cz.value);
-    }, 700);
-  });
-}
-
-// 🔁 překlad po načtení z localStorage (pokud EN prázdné)
-async function translateLoadedFields() {
-  const fields = ["description", "problem", "repair"];
-  for (const f of fields) {
-    const cz = document.getElementById(`${f}-cz`);
-    const en = document.getElementById(`${f}-en`);
-    if (cz && en && cz.value && !en.value.trim()) {
-      en.value = "⏳ Překládám...";
-      en.value = await fastTranslateCZtoEN(cz.value);
-    }
-  }
-}
-
-// inicializace
-window.addEventListener("DOMContentLoaded", () => {
-  ["description","problem","repair"].forEach(initAutoTranslation);
-  translateLoadedFields();
-});
-</script>
-
-<!-- 🟩 KONEC ČÁSTI D -->
-
-
-
-
-<!-- 🟨 ZAČÁTEK ČÁSTI E (Ceny a stavy: vyřešeno, dealer, poškození, platba) -->
+  <div class="section-title">Návrh opravy<span class="en-label">Repair proposal</span></div>
+  <div class="split-section">
+    <textarea id="repair-cz" placeholder="CZ"></textarea>
+    <textarea id="repair-en" placeholder="EN" readonly></textarea>
+  </div>
+  <!-- 🟨 Sekce E – Ceny a stavy -->
   <div class="two-col-table">
-    <!-- 🧩 Levý sloupec – ceny -->
     <div class="col">
       <table>
-        <tr>
-          <td class="label">Počet opravovaných dílů<span class="en-label">Number of repaired parts</span></td>
-          <td><input id="parts" type="number" min="0"></td>
-        </tr>
-        <tr>
-          <td class="label">Cena za práci<span class="en-label">Work cost</span></td>
-          <td><input id="price-work" type="number" min="0" step="0.01" oninput="updateTotal()"></td>
-        </tr>
-        <tr>
-          <td class="label">Cena za materiál<span class="en-label">Material cost</span></td>
-          <td><input id="price-material" type="number" min="0" step="0.01" oninput="updateTotal()"></td>
-        </tr>
-        <tr>
-          <td class="label">Cena za druhého technika<span class="en-label">Second technician cost</span></td>
-          <td><input id="price-second" type="number" min="0" step="0.01" oninput="updateTotal()"></td>
-        </tr>
-        <tr>
-          <td class="label">Cena za dopravu<span class="en-label">Transport cost</span></td>
-          <td><input id="price-transport" type="number" min="0" step="0.01" oninput="updateTotal()"></td>
-        </tr>
-        <tr>
-          <td class="label">Cena celkem<span class="en-label">Total cost</span></td>
-          <td><input id="price-total" type="number" readonly></td>
-        </tr>
+        <tr><td class="label">Počet opravovaných dílů<span class="en-label">Number of repaired parts</span></td><td><input id="parts" type="number" min="0"></td></tr>
+        <tr><td class="label">Cena za práci<span class="en-label">Work cost</span></td><td><input id="price-work" type="number" step="0.01" oninput="updateTotal()"></td></tr>
+        <tr><td class="label">Cena za materiál<span class="en-label">Material cost</span></td><td><input id="price-material" type="number" step="0.01" oninput="updateTotal()"></td></tr>
+        <tr><td class="label">Cena za druhého technika<span class="en-label">Second technician</span></td><td><input id="price-second" type="number" step="0.01" oninput="updateTotal()"></td></tr>
+        <tr><td class="label">Cena za dopravu<span class="en-label">Transport cost</span></td><td><input id="price-transport" type="number" step="0.01" oninput="updateTotal()"></td></tr>
+        <tr><td class="label">Cena celkem<span class="en-label">Total cost</span></td><td><input id="price-total" readonly></td></tr>
       </table>
     </div>
-
-    <!-- 🧩 Pravý sloupec – stavy -->
     <div class="col">
       <table>
-        <tr>
-          <td class="label">Reklamace vyřešena?<span class="en-label">Complaint solved?</span></td>
-          <td><select id="solved"><option>ANO</option><option>NE</option></select></td>
-        </tr>
-        <tr>
-          <td class="label">Čeká se na vyjádření prodejce?<span class="en-label">Waiting for dealer?</span></td>
-          <td><select id="dealer"><option>NE</option><option>ANO</option></select></td>
-        </tr>
-        <tr>
-          <td class="label">Poškození technikem?<span class="en-label">Damage by technician?</span></td>
-          <td><select id="damage"><option>NE</option><option>ANO</option></select></td>
-        </tr>
-        <tr>
-          <td class="label">Úhradu provede zákazník?<span class="en-label">Customer will pay?</span></td>
-          <td><select id="payment"><option>NE</option><option>ANO</option></select></td>
-        </tr>
-        <tr>
-          <td class="label">Datum podpisu<span class="en-label">Signature date</span></td>
-          <td><input id="sign-date" type="date"></td>
-        </tr>
+        <tr><td class="label">Reklamace vyřešena?<span class="en-label">Complaint solved?</span></td><td><select id="solved"><option>ANO</option><option>NE</option></select></td></tr>
+        <tr><td class="label">Čeká se na vyjádření prodejce?<span class="en-label">Waiting for dealer?</span></td><td><select id="dealer"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Poškození technikem?<span class="en-label">Damage by technician?</span></td><td><select id="damage"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Úhradu provede zákazník?<span class="en-label">Customer will pay?</span></td><td><select id="payment"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Datum podpisu<span class="en-label">Signature date</span></td><td><input id="sign-date" type="date"></td></tr>
       </table>
     </div>
   </div>
 
-  <!-- 🧩 Skript pro automatický součet ceny -->
   <script>
   function updateTotal() {
-    const work = parseFloat(document.getElementById("price-work").value) || 0;
-    const material = parseFloat(document.getElementById("price-material").value) || 0;
-    const second = parseFloat(document.getElementById("price-second").value) || 0;
-    const transport = parseFloat(document.getElementById("price-transport").value) || 0;
-    const total = work + material + second + transport;
-    document.getElementById("price-total").value = total.toFixed(2);
+    const work = parseFloat(priceWork.value) || 0;
+    const material = parseFloat(priceMaterial.value) || 0;
+    const second = parseFloat(priceSecond.value) || 0;
+    const transport = parseFloat(priceTransport.value) || 0;
+    priceTotal.value = (work + material + second + transport).toFixed(2);
   }
+  const priceWork=document.getElementById("price-work");
+  const priceMaterial=document.getElementById("price-material");
+  const priceSecond=document.getElementById("price-second");
+  const priceTransport=document.getElementById("price-transport");
+  const priceTotal=document.getElementById("price-total");
   </script>
-<!-- 🟩 KONEC ČÁSTI E -->
 
+  <!-- 🟨 Sekce F – Podpis a tlačítka -->
+  <div class="section-title">Podpis zákazníka<span class="en-label">Customer signature</span></div>
+  <canvas id="signature-pad"></canvas>
+  <div class="signature-label">Podepište se prstem nebo myší</div>
 
-
-
-<!-- 🟨 ZAČÁTEK ČÁSTI F (Podpis a ovládací tlačítka – nové funkce) -->
-
-<!-- 🧩 Sekce: Podpis zákazníka -->
-<div class="section-title">
-  Podpis zákazníka<span class="en-label">Customer signature</span>
-</div>
-
-<canvas id="signature-pad"></canvas>
-<div class="signature-label">Podepište se prstem nebo myší</div>
-
-<!-- 🧩 Tlačítka ovládání -->
-<div class="btns">
-  <button class="btn-clear" type="button" onclick="signaturePad.clear()">Vymazat podpis</button>
-  <button class="btn-back" type="button" onclick="window.location.href='index.html'">Zpět</button>
-  <button class="btn-pdf" type="button" onclick="exportPDF()">Exportovat PDF</button>
-  <button class="btn-email" type="button" onclick="mailCustomer()">Odeslat zákazníkovi</button>
-</div>
-
-<!-- 🟩 KONEC ČÁSTI F -->
-
-
-
-
-
-<!-- 🟨 ZAČÁTEK ČÁSTI G (Překryvné vrstvy: načítání + potvrzení) -->
-
-  <!-- 🧩 Overlay: Odesílání protokolu -->
-  <div class="wait-overlay" id="waitOverlay">
-    <div class="hourglass"></div>
-    <p>Odesílám protokol…</p>
+  <div class="btns">
+    <button class="btn-clear" type="button" onclick="signaturePad.clear()">Vymazat podpis</button>
+    <button class="btn-back" type="button" onclick="window.location.href='index.html'">Zpět</button>
+    <button class="btn-pdf" type="button" onclick="exportPDF()">Exportovat PDF</button>
+    <button class="btn-email" type="button" onclick="mailCustomer()">Odeslat zákazníkovi</button>
   </div>
 
-  <!-- 🧩 Overlay: Potvrzení úspěchu -->
+  <!-- 🟨 Sekce G – Překryvné vrstvy -->
+  <div class="wait-overlay" id="waitOverlay">
+    <div class="hourglass"></div><p>Odesílám protokol…</p>
+  </div>
   <div class="success-check" id="successCheck">
     <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
       <defs>
         <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#00d084;stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#00a86b;stop-opacity:1" />
+          <stop offset="0%" style="stop-color:#00d084"/><stop offset="100%" style="stop-color:#00a86b"/>
         </linearGradient>
       </defs>
       <circle cx="26" cy="26" r="25" fill="none"/>
@@ -490,294 +243,235 @@ window.addEventListener("DOMContentLoaded", () => {
     </svg>
   </div>
 
-<!-- 🟩 KONEC ČÁSTI G -->
-
-
-
-
-
-<!-- 🟨 ZAČÁTEK ČÁSTI H (Externí knihovny) -->
-  <!-- 📚 SignaturePad pro podpis -->
+  <!-- 🟨 Sekce H – Externí knihovny -->
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
-
-  <!-- 📚 jsPDF pro export do PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-  <!-- 📚 html2canvas pro snímek stránky -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<!-- 🟩 KONEC ČÁSTI H -->
-
-
-
-
-<!-- 🟨 ZAČÁTEK ČÁSTI I (Auto-předvyplnění dat z localStorage) -->
-<script>
-window.addEventListener("DOMContentLoaded", () => {
-  try {
-    const saved = localStorage.getItem("protokolData");
-    if (!saved) return;
-
-    const data = JSON.parse(saved);
-    console.log("🧾 Načítám data z localStorage.protokolData:", data);
-
-    if (data.cislo) document.getElementById("claim-number").value = data.cislo;
-    if (data.contract) document.getElementById("brand").value = data.contract;
-    if (data.zakaznik) document.getElementById("customer").value = data.zakaznik;
-    if (data.adresa) document.getElementById("address").value = data.adresa;
-    if (data.telefon) document.getElementById("phone").value = data.telefon;
-    if (data.email) document.getElementById("email").value = data.email;
-    if (data.produkt) document.getElementById("model").value = data.produkt;
-
-    if (data.popis) {
-      document.getElementById("description-cz").value = data.popis;
-      document.getElementById("description-en").value = data.popis;
-    }
-
-    if (data.datum_reklamace)
-      document.getElementById("claim-date").value = data.datum_reklamace;
-    if (data.datum)
-      document.getElementById("visit-date").value = data.datum;
-
-  } catch (err) {
-    console.error("❌ Chyba při načítání dat pro protokol:", err);
-  }
-});
-</script>
-<!-- 🟩 KONEC ČÁSTI I -->
-
-<script>
-// 🌍 Automatický překlad CZ → EN (s odkladem a bezpečnou aktualizací)
-const translateQueue = {};
-const DEBOUNCE_DELAY = 800;
-
-async function autoTranslate(sourceId, targetId) {
-  const sourceEl = document.getElementById(sourceId);
-  const targetEl = document.getElementById(targetId);
-  if (!sourceEl || !targetEl) return;
-
-  const text = sourceEl.value.trim();
-  if (!text) return;
-
-  // zobraz indikátor
-  targetEl.innerText = "⏳ Překládám…";
-
-  try {
-    const res = await fetch("https://libretranslate.com/translate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        q: text,
-        source: "cs",
-        target: "en",
-        format: "text"
-      })
-    });
-
-    const data = await res.json();
-    const translated = data.translatedText?.trim();
-
-    // Pokud API vrátilo překlad, zobraz ho
-    if (translated && translated !== text) {
-      if (targetEl.tagName === "TEXTAREA") targetEl.value = translated;
-      else targetEl.innerText = translated;
-    } else {
-      // fallback – nech původní překlad nebo prázdné pole
-      if (targetEl.tagName === "TEXTAREA") targetEl.value = "";
-      else targetEl.innerText = "";
-    }
-
-  } catch (err) {
-    console.error("❌ Chyba při překladu:", err);
-    targetEl.innerText = "⚠️ Chyba při překladu";
-  }
-}
-
-// 🧠 Debounce – spouští překlad až po 800 ms neaktivity
-["description", "problem", "repair"].forEach(base => {
-  const cz = document.getElementById(`${base}-cz`);
-  if (!cz) return;
-
-  cz.addEventListener("input", () => {
-    clearTimeout(translateQueue[base]);
-    translateQueue[base] = setTimeout(() => {
-      autoTranslate(`${base}-cz`, `${base}-en`);
-    }, DEBOUNCE_DELAY);
-  });
-});
-</script>
-
-
-  <!-- 🟩 ZAČÁTEK ČÁSTI I.2 – Expresní překladač CZ → EN -->
-<script>
-/**
- * 🌍 Expresní překladač CZ → EN (LibreTranslate)
- * - žádný API klíč
- * - používá veřejnou instanci libretranslate.de
- * - překládá i automaticky text z localStorage při načtení
- */
-
-async function fastTranslateCZtoEN(text) {
-  if (!text || text.trim() === "") return "";
-  try {
-    const res = await fetch("https://libretranslate.de/translate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        q: text,
-        source: "cs",
-        target: "en",
-        format: "text"
-      })
-    });
-    const data = await res.json();
-    if (data.translatedText) return data.translatedText;
-  } catch (e) {
-    console.warn("⚠️ Chyba při překladu:", e.message);
-  }
-  return text; // fallback – vrátí původní text
-}
-
-// 🔄 Přeloží text z českého pole do anglického
-async function autoTranslateField(prefix) {
-  const cz = document.getElementById(`${prefix}-cz`);
-  const en = document.getElementById(`${prefix}-en`);
-  if (!cz || !en) return;
-  en.value = "⏳ Překládám...";
-  en.value = await fastTranslateCZtoEN(cz.value);
-}
-
-// 💡 Po načtení localStorage automaticky přeloží popis, problém a návrh
-window.addEventListener("DOMContentLoaded", async () => {
-  const czFields = ["description", "problem", "repair"];
-  for (const prefix of czFields) {
-    const cz = document.getElementById(`${prefix}-cz`);
-    const en = document.getElementById(`${prefix}-en`);
-    if (cz && en && cz.value && !en.value.trim()) {
-      en.value = "⏳ Překládám...";
-      en.value = await fastTranslateCZtoEN(cz.value);
-    }
-  }
-});
-</script>
-<!-- 🟩 KONEC ČÁSTI I.2 -->
-
-
-
-
-
-<!-- 🟨 ZAČÁTEK ČÁSTI J (Export PDF, email, uložení k zákazníkovi) -->
-<script>
-let signaturePad;
-
-// 📋 Inicializace podpisu
-window.addEventListener("DOMContentLoaded", () => {
-  const canvas = document.getElementById("signature-pad");
-  function resizeCanvas() {
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-  }
-  resizeCanvas();
-  window.addEventListener("resize", resizeCanvas, { passive: true });
-  signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
-
-  // vyplnit dnešní datum automaticky
-  const today = new Date().toISOString().split("T")[0];
-  document.getElementById("visit-date").value ||= today;
-  document.getElementById("sign-date").value ||= today;
-});
-
-// 🧾 GENEROVÁNÍ PDF z celé stránky
-async function generatePDF() {
-  const { jsPDF } = window.jspdf;
-  const wrapper = document.querySelector(".wrapper");
-  const doc = new jsPDF("p", "mm", "a4");
-
-  // 💧 Vodoznak
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(48);
-  doc.setTextColor(220, 220, 220);
-  doc.text("WHITE GLOVE SERVICE", 105, 150, { align: "center", angle: 45 });
-
-  // 🧱 Převod celé stránky do obrázku
-  wrapper.classList.add("force-desktop");
-  const canvas = await html2canvas(wrapper, { scale: 2 });
-  const imgData = canvas.toDataURL("image/jpeg", 0.95);
-  wrapper.classList.remove("force-desktop");
-
-  // ✍️ Přidání podpisu, pokud existuje
-  if (!signaturePad.isEmpty()) {
-    const signatureData = signaturePad.toDataURL("image/png");
-    doc.addImage(signatureData, "PNG", 30, 250, 60, 20);
-  }
-
-  doc.addImage(imgData, "JPEG", 0, 0, 210, 297);
-  return doc;
-}
-
-// 📄 EXPORTOVAT PDF – zobrazit PDF + nabídnout uložení
-async function exportPDF() {
-  const doc = await generatePDF();
-  const pdfBlob = doc.output("blob");
-  const pdfUrl = URL.createObjectURL(pdfBlob);
-  window.open(pdfUrl, "_blank"); // otevře náhled PDF
-  saveProtocolToCustomer(pdfBlob); // uloží protokol zákazníkovi
-}
-
-// ✉️ ODESLAT ZÁKAZNÍKOVI – vytvoří PDF, otevře e-mail klienta
-async function mailCustomer() {
-  const doc = await generatePDF();
-  const pdfBlob = doc.output("blob");
-  saveProtocolToCustomer(pdfBlob); // uloží PDF zákazníkovi
-
-  const email = document.getElementById("email").value || "";
-  const subject = "Reklamační protokol White Glove Service";
-  const body =
-    "Dobrý den,\n\nv příloze zasíláme reklamační protokol z návštěvy.\n\nS pozdravem,\nWHITE GLOVE SERVICE s.r.o.";
-
-  // otevře výchozí mail klient (bez přílohy – tu lze připojit ručně)
-  window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-}
-
-// 💾 ULOŽENÍ PDF K ZÁKAZNÍKOVI (localStorage + GitHub sync)
-async function saveProtocolToCustomer(pdfBlob) {
-  try {
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64pdf = reader.result.split(",")[1];
-      const claim = document.getElementById("claim-number").value;
-      const customer = document.getElementById("customer").value;
-      const today = new Date().toISOString().split("T")[0];
-      const fileName = `Protokol_${customer}_${claim}_${today}.pdf`;
-
-      const record = {
-        cislo: claim,
-        protokol: {
-          name: fileName,
-          date: today,
-          file: base64pdf
-        }
-      };
-
-      // pokud je dostupná funkce z wgs-sync.js, uloží lokálně i syncne na GitHub
-      if (typeof saveCustomerEdit === "function") {
-        saveCustomerEdit(record);
-        console.log("📎 Protokol uložen k zákazníkovi:", fileName);
-      } else {
-        console.warn("⚠️ Funkce saveCustomerEdit() není dostupná.");
-      }
-    };
-    reader.readAsDataURL(pdfBlob);
-  } catch (e) {
-    console.error("❌ Chyba při ukládání protokolu:", e);
-  }
-}
-</script>
-<!-- 🟩 KONEC ČÁSTI J -->
-
-
-
-
+  <!-- 🟨 Sekce E – Ceny a stavy -->
+  <div class="two-col-table">
+    <div class="col">
+      <table>
+        <tr><td class="label">Počet opravovaných dílů<span class="en-label">Number of repaired parts</span></td><td><input id="parts" type="number" min="0"></td></tr>
+        <tr><td class="label">Cena za práci<span class="en-label">Work cost</span></td><td><input id="price-work" type="number" step="0.01" oninput="updateTotal()"></td></tr>
+        <tr><td class="label">Cena za materiál<span class="en-label">Material cost</span></td><td><input id="price-material" type="number" step="0.01" oninput="updateTotal()"></td></tr>
+        <tr><td class="label">Cena za druhého technika<span class="en-label">Second technician</span></td><td><input id="price-second" type="number" step="0.01" oninput="updateTotal()"></td></tr>
+        <tr><td class="label">Cena za dopravu<span class="en-label">Transport cost</span></td><td><input id="price-transport" type="number" step="0.01" oninput="updateTotal()"></td></tr>
+        <tr><td class="label">Cena celkem<span class="en-label">Total cost</span></td><td><input id="price-total" readonly></td></tr>
+      </table>
+    </div>
+    <div class="col">
+      <table>
+        <tr><td class="label">Reklamace vyřešena?<span class="en-label">Complaint solved?</span></td><td><select id="solved"><option>ANO</option><option>NE</option></select></td></tr>
+        <tr><td class="label">Čeká se na vyjádření prodejce?<span class="en-label">Waiting for dealer?</span></td><td><select id="dealer"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Poškození technikem?<span class="en-label">Damage by technician?</span></td><td><select id="damage"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Úhradu provede zákazník?<span class="en-label">Customer will pay?</span></td><td><select id="payment"><option>NE</option><option>ANO</option></select></td></tr>
+        <tr><td class="label">Datum podpisu<span class="en-label">Signature date</span></td><td><input id="sign-date" type="date"></td></tr>
+      </table>
+    </div>
   </div>
+
+  <script>
+  function updateTotal() {
+    const work = parseFloat(priceWork.value) || 0;
+    const material = parseFloat(priceMaterial.value) || 0;
+    const second = parseFloat(priceSecond.value) || 0;
+    const transport = parseFloat(priceTransport.value) || 0;
+    priceTotal.value = (work + material + second + transport).toFixed(2);
+  }
+  const priceWork=document.getElementById("price-work");
+  const priceMaterial=document.getElementById("price-material");
+  const priceSecond=document.getElementById("price-second");
+  const priceTransport=document.getElementById("price-transport");
+  const priceTotal=document.getElementById("price-total");
+  </script>
+
+  <!-- 🟨 Sekce F – Podpis a tlačítka -->
+  <div class="section-title">Podpis zákazníka<span class="en-label">Customer signature</span></div>
+  <canvas id="signature-pad"></canvas>
+  <div class="signature-label">Podepište se prstem nebo myší</div>
+
+  <div class="btns">
+    <button class="btn-clear" type="button" onclick="signaturePad.clear()">Vymazat podpis</button>
+    <button class="btn-back" type="button" onclick="window.location.href='index.html'">Zpět</button>
+    <button class="btn-pdf" type="button" onclick="exportPDF()">Exportovat PDF</button>
+    <button class="btn-email" type="button" onclick="mailCustomer()">Odeslat zákazníkovi</button>
+  </div>
+
+  <!-- 🟨 Sekce G – Překryvné vrstvy -->
+  <div class="wait-overlay" id="waitOverlay">
+    <div class="hourglass"></div><p>Odesílám protokol…</p>
+  </div>
+  <div class="success-check" id="successCheck">
+    <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+      <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#00d084"/><stop offset="100%" style="stop-color:#00a86b"/>
+        </linearGradient>
+      </defs>
+      <circle cx="26" cy="26" r="25" fill="none"/>
+      <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <!-- 🟨 Sekce H – Externí knihovny -->
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- 🟨 Sekce I – Auto-předvyplnění dat -->
+  <script>
+  window.addEventListener("DOMContentLoaded", () => {
+    try {
+      const saved = localStorage.getItem("protokolData");
+      if (!saved) return;
+      const data = JSON.parse(saved);
+      console.log("🧾 Načítám data z localStorage.protokolData:", data);
+
+      if (data.cislo) claimNumber.value = data.cislo;
+      if (data.contract) brand.value = data.contract;
+      if (data.zakaznik) customer.value = data.zakaznik;
+      if (data.adresa) address.value = data.adresa;
+      if (data.telefon) phone.value = data.telefon;
+      if (data.email) email.value = data.email;
+      if (data.produkt) model.value = data.produkt;
+      if (data.popis) {
+        descriptionCz.value = data.popis;
+        descriptionEn.value = data.popis;
+      }
+      if (data.datum_reklamace) claimDate.value = data.datum_reklamace;
+      if (data.datum) visitDate.value = data.datum;
+    } catch (err) {
+      console.error("❌ Chyba při načítání dat:", err);
+    }
+  });
+  </script>
+
+  <!-- 🟨 Sekce I.2 – Funkční překladač CZ → EN -->
+  <script>
+  async function translateCZtoEN(text) {
+    if (!text.trim()) return "";
+    try {
+      const res = await fetch("https://libretranslate.de/translate", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ q:text, source:"cs", target:"en", format:"text" })
+      });
+      const data = await res.json();
+      return data.translatedText || "";
+    } catch(e) {
+      console.warn("⚠️ Překlad selhal:", e.message);
+      return "";
+    }
+  }
+
+  function initTranslator(prefix) {
+    const cz=document.getElementById(`${prefix}-cz`);
+    const en=document.getElementById(`${prefix}-en`);
+    if(!cz||!en) return;
+    let t;
+    cz.addEventListener("input",()=>{
+      clearTimeout(t);
+      if(!cz.value.trim()){en.value="";return;}
+      en.value="⏳ Překládám...";
+      t=setTimeout(async()=>{
+        en.value=await translateCZtoEN(cz.value);
+      },600);
+    });
+  }
+
+  window.addEventListener("DOMContentLoaded",async()=>{
+    ["description","problem","repair"].forEach(initTranslator);
+    for(const f of ["description","problem","repair"]){
+      const cz=document.getElementById(`${f}-cz`);
+      const en=document.getElementById(`${f}-en`);
+      if(cz&&en&&cz.value&&!en.value.trim()){
+        en.value="⏳ Překládám...";
+        en.value=await translateCZtoEN(cz.value);
+      }
+    }
+  });
+  </script>
+
+  <!-- 🟨 Sekce J – PDF, e-mail, uložení -->
+  <script>
+  let signaturePad;
+
+  window.addEventListener("DOMContentLoaded",()=>{
+    const canvas=document.getElementById("signature-pad");
+    function resizeCanvas(){
+      canvas.width=canvas.offsetWidth;
+      canvas.height=canvas.offsetHeight;
+    }
+    resizeCanvas();
+    window.addEventListener("resize",resizeCanvas,{passive:true});
+    signaturePad=new SignaturePad(canvas,{backgroundColor:"white"});
+    const today=new Date().toISOString().split("T")[0];
+    visitDate.value ||= today;
+    signDate.value ||= today;
+  });
+
+  async function generatePDF(){
+    const { jsPDF } = window.jspdf;
+    const wrapper=document.querySelector(".wrapper");
+    const doc=new jsPDF("p","mm","a4");
+
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(48);
+    doc.setTextColor(220,220,220);
+    doc.text("WHITE GLOVE SERVICE",105,150,{align:"center",angle:45});
+
+    wrapper.classList.add("force-desktop");
+    const canvas=await html2canvas(wrapper,{scale:2});
+    const imgData=canvas.toDataURL("image/jpeg",0.95);
+    wrapper.classList.remove("force-desktop");
+
+    if(!signaturePad.isEmpty()){
+      const sig=signaturePad.toDataURL("image/png");
+      doc.addImage(sig,"PNG",30,250,60,20);
+    }
+
+    doc.addImage(imgData,"JPEG",0,0,210,297);
+    return doc;
+  }
+
+  async function exportPDF(){
+    const doc=await generatePDF();
+    const blob=doc.output("blob");
+    const url=URL.createObjectURL(blob);
+    window.open(url,"_blank");
+    saveProtocolToCustomer(blob);
+  }
+
+  async function mailCustomer(){
+    const doc=await generatePDF();
+    const blob=doc.output("blob");
+    saveProtocolToCustomer(blob);
+    const email=document.getElementById("email").value||"";
+    const subject="Reklamační protokol White Glove Service";
+    const body="Dobrý den,\n\nv příloze zasíláme reklamační protokol z návštěvy.\n\nS pozdravem,\nWHITE GLOVE SERVICE s.r.o.";
+    window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+
+  async function saveProtocolToCustomer(pdfBlob){
+    try{
+      const reader=new FileReader();
+      reader.onloadend=async()=>{
+        const base64pdf=reader.result.split(",")[1];
+        const claim=claimNumber.value;
+        const customerName=customer.value;
+        const today=new Date().toISOString().split("T")[0];
+        const fileName=`Protokol_${customerName}_${claim}_${today}.pdf`;
+        const record={ cislo:claim, protokol:{name:fileName,date:today,file:base64pdf} };
+        if(typeof saveCustomerEdit==="function"){
+          saveCustomerEdit(record);
+          console.log("📎 Protokol uložen:",fileName);
+        } else console.warn("⚠️ Funkce saveCustomerEdit() není dostupná.");
+      };
+      reader.readAsDataURL(pdfBlob);
+    }catch(e){
+      console.error("❌ Chyba při ukládání:",e);
+    }
+  }
+  </script>
+</div>
 </body>
 </html>
-
