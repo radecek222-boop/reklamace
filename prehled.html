@@ -203,8 +203,7 @@ h1 {
 </div>
 
 <script>
-// 🧱 Proměnné
-let allOrders = [], cnbRate = null, cnbRateDate = null;
+let allOrders=[],cnbRate=null,cnbRateDate=null;
 const clientModal=document.getElementById("clientModal"),techModal=document.getElementById("techModal"),
 periodModal=document.getElementById("periodModal"),clientList=document.getElementById("clientList"),
 loadingClients=document.getElementById("loadingClients"),selectClientBtn=document.getElementById("selectClientBtn"),
@@ -283,7 +282,7 @@ document.addEventListener("click",e=>{
  if(e.target.id==="closeTech")techModal.classList.remove("active");
 });
 
-// 📊 Načtení zakázek + zobrazení
+// 📊 Zakázky + výpočty
 async function loadOrders(){
  await loadCNBrate();
  try{
@@ -312,4 +311,25 @@ function renderResults(){
   const t=(r.technik||"").toLowerCase();if(t.includes("zikmund"))techTotals["Radek Zikmund"]+=e*0.3;if(t.includes("kolin"))techTotals["Milan Kolín"]+=e*0.3;});
  resultsTableBody.innerHTML=f.map(r=>`<tr><td>${r.zakaznik||"–"}</td><td>${r.cislo||"–"}</td><td>${r.contract||"–"}</td><td>${r.technik||"–"}</td><td>${fmtEUR(convertToEUR(r.cenaCelkem||r.total||r.cena))}</td></tr>`).join("")||`<tr><td colspan="5" style="text-align:center;color:#888;padding:20px;">Žádné výsledky</td></tr>`;
  let share="";Object.entries(techTotals).forEach(([n,v])=>{const p=totalEUR>0?((v/totalEUR)*100).toFixed(1):"0.0";share+=`${n}: ${fmtEUR(v)} (${p} %) | `;});
- infoObrat.textContent=`Celkový obrat: ${fmtEUR(totalEUR)}`;summaryBox.textContent=`Zakázek: ${f.length} | ${
+ infoObrat.textContent=`Celkový obrat: ${fmtEUR(totalEUR)}`;summaryBox.textContent=`Zakázek: ${f.length} | ${share.slice(0,-2)}`;
+}
+
+// 🚀 Inicializace
+window.addEventListener("DOMContentLoaded",()=>{
+ loadOrders();
+ selectClientBtn.onclick=()=>{loadClients();clientModal.classList.add("active");};
+ selectTechBtn.onclick=()=>techModal.classList.add("active");
+ selectPeriodBtn.onclick=()=>periodModal.classList.add("active");
+ closeClients.onclick=()=>clientModal.classList.remove("active");
+ closePeriod.onclick=()=>periodModal.classList.remove("active");
+ document.getElementById("logoutBtn").onclick=()=>{localStorage.clear();window.location.href="index.html";};
+ const m=document.getElementById("monthSelect"),df=document.getElementById("dateFrom"),dt=document.getElementById("dateTo");
+ if(m)m.onchange=()=>{const y=new Date().getFullYear(),mo=m.value;if(!mo){df.value=dt.value="";return;}
+  const f=new Date(y,mo-1,1),l=new Date(y,mo,0);
+  const fmt=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  df.value=fmt(f);dt.value=fmt(l);};
+ console.log("✅ Přehled WGS inicializován");
+});
+</script>
+</body>
+</html>
