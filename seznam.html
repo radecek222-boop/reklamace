@@ -1285,7 +1285,6 @@ function initPlanCalendar(overlay){
 </script>
 <!-- 🟦 KONEC E-2 -->
 
-
 <!-- 🟦 E-3: NAČTENÍ A ZOBRAZENÍ DNĚ (aktualizováno pro E-5) -->
 <script>
 async function loadPlanForDay(date, overlay) {
@@ -1335,17 +1334,19 @@ async function loadPlanForDay(date, overlay) {
 
   // 🟩 navíc – automaticky vykreslí E-5 s trasou, vzdálenostmi a klikacími odkazy
   try {
-  if (typeof renderPlanDetail === "function") {
-    await renderPlanDetail(list);
-    console.log("✅ E-5 (detailní mapa a plán) načtena");
-  } else {
-    console.warn("⚠️ renderPlanDetail není zatím načtena");
-
+    if (typeof renderPlanDetail === "function") {
+      await renderPlanDetail(list);
+      console.log("✅ E-5 (detailní mapa a plán) načtena");
+    } else {
+      console.warn("⚠️ renderPlanDetail není zatím načtena");
     }
+  } catch (err) {
+    console.error("❌ Chyba při volání renderPlanDetail:", err);
+  }
 }
 </script>
-
 <!-- 🟦 KONEC E-3 -->
+
 
 
 
