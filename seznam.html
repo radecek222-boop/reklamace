@@ -1346,125 +1346,75 @@ async function loadPlanForDay(date, overlay) {
 
 
 
-<!-- 🟦 E-4: MAPA A TRASA (stabilní, s výpočtem vzdáleností) -->
+<!-- 🟦 E-4: MAPA A TRASA (opravená a bezpečná verze) -->
 <script>
+// 📍 Výchozí bod WGS – Praha 9 Běchovice
+const WGS_COORDS = [50.086367, 14.611751]; // Václava Kovaříka – Běchovice
+
 async function showPlanMap(list, container) {
-  // 📍 Výchozí bod (WGS servis)
-  const WGS_COORDS = [50.080815, 14.612493]; // Václava Kovaříka, Praha 9 – Běchovice
+  try {
+    // 🗺️ Inicializace mapy
+    if (!container) return console.warn("⚠️ showPlanMap: chybí kontejner");
+    container.innerHTML = "";
+    const map = L.map(container).setView(WGS_COORDS, 11);
 
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap",
+      maxZoom: 19
+    }).addTo(map);
 
-  // 🗺️ Inicializace mapy
-  const map = L.map(container, {
-    zoomControl: false,
-    attributionControl: false,
-  }).setView(start, 11);
+    // 📍 Vždy přidej výchozí bod WGS
+    const markers = [];
+    const points = [WGS_COORDS];
+    const startMarker = L.marker(WGS_COORDS, {
+      title: "Start / Cíl – WGS (Běchovice)"
+    }).addTo(map).bindPopup("🏠 White Glove Service<br>Václava Kovaříka – Praha 9 Běchovice");
+    markers.push(startMarker);
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 18,
-  }).addTo(map);
+    // 📦 Pokud nejsou zakázky, zobraz jen WGS a vrať
+    if (!list || !list.length) {
+      map.setView(WGS_COORDS, 11);
+      return;
+    }
 
-  // 📌 Přidej výchozí marker
-  const markers = [];
-  const points = [start];
-  const labels = ["WGS"];
-  const wgsMarker = L.marker(start, { title: "WGS Servis" })
-    .addTo(map)
-    .bindPopup(`<b>Start/Cíl</b><br>${startAddr}`);
-  markers.push(wgsMarker);
+    // 🗺️ Přidej zákazníky v pořadí trasy
+    for (const [i, r] of list.entries()) {
+      if (!r.adresa) continue;
+      try {
+        const geo = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(r.adresa)}`
+        ).then(x => x.json());
 
-  // 📦 Geokódování zákazníků
-  const customers = [];
-  for (const r of list) {
-    if (!r.adresa) continue;
-    try {
-      const geoRes = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(r.adresa)}`
-      );
-      const geo = await geoRes.json();
-      if (geo && geo[0]) {
-        const lat = +geo[0].lat;
-        const lon = +geo[0].lon;
-        const point = [lat, lon];
-        points.push(point);
-        labels.push(r.zakaznik || "Zákazník");
-        const m = L.marker(point, { title: r.zakaznik })
-          .addTo(map)
-          .bindPopup(`<b>${r.zakaznik || "Zákazník"}</b><br>${r.adresa}<br>${r.cas || ""}`);
-        m.on("click", () => map.setView(point, 13));
-        customers.push({ ...r, point });
-        markers.push(m);
+        if (geo[0]) {
+          const pos = [+geo[0].lat, +geo[0].lon];
+          points.push(pos);
+          const popup = `
+            <strong>${i + 1}. ${r.zakaznik || "Zákazník"}</strong><br>
+            ${r.adresa || ""}<br>
+            ⏰ ${r.cas || "-"}
+          `;
+          const m = L.marker(pos, { title: r.zakaznik || "" }).addTo(map).bindPopup(popup);
+          markers.push(m);
+        }
+      } catch (err) {
+        console.warn("⚠️ Geolokace selhala:", r.adresa, err);
       }
-    } catch (err) {
-      console.warn("❌ Geocode fail:", r.adresa);
     }
-  }
 
-  // 🛣️ Vykreslení trasy od/do WGS
-  if (points.length > 1) {
-    points.push(start); // návrat zpět
-    L.polyline(points, { color: "#0046ff", weight: 3 }).addTo(map);
-  }
-
-  // 🧮 Výpočet vzdáleností
-  function calcDistance(p1, p2) {
-    const R = 6371; // km
-    const dLat = ((p2[0] - p1[0]) * Math.PI) / 180;
-    const dLon = ((p2[1] - p1[1]) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((p1[0] * Math.PI) / 180) *
-        Math.cos((p2[0] * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
-  }
-
-  let totalDist = 0;
-  const distLines = [];
-  for (let i = 0; i < points.length - 1; i++) {
-    const dist = calcDistance(points[i], points[i + 1]);
-    totalDist += dist;
-    distLines.push(`• ${labels[i]} → ${labels[i + 1]}: ${dist.toFixed(1)} km`);
-  }
-
-  // 🧾 Výpis přehledu pod mapu
-  const summaryDiv = document.getElementById("routeSummary") || document.createElement("div");
-  summaryDiv.id = "routeSummary";
-  summaryDiv.innerHTML = `
-    <div style="margin-top:10px;padding:10px;border-radius:8px;background:#fff4f4;border:1px solid #f88;">
-      <strong style="color:#d00;">🚗 Nejpozději vyrazit:</strong>
-      <span id="departTime" style="font-weight:700;margin-left:5px;">—</span><br>
-      <div style="margin-top:5px;font-size:0.9em;line-height:1.5">${distLines.join("<br>")}</div>
-      <div style="margin-top:6px;font-weight:600">Celkem: ${totalDist.toFixed(1)} km</div>
-    </div>`;
-  container.after(summaryDiv);
-
-  // 📆 Spočítej čas odjezdu, pokud první zákazník má čas
-  if (customers[0]?.cas) {
-    const firstTime = customers[0].cas.split(":");
-    if (firstTime.length === 2) {
-      const firstHour = parseInt(firstTime[0]);
-      const firstMin = parseInt(firstTime[1]);
-      const depart = new Date();
-      depart.setHours(firstHour, firstMin, 0, 0);
-      const travelMin = Math.round(calcDistance(start, customers[0].point) / 60 * 60); // cca 60 km/h
-      depart.setMinutes(depart.getMinutes() - travelMin);
-      document.getElementById("departTime").textContent =
-        `${depart.getHours().toString().padStart(2, "0")}:${depart
-          .getMinutes()
-          .toString()
-          .padStart(2, "0")}`;
+    // 🏁 Nakresli trasu a nastav pohled
+    if (points.length > 1) {
+      L.polyline(points, { color: "#0046ff", weight: 3, opacity: 0.8 }).addTo(map);
+      const bounds = L.featureGroup(markers).getBounds().pad(0.25);
+      map.fitBounds(bounds);
+    } else {
+      map.setView(WGS_COORDS, 11);
     }
-  }
-
-  // 🖼️ Pokud nejsou zákazníci, mapa zůstane se středem WGS
-  if (customers.length === 0) {
-    L.circle(start, { radius: 500, color: "#0046ff", fillOpacity: 0.1 }).addTo(map);
+  } catch (err) {
+    console.error("❌ showPlanMap error:", err);
   }
 }
 </script>
 <!-- 🟦 KONEC E-4 -->
-
 
 <!-- 🟦 E-5: DETAIL ZÁKAZNÍKA V PLÁNU DNE (bez konfliktu s E-4) -->
 <style>
