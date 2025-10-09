@@ -5,174 +5,96 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Přehled – White Glove Service</title>
 
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
 body {
   font-family: "Inter", system-ui, sans-serif;
   background: #f6f7fb;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  margin: 0; padding: 0;
+  display: flex; justify-content: center; align-items: flex-start;
   min-height: 100vh;
 }
-
 .wrapper {
   background: #fff;
-  padding: 30px;
-  margin: 40px 15px;
+  padding: 30px; margin: 40px 15px;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  width: 100%;
-  max-width: 960px;
-  position: relative;
-  box-sizing: border-box;
+  width: 100%; max-width: 960px;
+  position: relative; box-sizing: border-box;
 }
-
-h1 {
-  text-align: center;
-  font-size: 2.1em;
-  font-weight: 900;
-  color: #111;
-  margin: 0 0 8px;
-}
-.sub {
-  text-align: center;
-  color: #666;
-  margin-bottom: 35px;
-  font-size: 1em;
-}
-
-.top-bar {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 30px;
-}
-
-.btn {
-  border: none;
-  border-radius: 8px;
-  padding: 10px 24px;
-  font-size: 0.95em;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform .15s, opacity .25s;
-  color: white;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-  min-width: 160px;
-}
-.btn:hover { transform: scale(1.05); opacity: .9; }
-
-.btn-light { background: linear-gradient(135deg, #888, #b5b5b5); }
-.btn-dark  { background: linear-gradient(135deg, #444, #707070); }
-.btn-gray  { background: linear-gradient(135deg, #666, #999); }
-
-.info-box {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #e0e0e0, #f0f0f0);
-  color: #111;
-  font-weight: 700;
-  border-radius: 8px;
-  padding: 10px 20px;
-  font-size: 0.95em;
-  min-width: 160px;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-}
-
-#resultsTable {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 15px;
-}
-#resultsTable th, #resultsTable td {
-  padding: 10px 8px;
-  border-bottom: 1px solid #eee;
-  text-align: left;
-  font-size: 0.9em;
-}
-#resultsTable th { background: #f8f8f8; font-weight: 700; color: #333; }
-
-.summary {
-  text-align: center;
-  margin-top: 25px;
-  font-weight: 600;
-  color: #333;
-}
-
-#logoutBtn {
-  position: absolute;
-  top: 15px;
-  right: 20px;
-  background: linear-gradient(135deg, #b8b8b8, #d3d3d3);
-  border: none;
-  color: #333;
-  font-weight: 600;
-  border-radius: 8px;
-  padding: 8px 16px;
-  cursor: pointer;
-  transition: opacity 0.25s;
-}
-#logoutBtn:hover { opacity: 0.85; }
-
-@keyframes fadeIn {
-  from {opacity:0;transform:translateY(-10px);}
-  to {opacity:1;transform:translateY(0);}
-}
+h1 { text-align:center;font-size:2.1em;font-weight:900;color:#111;margin:0 0 8px;}
+.sub {text-align:center;color:#666;margin-bottom:35px;font-size:1em;}
+.top-bar{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-bottom:30px;}
+.btn{border:none;border-radius:8px;padding:10px 24px;font-size:.95em;font-weight:600;cursor:pointer;transition:transform .15s,opacity .25s;color:#fff;box-shadow:0 3px 8px rgba(0,0,0,0.15);min-width:160px;}
+.btn:hover{transform:scale(1.05);opacity:.9;}
+.btn-light{background:linear-gradient(135deg,#888,#b5b5b5);}
+.btn-dark{background:linear-gradient(135deg,#444,#707070);}
+.btn-gray{background:linear-gradient(135deg,#666,#999);}
+.info-box{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e0e0e0,#f0f0f0);color:#111;font-weight:700;border-radius:8px;padding:10px 20px;font-size:.95em;min-width:160px;box-shadow:inset 0 1px 3px rgba(0,0,0,0.1);}
+#resultsTable{width:100%;border-collapse:collapse;margin-top:15px;}
+#resultsTable th,#resultsTable td{padding:10px 8px;border-bottom:1px solid #eee;text-align:left;font-size:.9em;}
+#resultsTable th{background:#f8f8f8;font-weight:700;color:#333;}
+.summary{text-align:center;margin-top:25px;font-weight:600;color:#333;}
+#logoutBtn{position:absolute;top:15px;right:20px;background:linear-gradient(135deg,#b8b8b8,#d3d3d3);border:none;color:#333;font-weight:600;border-radius:8px;padding:8px 16px;cursor:pointer;transition:opacity .25s;}
+#logoutBtn:hover{opacity:.85;}
+#techChart{max-height:220px;max-width:400px;margin:auto;display:block;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;justify-content:center;align-items:center;z-index:4000;backdrop-filter:blur(4px);opacity:0;transition:opacity .25s ease;}
+.modal-overlay.active{display:flex;opacity:1;}
+.modal-box{background:rgba(40,40,40,.95);color:#fff;padding:40px 30px;border-radius:14px;box-shadow:0 4px 25px rgba(0,0,0,.45);text-align:center;max-width:380px;width:90%;}
+.modal-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
+.client-list{text-align:left;margin-bottom:25px;max-height:240px;overflow-y:auto;border-radius:8px;background:rgba(255,255,255,0.08);padding:10px;}
+.client-list label{display:block;padding:5px;cursor:pointer;}
+.client-list input{margin-right:6px;}
+.period-fields{display:flex;flex-direction:column;gap:12px;background:rgba(255,255,255,0.08);border-radius:10px;padding:15px 12px;margin-bottom:20px;}
+.period-fields select,.period-fields input{width:100%;background:#222;color:#fff;border:1px solid #555;border-radius:8px;padding:10px;font-size:1em;outline:none;}
+.period-fields select:focus,.period-fields input:focus{border-color:#00c851;box-shadow:0 0 6px rgba(0,200,81,0.4);}
 </style>
 </head>
 <body>
-  <div class="wrapper">
-    <button id="logoutBtn">Odejít</button>
+<div class="wrapper">
+  <button id="logoutBtn">Odejít</button>
+  <h1>Přehled WGS</h1>
+  <div class="sub">Statistiky reklamací a servisních zakázek</div>
 
-    <h1>Přehled WGS</h1>
-    <div class="sub">Statistiky reklamací a servisních zakázek</div>
-
-    <!-- 🔹 Horní panel -->
-    <div class="top-bar">
-      <button id="selectClientBtn" class="btn btn-light">Vyber zadavatele</button>
-      <button id="selectTechBtn" class="btn btn-light">Vyber technika</button>
-      <button id="selectPeriodBtn" class="btn btn-gray">Období</button>
-      <div id="infoObrat" class="info-box">Obrat: 0 Kč</div>
-    </div>
-
-    <!-- 🔹 Tabulka výsledků -->
-    <div id="resultsContainer">
-      <table id="resultsTable">
-        <thead>
-          <tr>
-            <th>Jméno zákazníka</th>
-            <th>Číslo reklamace</th>
-            <th>Zadavatel</th>
-            <th>Částka</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td colspan="5" style="text-align:center;color:#888;padding:20px;">
-              Zatím nejsou vybraná žádná data
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- 🔹 Shrnutí -->
-    <div id="summary" class="summary">
-      Celkem zakázek v období: 0  |  Celkový obrat: 0 Kč
-    </div>
+  <div class="top-bar">
+    <button id="selectClientBtn" class="btn btn-light">Vyber zadavatele</button>
+    <button id="selectTechBtn" class="btn btn-light">Vyber technika</button>
+    <button id="selectPeriodBtn" class="btn btn-gray">Období</button>
+    <div id="infoObrat" class="info-box">Obrat: 0 €</div>
   </div>
-</body>
-<!-- 🟨 SEKCE 3/5 – MODÁLNÍ OKNA -->
 
-<!-- 🔹 MODÁL – VÝBĚR ZADAVATELŮ -->
+  <table id="resultsTable">
+    <thead>
+      <tr>
+        <th>Zákazník</th>
+        <th>Číslo</th>
+        <th>Zadavatel</th>
+        <th>Technik</th>
+        <th>Částka (EUR)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="5" style="text-align:center;color:#888;padding:20px;">Zatím nejsou vybraná žádná data</td></tr>
+    </tbody>
+  </table>
+
+  <div id="summary" class="summary"></div>
+  <canvas id="techChart"></canvas>
+  <div style="text-align:center;font-size:0.8em;color:#666;margin-top:12px;" id="cnbInfo"></div>
+</div>
+
+
+
+
+
+
+<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 2 – Modální okna -->
 <div id="clientModal" class="modal-overlay">
   <div class="modal-box">
     <h2>Vyber zadavatele</h2>
-    <div id="loadingClients" class="loading">Načítám...</div>
+    <div id="loadingClients" class="loading">Načítám…</div>
     <div id="clientList" class="client-list" style="display:none;"></div>
     <div class="modal-actions">
       <button id="confirmClients" class="btn btn-dark">Potvrdit</button>
@@ -181,46 +103,23 @@ h1 {
   </div>
 </div>
 
-<!-- 🔹 MODÁL – VÝBĚR TECHNIKA -->
-<div id="techModal" class="modal-overlay">
-  <div class="modal-box">
-    <h2>Vyber technika</h2>
-    <p style="color:#aaa;font-size:0.9em;">(Funkce se připravuje)</p>
-    <div class="modal-actions">
-      <button id="closeTech" class="btn btn-light">Zavřít</button>
-    </div>
-  </div>
-</div>
+<div id="techModal" class="modal-overlay"></div>
 
-<!-- 🔹 MODÁL – VÝBĚR OBDOBÍ -->
 <div id="periodModal" class="modal-overlay">
   <div class="modal-box">
     <h2>Vyber období</h2>
-
     <div class="period-fields">
-      <label>Od:</label>
-      <input type="date" id="dateFrom">
-      <label>Do:</label>
-      <input type="date" id="dateTo">
-
+      <label>Od:</label><input type="date" id="dateFrom">
+      <label>Do:</label><input type="date" id="dateTo">
       <label>Měsíc:</label>
       <select id="monthSelect">
         <option value="">– Nevybráno –</option>
-        <option value="01">Leden</option>
-        <option value="02">Únor</option>
-        <option value="03">Březen</option>
-        <option value="04">Duben</option>
-        <option value="05">Květen</option>
-        <option value="06">Červen</option>
-        <option value="07">Červenec</option>
-        <option value="08">Srpen</option>
-        <option value="09">Září</option>
-        <option value="10">Říjen</option>
-        <option value="11">Listopad</option>
-        <option value="12">Prosinec</option>
+        <option value="01">Leden</option><option value="02">Únor</option><option value="03">Březen</option>
+        <option value="04">Duben</option><option value="05">Květen</option><option value="06">Červen</option>
+        <option value="07">Červenec</option><option value="08">Srpen</option><option value="09">Září</option>
+        <option value="10">Říjen</option><option value="11">Listopad</option><option value="12">Prosinec</option>
       </select>
     </div>
-
     <div class="modal-actions">
       <button id="confirmPeriod" class="btn btn-dark">Potvrdit</button>
       <button id="closePeriod" class="btn btn-light">Zavřít</button>
@@ -228,307 +127,371 @@ h1 {
   </div>
 </div>
 
-<style>
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 4000;
-  backdrop-filter: blur(4px);
-  opacity: 0;
-  transition: opacity .25s ease;
-}
-.modal-overlay.active {
-  display: flex;
-  opacity: 1;
-}
-.modal-box {
-  background: rgba(40,40,40,0.95);
-  color: #fff;
-  padding: 40px 30px;
-  border-radius: 14px;
-  box-shadow: 0 4px 25px rgba(0,0,0,0.45);
-  text-align: center;
-  max-width: 380px;
-  width: 90%;
-  animation: fadeIn .3s ease;
-}
-.modal-actions {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.client-list {
-  text-align: left;
-  margin-bottom: 25px;
-  max-height: 240px;
-  overflow-y: auto;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.08);
-  padding: 10px;
-}
-.client-list label {
-  display: block;
-  padding: 5px;
-  cursor: pointer;
-}
-.client-list input {
-  margin-right: 6px;
-}
-.period-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 10px;
-  padding: 15px 12px;
-  margin-bottom: 20px;
-}
-.period-fields select,
-.period-fields input {
-  width: 100%;
-  background: #222;
-  color: #fff;
-  border: 1px solid #555;
-  border-radius: 8px;
-  padding: 10px;
-  font-size: 1em;
-  outline: none;
-  transition: all 0.25s ease;
-}
-.period-fields select:focus,
-.period-fields input:focus {
-  border-color: #00c851;
-  box-shadow: 0 0 6px rgba(0,200,81,0.4);
-}
-.loading {
-  color: #ccc;
-  margin: 15px 0;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-</style>
-<!-- 🟧 SEKCE 4/5 – FUNKCE A DATOVÉ OPERACE -->
+
+
+
+
+
+
+
+
+
+<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 3 – Globální proměnné a kurz ČNB -->
 <script>
+let allOrders = [];
+let cnbRate = null;
+let cnbRateDate = null;
+
 const clientModal = document.getElementById("clientModal");
 const techModal   = document.getElementById("techModal");
 const periodModal = document.getElementById("periodModal");
-
-const clientList      = document.getElementById("clientList");
-const loadingClients  = document.getElementById("loadingClients");
-
+const clientList  = document.getElementById("clientList");
+const loadingClients = document.getElementById("loadingClients");
 const selectClientBtn = document.getElementById("selectClientBtn");
 const selectTechBtn   = document.getElementById("selectTechBtn");
 const selectPeriodBtn = document.getElementById("selectPeriodBtn");
-
 const confirmClients  = document.getElementById("confirmClients");
 const closeClients    = document.getElementById("closeClients");
 const confirmPeriod   = document.getElementById("confirmPeriod");
 const closePeriod     = document.getElementById("closePeriod");
-const closeTech       = document.getElementById("closeTech");
+const infoObrat       = document.getElementById("infoObrat");
+const summaryBox      = document.getElementById("summary");
+const resultsTableBody = document.querySelector("#resultsTable tbody");
 
-const infoObrat   = document.getElementById("infoObrat");
-const summaryBox  = document.getElementById("summary");
-const resultsTable = document.querySelector("#resultsTable tbody");
 
-let allOrders = [];
 
-/* ==========================================================
-   🟩 1️⃣  Otevření a zavření modálních oken
-========================================================== */
-selectClientBtn.onclick = () => {
-  clientModal.classList.add("active");
-  loadClients();
-};
-selectTechBtn.onclick   = () => techModal.classList.add("active");
-selectPeriodBtn.onclick = () => periodModal.classList.add("active");
-
-closeClients.onclick = () => clientModal.classList.remove("active");
-closeTech.onclick    = () => techModal.classList.remove("active");
-closePeriod.onclick  = () => periodModal.classList.remove("active");
-
-/* ==========================================================
-   🟩 2️⃣  Načtení zadavatelů z GitHubu (hotove.json)
-========================================================== */
-async function loadClients() {
-  loadingClients.style.display = "block";
-  clientList.style.display = "none";
-  clientList.innerHTML = "";
-
+// 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 4 – Načtení kurzu ČNB (TXT feed)
+async function loadCNBrate() {
   try {
-    const res = await fetch("https://radecek222-boop.github.io/reklamace/hotove.json?t=" + Date.now());
-    const data = await res.json();
-
-    const contracts = Array.from(new Set(
-      data.map(r => r.contract).filter(Boolean)
-    ));
-
-    const allClients = [
-      ...contracts.sort(),
-      "WGS (Pozáruční servis)",
-      "Jiné"
-    ];
-
-    const saved = JSON.parse(localStorage.getItem("selectedClients") || "[]");
-
-    clientList.innerHTML = allClients.map(c => `
-      <label>
-        <input type="checkbox" value="${c}" ${saved.includes(c) ? "checked" : ""}>
-        ${c}
-      </label>
-    `).join("");
-
-    loadingClients.style.display = "none";
-    clientList.style.display = "block";
+    const resp = await fetch("https://www.cnb.cz/en/financial-markets/foreign-exchange-market/exchange-rate-fixing/daily.txt", { cache: "no-cache" });
+    const text = await resp.text();
+    const lines = text.trim().split("\n");
+    for (const line of lines) {
+      if (line.includes("|EUR|")) {
+        const parts = line.split("|");
+        const amount = parseFloat(parts[2]);
+        const rate = parseFloat(parts[4].replace(",", "."));
+        if (!isNaN(rate) && amount > 0) {
+          cnbRate = rate / amount;
+          const dateLine = lines[0].split("#")[0].trim();
+          cnbRateDate = dateLine;
+          console.log(`📈 Kurz ČNB: 1 € = ${cnbRate.toFixed(4)} Kč (${cnbRateDate})`);
+        }
+        break;
+      }
+    }
   } catch (err) {
-    loadingClients.textContent = "❌ Chyba načítání zadavatelů";
-    console.error(err);
+    console.error("❌ Chyba načítání kurzu ČNB:", err);
+    const stored = JSON.parse(localStorage.getItem("lastCnbRate") || "{}");
+    if (stored.value) {
+      cnbRate = stored.value;
+      cnbRateDate = stored.date;
+      console.warn("Použit uložený kurz:", cnbRate);
+    }
+  }
+  if (cnbRate && cnbRateDate) {
+    localStorage.setItem("lastCnbRate", JSON.stringify({ value: cnbRate, date: cnbRateDate, time: Date.now() }));
   }
 }
 
-/* ==========================================================
-   🟩 3️⃣  Potvrzení výběru zadavatelů
-========================================================== */
-confirmClients.onclick = () => {
-  const checked = [...clientList.querySelectorAll("input:checked")].map(i => i.value);
-  localStorage.setItem("selectedClients", JSON.stringify(checked));
 
-  // ✅ Krátká vizuální odezva
-  loadingClients.innerHTML = "<span style='color:#00c851;font-size:1.6em;'>✅</span> Uloženo";
-  clientList.style.display = "none";
-  setTimeout(() => clientModal.classList.remove("active"), 800);
+
+// 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 5 – Pomocné funkce
+const parseMoney = v => {
+  if (!v) return 0;
+  const s = String(v).replace(/[^\d.,-]/g, "");
+  const n = Number(s.replace(",", "."));
+  return isNaN(n) ? 0 : n;
+};
+const fmtEUR = n => `${n.toLocaleString("cs-CZ",{minimumFractionDigits:2,maximumFractionDigits:2})} €`;
+const getDate = r => {
+  const raw = r.datum_protokolu || r.datum_reklamace || r.datum_prodeje || "";
+  const d = new Date(raw);
+  return isNaN(d) ? new Date("2000-01-01") : d;
 };
 
-/* ==========================================================
-   🟩 4️⃣  Automatické doplnění polí „Od–Do“ po výběru měsíce
-      (opraveno pro české časové pásmo)
-========================================================== */
-document.getElementById("monthSelect").addEventListener("change", e => {
-  const month = parseInt(e.target.value, 10);
-  if (!month) return;
 
-  const year = new Date().getFullYear();
 
-  // 1. den měsíce
-  const start = new Date(year, month - 1, 1);
-  // Poslední den měsíce
-  const end = new Date(year, month, 0);
 
-  const yyyy = year.toString().padStart(4, "0");
-  const mm   = month.toString().padStart(2, "0");
 
-  // 🟢 Použijeme lokální čas, aby nedošlo k posunu o den zpět
-  const endLocal = new Date(end.getTime() - end.getTimezoneOffset() * 60000);
 
-  document.getElementById("dateFrom").value = `${yyyy}-${mm}-01`;
-  document.getElementById("dateTo").value   = endLocal.toISOString().split("T")[0];
+
+
+
+
+// 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 6 – Zadavatelé
+async function loadClients() {
+  loadingClients.style.display="block";
+  clientList.style.display="none";
+  clientList.innerHTML="";
+  try {
+    const res = await fetch("https://radecek222-boop.github.io/reklamace/hotove.json?t="+Date.now());
+    const data = await res.json();
+    const known=["Natuzzi Editions","Natuzzi Italia","Softaly","Phase","WGS (Pozáruční servis)"];
+    const fromData=[...new Set(data.map(r=>r.contract).filter(Boolean))];
+    const allClients=[...new Set([...known,...fromData])].sort();
+    const saved=JSON.parse(localStorage.getItem("selectedClients")||"[]");
+    clientList.innerHTML=allClients.map(c=>`
+      <label><input type="checkbox" value="${c}" ${saved.includes(c)?"checked":""}>${c}</label>`).join("");
+    loadingClients.style.display="none";
+    clientList.style.display="block";
+  } catch (err) {
+    loadingClients.textContent="❌ Chyba načítání zadavatelů";
+  }
+}
+
+confirmClients.onclick=()=>{
+  const checked=[...clientList.querySelectorAll("input:checked")].map(i=>i.value);
+  localStorage.setItem("selectedClients",JSON.stringify(checked));
+  clientModal.classList.remove("active");
+  renderResults();
+};
+
+
+
+
+
+
+
+
+
+
+// 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 7 – Výběr období
+document.getElementById("monthSelect").addEventListener("change",e=>{
+  const month=parseInt(e.target.value,10);
+  if(!month)return;
+  const year=new Date().getFullYear();
+  const start=new Date(year,month-1,1);
+  const end=new Date(year,month,0);
+  const yyyy=year.toString().padStart(4,"0");
+  const mm=month.toString().padStart(2,"0");
+  const fromStr=`${yyyy}-${mm}-01`;
+  const toStr=`${yyyy}-${mm}-${String(end.getDate()).padStart(2,"0")}`;
+  document.getElementById("dateFrom").value=fromStr;
+  document.getElementById("dateTo").value=toStr;
 });
 
-/* ==========================================================
-   🟩 5️⃣  Potvrzení výběru období
-========================================================== */
-confirmPeriod.onclick = () => {
-  const from = document.getElementById("dateFrom").value;
-  const to   = document.getElementById("dateTo").value;
-
-  if (!from || !to) {
-    alert("Zadej platné období nebo měsíc.");
-    return;
-  }
-
-  localStorage.setItem("selectedPeriod", JSON.stringify({ from, to }));
-
-  // ✅ Potvrzení a zavření
-  const h2 = periodModal.querySelector("h2");
-  h2.innerHTML = "✅ Uloženo";
-  setTimeout(() => {
-    h2.innerHTML = "Vyber období";
-    periodModal.classList.remove("active");
-  }, 800);
+confirmPeriod.onclick=()=>{
+  const from=document.getElementById("dateFrom").value;
+  const to=document.getElementById("dateTo").value;
+  if(!from||!to){alert("Zadej platné období.");return;}
+  localStorage.setItem("selectedPeriod",JSON.stringify({from,to}));
+  periodModal.classList.remove("active");
+  renderResults();
 };
-</script>
 
 
-<!-- 🟪 SEKCE 5/5 – NAČÍTÁNÍ DAT A VÝPOČTY -->
-<script>
-/* ==========================================================
-   🟩 6️⃣  Načtení hotových zakázek z GitHubu a zobrazení
-========================================================== */
+
+
+
+
+
+
+
+
+// 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 8 – Výběr technika
+const techList=[{name:"Milan Kolín",key:"kolin"},{name:"Radek Zikmund",key:"zikmund"}];
+techModal.innerHTML=`
+  <div class="modal-box">
+    <h2>Vyber technika</h2>
+    <div style="margin-bottom:20px;text-align:left;">
+      ${techList.map(t=>`<label style="display:block;margin:5px 0;">
+      <input type="radio" name="techSelect" value="${t.key}">${t.name}</label>`).join("")}
+    </div>
+    <div class="modal-actions">
+      <button id="confirmTech" class="btn btn-dark">Potvrdit</button>
+      <button id="closeTech" class="btn btn-light">Zavřít</button>
+    </div>
+  </div>
+`;
+document.addEventListener("click",e=>{
+  if(e.target.id==="confirmTech"){
+    const sel=document.querySelector("input[name='techSelect']:checked");
+    if(!sel)return;
+    localStorage.setItem("selectedTech",sel.value);
+    techModal.classList.remove("active");
+    renderResults();
+  }
+  if(e.target.id==="closeTech")techModal.classList.remove("active");
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 9 – Načtení zakázek + vykreslení
 async function loadOrders() {
+  await loadCNBrate();
   try {
     const res = await fetch("https://radecek222-boop.github.io/reklamace/hotove.json?t=" + Date.now());
     allOrders = await res.json();
     renderResults();
   } catch (err) {
-    console.error("Chyba načítání dat:", err);
+    console.error("❌ Chyba načítání dat:", err);
   }
 }
 
-/* ==========================================================
-   🟩 7️⃣  Filtrování a vykreslení výsledků
-========================================================== */
+
+
+
+
+
+
+
+
+
 function renderResults() {
   if (!allOrders.length) return;
 
-  const selectedClients = JSON.parse(localStorage.getItem("selectedClients") || "[]");
-  const selectedPeriod = JSON.parse(localStorage.getItem("selectedPeriod") || "{}");
-  const from = selectedPeriod.from ? new Date(selectedPeriod.from) : null;
-  const to   = selectedPeriod.to   ? new Date(selectedPeriod.to)   : null;
+  const selClients = JSON.parse(localStorage.getItem("selectedClients") || "[]");
+  const selPeriod  = JSON.parse(localStorage.getItem("selectedPeriod") || "{}");
+  const selTech    = localStorage.getItem("selectedTech") || "";
+  const from = selPeriod.from ? new Date(selPeriod.from) : null;
+  const to   = selPeriod.to ? new Date(selPeriod.to) : null;
 
-  let filtered = allOrders;
+  let filtered = allOrders.slice();
 
-  // 🧭 filtr podle zadavatele
-  if (selectedClients.length) {
-    filtered = filtered.filter(r => selectedClients.includes(r.contract));
-  }
+  // 📋 Filtry
+  if (selClients.length)
+    filtered = filtered.filter(r => selClients.includes(r.contract));
+  if (from && to)
+    filtered = filtered.filter(r => { const d = getDate(r); return d >= from && d <= to; });
+  if (selTech)
+    filtered = filtered.filter(r => (r.technik || "").toLowerCase().includes(selTech));
 
-  // 📅 filtr podle období
-  if (from && to) {
-    filtered = filtered.filter(r => {
-      const d = new Date(r.datum || r.datum_reklamace || r.datum_prodeje || "2000-01-01");
-      return d >= from && d <= to;
-    });
-  }
+  // 📅 Seřazení podle data (nejnovější nahoře)
+  filtered.sort((a, b) => getDate(b) - getDate(a));
 
-  // 📊 seřazení podle data (nejnovější nahoře)
-  filtered.sort((a,b) => new Date(b.datum || b.datum_reklamace) - new Date(a.datum || a.datum_reklamace));
+  // 💶 Výpočty – fixní 30 % pro každého technika
+  const techTotals = { "Radek Zikmund": 0, "Milan Kolín": 0 };
+  let totalEUR = 0;
 
-  // 🧾 výpočet obratu
-  let total = 0;
   filtered.forEach(r => {
-    const val = parseFloat(r.cenaCelkem || r.total || r.cena || 0);
-    if (!isNaN(val)) total += val;
+    let val = parseMoney(r.cenaCelkem || r.total || r.cena);
+    const str = String(r.cenaCelkem || r.total || r.cena);
+    if (cnbRate && !str.includes("€")) val = val / cnbRate;
+    totalEUR += val;
+
+    const t = (r.technik || "").toLowerCase();
+    const hasRadek = t.includes("zikmund");
+    const hasMilan = t.includes("kolin");
+    if (hasRadek) techTotals["Radek Zikmund"] += val * 0.30;
+    if (hasMilan) techTotals["Milan Kolín"] += val * 0.30;
   });
 
-  // 🧱 naplnění tabulky
-  resultsTable.innerHTML = filtered.map(r => `
-    <tr>
-      <td>${r.zakaznik || "–"}</td>
-      <td>${r.cislo || "–"}</td>
-      <td>${r.datum || r.datum_reklamace || "–"}</td>
-      <td>${r.contract || "–"}</td>
-      <td>${(r.cenaCelkem || r.total || 0).toLocaleString("cs-CZ")} Kč</td>
-    </tr>
-  `).join("") || `
+  // 🧾 Tabulka výsledků
+  resultsTableBody.innerHTML = filtered.map(r => {
+    let val = parseMoney(r.cenaCelkem || r.total || r.cena);
+    const str = String(r.cenaCelkem || r.total || r.cena);
+    if (cnbRate && !str.includes("€")) val = val / cnbRate;
+    return `
+      <tr>
+        <td>${r.zakaznik || "–"}</td>
+        <td>${r.cislo || "–"}</td>
+        <td>${r.contract || "–"}</td>
+        <td>${r.technik || "–"}</td>
+        <td>${fmtEUR(val)}</td>
+      </tr>
+    `;
+  }).join("") || `
     <tr><td colspan="5" style="text-align:center;color:#888;padding:20px;">Žádné výsledky</td></tr>
   `;
 
-  // 💰 zobrazení shrnutí
-  infoObrat.textContent = `Obrat: ${total.toLocaleString("cs-CZ")} Kč`;
-  summaryBox.textContent = `Celkem zakázek v období: ${filtered.length} | Celkový obrat: ${total.toLocaleString("cs-CZ")} Kč`;
+  // 📊 Shrnutí a podíly
+  let shareText = "";
+  Object.entries(techTotals).forEach(([name, v]) => {
+    const pct = totalEUR > 0 ? ((v / totalEUR) * 100).toFixed(1) : "0.0";
+    shareText += `${name}: ${fmtEUR(v)} (${pct} %)  |  `;
+  });
+  infoObrat.textContent = `Celkový obrat: ${fmtEUR(totalEUR)}`;
+  summaryBox.textContent = `Zakázek: ${filtered.length}  |  ${shareText.slice(0, -3)}`;
+
+  // 📉 Mini graf Chart.js
+  const ctx = document.getElementById("techChart");
+  if (ctx) {
+    const chartData = {
+      labels: Object.keys(techTotals),
+      datasets: [{
+        label: "Podíl techniků v EUR",
+        data: Object.values(techTotals).map(v => v.toFixed(2)),
+        backgroundColor: ["#4A90E2", "#7ED321"],
+        borderRadius: 8
+      }]
+    };
+
+    if (window.techChartInstance) {
+      window.techChartInstance.data = chartData;
+      window.techChartInstance.update();
+    } else {
+      window.techChartInstance = new Chart(ctx, {
+        type: "bar",
+        data: chartData,
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.parsed.y.toLocaleString("cs-CZ",{minimumFractionDigits:2})} €`
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { callback:(val)=>val.toLocaleString("cs-CZ") },
+              title: { display:true, text:"€" }
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // 🧮 Kurz ČNB – zobrazení dole
+  const foot = document.getElementById("cnbInfo");
+  if (foot) {
+    if (cnbRate && cnbRateDate) {
+      foot.textContent = `kurz ČNB: 1 € = ${cnbRate.toLocaleString("cs-CZ",{minimumFractionDigits:4,maximumFractionDigits:4})} Kč (platný k ${cnbRateDate})`;
+    } else {
+      foot.textContent = "";
+    }
+  }
 }
 
-/* ==========================================================
-   🟩 8️⃣  Start po načtení stránky
-========================================================== */
+
+
+
+
+
+
+
+
+// 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 10 – Inicializace
 window.addEventListener("DOMContentLoaded", () => {
   loadOrders();
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      localStorage.clear();
+      window.location.href = "index.html";
+    });
+  }
 });
 </script>
+</body>
 </html>
