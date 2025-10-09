@@ -1,74 +1,72 @@
-/* ====================================================================
-💎 WHITE GLOVE SERVICE – Synchronizace dat s GitHubem
-====================================================================
-Verze systému:       v1.0
-Datum sestavení:     2025-10-08
-Autor:               Hugo (White Glove Service) & GPT-5
-Projekt:             WGS reklamace / servisní systém
-Soubor:              wgs-sync.js
-Worker:              https://wgs-token.72nvwf4pb2.workers.dev/update
-Repozitář:           https://github.com/radecek222-boop/reklamace
-Popis:
-  Zajišťuje obousměrnou synchronizaci dat mezi frontendem (localStorage)
-  a GitHub repozitářem přes Cloudflare Workera.
+/* ===============================================================
+📦 WHITE GLOVE SERVICE – SYNC SCRIPT
+Soubor: wgs-sync.js
+Autor: Hugo & GPT-5
+Datum: 2025-10-09
+Funkce: propojuje protokol.html (uložení PDF k zákazníkovi)
+        s GitHub repo /orders.json přes Cloudflare Worker.
+================================================================ */
 
-Funkce:
-  • saveCustomerEdit(item) – uloží upravený záznam lokálně
-  • sendUpdatesToGitHub() – odešle změny na GitHub
-  • autoSyncOnLoad() – při načtení stránky odešle čekající změny
-  • autoSyncOnExit() – před zavřením stránky pošle změny
-==================================================================== */
+const WORKER_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
 
-/* 🧩 1. Uložení upraveného záznamu do localStorage */
-function saveCustomerEdit(updatedItem) {
-  if (!updatedItem || !updatedItem.cislo) return;
-  const key = "updatedRecords";
-  const existing = JSON.parse(localStorage.getItem(key) || "[]");
+/**
+ * 🧩 saveCustomerEdit(record)
+ * Uloží záznam do GitHubu (přes Worker).
+ * - record = { cislo, protokol: {name, date, file} }
+ */
+async function saveCustomerEdit(record) {
+  if (!record || !record.cislo) {
+    console.warn("⚠️ Neplatný záznam – chybí číslo reklamace.");
+    return;
+  }
 
-  const index = existing.findIndex(r => r.cislo === updatedItem.cislo);
-  if (index >= 0) existing[index] = updatedItem;
-  else existing.push(updatedItem);
+  const overlay = document.getElementById("waitOverlay");
+  if (overlay) overlay.classList.add("active");
 
-  localStorage.setItem(key, JSON.stringify(existing));
-  console.log("💾 Lokálně uloženo k synchronizaci:", updatedItem.cislo);
-}
-
-/* 🧩 2. Odeslání všech změn na GitHub */
-async function sendUpdatesToGitHub(jsonData) {
-  if (!jsonData) return;
   try {
-    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/update", {
+    console.log("📤 Odesílám data na Worker:", record);
+
+    const res = await fetch(WORKER_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: jsonData
+      body: JSON.stringify(record)
     });
-    if (!res.ok) throw new Error(await res.text());
-    console.log("✅ Změny úspěšně odeslány na GitHub.");
-    localStorage.removeItem("updatedRecords");
+
+    const data = await res.json();
+    console.log("✅ Odpověď Workeru:", data);
+
+    if (data.ok) {
+      showSuccess();
+    } else {
+      alert("⚠️ Uložení se nezdařilo: " + (data.error || "Neznámá chyba."));
+    }
   } catch (err) {
-    console.warn("⚠️ Nepodařilo se odeslat změny:", err.message);
+    console.error("❌ Chyba při odesílání na Worker:", err);
+    alert("❌ Chyba při ukládání dat. Zkontrolujte připojení.");
+  } finally {
+    if (overlay) overlay.classList.remove("active");
   }
 }
 
-/* 🧩 3. Automatická synchronizace při načtení stránky */
-async function autoSyncOnLoad() {
-  const pending = localStorage.getItem("updatedRecords");
-  if (!pending) return;
-  console.log("🔄 Detekovány čekající změny, synchronizuji s GitHubem…");
-  await sendUpdatesToGitHub(pending);
+/**
+ * ✅ Zobrazí zelené potvrzení ✓
+ */
+function showSuccess() {
+  const el = document.getElementById("successCheck");
+  if (!el) return;
+  el.classList.add("active");
+  setTimeout(() => el.classList.remove("active"), 1800);
 }
 
-/* 🧩 4. Automatická synchronizace při zavření stránky */
-window.addEventListener("beforeunload", () => {
-  const pending = localStorage.getItem("updatedRecords");
-  if (pending) {
-    console.log("📤 Ukládám změny před odchodem ze stránky…");
-    navigator.sendBeacon(
-      "https://wgs-token.72nvwf4pb2.workers.dev/update",
-      new Blob([pending], { type: "application/json" })
-    );
+/**
+ * 📥 Načti aktuální orders.json
+ */
+async function loadOrders() {
+  try {
+    const res = await fetch(WORKER_URL);
+    return await res.json();
+  } catch (e) {
+    console.error("❌ Nelze načíst orders.json:", e);
+    return [];
   }
-});
-
-/* 🧩 5. Spuštění automatické synchronizace při načtení */
-window.addEventListener("DOMContentLoaded", autoSyncOnLoad);
+}
