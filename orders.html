@@ -863,7 +863,7 @@ small { font-size: 0.8em; color: #666; }
   border-image: linear-gradient(45deg, #ff4d4d, #ff7b7b) 1;
 }
 
-/* tlačítka */
+/* 🔘 Obecná tlačítka */
 .btn {
   display: inline-block;
   padding: 12px 28px;
@@ -878,42 +878,48 @@ small { font-size: 0.8em; color: #666; }
 }
 .btn:hover { transform: scale(1.04); opacity: 0.9; }
 
-/* sjednocený styl spodních tlačítek */
+/* 🟢 Spodní tlačítka Zpět / Odeslat – 1:1 stejné rozměry */
 .actions {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin-top: 25px;
+  gap: 12px;
+  margin-top: 30px;
   flex-wrap: wrap;
 }
-.actions .btn {
+.actions .btn,
+.actions a.btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
   flex: 1;
   min-width: 160px;
-  height: 44px;
-  text-align: center;
-  font-weight: 600;
+  height: 48px;
+  padding: 0 20px;
   font-size: 1em;
+  font-weight: 600;
   border-radius: 8px;
+  text-align: center;
+  text-decoration: none;
+  border: none;
   cursor: pointer;
   box-shadow: 0 3px 8px rgba(0,0,0,0.15);
   transition: transform 0.15s ease, opacity 0.2s ease;
 }
-.actions .btn:hover {
+.actions .btn:hover,
+.actions a.btn:hover {
   transform: scale(1.05);
   opacity: 0.9;
 }
 .actions .btn-back {
   background: linear-gradient(135deg, #9b9b9b, #bfbfbf);
   color: #fff;
-  border: none;
 }
 .actions .btn-send {
   background: linear-gradient(135deg, #00b56a, #00da80);
   color: #fff;
-  border: none;
 }
 
-/* Přesýpací hodiny a čekání */
+/* ⏳ Přesýpací hodiny a čekání */
 .wait-overlay {
   display: none;
   position: fixed;
@@ -940,7 +946,7 @@ small { font-size: 0.8em; color: #666; }
 }
 @keyframes spin { 0%{transform:rotate(0)}100%{transform:rotate(360deg)} }
 
-/* Fajfka potvrzení */
+/* ✅ Fajfka potvrzení */
 .success-check {
   display: none;
   position: fixed;
@@ -964,7 +970,7 @@ small { font-size: 0.8em; color: #666; }
 }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 
-/* Červené křížky pro odstranění fotek */
+/* 🔴 Červené křížky pro odstranění fotek */
 .photo-remove {
   background: rgba(255,255,255,0.95);
   border: none;
@@ -984,13 +990,14 @@ small { font-size: 0.8em; color: #666; }
   transform: scale(1.15);
 }
 
-/* základní přechody a zjemnění */
+/* 🔄 Základní přechody */
 button, input, select, textarea {
   transition: all 0.2s ease;
 }
 </style>
 
 <!-- 🟨 KONEC ČÁSTI 8/10 – DOPLŇKOVÉ STYLY -->
+
 
 
 
