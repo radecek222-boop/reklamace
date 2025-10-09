@@ -1299,31 +1299,204 @@ async function loadPlanForDay(date,overlay){
 <!-- 🟦 KONEC E-3 -->
 
 
-<!-- 🟦 E-4: MAPA A TRASA -->
-<script>
-async function showPlanMap(list,container){
-  const wgs=[50.049,14.523];
-  const map=L.map(container).setView(wgs,9);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);
-  const points=[wgs];
-  const markers=[L.marker(wgs,{title:"WGS"})];
-  const geos=[];
+<!-- 🟦 E-4: MAPA A TRASA (fixní mapa + výpočet trasy + banner + seznam) -->
+<style>
+#planMap {
+  width: 100%;
+  height: 450px;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  margin-bottom: 15px;
+}
 
-  for(const r of list){
-    if(!r.adresa)continue;
-    const geo=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(r.adresa)}`).then(x=>x.json());
-    if(geo[0]){
-      const p=[+geo[0].lat,+geo[0].lon];
-      geos.push(p);
-      points.push(p);
-      markers.push(L.marker(p,{title:r.zakaznik}).addTo(map).bindPopup(`${r.zakaznik}<br>${r.adresa}<br>${r.cas}`));
+.banner-start {
+  background: linear-gradient(135deg, #ff4d4d, #d60000);
+  color: #fff;
+  text-align: center;
+  font-weight: 700;
+  padding: 10px 15px;
+  border-radius: 10px;
+  margin: 10px 0;
+  font-size: 1.05em;
+}
+
+.route-summary {
+  background: #f4f5f9;
+  border-radius: 10px;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+  font-size: 0.95em;
+  line-height: 1.5;
+}
+
+.customer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.customer-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  padding: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.customer-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.customer-name {
+  font-weight: 700;
+  font-size: 1.05em;
+  margin-bottom: 5px;
+}
+
+.customer-address {
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.customer-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-waze {
+  background: #357aff;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9em;
+}
+
+.btn-phone {
+  background: #00c853;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9em;
+}
+</style>
+
+<script>
+async function showPlanMap(list, container) {
+  // 📍 WGS start/cíl
+  const WGS_COORDS = [50.07849221831964, 14.597566568029594];
+  const map = L.map(container, { zoomControl: true }).setView(WGS_COORDS, 11);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "© OpenStreetMap"
+  }).addTo(map);
+
+  // Pokud žádní zákazníci – jen WGS marker
+  if (!list || list.length === 0) {
+    L.marker(WGS_COORDS, { title: "WGS – Do Dubče 364" }).addTo(map);
+    document.getElementById("planLegend").innerHTML = `
+      <div class="banner-start">🗓️ Žádné plánované návštěvy na dnešní den</div>
+    `;
+    return;
+  }
+
+  const coords = [WGS_COORDS];
+  const markers = [];
+  const routeInfo = [];
+
+  for (let i = 0; i < list.length; i++) {
+    const r = list[i];
+    if (!r.adresa) continue;
+
+    try {
+      const geoRes = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(r.adresa)}`
+      );
+      const geo = await geoRes.json();
+      if (geo[0]) {
+        const lat = parseFloat(geo[0].lat);
+        const lon = parseFloat(geo[0].lon);
+        const pos = [lat, lon];
+        coords.push(pos);
+
+        const marker = L.marker(pos)
+          .addTo(map)
+          .bindPopup(`<strong>${r.zakaznik}</strong><br>${r.adresa}`);
+        marker.bindTooltip(`${i + 1}`, { permanent: true, className: "marker-num" });
+        markers.push(marker);
+
+        routeInfo.push({
+          index: i + 1,
+          name: r.zakaznik,
+          address: r.adresa,
+          telefon: r.telefon,
+          waze: `https://waze.com/ul?q=${encodeURIComponent(r.adresa)}`,
+          coords: pos
+        });
+      }
+    } catch (err) {
+      console.warn("Chyba geokódování:", err);
     }
   }
 
-  if(points.length>1){
-    L.polyline(points,{color:"#0046ff",weight:3}).addTo(map);
-    map.fitBounds(L.featureGroup(markers).getBounds().pad(0.3));
+  // Přidat cíl (WGS zpět)
+  coords.push(WGS_COORDS);
+
+  // 🧮 Výpočet vzdáleností
+  let totalKm = 0;
+  let totalMin = 0;
+  let legendHTML = "";
+
+  for (let i = 0; i < coords.length - 1; i++) {
+    const distM = map.distance(coords[i], coords[i + 1]);
+    const distKm = distM / 1000;
+    const estMin = Math.round(distKm + 10); // 1 km ≈ 1 min + 10 min rezerva
+    totalKm += distKm;
+    totalMin += estMin;
+    if (i < coords.length - 2) {
+      legendHTML += `<div>🚗 ${i + 1}. úsek: ${distKm.toFixed(1)} km / ${estMin} min</div>`;
+    }
   }
+
+  const now = new Date();
+  const startTime = new Date(now.getTime() + (totalMin + 10) * 60000);
+  const hours = String(startTime.getHours()).padStart(2, "0");
+  const minutes = String(startTime.getMinutes()).padStart(2, "0");
+  const departTime = `${hours}:${minutes}`;
+
+  // 🟦 Zobrazit banner a souhrn
+  document.getElementById("planLegend").innerHTML = `
+    <div class="banner-start">🕒 Nejpozději vyrazit: <strong>${departTime}</strong></div>
+    <div class="route-summary">
+      <strong>Celková trasa:</strong> ${totalKm.toFixed(1)} km / ${totalMin} min<br>
+      ${legendHTML}
+    </div>
+    <div class="customer-list">
+      ${routeInfo.map(r => `
+        <div class="customer-card" onclick="focusCustomer(${r.coords[0]},${r.coords[1]})">
+          <div class="customer-name">${r.name}</div>
+          <div class="customer-address">${r.address}</div>
+          <div class="customer-actions">
+            <a href="${r.waze}" target="_blank" class="btn-waze">Waze</a>
+            <a href="tel:${r.telefon}" class="btn-phone">📞</a>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  // 🗺️ Trasa
+  L.polyline(coords, { color: "#357aff", weight: 4, opacity: 0.8 }).addTo(map);
+  map.fitBounds(L.featureGroup(markers).getBounds().pad(0.2));
+
+  // 📍 Funkce pro zoom po kliknutí
+  window.focusCustomer = (lat, lon) => {
+    map.setView([lat, lon], 14, { animate: true });
+  };
 }
 </script>
 <!-- 🟦 KONEC E-4 -->
