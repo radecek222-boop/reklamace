@@ -667,28 +667,44 @@ function openPopisEditor(item, overlay) {
 <script>
 function initMapForDetail(overlay, item) {
   if (!item.adresa) return;
-  const wgs = [50.049, 14.523];
-  const map = L.map(overlay.querySelector("#mapDetail")).setView(wgs, 9);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    { attribution: "© OpenStreetMap" }).addTo(map);
-  const wgsM = L.marker(wgs, { title: "WGS" }).addTo(map);
 
+  // ✅ použij globální souřadnice z wgs-config-map.js
+  const wgs = WGS_COORDS;
+  console.log("🏠 WGS souřadnice použité v detailu:", WGS_COORDS);
+
+  // 🗺️ inicializace mapy
+  const mapContainer = overlay.querySelector("#mapDetail");
+  if (!mapContainer) return;
+
+  const map = L.map(mapContainer).setView(wgs, 11);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "© OpenStreetMap"
+  }).addTo(map);
+
+  // 📍 Přidání značky pro WGS
+  L.marker(wgs, { title: "White Glove Service" })
+    .addTo(map)
+    .bindPopup("WGS – Do Dubče 364, Praha 9 Běchovice");
+
+  // 📍 Zákazník
   fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`)
     .then(r => r.json())
-    .then(d => {
-      if (d[0]) {
-        const c = [+d[0].lat, +d[0].lon];
-        const cust = L.marker(c, { title: "Zákazník" }).addTo(map);
-        L.polyline([wgs, c], { color: "#0046ff", weight: 3 }).addTo(map);
-        const dist = calcDistanceCoords(wgs[0], wgs[1], c[0], c[1]);
-        overlay.querySelector("#mapDistance").innerHTML =
-          `Vzdálenost od WGS: ${dist.toFixed(1)} km`;
-        map.fitBounds(L.featureGroup([wgsM, cust]).getBounds().pad(0.3));
+    .then(geo => {
+      if (geo[0]) {
+        const pos = [+geo[0].lat, +geo[0].lon];
+        L.marker(pos, { title: item.zakaznik || "Zákazník" })
+          .addTo(map)
+          .bindPopup(`${item.zakaznik}<br>${item.adresa}`);
+        L.polyline([wgs, pos], { color: "#0046ff", weight: 3 }).addTo(map);
+        map.fitBounds([wgs, pos], { padding: [40, 40] });
       }
-    });
+    })
+    .catch(err => console.warn("⚠️ Geocode error:", err));
 }
 </script>
 <!-- 🟩 KONEC C-2 -->
+
 
 
 <!-- 🟩 C-3: KALENDÁŘ A ČAS -->
