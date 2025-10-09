@@ -394,13 +394,20 @@
     <div id="photoPreview" class="photo-preview"></div>
 
     <div class="photo-modal-actions">
-      <label class="btn-gray" for="photoInput">Vyber soubory</label>
+      <button type="button" id="selectFiles" class="btn-gray">Vyber soubory</button>
       <input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
       <button type="button" id="uploadPhotos" class="btn-green">Nahrát fotografie</button>
       <button type="button" id="closePhotoModal" class="btn-white">Zavřít</button>
     </div>
   </div>
 </div>
+
+<script>
+// sjednocený trigger pro výběr souborů
+document.getElementById("selectFiles").addEventListener("click",()=>{
+  document.getElementById("photoInput").click();
+});
+</script>
 
 <style>
 .photo-frame {
@@ -463,17 +470,39 @@
 }
 @keyframes pulse{0%{opacity:.6;}50%{opacity:1;}100%{opacity:.6;}}
 
-/* Tlačítka – stejná šířka a výška vedle sebe */
+/* 🔘 Tlačítka – všechna stejná */
 .photo-modal-actions{
   display:flex;justify-content:space-between;gap:10px;
 }
 .btn-gray,.btn-green,.btn-white{
-  flex:1;text-align:center;padding:10px 12px;
-  border-radius:8px;font-weight:600;cursor:pointer;
+  flex:1;
+  text-align:center;
+  padding:10px 12px;
+  border-radius:8px;
+  font-weight:600;
+  cursor:pointer;
+  font-size:0.95em;
+  height:42px;
+  transition:transform .15s ease;
 }
-.btn-gray{background:linear-gradient(135deg,#bfbfbf,#9b9b9b);color:#fff;border:none;}
-.btn-green{background:linear-gradient(135deg,#00b56a,#00da80);color:#fff;border:none;}
-.btn-white{background:linear-gradient(135deg,#fff,#f5f5f5);color:#333;border:1px solid #ccc;}
+.btn-gray{
+  background:linear-gradient(135deg,#bfbfbf,#9b9b9b);
+  color:#fff;
+  border:none;
+}
+.btn-green{
+  background:linear-gradient(135deg,#00b56a,#00da80);
+  color:#fff;
+  border:none;
+}
+.btn-white{
+  background:linear-gradient(135deg,#fff,#f5f5f5);
+  color:#333;
+  border:1px solid #ccc;
+}
+.btn-gray:hover,.btn-green:hover,.btn-white:hover{
+  transform:scale(1.05);
+}
 .photo-small{font-size:0.65em;color:#555;margin-top:4px;}
 </style>
 
