@@ -1,344 +1,330 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nová reklamace – White Glove Service</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nová reklamace – White Glove Service</title>
 
-<!-- Leaflet -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- 📍 Leaflet mapa -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
-<!-- Vanilla Calendar -->
-<link rel="stylesheet" href="vanilla-calendar.min.css">
-<script src="vanilla-calendar.min.js"></script>
+  <!-- 📅 Vanilla Calendar (lokální verze) -->
+  <link rel="stylesheet" href="vanilla-calendar.min.css">
+  <script src="vanilla-calendar.min.js"></script>
 
-<style>
-body{
-  font-family:"Inter",system-ui,sans-serif;
-  background:#f6f7fb;margin:0;padding:0;
-  display:flex;justify-content:center;align-items:flex-start;
-  min-height:100vh;
-}
-.wrapper{
-  background:#fff;padding:30px;margin:40px 15px;border-radius:12px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.1);
-  width:100%;max-width:700px;box-sizing:border-box;
-}
-h1,h2{text-align:center;margin:0 0 20px;}
-h1{font-size:2.6em;font-weight:900;color:#111;}
-h2{font-size:1.2em;font-weight:500;color:#666;margin-bottom:25px;}
+  <style>
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      background: #f6f7fb;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    .wrapper {
+      background: #fff;
+      padding: 30px;
+      margin: 40px 15px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 700px;
+      box-sizing: border-box;
+    }
+    h1, h2 { text-align: center; margin: 0 0 20px; }
+    h1 { font-size: 2.6em; font-weight: 900; color: #111; }
+    h2 { font-size: 1.2em; font-weight: 500; color: #666; margin-bottom: 25px; }
 
-label{display:block;font-weight:600;margin-top:15px;margin-bottom:5px;}
-input,textarea,select{
-  width:100%;padding:10px;font-size:1em;border:1px solid #ccc;
-  border-radius:6px;box-sizing:border-box;transition:border .2s;
-}
-input:focus,textarea:focus,select:focus{border-color:#0046ff;outline:none;}
-textarea{height:100px;resize:vertical;}
+    label { display: block; font-weight: 600; margin-top: 15px; margin-bottom: 5px; }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+      transition: border 0.2s;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: #0046ff; outline: none;
+    }
+    textarea { height: 100px; resize: vertical; }
+    small { font-size: 0.8em; color: #666; }
 
-.btn{
-  display:inline-block;padding:12px 28px;border-radius:8px;font-weight:600;
-  border:none;color:#fff;cursor:pointer;font-size:1em;
-  transition:transform .15s ease-in-out,opacity .2s;
-  box-shadow:0 3px 8px rgba(0,0,0,0.15);
-}
-.btn:hover{transform:scale(1.04);opacity:.9;}
-.btn-back{background:linear-gradient(135deg,#6c757d,#a0a4a7);}
-.btn-send{background:linear-gradient(135deg,#0046ff,#357aff);}
-.actions{text-align:center;margin-top:25px;display:flex;justify-content:center;gap:20px;flex-wrap:wrap;}
+    .invalid {
+      border: 2px solid;
+      border-image: linear-gradient(45deg, #ff4d4d, #ff7b7b) 1;
+    }
 
-.address-wrapper{position:relative;}
-#mapPreview{width:100%;height:250px;margin-top:10px;border-radius:14px;overflow:hidden;
-  box-shadow:0 4px 10px rgba(0,0,0,0.1);}
-.suggestions{position:absolute;top:100%;left:0;width:100%;background:#fff;
-  border:1px solid #ccc;border-radius:6px;box-shadow:0 4px 10px rgba(0,0,0,0.1);
-  max-height:180px;overflow-y:auto;z-index:1000;}
-.suggestions div{padding:8px;cursor:pointer;}
-.suggestions div:hover{background:#f0f0f0;}
+    .btn {
+      display: inline-block;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-weight: 600;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 1em;
+      transition: transform 0.15s ease-in-out, opacity 0.2s;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    }
+    .btn:hover { transform: scale(1.04); opacity: 0.9; }
+    .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
+    .btn-send { background: linear-gradient(135deg, #0046ff, #357aff); }
 
-/* 📅 a 📷 bannery */
-.btn-banner{
-  display:block;width:100%;
-  background:linear-gradient(135deg,#e7ecff,#f2f4ff);
-  color:#0046ff;font-weight:600;font-size:1em;
-  border:1px solid #ccd4ff;border-radius:10px;
-  padding:14px;text-align:center;
-  box-shadow:0 2px 5px rgba(0,0,0,0.05);
-  cursor:pointer;transition:background .2s;
-}
-.btn-banner:hover{background:linear-gradient(135deg,#dde4ff,#eef0ff);}
-.btn-banner.selected{background:linear-gradient(135deg,#0046ff,#357aff);color:#fff;border:none;}
+    .actions {
+      text-align: center;
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
 
+    /* 📍 MAPA */
+    .address-wrapper { position: relative; }
+    .suggestions {
+      position: absolute; top: 100%; left: 0; width: 100%;
+      background: #fff; border: 1px solid #ccc;
+      border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      max-height: 180px; overflow-y: auto; z-index: 1000;
+    }
+    .suggestions div { padding: 8px; cursor: pointer; }
+    .suggestions div:hover { background: #f0f0f0; }
 
+    #mapPreview {
+      width: 100%;
+      height: 250px;
+      margin-top: 10px;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
 
+    /* 🖼️ Náhled fotek */
+    .preview { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+    .preview-item {
+      width:90px; height:90px; position:relative;
+      border-radius:8px; overflow:hidden;
+      box-shadow:0 2px 6px rgba(0,0,0,0.15);
+    }
+    .preview-item img { width:100%; height:100%; object-fit:cover; }
 
+    /* 💾 Načítání */
+    .wait-overlay {
+      display:none; position:fixed; inset:0;
+      background:rgba(255,255,255,0.85);
+      backdrop-filter:blur(2px);
+      justify-content:center; align-items:center;
+      flex-direction:column; font-weight:600; color:#333;
+      z-index:2000;
+    }
+    .wait-overlay.active { display:flex; }
 
+    .hourglass {
+      border:4px solid #ccc; border-top:4px solid #0046ff;
+      border-radius:50%; width:40px; height:40px;
+      animation:spin 1s linear infinite; margin-bottom:10px;
+    }
+    @keyframes spin { 0%{transform:rotate(0)}100%{transform:rotate(360deg)} }
 
+    /* ✅ Hotovo animace */
+    .success-check {
+      display:none; position:fixed; inset:0;
+      justify-content:center; align-items:center;
+      background:rgba(255,255,255,0.9);
+      z-index:2100;
+    }
+    .success-check.active { display:flex; }
 
-  .wait-overlay{display:none;position:fixed;inset:0;background:rgba(255,255,255,.85);
-  backdrop-filter:blur(2px);justify-content:center;align-items:center;flex-direction:column;
-  font-weight:600;color:#333;z-index:2000;}
-.wait-overlay.active{display:flex;}
-.hourglass{border:4px solid #ccc;border-top:4px solid #0046ff;
-  border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin-bottom:10px;}
-@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+    .checkmark {
+      width:80px; height:80px; stroke-width:3;
+      stroke:url(#grad1); fill:none;
+      stroke-dasharray:48; stroke-dashoffset:48;
+      animation:draw 1s ease forwards;
+    }
+    @keyframes draw { to{stroke-dashoffset:0;} }
 
-.success-check{display:none;position:fixed;inset:0;justify-content:center;align-items:center;
-  background:rgba(255,255,255,0.9);z-index:2100;}
-.success-check.active{display:flex;}
-.checkmark{width:80px;height:80px;stroke-width:3;stroke:url(#grad1);fill:none;
-  stroke-dasharray:48;stroke-dashoffset:48;animation:draw 1s ease forwards;}
-@keyframes draw{to{stroke-dashoffset:0;}}
-
-/* modály kalendář + foto */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);
-  display:none;justify-content:center;align-items:center;z-index:9999;animation:fadeIn .25s ease;}
-.modal.active{display:flex;}
-.modal-content{background:#fff;padding:20px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,.25);
-  animation:popIn .25s ease;max-width:480px;width:90%;}
-@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-@keyframes popIn{from{transform:scale(.9);opacity:0;}to{transform:scale(1);opacity:1;}}
-
-.preview{display:flex;flex-wrap:wrap;gap:10px;margin-top:15px;}
-.preview-item{width:90px;height:90px;position:relative;border-radius:8px;overflow:hidden;
-  box-shadow:0 2px 6px rgba(0,0,0,.15);}
-.preview-item img{width:100%;height:100%;object-fit:cover;}
-.remove-btn{position:absolute;top:4px;right:4px;background:rgba(255,255,255,.85);
-  border:none;border-radius:50%;width:20px;height:20px;font-weight:bold;cursor:pointer;color:#f00;}
-.progress-circle{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;}
-</style>
+    /* 📅 Banner kalendáře */
+    .btn-calendar {
+      width: 100%;
+      padding: 14px;
+      font-size: 1em;
+      border-radius: 10px;
+      font-weight: 600;
+      background: linear-gradient(135deg, #e6e6e6, #f2f2f2);
+      color: #111;
+      text-align: center;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: transform 0.15s ease-in-out, opacity 0.2s;
+    }
+    .btn-calendar:hover {
+      transform: scale(1.02);
+      opacity: 0.95;
+    }
+    .btn-calendar.selected {
+      background: linear-gradient(135deg, #d0d0d0, #e8e8e8);
+      font-weight: 700;
+      border-color: #999;
+    }
+  </style>
 </head>
 
 
 
 
-
-
   <body>
-<div class="wrapper">
-  <h1>WHITE GLOVE SERVICE</h1>
-  <h2>Nová reklamace</h2>
+  <div class="wrapper">
+    <h1>WHITE GLOVE SERVICE</h1>
+    <h2>Nová reklamace</h2>
 
-  <form id="reklamaceForm" novalidate>
-    <label>Číslo reklamace / objednávky:</label>
-    <input type="text" name="cislo" required placeholder="např. NBU25">
+    <form id="reklamaceForm" novalidate>
+      <label>Číslo reklamace / objednávky:</label>
+      <input type="text" name="cislo" required placeholder="např. NBU25" />
 
-    <label>Zákazník:</label>
-    <input type="text" name="zakaznik" required placeholder="např. Jiří Novák">
+      <label>Zákazník:</label>
+      <input type="text" name="zakaznik" required placeholder="např. Jiří Novák" />
 
-    <label>Ulice a číslo popisné:</label>
-    <div class="address-wrapper">
-      <input type="text" id="ulice" name="ulice" required placeholder="např. Vinohradská 120">
-      <div id="suggestions" class="suggestions"></div>
-    </div>
-    <div id="mapPreview"></div>
-
-    <label>Město:</label>
-    <input type="text" id="mesto" name="mesto" required placeholder="např. Praha">
-
-    <label>PSČ:</label>
-    <input type="text" id="psc" name="psc" required pattern="\d{3}\s?\d{2}" placeholder="např. 110 00">
-
-    <label>Telefon:</label>
-    <div style="display:flex;gap:8px;">
-      <select id="predvolba" style="max-width:130px;">
-        <option value="+420">+420</option>
-        <option value="+421">+421</option>
-        <option value="+43">+43</option>
-      </select>
-      <input type="tel" id="telefon" name="telefon" required placeholder="např. 777123456">
-    </div>
-
-    <label>E-mail:</label>
-    <input type="email" id="email" name="email" required placeholder="např. info@firma.cz">
-
-    <label>Model / Název produktu:</label>
-    <input type="text" name="produkt" required placeholder="např. C142">
-
-
-
-
-
-
-
-        <div class="calendar-row" style="display:flex;gap:20px;flex-wrap:wrap;margin-top:15px;">
-      <div style="flex:1;min-width:250px;">
-        <label>Datum prodeje:</label>
-        <input type="hidden" id="datum_prodeje" name="datum_prodeje" required>
-        <button type="button" id="btnProdej" class="btn-banner">Vyberte datum prodeje</button>
+      <label>Ulice a číslo popisné:</label>
+      <div class="address-wrapper">
+        <input type="text" id="ulice" name="ulice" required placeholder="např. Vinohradská 120" />
+        <div id="suggestions" class="suggestions"></div>
       </div>
-      <div style="flex:1;min-width:250px;">
-        <label>Datum reklamace:</label>
-        <input type="hidden" id="datum_reklamace" name="datum_reklamace" required>
-        <button type="button" id="btnReklamace" class="btn-banner">Vyberte datum reklamace</button>
+      <div id="mapPreview"></div>
+
+      <label>Město:</label>
+      <input type="text" id="mesto" name="mesto" required placeholder="např. Praha" />
+
+      <label>PSČ:</label>
+      <input type="text" id="psc" name="psc" required pattern="\\d{3}\\s?\\d{2}" placeholder="např. 110 00" />
+
+      <label>Telefon:</label>
+      <div style="display:flex; gap:8px;">
+        <select id="predvolba" style="max-width:130px;">
+          <option value="+420">🇨🇿 +420</option>
+          <option value="+421">🇸🇰 +421</option>
+          <option value="+43">🇦🇹 +43</option>
+        </select>
+        <input type="tel" id="telefon" name="telefon" required placeholder="např. 777123456" />
       </div>
-    </div>
 
-    <!-- Modal kalendáře -->
-    <div id="calendarModal" class="modal">
-      <div class="modal-content">
-        <div id="vanillaCalendar"></div>
-        <button id="closeCalendar" class="btn btn-send" style="margin-top:15px;width:100%">Zavřít</button>
-      </div>
-    </div>
+      <label>E-mail:</label>
+      <input type="email" id="email" name="email" required placeholder="např. info@firma.cz" />
+
+      <label>Model / Název produktu:</label>
+      <input type="text" name="produkt" required placeholder="např. C142" />
 
 
 
 
 
+            <!-- 📅 Výběr dat pomocí bannerů -->
+      <div class="calendar-row">
+        <div class="calendar-box">
+          <label>Datum prodeje:</label>
+          <input type="hidden" id="datum_prodeje" name="datum_prodeje" required />
+          <button type="button" id="btnProdej" class="btn-calendar">Vyber datum</button>
+        </div>
 
-
-        <label>Fotografie k reklamaci:</label>
-    <button type="button" id="openPhotoModal" class="btn-banner">Nahrát fotografie</button>
-
-    <div id="photoModal" class="modal">
-      <div class="modal-content">
-        <p><strong>Max 5 fotografií</strong> | formát JPG/PNG/HEIC | velikost do 5 MB | automaticky zmenšujeme na 800 px</p>
-        <input type="file" id="fotkyInput" accept="image/jpeg,image/png,image/heic" multiple style="margin-top:10px;">
-        <div id="preview" class="preview"></div>
-        <div style="text-align:center;margin-top:15px;">
-          <button type="button" id="uploadPhotosBtn" class="btn btn-send" disabled>Nahrát fotografie</button>
-          <button type="button" id="closePhotoModal" class="btn btn-back" style="margin-top:10px;">Zavřít</button>
+        <div class="calendar-box">
+          <label>Datum reklamace:</label>
+          <input type="hidden" id="datum_reklamace" name="datum_reklamace" required />
+          <button type="button" id="btnReklamace" class="btn-calendar">Vyber datum</button>
         </div>
       </div>
-    </div>
+
+      <!-- 🪟 Modální kalendář -->
+      <div id="calendarModal" class="calendar-modal">
+        <div class="calendar-content">
+          <div id="vanillaCalendar"></div>
+          <button id="closeCalendar" class="btn btn-back" style="margin-top:15px;width:100%">Zavřít</button>
+        </div>
+      </div>
+
+
+
+
+            <!-- 🧾 Popis závady -->
+      <label>Popis závady:</label>
+      <textarea name="popis" required placeholder="Popište závadu nebo problém..."></textarea>
+
+      <!-- 📸 Banner pro nahrání fotek -->
+      <label>Fotodokumentace:</label>
+      <button type="button" id="btnFoto" class="btn-calendar">Nahrát fotografie</button>
+
+      <!-- Kontejner pro náhledy (vyplní se po nahrání) -->
+      <div id="preview" class="preview"></div>
 
 
 
 
 
+            <!-- 🪟 Modal okno pro nahrání fotek -->
+      <div id="fotoModal" class="calendar-modal">
+        <div class="calendar-content" style="max-width:480px;">
+          <h3 style="margin-top:0; text-align:center;">Nahrát fotografie</h3>
+          <p style="font-size:0.9em; color:#333; text-align:center; margin-bottom:15px;">
+            Můžete nahrát až <strong>5 fotografií</strong>.<br>
+            Podporované formáty: JPG, PNG, HEIC<br>
+            Velikost každé fotografie max. <strong>5&nbsp;MB</strong>.<br>
+            Obrázky budou automaticky zmenšeny před uložením.
+          </p>
 
-        <label>Objednávku zpracoval:</label>
-    <select id="zpracoval" name="zpracoval" required>
-      <option value="">Vyber…</option>
-      <option value="Natuzzi Editions - Strejcek">Natuzzi Editions – Strejcek</option>
-      <option value="Natuzzi Editions - Vimrova">Natuzzi Editions – Vimrova</option>
-      <option value="Natuzzi Italia - Bratislava">Natuzzi Italia – Bratislava</option>
-      <option value="Natuzzi Italia - Jama">Natuzzi Italia – Jama</option>
-      <option value="Natuzzi Italia - SOHO">Natuzzi Italia – SOHO</option>
-      <option value="Softaly - SOHO">Softaly – SOHO</option>
-      <option value="Phase - Klucarova">Phase – Klucarova</option>
-      <option value="Phase - Jancova">Phase – Jancova</option>
-      <option value="Jiná">Jiná</option>
-    </select>
+          <div style="text-align:center;">
+            <input type="file" id="fotky" accept="image/jpeg,image/png,image/heic" multiple hidden />
+            <button type="button" id="vyberFotoBtn" class="btn-calendar" style="margin-bottom:10px;">
+              Vyber fotky
+            </button>
+            <button type="button" id="nahratFotoBtn" class="btn-calendar" style="display:none;">
+              Nahrát fotografie
+            </button>
+          </div>
 
-    <div id="jinaSekce" style="display:none;">
-      <label>Zadej nový zápis zadavatele:</label>
-      <input type="text" id="jinaJmeno" name="jinaJmeno" placeholder="Jméno zadavatele">
-      <label>E-mail zadavatele:</label>
-      <input type="email" id="jinaEmail" name="jinaEmail" placeholder="např. zadavatel@firma.cz">
-      <label>Telefon zadavatele:</label>
-      <input type="tel" id="jinaTelefon" name="jinaTelefon" placeholder="např. 777123456">
-    </div>
+          <div id="fotoPreview" class="preview" style="margin-top:15px;"></div>
 
-    <div class="actions">
-      <a href="index.html" class="btn btn-back">Zpět</a>
-      <button type="submit" class="btn btn-send">Odeslat</button>
-    </div>
-  </form>
-</div>
+          <button id="closeFotoModal" class="btn btn-back" style="margin-top:20px;width:100%">Zavřít</button>
+        </div>
+      </div>
 
 
 
 
 
-
-
-    <div class="wait-overlay" id="waitOverlay">
-  <div class="hourglass"></div>
-  <p>Prosím čekejte…</p>
-</div>
-
-<div class="success-check" id="successCheck">
-  <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-    <defs>
-      <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" style="stop-color:#00d084;stop-opacity:1"/>
-        <stop offset="100%" style="stop-color:#00a86b;stop-opacity:1"/>
-      </linearGradient>
-    </defs>
-    <circle cx="26" cy="26" r="25" fill="none"/>
-    <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
-</div>
-
-
-
-
-
-    <script>
-// 🔧 Skrytí/aktivace sekce "Jiná"
-const selectZpracoval = document.getElementById("zpracoval");
-const jinaSekce = document.getElementById("jinaSekce");
-selectZpracoval.addEventListener("change", () => {
-  if (selectZpracoval.value === "Jiná") {
-    jinaSekce.style.display = "block";
-  } else {
-    jinaSekce.style.display = "none";
-  }
-});
-
-// 🗓️ Kalendářní bannery
-document.addEventListener("DOMContentLoaded", () => {
-  const modal = document.getElementById("calendarModal");
-  const closeBtn = document.getElementById("closeCalendar");
-  let targetInput = null;
-  let targetButton = null;
-
-  const calendar = new VanillaCalendar("#vanillaCalendar", {
-    settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
-    actions: {
-      clickDay: (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const chosen = e.target.dataset.calendarDay;
-        if (chosen && targetInput && targetButton) {
-          targetInput.value = chosen;
-          targetButton.textContent = chosen;
-          targetButton.classList.add("selected");
-        }
-      }
-    }
-  });
-  calendar.init();
-
-  document.getElementById("btnProdej").addEventListener("click", () => {
-    targetInput = document.getElementById("datum_prodeje");
-    targetButton = document.getElementById("btnProdej");
-    modal.classList.add("active");
-  });
-
-  document.getElementById("btnReklamace").addEventListener("click", () => {
-    targetInput = document.getElementById("datum_reklamace");
-    targetButton = document.getElementById("btnReklamace");
-    modal.classList.add("active");
-  });
-
-  closeBtn.addEventListener("click", () => modal.classList.remove("active"));
-});
-
-// 📷 Fotografie – modální okno
-const openPhotoModal = document.getElementById("openPhotoModal");
-const photoModal = document.getElementById("photoModal");
-const closePhotoModal = document.getElementById("closePhotoModal");
-const fotkyInput = document.getElementById("fotkyInput");
-const preview = document.getElementById("preview");
-const uploadPhotosBtn = document.getElementById("uploadPhotosBtn");
-
+      <script>
+// 🖼️ MODÁLNÍ OKNO – otevření a zavření
+const btnFoto = document.getElementById("btnFoto");
+const fotoModal = document.getElementById("fotoModal");
+const closeFotoModal = document.getElementById("closeFotoModal");
+const vyberFotoBtn = document.getElementById("vyberFotoBtn");
+const nahratFotoBtn = document.getElementById("nahratFotoBtn");
+const fotkyInput = document.getElementById("fotky");
+const fotoPreview = document.getElementById("fotoPreview");
 let compressedFiles = [];
-openPhotoModal.addEventListener("click", () => {
-  photoModal.classList.add("active");
-});
-closePhotoModal.addEventListener("click", () => {
-  photoModal.classList.remove("active");
-  preview.innerHTML = "";
-  compressedFiles = [];
-  uploadPhotosBtn.disabled = true;
+window.uploadedPhotos = [];
+
+// Otevření modálu
+btnFoto.addEventListener("click", () => {
+  fotoModal.classList.add("active");
 });
 
-// 🗜️ Komprese obrázku na max. 800 px / 500 kB
-async function compressImage(file, maxSizeKB = 500, maxDim = 800) {
+// Zavření modálu
+closeFotoModal.addEventListener("click", () => {
+  fotoModal.classList.remove("active");
+  fotoPreview.innerHTML = "";
+  compressedFiles = [];
+  nahratFotoBtn.style.display = "none";
+});
+
+// Klik na tlačítko "Vyber fotky" → otevře file dialog
+vyberFotoBtn.addEventListener("click", () => fotkyInput.click());
+
+// 🖼️ Komprese fotek
+async function compressImage(file, maxSizeMB = 0.5, maxDim = 800) {
   const img = await createImageBitmap(file);
   const canvas = document.createElement("canvas");
   let [w, h] = [img.width, img.height];
@@ -349,67 +335,57 @@ async function compressImage(file, maxSizeKB = 500, maxDim = 800) {
   ctx.drawImage(img, 0, 0, w, h);
   let q = 0.9;
   let blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", q));
-  while (blob.size / 1024 > maxSizeKB && q > 0.4) {
+  while (blob.size / 1024 / 1024 > maxSizeMB && q > 0.4) {
     q -= 0.1;
     blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", q));
   }
   return blob;
 }
 
-// 📸 Výběr fotek
+// 📸 Po výběru fotek
 fotkyInput.addEventListener("change", async () => {
-  preview.innerHTML = "";
+  fotoPreview.innerHTML = "";
   compressedFiles = [];
   const files = Array.from(fotkyInput.files).slice(0, 5);
+  if (!files.length) return;
+
   for (const file of files) {
+    if (!file.type.startsWith("image/")) continue;
+
     const item = document.createElement("div");
     item.className = "preview-item";
     const img = document.createElement("img");
-    const progress = document.createElement("div");
-    progress.className = "progress-circle";
-    progress.innerHTML = `<div class="hourglass" style="width:25px;height:25px;border-width:3px;"></div>`;
-    const remove = document.createElement("button");
-    remove.className = "remove-btn";
-    remove.textContent = "×";
-    remove.onclick = () => { item.remove(); compressedFiles = compressedFiles.filter(f => f.file !== file); };
-    item.append(img, progress, remove);
-    preview.append(item);
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "remove-btn";
+    removeBtn.textContent = "×";
+    removeBtn.onclick = () => {
+      item.remove();
+      compressedFiles = compressedFiles.filter(f => f.file !== file);
+      if (!compressedFiles.length) nahratFotoBtn.style.display = "none";
+    };
+
+    const loader = document.createElement("div");
+    loader.style.position = "absolute";
+    loader.style.inset = "0";
+    loader.style.background = "rgba(255,255,255,0.7)";
+    loader.style.display = "flex";
+    loader.style.alignItems = "center";
+    loader.style.justifyContent = "center";
+    loader.textContent = "Komprese…";
+
+    item.append(img, removeBtn, loader);
+    fotoPreview.append(item);
 
     const reader = new FileReader();
     reader.onload = e => (img.src = e.target.result);
     reader.readAsDataURL(file);
 
     const blob = await compressImage(file);
-    compressedFiles.push({ file, blob, element: item });
-    progress.innerHTML = "";
-  }
-  uploadPhotosBtn.disabled = compressedFiles.length === 0;
-});
-
-// 📤 Nahrání fotek na Worker
-uploadPhotosBtn.addEventListener("click", async () => {
-  uploadPhotosBtn.disabled = true;
-  const wait = document.getElementById("waitOverlay");
-  wait.classList.add("active");
-
-  const fotkyNames = [];
-  for (const fch of compressedFiles) {
-    const formData = new FormData();
-    formData.append("file", fch.blob, fch.file.name);
-    const up = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload", { method: "POST", body: formData });
-    const r = await up.json();
-    fotkyNames.push(r.filename);
+    compressedFiles.push({ file, blob, item });
+    loader.remove();
   }
 
-  wait.classList.remove("active");
-  document.getElementById("successCheck").classList.add("active");
-  setTimeout(() => {
-    document.getElementById("successCheck").classList.remove("active");
-    photoModal.classList.remove("active");
-  }, 2000);
-
-  // uložíme do hidden pole nebo globální proměnné pro pozdější odeslání formuláře
-  window.uploadedPhotos = fotkyNames;
+  if (compressedFiles.length) nahratFotoBtn.style.display = "inline-block";
 });
 </script>
 
@@ -417,43 +393,153 @@ uploadPhotosBtn.addEventListener("click", async () => {
 
 
 
-    <script>
-// 🧩 Pomocné validace
-const telefonInput = document.getElementById("telefon");
-const predvolba = document.getElementById("predvolba");
-const emailInput = document.getElementById("email");
-const pscInput = document.getElementById("psc");
-function validateTelefon(){return /^[0-9]{8,12}$/.test(telefonInput.value.trim());}
-function validateEmail(){return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailInput.value.trim());}
-function validatePSC(){return /^\d{3}\s?\d{2}$/.test(pscInput.value.trim());}
-const cisloInput=document.querySelector('input[name="cislo"]');
-cisloInput.addEventListener("input",()=>{cisloInput.value=cisloInput.value.toUpperCase();});
-
-// 💾 Odeslání celé reklamace
-document.getElementById("reklamaceForm").addEventListener("submit", async e => {
-  e.preventDefault();
+      <script>
+// 💾 Upload na Worker (GitHub)
+nahratFotoBtn.addEventListener("click", async () => {
+  if (!compressedFiles.length) return;
   const wait = document.getElementById("waitOverlay");
   wait.classList.add("active");
-  const f = e.target;
 
-  // 📋 Příprava dat
+  window.uploadedPhotos = [];
+
+  try {
+    for (const fch of compressedFiles) {
+      const formData = new FormData();
+      formData.append("file", fch.blob, fch.file.name);
+
+      const up = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload", {
+        method: "POST",
+        body: formData
+      });
+
+      const r = await up.json();
+      if (r.filename) {
+        window.uploadedPhotos.push(r.filename);
+        const check = document.createElement("div");
+        check.textContent = "✅";
+        check.style.position = "absolute";
+        check.style.bottom = "5px";
+        check.style.right = "8px";
+        check.style.fontSize = "1.2em";
+        fch.item.append(check);
+      }
+    }
+
+    wait.classList.remove("active");
+
+    // 🟢 Hotovo → fajfka a zavření okna
+    document.getElementById("successCheck").classList.add("active");
+    setTimeout(() => {
+      document.getElementById("successCheck").classList.remove("active");
+      fotoModal.classList.remove("active");
+    }, 2000);
+  } catch (err) {
+    wait.classList.remove("active");
+    alert("Chyba při nahrávání: " + err.message);
+  }
+});
+</script>
+
+
+
+
+
+            <!-- 👤 Zadavatel reklamace -->
+      <label>Objednávku zpracoval:</label>
+      <select id="zpracoval" name="zpracoval" required>
+        <option value="">Vyber...</option>
+        <option value="Natuzzi Editions - Strejcek">Natuzzi Editions – Strejcek</option>
+        <option value="Natuzzi Editions - Vimrova">Natuzzi Editions – Vimrova</option>
+        <option value="Natuzzi Italia - Bratislava">Natuzzi Italia – Bratislava</option>
+        <option value="Natuzzi Italia - Jama">Natuzzi Italia – Jama</option>
+        <option value="Natuzzi Italia - SOHO">Natuzzi Italia – SOHO</option>
+        <option value="Softaly - SOHO">Softaly – SOHO</option>
+        <option value="Phase - Klucarova">Phase – Klucarova</option>
+        <option value="Phase - Jancova">Phase – Jancova</option>
+        <option value="Jiná">Jiná</option>
+      </select>
+
+      <!-- 🔹 Sekce „Jiná“ (skrytá dokud se nevybere) -->
+      <div id="jinaSekce" style="display:none;">
+        <label>Zadej nový zápis zadavatele:</label>
+        <input type="text" id="jinaJmeno" name="jinaJmeno" placeholder="Jméno zadavatele" />
+        <label>E-mail zadavatele:</label>
+        <input type="email" id="jinaEmail" name="jinaEmail" placeholder="např. zadavatel@firma.cz" />
+        <label>Telefon zadavatele:</label>
+        <input type="tel" id="jinaTelefon" name="jinaTelefon" placeholder="např. 777123456" />
+      </div>
+
+      <!-- 🔘 Akce -->
+      <div class="actions">
+        <a href="index.html" class="btn btn-back">Zpět</a>
+        <button type="submit" class="btn btn-send">Odeslat</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 💾 Overlay načítání -->
+  <div class="wait-overlay" id="waitOverlay">
+    <div class="hourglass"></div>
+    <p>Prosím čekejte…</p>
+  </div>
+
+  <!-- ✅ Hotovo animace -->
+  <div class="success-check" id="successCheck">
+    <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+      <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#00d084;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#00a86b;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <circle cx="26" cy="26" r="25" fill="none"/>
+      <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+
+
+
+
+    <script>
+// 👁‍🗨 Zobrazení / skrytí sekce „Jiná“
+const selectZpracoval = document.getElementById("zpracoval");
+const jinaSekce = document.getElementById("jinaSekce");
+
+selectZpracoval.addEventListener("change", () => {
+  if (selectZpracoval.value === "Jiná") {
+    jinaSekce.style.display = "block";
+  } else {
+    jinaSekce.style.display = "none";
+  }
+});
+
+// 💾 Odeslání formuláře
+document.getElementById("reklamaceForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const f = e.target;
+  const wait = document.getElementById("waitOverlay");
+  wait.classList.add("active");
+
+  // ✅ Složení datového objektu
   const dataObj = {
     typ: "reklamace",
     contract: f.zpracoval.value,
     cislo: f.cislo.value.trim().toUpperCase(),
     zakaznik: f.zakaznik.value.trim(),
     adresa: `${f.ulice.value}, ${f.mesto.value}, ${f.psc.value}`,
-    telefon: `${predvolba.value} ${f.telefon.value}`,
+    telefon: `${document.getElementById("predvolba").value} ${f.telefon.value.trim()}`,
     email: f.email.value.trim(),
     produkt: f.produkt.value.trim(),
     datum_prodeje: f.datum_prodeje.value,
     datum_reklamace: f.datum_reklamace.value,
-    popis: f.popis?.value || "",
+    popis: f.popis.value.trim(),
     fotky: window.uploadedPhotos || []
   };
 
-  // pokud je zvolen "Jiná", přidáme kontakt zadavatele
-  if (f.zpracoval.value === "Jiná") {
+  // 📞 Pokud byl vybrán zadavatel „Jiná“
+  if (selectZpracoval.value === "Jiná") {
     dataObj.jinaZadavatel = {
       jmeno: f.jinaJmeno.value.trim(),
       email: f.jinaEmail.value.trim(),
@@ -465,23 +551,21 @@ document.getElementById("reklamaceForm").addEventListener("submit", async e => {
     const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ record: dataObj })
+      body: JSON.stringify(dataObj)
     });
-    const json = await res.json();
 
+    const result = await res.json();
     wait.classList.remove("active");
-    if (json.ok) {
+
+    if (result.ok) {
       document.getElementById("successCheck").classList.add("active");
-      setTimeout(() => {
-        document.getElementById("successCheck").classList.remove("active");
-        window.location.href = "index.html";
-      }, 2000);
+      setTimeout(() => window.location.href = "index.html", 2500);
     } else {
-      alert("Chyba při odeslání: " + json.message);
+      alert("Chyba: " + (result.message || "Nepodařilo se uložit záznam."));
     }
   } catch (err) {
     wait.classList.remove("active");
-    alert("Chyba při připojení: " + err.message);
+    alert("Chyba při odesílání: " + err.message);
   }
 });
 </script>
@@ -491,5 +575,98 @@ document.getElementById("reklamaceForm").addEventListener("submit", async e => {
 
 
 
-    </body>
-</html>
+    <script>
+// 🗓️ Modální kalendář – elegantní a funkční
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("calendarModal");
+  const closeBtn = document.getElementById("closeCalendar");
+  let targetInput = null;
+  let targetButton = null;
+
+  const calendar = new VanillaCalendar("#vanillaCalendar", {
+    settings: {
+      lang: "cs",
+      selection: { day: "single" },
+      visibility: { theme: "light" }
+    },
+    actions: {
+      clickDay: (e) => {
+        const chosen = e.target.dataset.calendarDay;
+        if (chosen && targetInput && targetButton) {
+          targetInput.value = chosen;
+          targetButton.textContent = chosen;
+          modal.classList.remove("active"); // 💡 automaticky zavře po výběru
+        }
+      }
+    }
+  });
+  calendar.init();
+
+  // 🟢 Otevření pro datum prodeje
+  document.getElementById("btnProdej").addEventListener("click", () => {
+    targetInput = document.getElementById("datum_prodeje");
+    targetButton = document.getElementById("btnProdej");
+    modal.classList.add("active");
+  });
+
+  // 🟢 Otevření pro datum reklamace
+  document.getElementById("btnReklamace").addEventListener("click", () => {
+    targetInput = document.getElementById("datum_reklamace");
+    targetButton = document.getElementById("btnReklamace");
+    modal.classList.add("active");
+  });
+
+  // 🔘 Zavření manuálně
+  closeBtn.addEventListener("click", () => modal.classList.remove("active"));
+});
+</script>
+
+<style>
+/* 🎨 Styl bannerů (tlačítek kalendáře a nahrávání fotek) */
+.banner-btn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1em;
+  text-align: center;
+  border: 1px solid #ccc;
+  background: linear-gradient(135deg, #f1f1f1, #dcdcdc);
+  color: #111;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: all 0.25s ease;
+}
+.banner-btn:hover {
+  background: linear-gradient(135deg, #e6e6e6, #cfcfcf);
+}
+
+/* 💡 Modalní pozadí sjednoceno */
+.calendar-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  transition: opacity 0.25s ease;
+}
+.calendar-modal.active {
+  display: flex;
+  opacity: 1;
+}
+.calendar-content {
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  width: 320px;
+  animation: fadeIn .25s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+</style>
