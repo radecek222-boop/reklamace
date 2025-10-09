@@ -1,1 +1,1 @@
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+data: Object.values(techTotals).map(v => Number(v.toFixed(2))),
