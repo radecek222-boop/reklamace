@@ -301,3 +301,97 @@ h1 {
     </div>
   </div>
 </div>
+
+
+
+
+
+  <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 3 – Globální proměnné a kurz ČNB -->
+<script>
+let allOrders = [];
+let cnbRate = null;
+let cnbRateDate = null;
+
+const clientModal = document.getElementById("clientModal");
+const techModal   = document.getElementById("techModal");
+const periodModal = document.getElementById("periodModal");
+const clientList  = document.getElementById("clientList");
+const loadingClients = document.getElementById("loadingClients");
+const selectClientBtn = document.getElementById("selectClientBtn");
+const selectTechBtn   = document.getElementById("selectTechBtn");
+const selectPeriodBtn = document.getElementById("selectPeriodBtn");
+const confirmClients  = document.getElementById("confirmClients");
+const closeClients    = document.getElementById("closeClients");
+const confirmPeriod   = document.getElementById("confirmPeriod");
+const closePeriod     = document.getElementById("closePeriod");
+const infoObrat       = document.getElementById("infoObrat");
+const summaryBox      = document.getElementById("summary");
+const resultsTableBody = document.querySelector("#resultsTable tbody");
+const cnbInfo = document.getElementById("cnbInfo");
+
+
+
+// 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Načtení kurzu ČNB s fallbackem
+async function loadCNBrate() {
+  try {
+    // 🟢 1️⃣ Primární pokus – ČNB feed
+    const resp = await fetch("https://www.cnb.cz/en/financial-markets/foreign-exchange-market/exchange-rate-fixing/daily.txt", { cache: "no-cache" });
+    const text = await resp.text();
+    const lines = text.trim().split("\n");
+    for (const line of lines) {
+      if (line.includes("|EUR|")) {
+        const parts = line.split("|");
+        const amount = parseFloat(parts[2]);
+        const rate = parseFloat(parts[4].replace(",", "."));
+        if (!isNaN(rate) && amount > 0) {
+          cnbRate = rate / amount;
+          const dateLine = lines[0].split("#")[0].trim();
+          cnbRateDate = dateLine;
+          console.log(`📈 Kurz ČNB: 1 € = ${cnbRate.toFixed(4)} Kč (${cnbRateDate})`);
+        }
+        break;
+      }
+    }
+  } catch (err) {
+    console.warn("⚠️ Nelze načíst kurz ČNB:", err);
+  }
+
+  // 🟠 2️⃣ Fallback – uložený kurz z localStorage
+  if (!cnbRate) {
+    const stored = JSON.parse(localStorage.getItem("lastCnbRate") || "{}");
+    if (stored.value) {
+      cnbRate = stored.value;
+      cnbRateDate = stored.date || "neznámé datum";
+      console.warn("💾 Použit kurz z localStorage:", cnbRate);
+      cnbInfo.textContent = `Kurz ČNB nebyl k dispozici – použit poslední známý: 1 € = ${cnbRate.toFixed(4)} Kč (${cnbRateDate})`;
+      return;
+    }
+  }
+
+  // 🔴 3️⃣ Poslední záchrana – GitHub záloha (lastRate.json)
+  if (!cnbRate) {
+    try {
+      const gh = await fetch("https://radecek222-boop.github.io/reklamace/lastRate.json?t=" + Date.now());
+      const json = await gh.json();
+      if (json && json.rate) {
+        cnbRate = json.rate;
+        cnbRateDate = json.date || "záložní hodnota";
+        console.warn("🌐 Použit kurz z GitHub zálohy:", cnbRate);
+        cnbInfo.textContent = `Kurz ČNB nebyl k dispozici – použit poslední známý z GitHubu (${cnbRateDate})`;
+        return;
+      }
+    } catch (err2) {
+      console.error("❌ Nepodařilo se načíst ani GitHub zálohu:", err2);
+    }
+  }
+
+  // 💾 Uložit nový kurz, pokud existuje
+  if (cnbRate && cnbRateDate) {
+    localStorage.setItem("lastCnbRate", JSON.stringify({ value: cnbRate, date: cnbRateDate, time: Date.now() }));
+    cnbInfo.textContent = `Kurz ČNB: 1 € = ${cnbRate.toFixed(4)} Kč (platný k ${cnbRateDate})`;
+  } else {
+    cnbInfo.textContent = `⚠️ Kurz ČNB nebyl nalezen a žádný záložní kurz nebyl k dispozici.`;
+  }
+}
+</script>
+
