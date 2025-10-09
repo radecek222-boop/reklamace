@@ -623,12 +623,14 @@ function renderResults() {
   summaryBox.textContent = `Zakázek: ${filtered.length} | ${shareText.slice(0, -2)}`;
 
   // 🧮 Kurz ČNB – zobrazení dole
-  if (cnbInfo) {
-    if (cnbRate && cnbRateDate) {
-      cnbInfo.textContent = `kurz ČNB: 1 € = ${cnbRate.toLocaleString("cs-CZ",{minimumFractionDigits:4,maximumFractionDigits:4})} Kč (platný k ${cnbRateDate})`;
-    } else {
-      cnbInfo.textContent = `⚠️ Kurz ČNB nebyl nalezen, použit poslední známý nebo záložní.`;
-    }
+ if (cnbInfo) {
+  if (cnbRate && cnbRateDate) {
+    cnbInfo.textContent = `Kurz frankfurter.app (ECB): 1 € = ${cnbRate.toLocaleString("cs-CZ",{
+      minimumFractionDigits:4,
+      maximumFractionDigits:4
+    })} Kč (platný k ${cnbRateDate})`;
+  } else {
+    cnbInfo.textContent = `⚠️ Kurz nebyl dostupný – použit poslední známý nebo záložní.`;
   }
 }
 </script>
