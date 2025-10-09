@@ -143,7 +143,7 @@ h1 {
   <div class="top-bar">
     <button id="selectClientBtn" class="btn btn-light">Vyber zadavatele</button>
     <button id="selectTechBtn" class="btn btn-light">Vyber technika</button>
-    <button id="selectPeriodBtn" class="btn btn-gray">Období</button>
+    <button id="selectPeriodBtn" class="info-box">Období</button>
     <div id="infoObrat" class="info-box">Obrat: 0 €</div>
   </div>
 
@@ -325,23 +325,30 @@ const cnbInfo           = document.getElementById("cnbInfo");
 
 
 
-/* 💶 Sekce 4 – Načtení kurzu EUR/CZK (z exchangerate.host + zálohy) */
+<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 4 – Načtení kurzu EUR/CZK (spolehlivější zdroj + zálohy) -->
+<script>
 async function loadCNBrate() {
   let source = "exchangerate.host";
+
   try {
+    // 🟢 1️⃣ Primární – exchangerate.host API
     const resp = await fetch("https://api.exchangerate.host/latest?base=EUR&symbols=CZK");
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
-   if (data && typeof data === "object" && data.rates && typeof data.rates.CZK === "number") {
+
+    if (data && typeof data === "object" && data.rates && typeof data.rates.CZK === "number") {
       cnbRate = data.rates.CZK;
-      cnbRateDate = data.date;
+      cnbRateDate = data.date || new Date().toISOString().split("T")[0];
+      source = "exchangerate.host";
+      console.log(`📈 Kurz EUR/CZK z exchangerate.host: ${cnbRate} (${cnbRateDate})`);
     } else {
       throw new Error("Neplatná data z API");
     }
   } catch (err) {
     console.warn("⚠️ Nelze načíst kurz z exchangerate.host:", err);
+
+    // 🟡 2️⃣ Fallback – GitHub záloha
     try {
-      // 🟡 Fallback – načtení z GitHub zálohy (pokud existuje)
       const res = await fetch("https://radecek222-boop.github.io/reklamace/lastRate.json?t=" + Date.now());
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const backup = await res.json();
@@ -349,74 +356,48 @@ async function loadCNBrate() {
         cnbRate = backup.rate;
         cnbRateDate = backup.date || "neuvedeno";
         source = "GitHub záloha";
-      } else throw new Error("Neplatná data z GitHubu");
+        console.log(`💾 Kurz EUR/CZK z GitHub záloha: ${cnbRate} (${cnbRateDate})`);
+      } else {
+        throw new Error("Neplatná data zálohy");
+      }
     } catch (err2) {
       console.error("❌ Nepodařilo se načíst ani GitHub zálohu:", err2);
+
+      // 🔴 3️⃣ Poslední možnost – localStorage
       const stored = JSON.parse(localStorage.getItem("lastCnbRate") || "{}");
       if (stored.value) {
         cnbRate = stored.value;
         cnbRateDate = stored.date || "neuvedeno";
-        source = "localStorage";
+        source = "uložený kurz (localStorage)";
         console.warn("⚙️ Použit uložený kurz:", cnbRate);
       }
     }
   }
 
-  // 💾 Uložení kurzu lokálně
+  // 💾 Uložení aktuálního kurzu
   if (cnbRate && cnbRateDate) {
-    localStorage.setItem("lastCnbRate", JSON.stringify({ value: cnbRate, date: cnbRateDate }));
+    localStorage.setItem("lastCnbRate", JSON.stringify({
+      value: cnbRate,
+      date: cnbRateDate,
+      time: Date.now()
+    }));
   }
 
-  // 🧾 Zobrazení v patičce
+  // 🧾 Výpis do konzole a do patičky
   const foot = document.getElementById("cnbInfo");
   if (foot) {
     if (cnbRate && cnbRateDate) {
-      foot.textContent = `Kurz ${source}: 1 € = ${cnbRate.toLocaleString("cs-CZ",{minimumFractionDigits:2,maximumFractionDigits:2})} Kč (platný k ${cnbRateDate})`;
+      foot.textContent = `Kurz ${source}: 1 € = ${cnbRate.toLocaleString("cs-CZ", {
+        minimumFractionDigits: 4,
+        maximumFractionDigits: 4
+      })} Kč (platný k ${cnbRateDate})`;
     } else {
       foot.textContent = "⚠️ Kurz není k dispozici – zkontrolujte připojení nebo soubor lastRate.json";
     }
   }
-
-  console.log(`📈 Kurz EUR/CZK z ${source}: ${cnbRate?.toFixed(4)} (${cnbRateDate})`);
 }
 </script>
-
-
-
-<script>
-/* 🧩 Sekce 5 – Pomocné funkce */
-const parseMoney = (v) => {
-  if (!v) return 0;
-  const s = String(v).replace(/[^\d.,-]/g, "").replace(",", ".");
-  const n = parseFloat(s);
-  return isNaN(n) ? 0 : n;
-};
-
-const fmtEUR = (n) =>
-  `${Number(n || 0).toLocaleString("cs-CZ", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })} €`;
-
-const getDate = (r) => {
-  const raw = r.datum_protokolu || r.datum_reklamace || r.datum_prodeje || "";
-  const d = new Date(raw);
-  return isNaN(d) ? new Date("2000-01-01") : d;
-};
-
-const convertToEUR = (value) => {
-  const val = parseMoney(value);
-  const str = String(value);
-  if (!cnbRate) return val;
-  if (str.includes("€")) return val;
-  return val / cnbRate;
-};
-
-const sumValues = (arr, field) => {
-  return arr.reduce((acc, r) => acc + convertToEUR(r[field]), 0);
-};
-</script>
-<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 6 – Zadavatelé (fixní + automatické doplnění nových) -->
+<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 6 – Zadavatelé (fixní + automatické doplnění nových + zpětná vazba) -->
 <script>
 async function loadClients() {
   loadingClients.style.display = "block";
@@ -429,7 +410,7 @@ async function loadClients() {
     "Natuzzi Editions - Vimrova",
     "Natuzzi Italia - Bratislava",
     "Natuzzi Italia - Jama",
-    "Natuzzi Italia - River",
+    "Natuzzi Italia - Rvier",
     "Natuzzi Italia - Soho",
     "Softaly - Soho",
     "Phase - Klucarova",
@@ -442,32 +423,30 @@ async function loadClients() {
     const res = await fetch("https://radecek222-boop.github.io/reklamace/hotove.json?t=" + Date.now());
     const data = await res.json();
 
-    // 🔍 Získání nových zadavatelů z JSONu
+    // 🔍 Noví zadavatelé z JSONu
     const newClients = [
       ...new Set(
-        data.map(r =>
-          r.contract || r.zadavatel || r.klient || r.partner || ""
-        ).filter(Boolean)
+        data.map(r => r.contract || r.zadavatel || r.klient || r.partner || "")
+           .filter(Boolean)
       )
     ];
 
-    // 🧩 Sloučení s uloženými (localStorage) + fixními
+    // 🧩 Spojení všech – fixní + uložené + nové
     const saved = JSON.parse(localStorage.getItem("persistentClients") || "[]");
     const allClients = [...new Set([...knownClients, ...saved, ...newClients])].sort();
 
-    // 💾 Uložení kompletního seznamu zpět do localStorage
+    // 💾 Uložení kompletního seznamu
     localStorage.setItem("persistentClients", JSON.stringify(allClients));
 
-    // ✅ Výběr uložených pro zaškrtnutí
+    // ✅ Výběr uložených
     const selected = JSON.parse(localStorage.getItem("selectedClients") || "[]");
 
-    clientList.innerHTML = allClients
-      .map(c => `
-        <label>
-          <input type="checkbox" value="${c}" ${selected.includes(c) ? "checked" : ""}>
-          ${c}
-        </label>
-      `).join("");
+    clientList.innerHTML = allClients.map(c => `
+      <label>
+        <input type="checkbox" value="${c}" ${selected.includes(c) ? "checked" : ""}>
+        ${c}
+      </label>
+    `).join("");
 
     loadingClients.style.display = "none";
     clientList.style.display = "block";
@@ -476,13 +455,23 @@ async function loadClients() {
   }
 }
 
+// ✅ potvrzení výběru zadavatelů
 confirmClients.onclick = () => {
   const checked = [...clientList.querySelectorAll("input:checked")].map(i => i.value);
   localStorage.setItem("selectedClients", JSON.stringify(checked));
   clientModal.classList.remove("active");
   renderResults();
+
+  // 🧾 Zpětná vazba – zobrazení výběru nad tabulkou
+  const sub = document.querySelector(".sub");
+  if (checked.length) {
+    sub.textContent = "Zobrazen přehled pro: " + checked.join(", ");
+  } else {
+    sub.textContent = "Statistiky reklamací a servisních zakázek";
+  }
 };
 </script>
+
   <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 7 – Výběr technika -->
 <script>
 // 🔧 Seznam techniků – staticky definovaný
@@ -628,13 +617,13 @@ function renderResults() {
   }
 }
 </script>
-<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 9 – Inicializace stránky -->
+<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 9 – Inicializace + automatické vyplnění období -->
 <script>
 window.addEventListener("DOMContentLoaded", () => {
   // 🟢 Načtení zakázek a kurzů
   loadOrders();
 
-  // 🎯 Otevření modálních oken
+  // 🎯 Otevření modálů
   selectClientBtn.addEventListener("click", () => {
     loadClients();
     clientModal.classList.add("active");
@@ -647,6 +636,27 @@ window.addEventListener("DOMContentLoaded", () => {
   selectPeriodBtn.addEventListener("click", () => {
     periodModal.classList.add("active");
   });
+
+  // 📅 Automatické vyplnění Od/Do při výběru měsíce
+  const monthSelect = document.getElementById("monthSelect");
+  const dateFrom = document.getElementById("dateFrom");
+  const dateTo = document.getElementById("dateTo");
+
+  if (monthSelect) {
+    monthSelect.addEventListener("change", () => {
+      const year = new Date().getFullYear();
+      const month = monthSelect.value;
+      if (!month) {
+        dateFrom.value = "";
+        dateTo.value = "";
+        return;
+      }
+      const first = new Date(year, month - 1, 1);
+      const last = new Date(year, month, 0);
+      dateFrom.value = first.toISOString().split("T")[0];
+      dateTo.value = last.toISOString().split("T")[0];
+    });
+  }
 
   // 🎯 Zavírání tlačítky
   closeClients.addEventListener("click", () => clientModal.classList.remove("active"));
@@ -664,6 +674,7 @@ window.addEventListener("DOMContentLoaded", () => {
   console.log("✅ Přehled WGS inicializován");
 });
 </script>
+
 <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 10 – Dokumentační shrnutí -->
 <!--
 📘 White Glove Service – přehled statistik (prehled.html)
