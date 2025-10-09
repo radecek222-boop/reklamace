@@ -306,47 +306,44 @@ h1 {
 
 
 
-  <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 3 – Globální proměnné a kurz ČNB -->
+ <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 3–5 – Proměnné + Kurz ČNB + Pomocné funkce -->
 <script>
+/* 🧱 Globální proměnné */
 let allOrders = [];
 let cnbRate = null;
 let cnbRateDate = null;
 
-const clientModal = document.getElementById("clientModal");
-const techModal   = document.getElementById("techModal");
-const periodModal = document.getElementById("periodModal");
-const clientList  = document.getElementById("clientList");
-const loadingClients = document.getElementById("loadingClients");
-const selectClientBtn = document.getElementById("selectClientBtn");
-const selectTechBtn   = document.getElementById("selectTechBtn");
-const selectPeriodBtn = document.getElementById("selectPeriodBtn");
-const confirmClients  = document.getElementById("confirmClients");
-const closeClients    = document.getElementById("closeClients");
-const confirmPeriod   = document.getElementById("confirmPeriod");
-const closePeriod     = document.getElementById("closePeriod");
-const infoObrat       = document.getElementById("infoObrat");
-const summaryBox      = document.getElementById("summary");
-const resultsTableBody = document.querySelector("#resultsTable tbody");
-const cnbInfo = document.getElementById("cnbInfo");
+const clientModal       = document.getElementById("clientModal");
+const techModal         = document.getElementById("techModal");
+const periodModal       = document.getElementById("periodModal");
+const clientList        = document.getElementById("clientList");
+const loadingClients    = document.getElementById("loadingClients");
+const selectClientBtn   = document.getElementById("selectClientBtn");
+const selectTechBtn     = document.getElementById("selectTechBtn");
+const selectPeriodBtn   = document.getElementById("selectPeriodBtn");
+const confirmClients    = document.getElementById("confirmClients");
+const closeClients      = document.getElementById("closeClients");
+const confirmPeriod     = document.getElementById("confirmPeriod");
+const closePeriod       = document.getElementById("closePeriod");
+const infoObrat         = document.getElementById("infoObrat");
+const summaryBox        = document.getElementById("summary");
+const resultsTableBody  = document.querySelector("#resultsTable tbody");
+const cnbInfo           = document.getElementById("cnbInfo");
 
 
 
-<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 4 – Načtení kurzu ČNB + Pomocné funkce -->
-<script>
-// 📊 Načtení kurzu ČNB s fallbacky (ČNB → GitHub → localStorage)
+/* 💶 Sekce 4 – Načtení kurzu ČNB (s fallbacky) */
 async function loadCNBrate() {
   let source = "ČNB";
-
   try {
-    // 🟢 1️⃣ Pokus o načtení kurzu přímo z ČNB
     const resp = await fetch("https://www.cnb.cz/en/financial-markets/foreign-exchange-market/exchange-rate-fixing/daily.txt", {
       cache: "no-cache",
       mode: "cors"
     });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const text = await resp.text();
-
     const lines = text.trim().split("\n");
+
     for (const line of lines) {
       if (line.includes("|EUR|")) {
         const parts = line.split("|");
@@ -362,8 +359,6 @@ async function loadCNBrate() {
     }
   } catch (err) {
     console.warn("⚠️ Nelze načíst kurz ČNB:", err);
-
-    // 🟡 2️⃣ Fallback – pokus o načtení z GitHub zálohy
     try {
       const res = await fetch("https://radecek222-boop.github.io/reklamace/lastRate.json?t=" + Date.now());
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -372,52 +367,33 @@ async function loadCNBrate() {
         cnbRate = backup.rate;
         cnbRateDate = backup.date || "neuvedeno";
         source = "GitHub záloha";
-        console.log(`💾 Kurz z GitHubu: ${cnbRate} (${cnbRateDate})`);
       } else throw new Error("Neplatná data");
     } catch (err2) {
       console.error("❌ Nepodařilo se načíst ani GitHub zálohu:", err2);
-
-      // 🔴 3️⃣ Poslední možnost – localStorage
       const stored = JSON.parse(localStorage.getItem("lastCnbRate") || "{}");
       if (stored.value) {
         cnbRate = stored.value;
         cnbRateDate = stored.date || "neuvedeno";
-        source = "uložený kurz (localStorage)";
-        console.warn("⚙️ Použit uložený kurz:", cnbRate);
+        source = "localStorage";
       }
     }
   }
 
-  // 💾 Uložení aktuálního kurzu
   if (cnbRate && cnbRateDate) {
-    localStorage.setItem("lastCnbRate", JSON.stringify({
-      value: cnbRate,
-      date: cnbRateDate,
-      time: Date.now()
-    }));
+    localStorage.setItem("lastCnbRate", JSON.stringify({ value: cnbRate, date: cnbRateDate }));
   }
 
-  // 🧾 Výpis do konzole a patičky
-  if (cnbRate) {
-    console.log(`📈 Kurz aktivní: 1 € = ${cnbRate.toFixed(4)} Kč (${cnbRateDate}, zdroj ${source})`);
-  } else {
-    console.error("🚫 Kurz EUR se nepodařilo získat ani ze záloh.");
-  }
-
-  // 🧮 Aktualizace info v patičce (pokud už je prvek vykreslen)
   const foot = document.getElementById("cnbInfo");
   if (foot) {
-    if (cnbRate && cnbRateDate) {
-      foot.textContent = `Kurz ${source}: 1 € = ${cnbRate.toLocaleString("cs-CZ", {minimumFractionDigits:4, maximumFractionDigits:4})} Kč (platný k ${cnbRateDate})`;
-    } else {
-      foot.textContent = "⚠️ Kurz není k dispozici – zkontrolujte připojení nebo soubor lastRate.json";
-    }
+    foot.textContent = cnbRate
+      ? `Kurz ${source}: 1 € = ${cnbRate.toLocaleString("cs-CZ",{minimumFractionDigits:4,maximumFractionDigits:4})} Kč (platný k ${cnbRateDate})`
+      : "⚠️ Kurz není k dispozici – zkontrolujte připojení nebo soubor lastRate.json";
   }
 }
 
 
 
-// 🔧 Pomocné funkce
+/* 🧩 Sekce 5 – Pomocné funkce */
 const parseMoney = (v) => {
   if (!v) return 0;
   const s = String(v).replace(/[^\d.,-]/g, "").replace(",", ".");
@@ -449,66 +425,6 @@ const sumValues = (arr, field) => {
   return arr.reduce((acc, r) => acc + convertToEUR(r[field]), 0);
 };
 </script>
-
-
-
-
-
-
-  <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 5 – Zadavatelé -->
-<script>
-async function loadClients() {
-  loadingClients.style.display = "block";
-  clientList.style.display = "none";
-  clientList.innerHTML = "";
-
-  try {
-    // 🔹 načtení dat ze souboru hotove.json
-    const res = await fetch("https://radecek222-boop.github.io/reklamace/hotove.json?t=" + Date.now());
-    const data = await res.json();
-
-    // 🔸 známí zadavatelé
-    const known = [
-      "Natuzzi Editions",
-      "Natuzzi Italia",
-      "Softaly",
-      "Phase",
-      "WGS (Pozáruční servis)"
-    ];
-
-    // 🔸 extrahování všech záznamů z dat
-    const fromData = [...new Set(data.map(r => r.contract).filter(Boolean))];
-    const allClients = [...new Set([...known, ...fromData])].sort();
-
-    // 🔸 načtení uloženého výběru
-    const saved = JSON.parse(localStorage.getItem("selectedClients") || "[]");
-
-    // 🧾 vytvoření seznamu
-    clientList.innerHTML = allClients
-      .map(c => `
-        <label>
-          <input type="checkbox" value="${c}" ${saved.includes(c) ? "checked" : ""}>
-          ${c}
-        </label>`)
-      .join("");
-
-    loadingClients.style.display = "none";
-    clientList.style.display = "block";
-  } catch (err) {
-    console.error("❌ Chyba načítání zadavatelů:", err);
-    loadingClients.textContent = "❌ Chyba při načítání seznamu zadavatelů";
-  }
-}
-
-// ✅ potvrzení výběru zadavatelů
-confirmClients.onclick = () => {
-  const checked = [...clientList.querySelectorAll("input:checked")].map(i => i.value);
-  localStorage.setItem("selectedClients", JSON.stringify(checked));
-  clientModal.classList.remove("active");
-  renderResults();
-};
-</script>
-
 
 
 
