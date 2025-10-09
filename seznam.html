@@ -1447,9 +1447,9 @@ async function showPlanMap(list, container) {
 <!-- 🟦 KONEC E-4 -->
 
 
-<!-- 🟦 E-5: DETAIL ZÁKAZNÍKA V PLÁNU DNE -->
+<!-- 🟦 E-5: DETAIL ZÁKAZNÍKA V PLÁNU DNE (bez konfliktu s E-4) -->
 <style>
-#planDetail {
+#planDetailBox {
   padding: 15px;
   background: #fff;
   border-radius: 12px;
@@ -1457,7 +1457,7 @@ async function showPlanMap(list, container) {
   margin-top: 15px;
 }
 .plan-banner {
-  background: linear-gradient(90deg, #ff4d4d, #ff7b7b);
+  background: linear-gradient(90deg,#ff4d4d,#ff7b7b);
   color: #fff;
   font-weight: 700;
   padding: 10px 15px;
@@ -1466,17 +1466,17 @@ async function showPlanMap(list, container) {
   text-align: center;
   font-size: 1em;
 }
-#planMap {
+#planMapDetail {
   width: 100%;
   height: 350px;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
-.plan-list {
+.plan-list-detail {
   margin-top: 10px;
 }
-.plan-item {
+.plan-item-detail {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1487,10 +1487,8 @@ async function showPlanMap(list, container) {
   margin-bottom: 6px;
   flex-wrap: wrap;
 }
-.plan-item strong {
-  font-size: 1em;
-}
-.plan-actions {
+.plan-item-detail strong { font-size: 1em; }
+.plan-actions-detail {
   display: flex;
   gap: 8px;
   margin-top: 4px;
@@ -1518,36 +1516,36 @@ async function showPlanMap(list, container) {
   font-size: 0.85em;
   margin-top: 3px;
 }
-@media (max-width:600px) {
-  .plan-item { flex-direction: column; align-items: flex-start; }
-  .plan-actions { margin-top: 6px; }
+@media (max-width:600px){
+  .plan-item-detail { flex-direction: column; align-items: flex-start; }
+  .plan-actions-detail { margin-top: 6px; }
 }
 </style>
 
-<div id="planDetail">
-  <div id="planBanner" class="plan-banner">🚗 Nejpozději vyrazit: výpočet…</div>
-  <div id="planMap"></div>
-  <div id="planList" class="plan-list"></div>
+<div id="planDetailBox">
+  <div id="planBannerDetail" class="plan-banner">🚗 Nejpozději vyrazit: výpočet…</div>
+  <div id="planMapDetail"></div>
+  <div id="planListDetail" class="plan-list-detail"></div>
 </div>
 
 <script>
 const WGS_COORDS = [50.080815, 14.612493]; // Václava Kovaříka, Praha 9 – Běchovice
 
 async function renderPlanDetail(list = []) {
-  const mapDiv = document.getElementById("planMap");
+  const mapDiv = document.getElementById("planMapDetail");
   mapDiv.innerHTML = "";
   const map = L.map(mapDiv).setView(WGS_COORDS, 11);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18 }).addTo(map);
 
   const points = [WGS_COORDS];
   const markers = [];
-  const planList = document.getElementById("planList");
+  const planList = document.getElementById("planListDetail");
   planList.innerHTML = "";
 
   if (!list.length) {
     L.marker(WGS_COORDS).addTo(map).bindPopup("White Glove Service – Běchovice");
     L.polyline([WGS_COORDS, WGS_COORDS], { color: "#0046ff", weight: 3 }).addTo(map);
-    document.getElementById("planBanner").textContent = "🚗 Žádné trasy pro dnešní den";
+    document.getElementById("planBannerDetail").textContent = "🚗 Žádné trasy pro dnešní den";
     return;
   }
 
@@ -1561,50 +1559,48 @@ async function renderPlanDetail(list = []) {
     try {
       const geo = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(r.adresa)}`
-      ).then((res) => res.json());
+      ).then(res => res.json());
       if (geo[0]) {
         const point = [parseFloat(geo[0].lat), parseFloat(geo[0].lon)];
         points.push(point);
         markers.push(L.marker(point).addTo(map).bindPopup(`${r.zakaznik}<br>${r.adresa}`));
 
-        // vzdálenost mezi body (hrubý výpočet)
-        const km = getDistanceKm(prevPoint, point);
+        const km = getDistanceKmDetail(prevPoint, point);
         totalKm += km;
         prevPoint = point;
 
         const phoneClean = (r.telefon || "").replace(/\s+/g, "");
-        const planItem = document.createElement("div");
-        planItem.className = "plan-item";
-        planItem.innerHTML = `
+        const itemEl = document.createElement("div");
+        itemEl.className = "plan-item-detail";
+        itemEl.innerHTML = `
           <div>
             <strong>${i + 1}. ${r.zakaznik || "Neznámý"}</strong><br>
             ${r.adresa || "-"}<br>
             <span class="distance">📏 ${km.toFixed(1)} km od předchozího</span>
           </div>
-          <div class="plan-actions">
-            <button class="btn-waze" onclick="openWaze('${r.adresa}')">Waze</button>
+          <div class="plan-actions-detail">
+            <button class="btn-waze" onclick="openWazeDetail('${r.adresa}')">Waze</button>
             <a class="btn-phone" href="tel:${phoneClean}">📞</a>
           </div>
         `;
-        planList.appendChild(planItem);
+        planList.appendChild(itemEl);
       }
     } catch (err) {
       console.warn("❌ Geocode error", r.adresa);
     }
   }
 
-  // návrat do WGS
   points.push(WGS_COORDS);
   L.polyline(points, { color: "#0046ff", weight: 3 }).addTo(map);
   const group = L.featureGroup(markers);
   if (group.getBounds().isValid()) map.fitBounds(group.getBounds().pad(0.3));
 
-  const departTime = calcDeparture(totalKm);
-  document.getElementById("planBanner").textContent =
-    `🚗 Nejpozději vyrazit v ${departTime} (hodin) • Celkem ${totalKm.toFixed(1)} km`;
+  const departTime = calcDepartureDetail(totalKm);
+  document.getElementById("planBannerDetail").textContent =
+    `🚗 Nejpozději vyrazit v ${departTime} • Celkem ${totalKm.toFixed(1)} km`;
 }
 
-function getDistanceKm(a, b) {
+function getDistanceKmDetail(a, b) {
   const R = 6371;
   const dLat = ((b[0] - a[0]) * Math.PI) / 180;
   const dLon = ((b[1] - a[1]) * Math.PI) / 180;
@@ -1616,12 +1612,12 @@ function getDistanceKm(a, b) {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
-function openWaze(address) {
+function openWazeDetail(address) {
   const url = `https://waze.com/ul?q=${encodeURIComponent(address)}`;
   window.open(url, "_blank");
 }
 
-function calcDeparture(totalKm) {
+function calcDepartureDetail(totalKm) {
   const avgSpeed = 50; // km/h
   const hours = totalKm / avgSpeed;
   const minutes = Math.round(hours * 60);
@@ -1631,6 +1627,7 @@ function calcDeparture(totalKm) {
 }
 </script>
 <!-- 🟦 KONEC E-5 -->
+
 
 
 
