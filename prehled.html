@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Přehled – White Glove Service</title>
 
-<!-- Chart.js (pouze knihovna, funkce doplníš později) -->
+<!-- 📊 Chart.js (knihovna pro grafy) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -170,13 +170,7 @@ h1 {
   <canvas id="techChart"></canvas>
   <div id="cnbInfo" style="text-align:center;font-size:0.8em;color:#666;margin-top:12px;"></div>
 </div>
-
-
-
-
-
-  
-<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 2 – Modální okna -->
+<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 2/10 – Modální okna -->
 <style>
 .modal-overlay {
   position: fixed;
@@ -301,12 +295,7 @@ h1 {
     </div>
   </div>
 </div>
-
-
-
-
-
- <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 3–5 – Proměnné + Kurz ČNB + Pomocné funkce -->
+<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 3–5 – Proměnné + Kurz ČNB + Pomocné funkce -->
 <script>
 /* 🧱 Globální proměnné */
 let allOrders = [];
@@ -425,13 +414,8 @@ const sumValues = (arr, field) => {
   return arr.reduce((acc, r) => acc + convertToEUR(r[field]), 0);
 };
 </script>
-
-
-
-
-
-
-// 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 6 – Zadavatelé (fixní + automatické doplnění nových)
+<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 6 – Zadavatelé (fixní + automatické doplnění nových) -->
+<script>
 async function loadClients() {
   loadingClients.style.display = "block";
   clientList.style.display = "none";
@@ -443,7 +427,7 @@ async function loadClients() {
     "Natuzzi Editions - Vimrova",
     "Natuzzi Italia - Bratislava",
     "Natuzzi Italia - Jama",
-    "Natuzzi Italia - Rvier",
+    "Natuzzi Italia - River",
     "Natuzzi Italia - Soho",
     "Softaly - Soho",
     "Phase - Klucarova",
@@ -497,12 +481,6 @@ confirmClients.onclick = () => {
   renderResults();
 };
 </script>
-
-
-
-
-
-
   <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 7 – Výběr technika -->
 <script>
 // 🔧 Seznam techniků – staticky definovaný
@@ -548,11 +526,7 @@ document.addEventListener("click", (e) => {
   }
 });
 </script>
-
-
-
-
-  <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 8 – Načtení zakázek + vykreslení -->
+<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 8 – Načtení zakázek + vykreslení -->
 <script>
 /**
  * 📥 Načtení všech hotových zakázek z GitHubu
@@ -652,12 +626,7 @@ function renderResults() {
   }
 }
 </script>
-
-
-
-
-
-  <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 9 – Inicializace stránky -->
+<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 9 – Inicializace stránky -->
 <script>
 window.addEventListener("DOMContentLoaded", () => {
   // 🟢 Načtení zakázek a kurzů
@@ -693,11 +662,7 @@ window.addEventListener("DOMContentLoaded", () => {
   console.log("✅ Přehled WGS inicializován");
 });
 </script>
-
-
-
-
-  <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 10 – Dokumentační shrnutí -->
+<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 10 – Dokumentační shrnutí -->
 <!--
 📘 White Glove Service – přehled statistik (prehled.html)
 -----------------------------------------------------------
@@ -793,5 +758,4 @@ window.addEventListener("DOMContentLoaded", () => {
   Systém navržen pro interní přehled servisu a reklamací.
   Poslední revize: říjen 2025
 -->
-
 
