@@ -1335,13 +1335,13 @@ async function loadPlanForDay(date, overlay) {
 
   // 🟩 navíc – automaticky vykreslí E-5 s trasou, vzdálenostmi a klikacími odkazy
   try {
-if (typeof renderPlanDetail === "function") {
-  await renderPlanDetail(list);
-  console.log("✅ E-5 (detailní mapa a plán) načtena");
-} else {
-  console.warn("⚠️ renderPlanDetail není zatím načtena");
+  if (typeof renderPlanDetail === "function") {
+    await renderPlanDetail(list);
+    console.log("✅ E-5 (detailní mapa a plán) načtena");
+  } else {
+    console.warn("⚠️ renderPlanDetail není zatím načtena");
 
-  }
+    }
 }
 </script>
 <!-- 🟦 KONEC E-3 -->
