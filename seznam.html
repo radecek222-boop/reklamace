@@ -199,23 +199,37 @@ tr:hover { background: #f1f6ff; cursor: pointer; }
     <!-- 🔍 VYHLEDÁVÁNÍ -->
     <input type="text" id="search" placeholder="🔍 Hledat podle jména, adresy nebo zadavatele...">
 
-    <!-- 📦 MÍSTO PRO TABULKU -->
-    <div id="tableContainer" class="loading">Načítám data...</div>
-  </div>
+<!-- 📦 MÍSTO PRO TABULKU -->
+<div id="tableContainer" class="loading">Načítám data...</div>
+</div>
 
-  <!-- 🔝 Automatický posun při otevření kalendáře -->
-  <script>
-  document.addEventListener("click", e => {
-    if (e.target && e.target.id === "termBtn") {
-      setTimeout(() => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }, 150);
-    }
-  });
-  </script>
+<!-- 🔝 Automatický posun při otevření kalendáře -->
+<script>
+document.addEventListener("click", e => {
+  if (e.target && e.target.id === "termBtn") {
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 150);
+  }
+});
+</script>
+
+<!-- 🟢 Stabilní barva pro hotové reklamace -->
+<style>
+tr.stav-hotovo td {
+  background: #b6f2c0 !important;
+  color: #116d2b !important;
+  font-weight: 700;
+}
+tr.stav-hotovo:hover td {
+  background: #a5e8b1 !important;
+}
+</style>
+
 </body>
 </html>
 <!-- 🟨 KONEC SEKCE A -->
+
 
 
 
