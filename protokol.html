@@ -143,7 +143,6 @@ button:hover { transform:scale(1.03); opacity:0.9; }
   #signature-pad { height:180px; }
 }
 </style>
-
 </head>
 
 <body>
@@ -184,8 +183,6 @@ button:hover { transform:scale(1.03); opacity:0.9; }
 
   <div class="section-title">Návrh opravy<span class="en-label">Repair proposal</span></div>
   <div class="split-section"><textarea id="repair-cz" placeholder="CZ"></textarea><textarea id="repair-en" placeholder="EN" readonly></textarea></div>
-
-</div> <!-- ✅ doplněno pro správné uzavření hlavního obsahu -->
   <!-- 🟨 Sekce E – Ceny a stavy -->
   <div class="two-col-table">
     <div class="col">
@@ -367,7 +364,7 @@ button:hover { transform:scale(1.03); opacity:0.9; }
   <script>
   let signaturePad;
 
-  // 🖊️ Inicializace podpisu s jistým vykreslením
+  // 🖊️ Inicializace podpisu
   window.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("signature-pad");
     if (!canvas) return;
@@ -385,21 +382,13 @@ button:hover { transform:scale(1.03); opacity:0.9; }
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("visit-date").value ||= today;
     document.getElementById("sign-date").value ||= today;
-
-    const btns = document.querySelector(".btns");
-    if (btns) {
-      btns.style.display = "grid";
-      btns.style.visibility = "visible";
-      btns.style.opacity = "1";
-    }
   });
 
-  // 🧾 PDF export – tlačítka skryta, podpis vždy viditelný
+  // 🧾 PDF export
   async function generatePDF(){
     const { jsPDF } = window.jspdf;
     const wrapper=document.querySelector(".wrapper");
     const doc=new jsPDF("p","mm","a4");
-
     doc.setFont("helvetica","bold");
     doc.setFontSize(48);
     doc.setTextColor(220,220,220);
@@ -467,6 +456,7 @@ button:hover { transform:scale(1.03); opacity:0.9; }
     }
   }
   </script>
-</div>
+
+</div> <!-- ✅ konec hlavního wrapperu -->
 </body>
 </html>
