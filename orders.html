@@ -514,163 +514,159 @@ document.getElementById("selectFiles").addEventListener("click",()=>{
 
 <!-- 🟨 ZAČÁTEK ČÁSTI 5/10 – LOGIKA PRO FOTKY -->
 
-<style>
-.photo-item {
-  width: 100px; height: 100px;
-  border-radius: 10px; overflow: hidden;
-  position: relative; background: #ddd;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
-.photo-item img {
-  width: 100%; height: 100%; object-fit: cover;
-}
-.photo-remove {
-  position: absolute;
-  top: 4px; left: 4px;
-  background: rgba(255,255,255,0.9);
-  border: none; border-radius: 50%;
-  width: 20px; height: 20px;
-  color: #f00; font-weight: bold;
-  cursor: pointer; font-size: 14px;
-}
-.photo-check {
-  position: absolute;
-  top: 4px; right: 4px;
-  background: rgba(255,255,255,0.9);
-  border-radius: 50%;
-  width: 20px; height: 20px;
-  color: #00a86b; font-weight: bold;
-  display: none; align-items: center; justify-content: center;
-  font-size: 14px;
-}
-.photo-item.uploaded .photo-check { display: flex; }
-
-.progress-bar {
-  position: absolute; bottom: 0; left: 0;
-  height: 5px; background: #7d5fff; width: 0%;
-  transition: width .4s ease;
-}
-.photo-item.processing::after {
-  content: "";
-  position: absolute; inset: 0;
-  background: rgba(255,255,255,0.4);
-  animation: pulse 1s infinite;
-}
-@keyframes pulse { 0% {opacity: .6;} 50% {opacity: 1;} 100% {opacity: .6;} }
-
-/* Jednotná tlačítka dole */
-.photo-modal-actions button,
-.photo-modal-actions label {
-  flex: 1;
-  text-align: center;
-  padding: 10px 12px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 0.95em;
-  height: 42px;
-}
-</style>
-
 <script>
 (function(){
-  const openPhotoModal=document.getElementById("openPhotoModal");
-  const photoModal=document.getElementById("photoModal");
-  const closePhotoModal=document.getElementById("closePhotoModal");
-  const photoInput=document.getElementById("photoInput");
-  const photoPreview=document.getElementById("photoPreview");
-  const uploadBtn=document.getElementById("uploadPhotos");
-  const photoPreviewMain=document.getElementById("photoPreviewMain");
+  const openPhotoModal = document.getElementById("openPhotoModal");
+  const photoModal = document.getElementById("photoModal");
+  const closePhotoModal = document.getElementById("closePhotoModal");
+  const photoInput = document.getElementById("photoInput");
+  const photoPreview = document.getElementById("photoPreview");
+  const uploadBtn = document.getElementById("uploadPhotos");
+  const photoPreviewMain = document.getElementById("photoPreviewMain");
 
-  let photoFiles=[];
-  let compressedPhotos=[];
-  window.uploadedPhotos=[];
+  let photoFiles = [];          // vybrané soubory
+  let compressedPhotos = [];    // komprimované blob verze
+  window.uploadedPhotos = [];   // uložené fotky po nahrání
 
-  openPhotoModal.addEventListener("click",()=>{renderSelected();photoModal.classList.add("active");});
-  closePhotoModal.addEventListener("click",()=>photoModal.classList.remove("active"));
+  // otevření a zavření modalu
+  openPhotoModal.addEventListener("click", ()=>{
+    renderSelected();
+    photoModal.classList.add("active");
+  });
+  closePhotoModal.addEventListener("click", ()=>photoModal.classList.remove("active"));
 
-  async function compressImage(file,maxSizeKB=500,maxDim=800){
-    const img=await createImageBitmap(file);
-    const canvas=document.createElement("canvas");
-    let[w,h]=[img.width,img.height];
-    if(w>h&&w>maxDim){h=Math.round(h*(maxDim/w));w=maxDim;}
-    else if(h>w&&h>maxDim){w=Math.round(w*(maxDim/h));h=maxDim;}
-    canvas.width=w;canvas.height=h;
-    const ctx=canvas.getContext("2d");
+  // 🧩 Komprese obrázku
+  async function compressImage(file, maxSizeKB=500, maxDim=800){
+    const img = await createImageBitmap(file);
+    const canvas = document.createElement("canvas");
+    let [w,h] = [img.width,img.height];
+    if(w>h && w>maxDim){ h=Math.round(h*(maxDim/w)); w=maxDim; }
+    else if(h>w && h>maxDim){ w=Math.round(w*(maxDim/h)); h=maxDim; }
+    canvas.width=w; canvas.height=h;
+    const ctx = canvas.getContext("2d");
     ctx.drawImage(img,0,0,w,h);
-    let q=0.9;let blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));
-    while(blob.size/1024>maxSizeKB&&q>0.4){q-=0.1;blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));}
+    let q=0.9;
+    let blob = await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));
+    while(blob.size/1024>maxSizeKB && q>0.4){
+      q-=0.1;
+      blob = await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));
+    }
     return blob;
   }
 
-  photoInput.addEventListener("change",async()=>{
-    const newFiles=Array.from(photoInput.files);
-    photoFiles=[...photoFiles,...newFiles].slice(0,5);
+  // 🧠 Kontrola duplikátů podle názvu a velikosti
+  function isDuplicate(file, list){
+    return list.some(f => f.name===file.name && f.size===file.size);
+  }
+
+  // 📂 Výběr nových fotek
+  photoInput.addEventListener("change", async ()=>{
+    const newFiles = Array.from(photoInput.files);
+    const uniqueNewFiles = newFiles.filter(f=>!isDuplicate(f, photoFiles));
+    photoFiles = [...photoFiles, ...uniqueNewFiles].slice(0,5);
     await renderSelected();
   });
 
+  // 🖼️ Zobrazení vybraných fotek
   async function renderSelected(){
-    photoPreview.innerHTML="";
-    compressedPhotos=[];
+    photoPreview.innerHTML = "";
+    compressedPhotos = [];
     for(const file of photoFiles){
-      const item=document.createElement("div");
-      item.className="photo-item processing";
-      const img=document.createElement("img");
-      const bar=document.createElement("div");
-      bar.className="progress-bar";
-      const removeBtn=document.createElement("button");
-      removeBtn.className="photo-remove";
-      removeBtn.textContent="×";
-      removeBtn.onclick=()=>{photoFiles=photoFiles.filter(f=>f!==file);renderSelected();};
-      const check=document.createElement("div");
-      check.className="photo-check";
-      check.textContent="✓";
+      const item = document.createElement("div");
+      item.className = "photo-item processing";
+
+      const img = document.createElement("img");
+      const bar = document.createElement("div");
+      bar.className = "progress-bar";
+
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "photo-remove";
+      removeBtn.textContent = "×";
+      removeBtn.onclick = ()=>{
+        photoFiles = photoFiles.filter(f=>f!==file);
+        renderSelected();
+      };
+
+      const check = document.createElement("div");
+      check.className = "photo-check";
+      check.textContent = "✓";
+
       item.append(img,bar,removeBtn,check);
       photoPreview.append(item);
 
-      const reader=new FileReader();
-      reader.onload=e=>(img.src=e.target.result);
+      const reader = new FileReader();
+      reader.onload = e => (img.src = e.target.result);
       reader.readAsDataURL(file);
 
-      let p=0;const prog=setInterval(()=>{p+=10;if(p>90)p=90;bar.style.width=p+"%";},150);
-      const blob=await compressImage(file);
-      clearInterval(prog);bar.style.width="100%";
+      let p = 0;
+      const prog = setInterval(()=>{
+        p+=10; if(p>90)p=90; bar.style.width=p+"%";
+      },150);
+
+      const blob = await compressImage(file);
+      clearInterval(prog);
+      bar.style.width="100%";
       setTimeout(()=>item.classList.remove("processing"),200);
-      compressedPhotos.push({file,blob,preview:img.src,item});
+
+      compressedPhotos.push({file, blob, preview: img.src, item});
     }
   }
 
-  uploadBtn.addEventListener("click",async()=>{
-    if(!compressedPhotos.length)return;
-    uploadBtn.disabled=true;
+  // ☁️ Upload s kontrolou duplikátů nahrání
+  uploadBtn.addEventListener("click", async ()=>{
+    if(!compressedPhotos.length) return;
+    uploadBtn.disabled = true;
 
     for(const p of compressedPhotos){
+      const alreadyUploaded = window.uploadedPhotos.some(u=>u.name===p.file.name);
+      if(alreadyUploaded) continue;
+
       try{
-        const formData=new FormData();
-        formData.append("file",p.blob,p.file.name);
-        const r=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload",{method:"POST",body:formData});
-        const res=await r.json();
+        const formData = new FormData();
+        formData.append("file", p.blob, p.file.name);
+        const r = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload", {
+          method:"POST", body:formData
+        });
+        const res = await r.json();
         p.item.classList.add("uploaded");
-        window.uploadedPhotos.push({filename:res.filename,name:p.file.name,preview:p.preview});
+        window.uploadedPhotos.push({
+          filename:res.filename,
+          name:p.file.name,
+          preview:p.preview
+        });
       }catch(e){console.error(e);}
     }
+
     renderMainPreview();
     photoModal.classList.remove("active");
-    uploadBtn.disabled=false;
+    uploadBtn.disabled = false;
   });
 
+  // 📋 Náhledy po nahrání (s možností odstranit)
   function renderMainPreview(){
-    photoPreviewMain.innerHTML="";
-    window.uploadedPhotos.forEach(p=>{
-      const row=document.createElement("div");
-      row.className="photo-item-main";
-      const img=document.createElement("img");
-      img.className="photo-thumb";
-      img.src=p.preview;
-      const name=document.createElement("div");
-      name.className="photo-name";
-      name.textContent=p.name;
-      row.append(img,name);
+    photoPreviewMain.innerHTML = "";
+    window.uploadedPhotos.forEach((p,index)=>{
+      const row = document.createElement("div");
+      row.className = "photo-item-main";
+
+      const img = document.createElement("img");
+      img.className = "photo-thumb";
+      img.src = p.preview;
+
+      const name = document.createElement("div");
+      name.className = "photo-name";
+      name.textContent = p.name;
+
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "photo-remove";
+      removeBtn.textContent = "×";
+      removeBtn.title = "Odstranit tuto fotku";
+      removeBtn.onclick = ()=>{
+        window.uploadedPhotos.splice(index,1);
+        renderMainPreview();
+      };
+
+      row.append(img,name,removeBtn);
       photoPreviewMain.append(row);
     });
   }
@@ -678,8 +674,6 @@ document.getElementById("selectFiles").addEventListener("click",()=>{
 </script>
 
 <!-- 🟨 KONEC ČÁSTI 5/10 – LOGIKA PRO FOTKY -->
-
-
 
 
 
