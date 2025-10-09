@@ -370,189 +370,139 @@
 
 
 
-   <!-- 🟨 ZAČÁTEK ČÁSTI 4/10 – POPIS + BLOK FOTEK (UI) -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 4/10 – POPIS + BLOK FOTEK (UI) -->
 
 <label>Popis závady:</label>
 <textarea name="popis" required placeholder="Popište závadu nebo problém..."></textarea>
 
-<!-- Rámeček pro výběr fotografií -->
+<!-- 📸 Rámeček Fotodokumentace -->
 <div class="photo-frame">
   <div class="photo-frame__header">
     <div class="photo-frame__title">Fotodokumentace</div>
-    <div class="photo-frame__info">Max. 5 fotografií (JPG, PNG, HEIC)</div>
-  </div>
-
-  <div class="photo-frame__content">
     <button type="button" id="openPhotoModal" class="btn-photo">Nahrát fotografie</button>
-    <div id="photoStatus" class="photo-status">Žádné fotky vybrány</div>
-    <div id="photoPreviewMain" class="photo-preview-main"></div>
   </div>
+  <div class="photo-frame__info">Max. 5 fotografií (JPG, PNG, HEIC)</div>
+  <div id="photoPreviewMain" class="photo-preview-main"></div>
 </div>
 
-<!-- Modal pro správu fotek -->
+<!-- 💜 Modal pro nahrání fotek -->
 <div id="photoModal" class="photo-modal">
   <div class="photo-modal-content">
-    <div class="photo-modal-header">
-      <h3>Nahrát fotografie</h3>
-      <p class="photo-small">Můžeš nahrát až 5 fotografií (JPG, PNG, HEIC).  
-      Každá se automaticky zmenší na max. 800 × 533 px (≤ 500 KB).</p>
-    </div>
-    <input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple>
+    <h3>Nahrát fotografie</h3>
+    <p class="photo-small">
+      Můžeš nahrát až 5 fotografií (JPG, PNG, HEIC). Každá se automaticky zmenší na max. 800 × 533 px (≤ 500 KB).
+    </p>
+
     <div id="photoPreview" class="photo-preview"></div>
+
     <div class="photo-modal-actions">
-      <button type="button" id="uploadPhotos" class="btn-upload">Nahrát fotografie</button>
-      <button type="button" id="closePhotoModal" class="btn-cancel">Zavřít</button>
+      <label class="btn-gray" for="photoInput">Vyber soubory</label>
+      <input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
+      <button type="button" id="uploadPhotos" class="btn-green">Nahrát fotografie</button>
+      <button type="button" id="closePhotoModal" class="btn-white">Zavřít</button>
     </div>
   </div>
 </div>
 
 <style>
-  /* 💠 Sekce pro fotky */
-  .photo-frame {
-    border: 1px solid #000;
-    border-radius: 10px;
-    padding: 16px;
-    margin-top: 18px;
-    background: linear-gradient(180deg, #f2f2f2 0%, #e6e6e6 100%);
-  }
-  .photo-frame__header { margin-bottom: 8px; }
-  .photo-frame__title {
-    font-weight: 700;
-    color: #111;
-    font-size: 1.05em;
-    margin-bottom: 2px;
-  }
-  .photo-frame__info {
-    font-size: 0.7em;
-    color: #555;
-  }
-  .btn-photo {
-    padding: 10px 18px;
-    border-radius: 8px;
-    border: 1px solid #999;
-    background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 100%);
-    color: #111;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-top: 8px;
-  }
-  .btn-photo:hover { transform: scale(1.02); }
+/* 📸 Rámeček fotodokumentace */
+.photo-frame {
+  border: 1px solid #000;
+  border-radius: 10px;
+  padding: 14px;
+  margin-top: 18px;
+  background: linear-gradient(180deg,#f4f4f6 0%,#e8e8eb 100%);
+}
+.photo-frame__header {
+  display:flex;justify-content:space-between;align-items:center;
+}
+.photo-frame__title {
+  font-weight:700;color:#111;font-size:1.05em;
+}
+.btn-photo {
+  padding:8px 16px;border-radius:8px;
+  border:1px solid #aaa;background:linear-gradient(180deg,#fff 0%,#f2f2f2 100%);
+  font-weight:600;cursor:pointer;
+  transition:all .2s ease;
+}
+.btn-photo:hover{transform:scale(1.04);}
 
-  .photo-status {
-    margin-top: 10px;
-    font-size: 0.9em;
-    color: #333;
-    font-weight: 500;
-  }
+.photo-frame__info {
+  font-size:0.7em;color:#555;margin-top:3px;
+}
+.photo-preview-main {
+  display:flex;flex-direction:column;gap:6px;margin-top:10px;
+}
+.photo-item-main {
+  display:flex;align-items:center;gap:8px;
+}
+.photo-thumb {
+  width:60px;height:60px;border-radius:6px;object-fit:cover;
+  box-shadow:0 2px 5px rgba(0,0,0,0.15);
+}
+.photo-name {
+  font-size:0.8em;color:#333;word-break:break-all;
+}
 
-  .photo-preview-main {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 10px;
-  }
+/* 💜 Modal */
+.photo-modal {
+  display:none;position:fixed;inset:0;
+  background:rgba(100,80,150,0.35);
+  backdrop-filter:blur(3px);
+  justify-content:center;align-items:center;z-index:9999;
+}
+.photo-modal.active {display:flex;}
+.photo-modal-content {
+  background:rgba(245,245,247,0.9);
+  border:2px solid #000;border-radius:12px;
+  padding:20px;max-width:550px;width:90%;
+  box-shadow:0 6px 18px rgba(0,0,0,0.3);
+  animation:fadeIn .25s ease;
+}
+@keyframes fadeIn{from{opacity:0;transform:scale(.96);}to{opacity:1;transform:scale(1);}}
 
-  .photo-item-main {
-    width: 80px; height: 80px;
-    border-radius: 8px;
-    overflow: hidden;
-    position: relative;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  }
-  .photo-item-main img {
-    width: 100%; height: 100%; object-fit: cover;
-  }
-  .photo-filename {
-    text-align: center;
-    font-size: 0.65em;
-    margin-top: 3px;
-    color: #333;
-    word-break: break-all;
-  }
+/* 🖼️ Miniatury uvnitř modalu */
+.photo-preview {
+  display:flex;flex-wrap:nowrap;overflow-x:auto;
+  gap:10px;margin:15px 0;
+  padding-bottom:6px;
+}
+.photo-item {
+  flex:0 0 80px;height:80px;border-radius:8px;overflow:hidden;
+  position:relative;background:#ddd;
+  box-shadow:0 2px 6px rgba(0,0,0,0.15);
+}
+.photo-item img {
+  width:100%;height:100%;object-fit:cover;
+}
+.progress-bar {
+  position:absolute;bottom:0;left:0;height:5px;
+  background:#7d5fff;width:0%;transition:width .4s ease;
+}
+.photo-item.processing::after{
+  content:"";position:absolute;inset:0;
+  background:rgba(255,255,255,0.5);
+  animation:pulse 1s infinite;
+}
+@keyframes pulse{0%{opacity:.6;}50%{opacity:1;}100%{opacity:.6;}}
 
-  /* Modal */
-  .photo-modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.55);
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-  }
-  .photo-modal.active { display: flex; }
-
-  .photo-modal-content {
-    background: #f3f3f3;
-    padding: 20px;
-    border-radius: 14px;
-    border: 2px solid #000;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-    max-width: 480px;
-    width: 90%;
-  }
-  .photo-modal-header h3 {
-    margin: 0;
-    font-size: 1.1em;
-    font-weight: 700;
-  }
-  .photo-small {
-    font-size: 0.65em;
-    color: #555;
-    margin-top: 4px;
-  }
-
-  .photo-preview {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 12px;
-  }
-  .photo-item {
-    width: 90px; height: 90px;
-    border-radius: 8px; overflow: hidden;
-    position: relative;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  }
-  .photo-item img {
-    width: 100%; height: 100%; object-fit: cover;
-  }
-  .photo-remove {
-    position: absolute; top: 4px; right: 4px;
-    background: rgba(255,255,255,0.85);
-    border: none; border-radius: 50%;
-    width: 20px; height: 20px;
-    color: #f00; font-weight: bold; cursor: pointer;
-  }
-
-  .photo-modal-actions {
-    margin-top: 18px;
-    display: flex;
-    justify-content: space-between;
-  }
-  .btn-upload {
-    background: linear-gradient(135deg, #00a86b, #00d084);
-    border: none;
-    color: #fff;
-    font-weight: 600;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-  .btn-cancel {
-    background: linear-gradient(135deg, #a0a4a7, #6c757d);
-    border: none;
-    color: #fff;
-    font-weight: 600;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-  }
+/* 🔘 Tlačítka dole */
+.photo-modal-actions {
+  display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;
+}
+.btn-gray,.btn-green,.btn-white {
+  flex:1;text-align:center;padding:10px 12px;
+  border-radius:8px;font-weight:600;cursor:pointer;
+  transition:transform .15s ease;
+}
+.btn-gray {background:linear-gradient(135deg,#bfbfbf,#9b9b9b);color:#fff;border:none;}
+.btn-green {background:linear-gradient(135deg,#00b56a,#00da80);color:#fff;border:none;}
+.btn-white {background:linear-gradient(135deg,#fff,#f5f5f5);color:#333;border:1px solid #ccc;}
+.btn-gray:hover,.btn-green:hover,.btn-white:hover{transform:scale(1.05);}
+.photo-small{font-size:0.65em;color:#555;margin-top:4px;}
 </style>
 
 <!-- 🟨 KONEC ČÁSTI 4/10 – POPIS + BLOK FOTEK (UI) -->
-
 
 
 
@@ -562,111 +512,102 @@
 
 <script>
 (function(){
-  const openPhotoModal = document.getElementById("openPhotoModal");
-  const photoModal = document.getElementById("photoModal");
-  const closePhotoModal = document.getElementById("closePhotoModal");
-  const photoInput = document.getElementById("photoInput");
-  const photoPreview = document.getElementById("photoPreview");
-  const uploadBtn = document.getElementById("uploadPhotos");
-  const photoStatus = document.getElementById("photoStatus");
-  const photoPreviewMain = document.getElementById("photoPreviewMain");
+  const openPhotoModal=document.getElementById("openPhotoModal");
+  const photoModal=document.getElementById("photoModal");
+  const closePhotoModal=document.getElementById("closePhotoModal");
+  const photoInput=document.getElementById("photoInput");
+  const photoPreview=document.getElementById("photoPreview");
+  const uploadBtn=document.getElementById("uploadPhotos");
+  const photoPreviewMain=document.getElementById("photoPreviewMain");
 
-  let photoFiles = [];          // původní soubory
-  let compressedPhotos = [];    // komprimované verze (blob)
-  window.uploadedPhotos = [];   // uložené na serveru
+  let photoFiles=[];           // vybrané originály
+  let compressedPhotos=[];     // zkomprimované verze
+  window.uploadedPhotos=[];    // uložené na serveru
 
-  // otevření a zavření modalu
   openPhotoModal.addEventListener("click",()=>{
     renderSelected();
     photoModal.classList.add("active");
   });
   closePhotoModal.addEventListener("click",()=>photoModal.classList.remove("active"));
 
-  // helper – komprese
   async function compressImage(file,maxSizeKB=500,maxDim=800){
-    const img = await createImageBitmap(file);
-    const canvas = document.createElement("canvas");
-    let [w,h] = [img.width,img.height];
-    if (w>h && w>maxDim){ h=Math.round(h*(maxDim/w)); w=maxDim; }
-    else if (h>w && h>maxDim){ w=Math.round(w*(maxDim/h)); h=maxDim; }
-    canvas.width=w; canvas.height=h;
-    const ctx=canvas.getContext("2d"); ctx.drawImage(img,0,0,w,h);
-    let q=0.9; let blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));
-    while (blob.size/1024>maxSizeKB && q>0.4){ q-=0.1; blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",q)); }
+    const img=await createImageBitmap(file);
+    const canvas=document.createElement("canvas");
+    let[w,h]=[img.width,img.height];
+    if(w>h&&w>maxDim){h=Math.round(h*(maxDim/w));w=maxDim;}
+    else if(h>w&&h>maxDim){w=Math.round(w*(maxDim/h));h=maxDim;}
+    canvas.width=w;canvas.height=h;
+    const ctx=canvas.getContext("2d");
+    ctx.drawImage(img,0,0,w,h);
+    let q=0.9;let blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));
+    while(blob.size/1024>maxSizeKB&&q>0.4){
+      q-=0.1;blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));
+    }
     return blob;
   }
 
-  // výběr fotek
-  photoInput.addEventListener("change", async ()=>{
-    const newFiles = Array.from(photoInput.files);
-    const combined = [...photoFiles, ...newFiles].slice(0,5);
-    photoFiles = combined;
-    compressedPhotos = [];
-
+  photoInput.addEventListener("change",async()=>{
+    const newFiles=Array.from(photoInput.files);
+    photoFiles=[...photoFiles,...newFiles].slice(0,5);
     await renderSelected();
   });
 
   async function renderSelected(){
-    photoPreview.innerHTML = "";
-    for (const file of photoFiles){
-      const item = document.createElement("div");
-      item.className = "photo-item";
-      const img = document.createElement("img");
-      const removeBtn = document.createElement("button");
-      removeBtn.className="photo-remove";
-      removeBtn.textContent="×";
-      removeBtn.onclick = ()=>{ 
-        photoFiles = photoFiles.filter(f=>f!==file);
-        renderSelected();
-      };
-      item.append(img,removeBtn);
+    photoPreview.innerHTML="";
+    compressedPhotos=[];
+    for(const file of photoFiles){
+      const item=document.createElement("div");
+      item.className="photo-item processing";
+      const img=document.createElement("img");
+      const bar=document.createElement("div");
+      bar.className="progress-bar";
+      item.append(img,bar);
       photoPreview.append(item);
-
-      const reader = new FileReader();
-      reader.onload = e => (img.src = e.target.result);
+      const reader=new FileReader();
+      reader.onload=e=>(img.src=e.target.result);
       reader.readAsDataURL(file);
 
-      const blob = await compressImage(file);
-      compressedPhotos.push({file, blob});
+      // animace progressu při kompresi
+      let p=0;const prog=setInterval(()=>{p+=15;if(p>90)p=90;bar.style.width=p+"%";},200);
+      const blob=await compressImage(file);
+      clearInterval(prog);
+      bar.style.width="100%";
+      setTimeout(()=>item.classList.remove("processing"),300);
+      compressedPhotos.push({file,blob});
     }
-    photoStatus.textContent = `Vybráno ${photoFiles.length} / 5 fotografií`;
   }
 
-  // upload
-  uploadBtn.addEventListener("click", async ()=>{
-    if (!compressedPhotos.length) return;
-    uploadBtn.disabled = true;
+  uploadBtn.addEventListener("click",async()=>{
+    if(!compressedPhotos.length)return;
+    uploadBtn.disabled=true;
 
-    for (const p of compressedPhotos){
-      const formData = new FormData();
-      formData.append("file", p.blob, p.file.name);
-      try {
-        const r = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload", {
-          method: "POST", body: formData
-        });
-        const res = await r.json();
-        window.uploadedPhotos.push({ filename: res.filename, name: p.file.name });
-      } catch(e){ console.error(e); }
+    for(const p of compressedPhotos){
+      const formData=new FormData();
+      formData.append("file",p.blob,p.file.name);
+      try{
+        const r=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload",{method:"POST",body:formData});
+        const res=await r.json();
+        window.uploadedPhotos.push({filename:res.filename,name:p.file.name});
+      }catch(e){console.error(e);}
     }
-
-    // aktualizuj hlavní přehled miniatur
     renderMainPreview();
     photoModal.classList.remove("active");
-    uploadBtn.disabled = false;
+    uploadBtn.disabled=false;
   });
 
   function renderMainPreview(){
-    photoPreviewMain.innerHTML = "";
+    photoPreviewMain.innerHTML="";
     window.uploadedPhotos.forEach(p=>{
-      const item = document.createElement("div");
-      item.className = "photo-item-main";
-      const img = document.createElement("img");
-      img.src = `https://raw.githubusercontent.com/radecek222-boop/reklamace/main/foto/${p.filename}`;
-      const label = document.createElement("div");
-      label.className = "photo-filename";
-      label.textContent = p.name;
-      item.append(img);
-      photoPreviewMain.append(item,label);
+      const row=document.createElement("div");
+      row.className="photo-item-main";
+      const img=document.createElement("img");
+      img.className="photo-thumb";
+      img.src=`https://raw.githubusercontent.com/radecek222-boop/reklamace/main/foto/${p.filename}`;
+      const name=document.createElement("div");
+      name.className="photo-name";
+      name.textContent=p.name;
+      row.append(img,name);
+      photoPreviewMain.append(row);
     });
   }
 })();
