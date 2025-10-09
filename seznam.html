@@ -721,7 +721,7 @@ function initCalendarAndTime(overlay, item, index) {
 
 
 
-<!-- 🟩 C-4: TLAČÍTKA AKCÍ – doplněná o "Zákazník čeká na díly" -->
+<!-- 🟩 C-4: TLAČÍTKA AKCÍ – včetně „Zákazník čeká na díly“ -->
 <script>
 function initDetailButtons(overlay, item, index) {
   const id = item.cislo || `radek-${index}`;
@@ -747,21 +747,28 @@ function initDetailButtons(overlay, item, index) {
     overlay.remove(); renderTable(dataAll);
   };
 
-  /* 🟣 ZÁKAZNÍK ČEKÁ NA DÍLY */
-  const waitBtn = document.createElement("button");
-  waitBtn.id = "waitBtn";
-  waitBtn.className = "btn-action btn-purple";
-  waitBtn.textContent = "Zákazník čeká na díly";
-  // vložíme nové tlačítko těsně před "Zákazník zrušil"
-  overlay.querySelector(".left-buttons").insertBefore(waitBtn, overlay.querySelector("#cancelBtn"));
+  /* 🟣 ZÁKAZNÍK ČEKÁ NA DÍLY – vloží se až po vytvoření DOM */
+  setTimeout(() => {
+    const leftButtons = overlay.querySelector(".left-buttons");
+    const cancelBtn = overlay.querySelector("#cancelBtn");
+    if (leftButtons && cancelBtn) {
+      const waitBtn = document.createElement("button");
+      waitBtn.id = "waitBtn";
+      waitBtn.className = "btn-action btn-purple";
+      waitBtn.textContent = "Zákazník čeká na díly";
+      leftButtons.insertBefore(waitBtn, cancelBtn);
 
-  waitBtn.onclick = () => {
-    stavy[id] = "ceka";
-    item.stav = "ceka";
-    setNextToast("🟣 Zákazník čeká na díly", "warning");
-    overlay.remove();
-    renderTable(dataAll);
-  };
+      waitBtn.onclick = () => {
+        stavy[id] = "ceka";
+        item.stav = "ceka";
+        setNextToast("🟣 Zákazník čeká na díly", "warning");
+        overlay.remove();
+        renderTable(dataAll);
+      };
+    } else {
+      console.warn("⚠️ Nelze vložit tlačítko – prvek .left-buttons nebo #cancelBtn nenalezen.");
+    }
+  }, 150);
 
   /* ❌ ZÁKAZNÍK ZRUŠIL */
   overlay.querySelector("#cancelBtn").onclick = () => {
@@ -778,7 +785,7 @@ function initDetailButtons(overlay, item, index) {
   /* 🔙 ZPĚT */
   overlay.querySelector("#closeBtn").onclick = () => overlay.remove();
 
-  /* 🧾 VYTVORIT PROTOKOL */
+  /* 🧾 VYTVOŘIT PROTOKOL */
   overlay.querySelector("#createProtocolBtn").onclick = () => {
     try {
       localStorage.setItem("protokolData", JSON.stringify(item));
@@ -820,37 +827,16 @@ function initDetailButtons(overlay, item, index) {
 <!-- 🟣 Styl pro nové tlačítko -->
 <style>
 .btn-purple {
-  background: linear-gradient(135deg, #8e2de2, #c69aff);
-  color: #fff;
+  background: linear-gradient(135deg,#8e2de2,#c69aff);
+  color:#fff;
 }
 .stav-ceka {
-  background: #e9d7ff !important;
-  color: #4b0082 !important;
-  font-weight: 700;
+  background:#e9d7ff !important;
+  color:#4b0082 !important;
+  font-weight:700;
 }
 </style>
 
-<!-- 🟩 DOPLŇKOVÝ STYL (pro vizuální rozestup) -->
-<style>
-.extra-buttons {
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  margin-top:14px; /* mezera mezi Zpět a protokol/PDF */
-}
-.extra-buttons .btn-action {
-  flex:1;
-  font-size:0.95em;
-  padding:10px;
-}
-.btn-blue {
-  background:linear-gradient(135deg,#0046ff,#357aff);
-  color:#fff;
-}
-@media(max-width:700px){
-  .extra-buttons { flex-direction:column; }
-}
-</style>
 <!-- 🟩 KONEC C-4 -->
 
 
