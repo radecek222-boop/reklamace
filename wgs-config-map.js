@@ -39,8 +39,12 @@ function normalizePrahaAddress(a) {
 const WGS_CONFIG = {
   name: "White Glove Service s.r.o.",
   address: normalizePrahaAddress("Do Dubče 364, Praha 9 Běchovice, 19011"),
-  lat: 50.08031890414999,   // přesně ověřeno: Do Dubče 364, 190 11 Praha 9 – Běchovice
-  lng: 14.59812450867171
+  lat: 50.08025701401122,   // přesně ověřeno: Do Dubče 364, 190 11 Praha 9 – Běchovice
+  lng: 14.598156712209336
+
+
+
+  
 };
 
 // 🌍 Export pro ostatní části systému (globální proměnné)
