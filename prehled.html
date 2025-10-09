@@ -331,7 +331,9 @@ const cnbInfo = document.getElementById("cnbInfo");
 
 
 
-// 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 4 – Načtení kurzu ČNB (s fallbacky a zálohou)
+<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 4 – Načtení kurzu ČNB + Pomocné funkce -->
+<script>
+// 📊 Načtení kurzu ČNB s fallbacky (ČNB → GitHub → localStorage)
 async function loadCNBrate() {
   let source = "ČNB";
 
@@ -388,7 +390,11 @@ async function loadCNBrate() {
 
   // 💾 Uložení aktuálního kurzu
   if (cnbRate && cnbRateDate) {
-    localStorage.setItem("lastCnbRate", JSON.stringify({ value: cnbRate, date: cnbRateDate, time: Date.now() }));
+    localStorage.setItem("lastCnbRate", JSON.stringify({
+      value: cnbRate,
+      date: cnbRateDate,
+      time: Date.now()
+    }));
   }
 
   // 🧾 Výpis do konzole a patičky
@@ -398,11 +404,11 @@ async function loadCNBrate() {
     console.error("🚫 Kurz EUR se nepodařilo získat ani ze záloh.");
   }
 
-  // Aktualizace info v patičce (pokud už je prvek vykreslen)
+  // 🧮 Aktualizace info v patičce (pokud už je prvek vykreslen)
   const foot = document.getElementById("cnbInfo");
   if (foot) {
     if (cnbRate && cnbRateDate) {
-      foot.textContent = `Kurz ${source}: 1 € = ${cnbRate.toLocaleString("cs-CZ",{minimumFractionDigits:4,maximumFractionDigits:4})} Kč (platný k ${cnbRateDate})`;
+      foot.textContent = `Kurz ${source}: 1 € = ${cnbRate.toLocaleString("cs-CZ", {minimumFractionDigits:4, maximumFractionDigits:4})} Kč (platný k ${cnbRateDate})`;
     } else {
       foot.textContent = "⚠️ Kurz není k dispozici – zkontrolujte připojení nebo soubor lastRate.json";
     }
@@ -411,16 +417,7 @@ async function loadCNBrate() {
 
 
 
-
-
-
-  <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 4 – Pomocné funkce -->
-<script>
-/**
- * 🔢 parseMoney()
- * Převádí textový vstup (např. "12 345,50 Kč" nebo "120 €") na číslo.
- * Vrací 0 pokud není možné převést.
- */
+// 🔧 Pomocné funkce
 const parseMoney = (v) => {
   if (!v) return 0;
   const s = String(v).replace(/[^\d.,-]/g, "").replace(",", ".");
@@ -428,52 +425,31 @@ const parseMoney = (v) => {
   return isNaN(n) ? 0 : n;
 };
 
-/**
- * 💶 fmtEUR()
- * Formátuje číslo na EUR s českou lokalizací (2 desetinná místa).
- */
 const fmtEUR = (n) =>
   `${Number(n || 0).toLocaleString("cs-CZ", {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: 2
   })} €`;
 
-/**
- * 📅 getDate()
- * Vrací objekt Date z různých položek záznamu – preferuje datum protokolu, pak reklamace, pak prodeje.
- * Při neplatném datu vrací "2000-01-01" (kvůli bezpečnému řazení).
- */
 const getDate = (r) => {
-  const raw =
-    r.datum_protokolu ||
-    r.datum_reklamace ||
-    r.datum_prodeje ||
-    "";
+  const raw = r.datum_protokolu || r.datum_reklamace || r.datum_prodeje || "";
   const d = new Date(raw);
   return isNaN(d) ? new Date("2000-01-01") : d;
 };
 
-/**
- * 💱 convertToEUR()
- * Pokud je hodnota v Kč a existuje kurz ČNB, přepočítá na EUR.
- * Pokud je částka už v €, nepřepočítává ji.
- */
 const convertToEUR = (value) => {
   const val = parseMoney(value);
   const str = String(value);
-  if (!cnbRate) return val; // když není kurz, vrátí původní hodnotu
+  if (!cnbRate) return val;
   if (str.includes("€")) return val;
   return val / cnbRate;
 };
 
-/**
- * 🧮 sumValues()
- * Spočítá celkový součet částek v EUR z pole objektů (r)
- */
 const sumValues = (arr, field) => {
   return arr.reduce((acc, r) => acc + convertToEUR(r[field]), 0);
 };
 </script>
+
 
 
 
