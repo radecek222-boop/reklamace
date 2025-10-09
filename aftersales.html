@@ -1,4 +1,4 @@
-<!-- 🟨 ZAČÁTEK ČÁSTI 1/10 -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 1/10 – ZÁKLAD + HLAVIČKA + FORM ZAČÁTEK -->
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
-  <!-- 📅 Vanilla Calendar – zachováno pro budoucí použití, ale zde se nepoužije -->
+  <!-- 📅 Vanilla Calendar (není potřeba, ale zachováme strukturu kvůli konzistenci) -->
   <link rel="stylesheet" href="vanilla-calendar.min.css">
   <script src="vanilla-calendar.min.js"></script>
 
@@ -54,6 +54,86 @@
     }
     textarea { height: 100px; resize: vertical; }
     small { font-size: 0.8em; color: #666; }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-weight: 600;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 1em;
+      transition: transform 0.15s ease-in-out, opacity 0.2s;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    }
+    .btn:hover { transform: scale(1.04); opacity: 0.9; }
+    .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
+    .btn-send { background: linear-gradient(135deg, #0046ff, #357aff); }
+
+    .actions {
+      text-align: center;
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    /* 🧭 Mapový náhled */
+    .address-wrapper { position: relative; }
+    .suggestions {
+      position: absolute; top: 100%; left: 0; width: 100%;
+      background: #fff; border: 1px solid #ccc;
+      border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      max-height: 180px; overflow-y: auto; z-index: 1000;
+    }
+    .suggestions div { padding: 8px; cursor: pointer; }
+    .suggestions div:hover { background: #f0f0f0; }
+
+    #mapPreview {
+      width: 100%;
+      height: 250px;
+      margin-top: 10px;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    /* 💾 Overlay načítání */
+    .wait-overlay {
+      display:none; position:fixed; inset:0;
+      background:rgba(255,255,255,0.85);
+      backdrop-filter:blur(2px);
+      justify-content:center; align-items:center;
+      flex-direction:column; font-weight:600; color:#333;
+      z-index:2000;
+    }
+    .wait-overlay.active { display:flex; }
+
+    .hourglass {
+      border:4px solid #ccc; border-top:4px solid #0046ff;
+      border-radius:50%; width:40px; height:40px;
+      animation:spin 1s linear infinite; margin-bottom:10px;
+    }
+    @keyframes spin { 0%{transform:rotate(0)}100%{transform:rotate(360deg)} }
+
+    /* ✅ Potvrzení */
+    .success-check {
+      display:none; position:fixed; inset:0;
+      justify-content:center; align-items:center;
+      background:rgba(255,255,255,0.9);
+      z-index:2100;
+    }
+    .success-check.active { display:flex; }
+
+    .checkmark {
+      width:80px; height:80px; stroke-width:3;
+      stroke:url(#grad1); fill:none;
+      stroke-dasharray:48; stroke-dashoffset:48;
+      animation:draw 1s ease forwards;
+    }
+    @keyframes draw { to{stroke-dashoffset:0;} }
   </style>
 </head>
 
@@ -62,15 +142,20 @@
     <h1>WHITE GLOVE SERVICE</h1>
     <h2>Pozáruční servis</h2>
 
-    <form id="servisForm" novalidate>
-<!-- 🟨 KONEC ČÁSTI 1/10 -->
+    <form id="aftersalesForm" novalidate>
+<!-- 🟨 KONEC ČÁSTI 1/10 – ZÁKLAD + HLAVIČKA + FORM ZAČÁTEK -->
 
 
 
 
-<!-- 🟨 ZAČÁTEK ČÁSTI 2/10 -->
-      <label>Jméno a příjmení zákazníka:</label>
-      <input type="text" name="zakaznik" required placeholder="např. Jan Novák" />
+
+      <!-- 🟨 ZAČÁTEK ČÁSTI 2/10 – ZÁKLADNÍ ÚDAJE + ADRESA + READONLY POLE -->
+
+      <label>Číslo reklamace / objednávky:</label>
+      <input type="text" name="cislo" value="Pozáruční servis / vyžádaná oprava" readonly />
+
+      <label>Zákazník:</label>
+      <input type="text" name="zakaznik" required placeholder="např. Jiří Novák" />
 
       <label>Ulice a číslo popisné:</label>
       <div class="address-wrapper">
@@ -86,7 +171,7 @@
       <input type="text" id="psc" name="psc" required pattern="\\d{3}\\s?\\d{2}" placeholder="např. 110 00" />
 
       <label>Telefon:</label>
-      <div style="display:flex;gap:8px;">
+      <div style="display:flex; gap:8px;">
         <select id="predvolba" style="max-width:130px;">
           <option value="+420">🇨🇿 +420</option>
           <option value="+421">🇸🇰 +421</option>
@@ -101,306 +186,335 @@
       <label>Model / Název produktu:</label>
       <input type="text" name="produkt" required placeholder="např. C142" />
 
-      <label>Popis závady / požadavku:</label>
-      <textarea name="popis" required placeholder="Popište problém nebo požadavek…"></textarea>
-<!-- 🟨 KONEC ČÁSTI 2/10 -->
+<!-- 🟨 KONEC ČÁSTI 2/10 – ZÁKLADNÍ ÚDAJE + ADRESA + READONLY POLE -->
 
 
 
 
+      <!-- 🟨 ZAČÁTEK ČÁSTI 3/10 – POPIS ZÁVADY + BLOK FOTODOKUMENTACE (UI) -->
 
-      <!-- 🟨 ZAČÁTEK ČÁSTI 3–5/10 – FOTODOKUMENTACE -->
+<label>Popis závady / požadavku:</label>
+<textarea name="popis" required placeholder="Popište problém, opravu nebo požadavek..."></textarea>
 
-<label>Fotodokumentace:</label>
 <div class="photo-frame">
   <div class="photo-frame__header">
     <div class="photo-frame__title">Fotodokumentace</div>
-    <div class="photo-frame__info">Max. 5 fotografií (JPG / PNG / HEIC, ≤ 5 MB na soubor)</div>
     <button type="button" id="openPhotoModal" class="btn-photo">Nahrát fotografie</button>
   </div>
-  <div id="photoPreviewBox" class="photo-preview-box"></div>
+  <div class="photo-frame__info">Max. 5 fotografií (JPG, PNG, HEIC)</div>
+  <div id="photoPreviewMain" class="photo-preview-main"></div>
 </div>
 
-<!-- Modal pro nahrávání fotek -->
 <div id="photoModal" class="photo-modal">
   <div class="photo-modal-content">
     <h3>Nahrát fotografie</h3>
-    <p class="photo-info">Můžeš nahrát až 5 fotografií (JPG, PNG, HEIC). Každá se automaticky zmenší na max. 800×533 px (≤ 500 KB).</p>
-    <input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple />
+    <p class="photo-small">
+      Můžeš nahrát až 5 fotografií (JPG, PNG, HEIC). Každá se automaticky zmenší na max. 800 × 533 px (≤ 500 KB).
+    </p>
+
     <div id="photoPreview" class="photo-preview"></div>
-    <div class="photo-actions">
-      <button type="button" id="selectPhotos" class="btn-gray">Vyber soubory</button>
+
+    <div class="photo-modal-actions">
+      <button type="button" id="selectFiles" class="btn-gray">Vyber soubory</button>
+      <input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
       <button type="button" id="uploadPhotos" class="btn-green">Nahrát fotografie</button>
       <button type="button" id="closePhotoModal" class="btn-white">Zavřít</button>
     </div>
   </div>
 </div>
 
-<style>
-/* Rámeček Fotodokumentace */
-.photo-frame {
-  border:1px solid #d9d9d9;
-  border-radius:10px;
-  padding:16px;
-  margin-top:18px;
-  background:linear-gradient(180deg,#f9f9f9 0%,#efefef 100%);
-}
-.photo-frame__header {
-  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
-}
-.photo-frame__title{font-weight:700;color:#111;}
-.photo-frame__info{font-size:0.8em;color:#555;}
-.btn-photo{
-  padding:8px 14px;border-radius:8px;
-  border:1px solid #cfcfcf;
-  background:linear-gradient(180deg,#fff 0%,#f3f3f3 100%);
-  color:#111;font-weight:600;cursor:pointer;
-  transition:all 0.2s ease;
-}
-.btn-photo:hover{transform:scale(1.03);}
-.photo-preview-box{
-  display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;
-}
-.photo-item{
-  width:90px;height:90px;position:relative;border-radius:8px;overflow:hidden;
-  box-shadow:0 2px 6px rgba(0,0,0,0.15);
-}
-.photo-item img{width:100%;height:100%;object-fit:cover;}
-.photo-remove{
-  position:absolute;top:4px;right:4px;
-  background:rgba(255,255,255,0.9);
-  border:none;border-radius:50%;
-  width:20px;height:20px;
-  color:#d40000;font-weight:bold;cursor:pointer;
-}
-.photo-progress{
-  position:absolute;inset:0;
-  background:rgba(255,255,255,0.75);
-  display:flex;justify-content:center;align-items:center;
-  font-size:0.8em;font-weight:600;border-radius:8px;
-}
-.photo-check{
-  position:absolute;top:4px;left:4px;
-  width:20px;height:20px;background:rgba(255,255,255,0.9);
-  border-radius:50%;display:flex;justify-content:center;align-items:center;
-  color:#00b56a;font-weight:bold;font-size:14px;
-}
+<script>
+document.getElementById("selectFiles").addEventListener("click",()=>{
+  document.getElementById("photoInput").click();
+});
+</script>
 
-/* Modal */
+<style>
+.photo-frame {
+  border:1px solid #000;
+  border-radius:10px;
+  padding:14px;
+  margin-top:18px;
+  background:linear-gradient(180deg,#f4f4f6 0%,#e8e8eb 100%);
+}
+.photo-frame__header{display:flex;justify-content:space-between;align-items:center;}
+.photo-frame__title{font-weight:700;color:#111;font-size:1.05em;}
+.btn-photo{
+  padding:8px 16px;border-radius:8px;
+  border:1px solid #aaa;background:linear-gradient(180deg,#fff 0%,#f2f2f2 100%);
+  font-weight:600;cursor:pointer;transition:all .2s ease;
+}
+.photo-frame__info{font-size:0.7em;color:#555;margin-top:3px;}
+.photo-preview-main{
+  display:flex;flex-direction:column;gap:6px;margin-top:10px;
+}
+.photo-item-main{display:flex;align-items:center;gap:8px;}
+.photo-thumb{
+  width:80px;height:80px;border-radius:6px;object-fit:cover;
+  box-shadow:0 2px 5px rgba(0,0,0,0.15);
+}
+.photo-name{font-size:0.8em;color:#333;word-break:break-all;}
+
+/* Modal overlay – tmavě šedý a průhledný */
 .photo-modal{
   display:none;position:fixed;inset:0;
-  background:rgba(40,40,40,0.8);
+  background:rgba(20,20,20,0.7);
   justify-content:center;align-items:center;z-index:9999;
 }
 .photo-modal.active{display:flex;}
 .photo-modal-content{
-  background:#f0f0f0;
-  border:2px solid #000;
-  border-radius:12px;
-  padding:20px;
-  width:90%;max-width:520px;
-  box-shadow:0 8px 20px rgba(0,0,0,0.3);
+  background:#ececec;
+  border:2px solid #000;border-radius:12px;
+  padding:20px;max-width:700px;width:90%;
+  box-shadow:0 6px 18px rgba(0,0,0,0.4);
 }
-.photo-info{font-size:0.75em;color:#555;margin-bottom:10px;}
+
+/* Náhledy – 5 vedle sebe, vycentrované */
 .photo-preview{
-  display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;justify-content:center;
+  display:flex;justify-content:center;gap:12px;flex-wrap:nowrap;
+  margin:20px 0;
 }
-.photo-actions{
-  display:flex;justify-content:space-between;margin-top:18px;gap:10px;flex-wrap:wrap;
+.photo-item{
+  width:100px;height:100px;border-radius:10px;overflow:hidden;
+  position:relative;background:#ddd;box-shadow:0 2px 6px rgba(0,0,0,0.15);
+}
+.photo-item img{width:100%;height:100%;object-fit:cover;}
+.progress-bar{
+  position:absolute;bottom:0;left:0;height:5px;
+  background:#7d5fff;width:0%;transition:width .4s ease;
+}
+.photo-item.processing::after{
+  content:"";position:absolute;inset:0;
+  background:rgba(255,255,255,0.45);
+  animation:pulse 1s infinite;
+}
+@keyframes pulse{0%{opacity:.6;}50%{opacity:1;}100%{opacity:.6;}}
+
+/* 🔘 Tlačítka – všechna stejná */
+.photo-modal-actions{
+  display:flex;justify-content:space-between;gap:10px;
 }
 .btn-gray,.btn-green,.btn-white{
-  flex:1;min-width:130px;padding:10px 16px;border-radius:8px;font-weight:600;cursor:pointer;
-  box-shadow:0 2px 6px rgba(0,0,0,0.15);font-size:1em;
+  flex:1;
+  text-align:center;
+  padding:10px 12px;
+  border-radius:8px;
+  font-weight:600;
+  cursor:pointer;
+  font-size:0.95em;
+  height:42px;
+  transition:transform .15s ease;
 }
-.btn-gray{background:linear-gradient(135deg,#a0a4a7,#6c757d);color:#fff;border:none;}
-.btn-green{background:linear-gradient(135deg,#00a86b,#00d084);color:#fff;border:none;}
-.btn-white{background:linear-gradient(135deg,#ffffff,#e6e6e6);color:#111;border:1px solid #ccc;}
+.btn-gray{
+  background:linear-gradient(135deg,#bfbfbf,#9b9b9b);
+  color:#fff;
+  border:none;
+}
+.btn-green{
+  background:linear-gradient(135deg,#00b56a,#00da80);
+  color:#fff;
+  border:none;
+}
+.btn-white{
+  background:linear-gradient(135deg,#fff,#f5f5f5);
+  color:#333;
+  border:1px solid #ccc;
+}
+.btn-gray:hover,.btn-green:hover,.btn-white:hover{
+  transform:scale(1.05);
+}
+.photo-small{font-size:0.65em;color:#555;margin-top:4px;}
 </style>
+
+<!-- 🟨 KONEC ČÁSTI 3/10 – POPIS ZÁVADY + BLOK FOTODOKUMENTACE (UI) -->
+
+
+
+
+
+      <!-- 🟨 ZAČÁTEK ČÁSTI 4/10 – LOGIKA PRO FOTKY (KOMPRESSE, NAHRÁNÍ, DUPLIKACE, MAZÁNÍ) -->
 
 <script>
 (function(){
-  const openBtn=document.getElementById("openPhotoModal");
-  const modal=document.getElementById("photoModal");
-  const closeBtn=document.getElementById("closePhotoModal");
-  const input=document.getElementById("photoInput");
-  const preview=document.getElementById("photoPreview");
-  const box=document.getElementById("photoPreviewBox");
-  const uploadBtn=document.getElementById("uploadPhotos");
-  const selectBtn=document.getElementById("selectPhotos");
+  const openPhotoModal = document.getElementById("openPhotoModal");
+  const photoModal = document.getElementById("photoModal");
+  const closePhotoModal = document.getElementById("closePhotoModal");
+  const photoInput = document.getElementById("photoInput");
+  const photoPreview = document.getElementById("photoPreview");
+  const uploadBtn = document.getElementById("uploadPhotos");
+  const photoPreviewMain = document.getElementById("photoPreviewMain");
 
-  let photoFiles=[];let compressedPhotos=[];
+  let photoFiles = [];          // vybrané soubory
+  let compressedPhotos = [];    // komprimované blob verze
+  window.uploadedPhotos = [];   // uložené fotky po nahrání
 
-  // otevření modalu
-  openBtn.addEventListener("click",()=>modal.classList.add("active"));
-  closeBtn.addEventListener("click",()=>modal.classList.remove("active"));
-  selectBtn.addEventListener("click",()=>input.click());
+  // otevření a zavření modalu
+  openPhotoModal.addEventListener("click", ()=>{
+    renderSelected();
+    photoModal.classList.add("active");
+  });
+  closePhotoModal.addEventListener("click", ()=>photoModal.classList.remove("active"));
 
-  // komprese obrázku
-  async function compressImage(file,maxSizeKB=500,maxDim=800){
-    const img=await createImageBitmap(file);
-    const canvas=document.createElement("canvas");
-    let[w,h]=[img.width,img.height];
-    if(w>h&&w>maxDim){h=Math.round(h*(maxDim/w));w=maxDim;}
-    else if(h>w&&h>maxDim){w=Math.round(w*(maxDim/h));h=maxDim;}
-    canvas.width=w;canvas.height=h;
-    const ctx=canvas.getContext("2d");ctx.drawImage(img,0,0,w,h);
-    let q=0.9;let blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));
-    while(blob.size/1024>maxSizeKB&&q>0.4){q-=0.1;blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));}
+  // 🧩 Komprese obrázku
+  async function compressImage(file, maxSizeKB=500, maxDim=800){
+    const img = await createImageBitmap(file);
+    const canvas = document.createElement("canvas");
+    let [w,h] = [img.width,img.height];
+    if(w>h && w>maxDim){ h=Math.round(h*(maxDim/w)); w=maxDim; }
+    else if(h>w && h>maxDim){ w=Math.round(w*(maxDim/h)); h=maxDim; }
+    canvas.width=w; canvas.height=h;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img,0,0,w,h);
+    let q=0.9;
+    let blob = await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));
+    while(blob.size/1024>maxSizeKB && q>0.4){
+      q-=0.1;
+      blob = await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));
+    }
     return blob;
   }
 
-  // výběr fotek
-  input.addEventListener("change",async()=>{
-    const files=Array.from(input.files).slice(0,5);
-    for(const file of files){
-      if(photoFiles.some(f=>f.name===file.name)) continue; // 🧱 duplicity
-      photoFiles.push(file);
-      const item=document.createElement("div");
-      item.className="photo-item";
-      const img=document.createElement("img");
-      const progress=document.createElement("div");
-      progress.className="photo-progress";progress.textContent="Zpracování…";
-      const remove=document.createElement("button");
-      remove.className="photo-remove";remove.textContent="×";
-      remove.onclick=()=>{item.remove();photoFiles=photoFiles.filter(f=>f!==file);compressedPhotos=compressedPhotos.filter(p=>p.file!==file);};
-      item.append(img,progress,remove);
-      preview.append(item);
-      const reader=new FileReader();
-      reader.onload=e=>(img.src=e.target.result);
+  // 🧠 Kontrola duplikátů podle názvu a velikosti
+  function isDuplicate(file, list){
+    return list.some(f => f.name===file.name && f.size===file.size);
+  }
+
+  // 📂 Výběr nových fotek
+  photoInput.addEventListener("change", async ()=>{
+    const newFiles = Array.from(photoInput.files);
+    const uniqueNewFiles = newFiles.filter(f=>!isDuplicate(f, photoFiles));
+    photoFiles = [...photoFiles, ...uniqueNewFiles].slice(0,5);
+    await renderSelected();
+  });
+
+  // 🖼️ Zobrazení vybraných fotek
+  async function renderSelected(){
+    photoPreview.innerHTML = "";
+    compressedPhotos = [];
+    for(const file of photoFiles){
+      const item = document.createElement("div");
+      item.className = "photo-item processing";
+
+      const img = document.createElement("img");
+      const bar = document.createElement("div");
+      bar.className = "progress-bar";
+
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "photo-remove";
+      removeBtn.textContent = "×";
+      removeBtn.onclick = ()=>{
+        photoFiles = photoFiles.filter(f=>f!==file);
+        renderSelected();
+      };
+
+      const check = document.createElement("div");
+      check.className = "photo-check";
+      check.textContent = "✓";
+
+      item.append(img,bar,removeBtn,check);
+      photoPreview.append(item);
+
+      const reader = new FileReader();
+      reader.onload = e => (img.src = e.target.result);
       reader.readAsDataURL(file);
-      const blob=await compressImage(file);
-      compressedPhotos.push({file,blob,element:item});
-      progress.textContent="Připraveno";
-    }
-  });
 
-  // upload
-  uploadBtn.addEventListener("click",async()=>{
+      let p = 0;
+      const prog = setInterval(()=>{
+        p+=10; if(p>90)p=90; bar.style.width=p+"%";
+      },150);
+
+      const blob = await compressImage(file);
+      clearInterval(prog);
+      bar.style.width="100%";
+      setTimeout(()=>item.classList.remove("processing"),200);
+
+      compressedPhotos.push({file, blob, preview: img.src, item});
+    }
+  }
+
+  // ☁️ Upload s kontrolou duplikátů nahrání
+  uploadBtn.addEventListener("click", async ()=>{
+    if(!compressedPhotos.length) return;
+    uploadBtn.disabled = true;
+
     for(const p of compressedPhotos){
-      const item=p.element;
-      const progress=item.querySelector(".photo-progress");
-      progress.textContent="Nahrávám…";
-      const formData=new FormData();
-      formData.append("file",p.blob,p.file.name);
+      const alreadyUploaded = window.uploadedPhotos.some(u=>u.name===p.file.name);
+      if(alreadyUploaded) continue;
+
       try{
-        const r=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload",{method:"POST",body:formData});
-        const res=await r.json();
-        progress.remove();
-        const check=document.createElement("div");
-        check.className="photo-check";check.textContent="✓";
-        item.append(check);
-        p.filename=res.filename;
-      }catch{
-        progress.textContent="Chyba";
-        progress.style.color="#f00";
-      }
+        const formData = new FormData();
+        formData.append("file", p.blob, p.file.name);
+        const r = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload", {
+          method:"POST", body:formData
+        });
+        const res = await r.json();
+        p.item.classList.add("uploaded");
+        window.uploadedPhotos.push({
+          filename:res.filename,
+          name:p.file.name,
+          preview:p.preview
+        });
+      }catch(e){console.error(e);}
     }
-    modal.classList.remove("active");
-    renderFinal();
+
+    renderMainPreview();
+    photoModal.classList.remove("active");
+    uploadBtn.disabled = false;
   });
 
-  // render finální náhled
-  function renderFinal(){
-    box.innerHTML="";
-    for(const p of compressedPhotos){
-      const item=document.createElement("div");
-      item.className="photo-item";
-      const img=document.createElement("img");
-      const reader=new FileReader();
-      reader.onload=e=>(img.src=e.target.result);
-      reader.readAsDataURL(p.file);
-      const remove=document.createElement("button");
-      remove.className="photo-remove";remove.textContent="×";
-      remove.onclick=()=>{item.remove();compressedPhotos=compressedPhotos.filter(x=>x!==p);};
-      item.append(img,remove);
-      box.append(item);
-    }
-    window.uploadedPhotos=compressedPhotos;
+  // 📋 Náhledy po nahrání (s možností odstranit)
+  function renderMainPreview(){
+    photoPreviewMain.innerHTML = "";
+    window.uploadedPhotos.forEach((p,index)=>{
+      const row = document.createElement("div");
+      row.className = "photo-item-main";
+
+      const img = document.createElement("img");
+      img.className = "photo-thumb";
+      img.src = p.preview;
+
+      const name = document.createElement("div");
+      name.className = "photo-name";
+      name.textContent = p.name;
+
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "photo-remove";
+      removeBtn.textContent = "×";
+      removeBtn.title = "Odstranit tuto fotku";
+      removeBtn.onclick = ()=>{
+        window.uploadedPhotos.splice(index,1);
+        renderMainPreview();
+      };
+
+      row.append(img,name,removeBtn);
+      photoPreviewMain.append(row);
+    });
   }
 })();
 </script>
-<!-- 🟨 KONEC ČÁSTI 3–5/10 -->
+
+<!-- 🟨 KONEC ČÁSTI 4/10 – LOGIKA PRO FOTKY (KOMPRESSE, NAHRÁNÍ, DUPLIKACE, MAZÁNÍ) -->
 
 
 
 
 
-      <!-- 🟨 ZAČÁTEK ČÁSTI 6–10/10 -->
 
-<style>
-.actions {
-  text-align:center;margin-top:25px;
-  display:flex;justify-content:center;gap:20px;flex-wrap:wrap;
-}
-.btn {
-  display:inline-block;padding:12px 28px;border-radius:8px;
-  font-weight:600;border:none;color:white;cursor:pointer;
-  font-size:1em;transition:transform .15s ease,opacity .2s;
-  box-shadow:0 3px 8px rgba(0,0,0,.15);min-width:140px;
-}
-.btn:hover{transform:scale(1.04);opacity:.9;}
-.btn-back{background:linear-gradient(135deg,#6c757d,#a0a4a7);}
-.btn-send{background:linear-gradient(135deg,#00a86b,#00d084);}
-.wait-overlay{
-  display:none;position:fixed;inset:0;
-  background:rgba(255,255,255,.85);backdrop-filter:blur(2px);
-  justify-content:center;align-items:center;flex-direction:column;
-  font-weight:600;color:#333;z-index:2000;
-}
-.wait-overlay.active{display:flex;}
-.hourglass{
-  border:4px solid #ccc;border-top:4px solid #00a86b;
-  border-radius:50%;width:40px;height:40px;
-  animation:spin 1s linear infinite;margin-bottom:10px;
-}
-@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
-.success-check{
-  display:none;position:fixed;inset:0;
-  justify-content:center;align-items:center;
-  background:rgba(255,255,255,.9);z-index:2100;
-}
-.success-check.active{display:flex;}
-.checkmark{
-  width:80px;height:80px;stroke-width:3;stroke:url(#grad1);
-  fill:none;stroke-dasharray:48;stroke-dashoffset:48;
-  animation:draw 1s ease forwards;
-}
-@keyframes draw{to{stroke-dashoffset:0}}
-.suggestions{
-  position:absolute;top:100%;left:0;width:100%;
-  background:#fff;border:1px solid #ccc;border-radius:6px;
-  box-shadow:0 4px 10px rgba(0,0,0,.1);
-  max-height:180px;overflow-y:auto;z-index:1000;
-}
-.suggestions div{padding:8px;cursor:pointer;}
-.suggestions div:hover{background:#f0f0f0;}
-#mapPreview{
-  width:100%;height:250px;margin-top:10px;
-  border-radius:14px;overflow:hidden;
-  box-shadow:0 4px 10px rgba(0,0,0,.1);
-}
-</style>
+      <!-- 🟨 ZAČÁTEK ČÁSTI 5/10 – ODESLÁNÍ FORMULÁŘE (typ "pozarucni") + ANIMACE + LOADER -->
 
-<div class="actions">
-  <a href="index.html" class="btn btn-back">Zpět</a>
-  <button type="submit" class="btn btn-send">Odeslat</button>
-</div>
-</form>
-</div>
-
-<!-- Overlay načítání -->
+<!-- 💾 Overlay načítání -->
 <div class="wait-overlay" id="waitOverlay">
   <div class="hourglass"></div>
   <p>Prosím čekejte…</p>
 </div>
 
-<!-- ✅ potvrzení -->
+<!-- ✅ Hotovo animace -->
 <div class="success-check" id="successCheck">
   <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
     <defs>
       <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" style="stop-color:#00d084;stop-opacity:1"/>
-        <stop offset="100%" style="stop-color:#00a86b;stop-opacity:1"/>
+        <stop offset="0%" style="stop-color:#00d084;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#00a86b;stop-opacity:1" />
       </linearGradient>
     </defs>
     <circle cx="26" cy="26" r="25" fill="none"/>
@@ -409,91 +523,290 @@
 </div>
 
 <script>
-/* 🛰️ Geoapify – autocomplete + mapa */
-const inputUlice=document.getElementById("ulice");
-const mapContainer=document.getElementById("mapPreview");
-const suggestions=document.getElementById("suggestions");
-let map,marker;
-
-function initMap(lat=50.0755,lng=14.4378){
-  if(map)return;
-  map=L.map(mapContainer).setView([lat,lng],11);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    {maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
-  marker=L.marker([lat,lng]).addTo(map);
-}
-
-inputUlice.addEventListener("input",async()=>{
-  const q=inputUlice.value.trim();
-  if(q.length<3){suggestions.innerHTML="";return;}
-  const url=`https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(q)}&apiKey=7d8c6c6e9c5d4e1b9d2c2302cb17f0b3`;
-  const res=await fetch(url);const data=await res.json();
-  suggestions.innerHTML="";
-  data.features.forEach(f=>{
-    const d=document.createElement("div");
-    d.textContent=f.properties.formatted;
-    d.addEventListener("click",()=>{
-      inputUlice.value=f.properties.address_line1;
-      document.getElementById("mesto").value=f.properties.city||"";
-      document.getElementById("psc").value=f.properties.postcode||"";
-      suggestions.innerHTML="";
-      const [lat,lng]=[f.properties.lat,f.properties.lon];
-      if(!map)initMap(lat,lng);
-      map.setView([lat,lng],14);
-      marker.setLatLng([lat,lng]);
-    });
-    suggestions.appendChild(d);
-  });
-});
-document.addEventListener("click",e=>{
-  if(!suggestions.contains(e.target)&&e.target!==inputUlice)
-    suggestions.innerHTML="";
-});
-
-/* 📨 Odeslání formuláře přes Worker */
-document.getElementById("servisForm").addEventListener("submit",async e=>{
+document.getElementById("aftersalesForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const overlay=document.getElementById("waitOverlay");
-  overlay.classList.add("active");
 
-  const formData=new FormData(e.target);
-  const zakaznik=formData.get("zakaznik");
-  const adresa=`${formData.get("ulice")}, ${formData.get("mesto")} ${formData.get("psc")}`;
-  const telefon=document.getElementById("predvolba").value+" "+formData.get("telefon");
-  const email=formData.get("email");
-  const produkt=formData.get("produkt");
-  const popis=formData.get("popis");
+  const wait = document.getElementById("waitOverlay");
+  const success = document.getElementById("successCheck");
+  wait.classList.add("active");
 
-  const fotky=(window.uploadedPhotos||[]).map(p=>p.filename||p.file.name);
+  const f = e.target;
+  const predvolba = document.getElementById("predvolba");
 
-  const payload={
-    typ:"pozarucni",
-    zakaznik,adresa,telefon,email,produkt,popis,fotky,
-    contract:"Pozáruční servis",
-    datum: new Date().toISOString().split("T")[0]
+  const dataObj = {
+    typ: "pozarucni",
+    contract: "Pozáruční servis",
+    cislo: f.cislo.value,
+    zakaznik: f.zakaznik.value,
+    adresa: `${f.ulice.value}, ${f.mesto.value}, ${f.psc.value}`,
+    telefon: `${predvolba.value} ${f.telefon.value}`,
+    email: f.email.value,
+    produkt: f.produkt.value,
+    popis: f.popis.value,
+    fotky: (window.uploadedPhotos || []).map(p => p.filename || "")
   };
 
-  try{
-    const res=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify(payload)
+  try {
+    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ record: dataObj })
     });
-    if(res.ok){
-      overlay.classList.remove("active");
-      document.getElementById("successCheck").classList.add("active");
-      setTimeout(()=>location.href="hotove.html",1500);
-    }else{
-      overlay.classList.remove("active");
-      alert("Chyba při odesílání formuláře.");
-    }
-  }catch(err){
-    overlay.classList.remove("active");
-    alert("Nepodařilo se odeslat data.");
+    const json = await res.json();
+    console.log("📤 Odpověď workeru:", json);
+
+    wait.classList.remove("active");
+    success.classList.add("active");
+    setTimeout(() => window.location.href = "index.html", 2500);
+  } catch (err) {
+    wait.classList.remove("active");
+    alert("Chyba při odesílání: " + err.message);
   }
 });
 </script>
 
+<!-- 🟨 KONEC ČÁSTI 5/10 – ODESLÁNÍ FORMULÁŘE (typ "pozarucni") + ANIMACE + LOADER -->
+
+
+
+
+
+
+      <!-- 🟨 ZAČÁTEK ČÁSTI 6/10 – DOPLŇKOVÉ STYLY (SPODNÍ TLAČÍTKA, KŘÍŽKY, ANIMACE) -->
+
+<style>
+/* 🔘 Spodní tlačítka Zpět / Odeslat – 1:1 stejné rozměry */
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 30px;
+  flex-wrap: wrap;
+}
+.actions .btn,
+.actions a.btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  min-width: 160px;
+  height: 48px;
+  padding: 0 20px;
+  font-size: 1em;
+  font-weight: 600;
+  border-radius: 8px;
+  text-align: center;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  transition: transform 0.15s ease, opacity 0.2s ease;
+}
+.actions .btn:hover,
+.actions a.btn:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+.actions .btn-back {
+  background: linear-gradient(135deg, #9b9b9b, #bfbfbf);
+  color: #fff;
+}
+.actions .btn-send {
+  background: linear-gradient(135deg, #00b56a, #00da80);
+  color: #fff;
+}
+
+/* ⏳ Přesýpací hodiny a čekání */
+.wait-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(2px);
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  font-weight: 600;
+  color: #333;
+  z-index: 2000;
+}
+.wait-overlay.active { display: flex; }
+
+.hourglass {
+  border: 4px solid #ccc;
+  border-top: 4px solid #0046ff;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+@keyframes spin { 0%{transform:rotate(0)}100%{transform:rotate(360deg)} }
+
+/* ✅ Fajfka potvrzení */
+.success-check {
+  display: none;
+  position: fixed;
+  inset: 0;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255,255,255,0.9);
+  z-index: 2100;
+}
+.success-check.active { display: flex; }
+
+.checkmark {
+  width: 80px;
+  height: 80px;
+  stroke-width: 3;
+  stroke: url(#grad1);
+  fill: none;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: draw 1s ease forwards;
+}
+@keyframes draw { to { stroke-dashoffset: 0; } }
+
+/* 🔴 Červené křížky pro odstranění fotek */
+.photo-remove {
+  background: rgba(255,255,255,0.95);
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  color: #d40000 !important;
+  font-weight: bold;
+  cursor: pointer;
+  line-height: 18px;
+  font-size: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+.photo-remove:hover {
+  background: #fff;
+  transform: scale(1.15);
+}
+
+/* 🔄 Základní přechody */
+button, input, select, textarea {
+  transition: all 0.2s ease;
+}
+</style>
+
+<!-- 🟨 KONEC ČÁSTI 6/10 – DOPLŇKOVÉ STYLY (SPODNÍ TLAČÍTKA, KŘÍŽKY, ANIMACE) -->
+
+
+
+
+
+
+      <!-- 🟨 ZAČÁTEK ČÁSTI 7/10 – MAPA + GEOAPIFY NAŠEPTÁVAČ (FULL) -->
+
+<!-- Leaflet knihovna -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+<script>
+(function(){
+  const uliceInput = document.getElementById("ulice");
+  const mestoInput = document.getElementById("mesto");
+  const pscInput = document.getElementById("psc");
+  const suggestionContainer = document.getElementById("suggestions");
+  const GEOAPIFY_KEY = "b363199bb14e47189558d03b81ca9ba1";
+  let suggestTimer = null;
+  let adresaPlatna = false;
+
+  uliceInput.addEventListener("input", ()=>{
+    clearTimeout(suggestTimer);
+    suggestTimer = setTimeout(runAutocomplete, 300);
+  });
+
+  async function runAutocomplete(){
+    const query = uliceInput.value.trim();
+    adresaPlatna = false;
+    suggestionContainer.innerHTML = "";
+    if(query.length < 3) return;
+
+    try {
+      const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&lang=cs&limit=5&filter=countrycode:cze,svk,aut&apiKey=${GEOAPIFY_KEY}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if(!data.features || !data.features.length) throw new Error("No results");
+      renderSuggestions(data.features.map(f=>f.properties));
+    } catch {
+      try {
+        const url2 = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=cz,sk,at&limit=5&q=${encodeURIComponent(query)}`;
+        const res2 = await fetch(url2, { headers: {"Accept-Language":"cs"} });
+        const data2 = await res2.json();
+        if(data2.length){
+          renderSuggestions(data2.map(n=>({
+            formatted:n.display_name,
+            street:n.address?.road,
+            housenumber:n.address?.house_number,
+            city:n.address?.city || n.address?.town || n.address?.village,
+            postcode:n.address?.postcode,
+            lat:n.lat, lon:n.lon
+          })));
+        }
+      } catch {
+        suggestionContainer.innerHTML = "<div style='padding:8px;color:red'>Chyba načítání</div>";
+      }
+    }
+  }
+
+  function renderSuggestions(items){
+    suggestionContainer.innerHTML = "";
+    items.forEach(p=>{
+      const div = document.createElement("div");
+      div.textContent = p.formatted || p.label || `${p.street || ""} ${p.housenumber || ""}, ${p.city || ""}`;
+      div.onclick = ()=>{
+        uliceInput.value = `${p.street||""} ${p.housenumber||""}`.trim();
+        mestoInput.value = p.city || "";
+        pscInput.value = p.postcode || "";
+        adresaPlatna = true;
+        suggestionContainer.innerHTML = "";
+
+        const mapDiv = document.getElementById("mapPreview");
+        mapDiv.innerHTML = "";
+        const map = L.map(mapDiv, { center:[p.lat, p.lon], zoom:16, zoomControl:false, attributionControl:false });
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(map);
+        L.marker([p.lat, p.lon]).addTo(map);
+        setTimeout(()=>map.invalidateSize(),300);
+      };
+      suggestionContainer.appendChild(div);
+    });
+  }
+
+  document.addEventListener("click", e=>{
+    if(!suggestionContainer.contains(e.target) && e.target!==uliceInput)
+      suggestionContainer.innerHTML = "";
+  });
+})();
+</script>
+
+<!-- 🟨 KONEC ČÁSTI 7/10 – MAPA + GEOAPIFY NAŠEPTÁVAČ (FULL) -->
+
+
+
+
+
+
+      <!-- 🟨 ZAČÁTEK ČÁSTI 8/10 – ZÁVĚR FORMULÁŘE + TLAČÍTKA ZPĚT / ODESLAT -->
+
+<!-- 🧭 Akční tlačítka formuláře -->
+<div class="actions">
+  <a href="index.html" class="btn btn-back">Zpět</a>
+  <button type="submit" class="btn btn-send">Odeslat</button>
+</div>
+
+</form>
+</div> <!-- konec wrapperu -->
+
+<!-- ✅ Koncové uzávěrky -->
+<!-- Není zde žádný kalendář ani sekce zadavatele – formulář čistý -->
+<!-- Typ odeslání: "pozarucni" -->
+
 </body>
 </html>
-<!-- 🟨 KONEC ČÁSTI 6–10/10 -->
+
+<!-- 🟨 KONEC ČÁSTI 8/10 – ZÁVĚR FORMULÁŘE + TLAČÍTKA ZPĚT / ODESLAT -->
