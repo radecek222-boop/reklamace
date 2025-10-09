@@ -21,10 +21,15 @@ body {
   background:white;
   padding:20px;
   box-shadow:0 0 10px rgba(0,0,0,0.1);
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  box-sizing:border-box;
 }
 .header {
   text-align:center;
   margin-bottom:20px;
+  width:100%;
 }
 .header div:first-child {
   font-size:28px;
@@ -40,91 +45,105 @@ table {
   border-collapse:collapse;
   margin:10px 0;
 }
-td { padding:6px; vertical-align:top; }
-.label { font-weight:600; display:block; }
-.label .en-label { display:block; font-size:0.85em; color:#666; font-weight:normal; margin:0; }
-.section-title { font-weight:700; margin-top:20px; display:flex; flex-direction:column; align-items:flex-start; }
-.section-title .en-label { font-size:0.9em; color:#666; font-weight:normal; margin-top:2px; }
-
+td { 
+  padding:6px; 
+  vertical-align:top;
+  width:50%;
+}
+.label { 
+  font-weight:600; 
+  display:block; 
+  text-align:left;
+}
+.label .en-label { 
+  display:block; 
+  font-size:0.85em; 
+  color:#666; 
+  font-weight:normal; 
+  margin:0;
+}
+.section-title { 
+  font-weight:700; 
+  margin-top:20px; 
+  width:100%;
+  text-align:left;
+}
+.section-title .en-label { 
+  font-size:0.9em; 
+  color:#666; 
+  font-weight:normal; 
+  margin-top:2px;
+}
 input, select, textarea {
-  width:100%; padding:6px 8px;
-  border:1px solid #ccc; border-radius:4px;
-  font-size:1em; color:#111; background:#fff;
+  width:100%; 
+  padding:6px 8px;
+  border:1px solid #ccc; 
+  border-radius:4px;
+  font-size:1em; 
+  color:#111; 
+  background:#fff;
   box-sizing:border-box;
 }
-textarea { min-height:80px; resize:vertical; }
-
-.split-section { display:flex; gap:10px; margin:10px 0; }
-.two-col-table { display:flex; gap:30px; flex-wrap:wrap; }
-.two-col-table .col { flex:1; min-width:300px; }
-
+textarea { 
+  min-height:80px; 
+  resize:vertical;
+}
+.two-col-table {
+  display:flex;
+  flex-direction:row;
+  justify-content:space-between;
+  gap:20px;
+  width:100%;
+}
+.two-col-table .col {
+  flex:1;
+  min-width:320px;
+}
+.split-section {
+  display:flex;
+  gap:10px;
+  width:100%;
+}
+textarea[readonly] {
+  background:#f7f7f7;
+  color:#444;
+}
 #signature-pad {
   border:2px dashed #888;
   width:100%;
   height:200px;
   background:white;
-  touch-action: none;
+  touch-action:none;
+  display:block;
 }
-.signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
-
 .btns {
   margin-top:20px;
   display:grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap:12px;
+  width:100%;
 }
 button {
-  height:44px; font-size:0.9em; border:none; border-radius:8px;
-  cursor:pointer; font-weight:600; color:white;
+  height:44px; 
+  font-size:0.9em; 
+  border:none; 
+  border-radius:8px;
+  cursor:pointer; 
+  font-weight:600; 
+  color:white;
   box-shadow:0 2px 5px rgba(0,0,0,0.2);
   transition:transform 0.1s ease-in-out, opacity 0.2s;
 }
 button:hover { transform:scale(1.03); opacity:0.9; }
 
-.btn-clear { background:linear-gradient(135deg,#a83232,#ff4d4d); }
-.btn-back { background:linear-gradient(135deg,#6c757d,#a0a4a7); }
-.btn-pdf { background:linear-gradient(135deg,#0046ff,#357aff); }
-.btn-email { background:linear-gradient(135deg,#00b36b,#3cd67a); }
-
-.wait-overlay {
-  display:none; position:fixed; inset:0;
-  background:rgba(255,255,255,0.85);
-  backdrop-filter:blur(2px);
-  justify-content:center; align-items:center;
-  flex-direction:column; font-weight:600; color:#333;
-  z-index:2000;
-}
-.wait-overlay.active { display:flex; }
-.hourglass {
-  border:4px solid #ccc; border-top:4px solid #0046ff;
-  border-radius:50%; width:40px; height:40px;
-  animation:spin 1s linear infinite; margin-bottom:10px;
-}
-@keyframes spin { 0%{transform:rotate(0)}100%{transform:rotate(360deg)} }
-
-.success-check {
-  display:none; position:fixed; inset:0;
-  justify-content:center; align-items:center;
-  background:rgba(255,255,255,0.9);
-  z-index:2100;
-}
-.success-check.active { display:flex; }
-.checkmark {
-  width:80px; height:80px; stroke-width:3;
-  stroke:url(#grad1); fill:none;
-  stroke-dasharray:48; stroke-dashoffset:48;
-  animation:draw 1s ease forwards;
-}
-@keyframes draw { to{stroke-dashoffset:0;} }
-
-.force-desktop { width:794px !important; max-width:794px !important; }
-
 @media screen and (max-width:768px){
-  .two-col-table, .split-section { flex-direction:column !important; gap:10px; }
-  input, select, textarea { font-size:1em; height:auto; }
+  .two-col-table { flex-direction:column; }
+  td { width:100%; display:block; }
+  .split-section { flex-direction:column; }
   #signature-pad { height:180px; }
 }
 </style>
+
 </head>
 
 <body>
@@ -134,7 +153,6 @@ button:hover { transform:scale(1.03); opacity:0.9; }
     <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO 09769684</div>
   </div>
 
-  <!-- 🟨 Údaje o zákazníkovi -->
   <div class="two-col-table">
     <div class="col">
       <table>
@@ -148,8 +166,7 @@ button:hover { transform:scale(1.03); opacity:0.9; }
     </div>
     <div class="col">
       <table>
-        <tr><td class="label">Technik<span class="en-label">Technician</span></td><td>
-          <select id="technician"><option>Milan Kolín</option><option>Radek Zikmund</option><option>Kolín/Zikmund</option></select></td></tr>
+        <tr><td class="label">Technik<span class="en-label">Technician</span></td><td><select id="technician"><option>Milan Kolín</option><option>Radek Zikmund</option><option>Kolín/Zikmund</option></select></td></tr>
         <tr><td class="label">Datum návštěvy<span class="en-label">Visit date</span></td><td><input id="visit-date" type="date"></td></tr>
         <tr><td class="label">Datum doručení<span class="en-label">Delivery date</span></td><td><input id="delivery-date" type="date"></td></tr>
         <tr><td class="label">Datum podání reklamace<span class="en-label">Complaint date</span></td><td><input id="claim-date" type="date"></td></tr>
@@ -159,24 +176,16 @@ button:hover { transform:scale(1.03); opacity:0.9; }
     </div>
   </div>
 
-  <!-- 🟨 Textové sekce s překladačem -->
   <div class="section-title">Zákazník reklamuje<span class="en-label">Customer complaint</span></div>
-  <div class="split-section">
-    <textarea id="description-cz" placeholder="CZ"></textarea>
-    <textarea id="description-en" placeholder="EN" readonly></textarea>
-  </div>
+  <div class="split-section"><textarea id="description-cz" placeholder="CZ"></textarea><textarea id="description-en" placeholder="EN" readonly></textarea></div>
 
   <div class="section-title">Problém zjištěný technikem<span class="en-label">Detected problem</span></div>
-  <div class="split-section">
-    <textarea id="problem-cz" placeholder="CZ"></textarea>
-    <textarea id="problem-en" placeholder="EN" readonly></textarea>
-  </div>
+  <div class="split-section"><textarea id="problem-cz" placeholder="CZ"></textarea><textarea id="problem-en" placeholder="EN" readonly></textarea></div>
 
   <div class="section-title">Návrh opravy<span class="en-label">Repair proposal</span></div>
-  <div class="split-section">
-    <textarea id="repair-cz" placeholder="CZ"></textarea>
-    <textarea id="repair-en" placeholder="EN" readonly></textarea>
-  </div>
+  <div class="split-section"><textarea id="repair-cz" placeholder="CZ"></textarea><textarea id="repair-en" placeholder="EN" readonly></textarea></div>
+
+</div> <!-- ✅ doplněno pro správné uzavření hlavního obsahu -->
   <!-- 🟨 Sekce E – Ceny a stavy -->
   <div class="two-col-table">
     <div class="col">
@@ -184,7 +193,7 @@ button:hover { transform:scale(1.03); opacity:0.9; }
         <tr><td class="label">Počet opravovaných dílů<span class="en-label">Number of repaired parts</span></td><td><input id="parts" type="number" min="0"></td></tr>
         <tr><td class="label">Cena za práci<span class="en-label">Work cost</span></td><td><input id="price-work" type="number" step="0.01" oninput="updateTotal()"></td></tr>
         <tr><td class="label">Cena za materiál<span class="en-label">Material cost</span></td><td><input id="price-material" type="number" step="0.01" oninput="updateTotal()"></td></tr>
-        <tr><td class="label">Cena za druhého technika<span class="en-label">Second technician</span></td><td><input id="price-second" type="number" step="0.01" oninput="updateTotal()"></td></tr>
+        <tr><td class="label">Cena za druhého technika<span class="en-label">Second technician cost</span></td><td><input id="price-second" type="number" step="0.01" oninput="updateTotal()"></td></tr>
         <tr><td class="label">Cena za dopravu<span class="en-label">Transport cost</span></td><td><input id="price-transport" type="number" step="0.01" oninput="updateTotal()"></td></tr>
         <tr><td class="label">Cena celkem<span class="en-label">Total cost</span></td><td><input id="price-total" readonly></td></tr>
       </table>
@@ -247,7 +256,8 @@ button:hover { transform:scale(1.03); opacity:0.9; }
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <!-- 🟨 Sekce I – Auto-předvyplnění dat -->
+  <script src="wgs-sync.js"></script>
+  <!-- 🟨 Sekce I – Auto-předvyplnění dat z localStorage -->
   <script>
   window.addEventListener("DOMContentLoaded", () => {
     try {
@@ -275,74 +285,116 @@ button:hover { transform:scale(1.03); opacity:0.9; }
   });
   </script>
 
-  <!-- 🟨 Sekce I.2 – Funkční překladač CZ → EN -->
-<script>
-// 🌍 Překlad z češtiny do angličtiny pomocí MyMemory API
-async function translateCZtoEN(text) {
-  if (!text.trim()) return "";
-  try {
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=cs|en`;
-    const res = await fetch(url);
-    const data = await res.json();
-    return data.responseData?.translatedText || "";
-  } catch (e) {
-    console.warn("⚠️ Překlad selhal:", e.message);
-    return "";
-  }
-}
-
-// ✍️ Automatický překlad při psaní do pole
-function initTranslator(prefix) {
-  const cz = document.getElementById(`${prefix}-cz`);
-  const en = document.getElementById(`${prefix}-en`);
-  if (!cz || !en) return;
-
-  let timeout;
-  cz.addEventListener("input", () => {
-    clearTimeout(timeout);
-    if (!cz.value.trim()) { en.value = ""; return; }
-    en.value = "⏳ Překládám...";
-    timeout = setTimeout(async () => {
-      en.value = await translateCZtoEN(cz.value);
-    }, 700);
-  });
-}
-
-// 🚀 Automatická inicializace při načtení
-window.addEventListener("DOMContentLoaded", async () => {
-  ["description", "problem", "repair"].forEach(initTranslator);
-
-  // 🧠 Překlad i při načtení z localStorage, pokud chybí EN verze
-  for (const f of ["description", "problem", "repair"]) {
-    const cz = document.getElementById(`${f}-cz`);
-    const en = document.getElementById(`${f}-en`);
-    if (cz && en && cz.value && !en.value.trim()) {
-      en.value = "⏳ Překládám...";
-      en.value = await translateCZtoEN(cz.value);
+  <!-- 🟨 Sekce I.2 – Překladač CZ → EN (MyMemory API – bez klíče) -->
+  <script>
+  async function translateCZtoEN(text) {
+    if (!text.trim()) return "";
+    try {
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=cs|en`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return data.responseData?.translatedText || "";
+    } catch(e) {
+      console.warn("⚠️ Překlad selhal:", e.message);
+      return "";
     }
   }
-});
-</script>
 
+  function initTranslator(prefix) {
+    const cz = document.getElementById(`${prefix}-cz`);
+    const en = document.getElementById(`${prefix}-en`);
+    if (!cz || !en) return;
+    let t;
+    cz.addEventListener("input", () => {
+      clearTimeout(t);
+      if (!cz.value.trim()) { en.value = ""; return; }
+      en.value = "⏳ Překládám...";
+      t = setTimeout(async () => {
+        en.value = await translateCZtoEN(cz.value);
+      }, 700);
+    });
+  }
 
-  <!-- 🟨 Sekce J – PDF, e-mail, uložení -->
+  window.addEventListener("DOMContentLoaded", async () => {
+    ["description", "problem", "repair"].forEach(initTranslator);
+    for (const f of ["description", "problem", "repair"]) {
+      const cz = document.getElementById(`${f}-cz`);
+      const en = document.getElementById(`${f}-en`);
+      if (cz && en && cz.value && !en.value.trim()) {
+        en.value = "⏳ Překládám...";
+        en.value = await translateCZtoEN(cz.value);
+      }
+    }
+  });
+  </script>
+
+  <!-- 🟨 Sekce I.3 – Načtení dat z orders.json podle URL -->
+  <script>
+  async function loadProtocolFromOrders() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const claim = urlParams.get("cislo");
+    if (!claim) return;
+    try {
+      console.log("📥 Načítám záznam z Workeru:", claim);
+      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders");
+      const all = await res.json();
+      const record = all.find(r => r.cislo === claim);
+      if (!record) return console.warn("⚠️ Reklamace s tímto číslem nebyla nalezena.");
+      localStorage.setItem("protokolData", JSON.stringify(record));
+
+      document.getElementById("claim-number").value = record.cislo || "";
+      document.getElementById("brand").value = record.contract || "";
+      document.getElementById("customer").value = record.zakaznik || "";
+      document.getElementById("address").value = record.adresa || "";
+      document.getElementById("phone").value = record.telefon || "";
+      document.getElementById("email").value = record.email || "";
+      document.getElementById("model").value = record.produkt || "";
+      document.getElementById("claim-date").value = record.datum_reklamace || "";
+      document.getElementById("visit-date").value = record.datum || "";
+      if (record.popis) {
+        document.getElementById("description-cz").value = record.popis;
+        document.getElementById("description-en").value = record.popis;
+      }
+      console.log("✅ Data z reklamace načtena:", record.cislo);
+    } catch (e) {
+      console.error("❌ Chyba při načítání z Workeru:", e);
+    }
+  }
+  window.addEventListener("DOMContentLoaded", loadProtocolFromOrders);
+  </script>
+
+  <!-- 🟨 Sekce J – PDF, e-mail, uložení, podpis fix -->
   <script>
   let signaturePad;
 
-  window.addEventListener("DOMContentLoaded",()=>{
-    const canvas=document.getElementById("signature-pad");
-    function resizeCanvas(){
-      canvas.width=canvas.offsetWidth;
-      canvas.height=canvas.offsetHeight;
+  // 🖊️ Inicializace podpisu s jistým vykreslením
+  window.addEventListener("DOMContentLoaded", () => {
+    const canvas = document.getElementById("signature-pad");
+    if (!canvas) return;
+    setTimeout(() => {
+      canvas.style.display = "block";
+      canvas.style.background = "#fff";
+      canvas.style.border = "2px dashed #888";
+      canvas.style.width = "100%";
+      canvas.style.height = "200px";
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
+    }, 50);
+
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("visit-date").value ||= today;
+    document.getElementById("sign-date").value ||= today;
+
+    const btns = document.querySelector(".btns");
+    if (btns) {
+      btns.style.display = "grid";
+      btns.style.visibility = "visible";
+      btns.style.opacity = "1";
     }
-    resizeCanvas();
-    window.addEventListener("resize",resizeCanvas,{passive:true});
-    signaturePad=new SignaturePad(canvas,{backgroundColor:"white"});
-    const today=new Date().toISOString().split("T")[0];
-    visitDate.value ||= today;
-    signDate.value ||= today;
   });
 
+  // 🧾 PDF export – tlačítka skryta, podpis vždy viditelný
   async function generatePDF(){
     const { jsPDF } = window.jspdf;
     const wrapper=document.querySelector(".wrapper");
@@ -353,14 +405,23 @@ window.addEventListener("DOMContentLoaded", async () => {
     doc.setTextColor(220,220,220);
     doc.text("WHITE GLOVE SERVICE",105,150,{align:"center",angle:45});
 
+    const btns=document.querySelector(".btns");
+    const originalVis=btns.style.visibility;
+    btns.style.visibility="hidden";
+
     wrapper.classList.add("force-desktop");
-    const canvas=await html2canvas(wrapper,{scale:2});
+    const canvas=await html2canvas(wrapper,{scale:2,backgroundColor:"#fff"});
     const imgData=canvas.toDataURL("image/jpeg",0.95);
     wrapper.classList.remove("force-desktop");
+    btns.style.visibility=originalVis;
 
     if(!signaturePad.isEmpty()){
       const sig=signaturePad.toDataURL("image/png");
       doc.addImage(sig,"PNG",30,250,60,20);
+    } else {
+      doc.setFontSize(10);
+      doc.setTextColor(150);
+      doc.text("✘ Bez podpisu zákazníka",30,260);
     }
 
     doc.addImage(imgData,"JPEG",0,0,210,297);
@@ -407,7 +468,5 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
   </script>
 </div>
- <script src="wgs-sync.js"></script>
- 
 </body>
 </html>
