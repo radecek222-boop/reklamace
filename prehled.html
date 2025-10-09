@@ -331,12 +331,19 @@ const cnbInfo = document.getElementById("cnbInfo");
 
 
 
-// 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Načtení kurzu ČNB s fallbackem
+// 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 4 – Načtení kurzu ČNB (s fallbacky a zálohou)
 async function loadCNBrate() {
+  let source = "ČNB";
+
   try {
-    // 🟢 1️⃣ Primární pokus – ČNB feed
-    const resp = await fetch("https://www.cnb.cz/en/financial-markets/foreign-exchange-market/exchange-rate-fixing/daily.txt", { cache: "no-cache" });
+    // 🟢 1️⃣ Pokus o načtení kurzu přímo z ČNB
+    const resp = await fetch("https://www.cnb.cz/en/financial-markets/foreign-exchange-market/exchange-rate-fixing/daily.txt", {
+      cache: "no-cache",
+      mode: "cors"
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const text = await resp.text();
+
     const lines = text.trim().split("\n");
     for (const line of lines) {
       if (line.includes("|EUR|")) {
@@ -345,55 +352,63 @@ async function loadCNBrate() {
         const rate = parseFloat(parts[4].replace(",", "."));
         if (!isNaN(rate) && amount > 0) {
           cnbRate = rate / amount;
-          const dateLine = lines[0].split("#")[0].trim();
-          cnbRateDate = dateLine;
-          console.log(`📈 Kurz ČNB: 1 € = ${cnbRate.toFixed(4)} Kč (${cnbRateDate})`);
+          cnbRateDate = lines[0].split("#")[0].trim();
+          source = "ČNB";
         }
         break;
       }
     }
   } catch (err) {
     console.warn("⚠️ Nelze načíst kurz ČNB:", err);
-  }
 
-  // 🟠 2️⃣ Fallback – uložený kurz z localStorage
-  if (!cnbRate) {
-    const stored = JSON.parse(localStorage.getItem("lastCnbRate") || "{}");
-    if (stored.value) {
-      cnbRate = stored.value;
-      cnbRateDate = stored.date || "neznámé datum";
-      console.warn("💾 Použit kurz z localStorage:", cnbRate);
-      cnbInfo.textContent = `Kurz ČNB nebyl k dispozici – použit poslední známý: 1 € = ${cnbRate.toFixed(4)} Kč (${cnbRateDate})`;
-      return;
-    }
-  }
-
-  // 🔴 3️⃣ Poslední záchrana – GitHub záloha (lastRate.json)
-  if (!cnbRate) {
+    // 🟡 2️⃣ Fallback – pokus o načtení z GitHub zálohy
     try {
-      const gh = await fetch("https://radecek222-boop.github.io/reklamace/lastRate.json?t=" + Date.now());
-      const json = await gh.json();
-      if (json && json.rate) {
-        cnbRate = json.rate;
-        cnbRateDate = json.date || "záložní hodnota";
-        console.warn("🌐 Použit kurz z GitHub zálohy:", cnbRate);
-        cnbInfo.textContent = `Kurz ČNB nebyl k dispozici – použit poslední známý z GitHubu (${cnbRateDate})`;
-        return;
-      }
+      const res = await fetch("https://radecek222-boop.github.io/reklamace/lastRate.json?t=" + Date.now());
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const backup = await res.json();
+      if (backup && backup.rate) {
+        cnbRate = backup.rate;
+        cnbRateDate = backup.date || "neuvedeno";
+        source = "GitHub záloha";
+        console.log(`💾 Kurz z GitHubu: ${cnbRate} (${cnbRateDate})`);
+      } else throw new Error("Neplatná data");
     } catch (err2) {
       console.error("❌ Nepodařilo se načíst ani GitHub zálohu:", err2);
+
+      // 🔴 3️⃣ Poslední možnost – localStorage
+      const stored = JSON.parse(localStorage.getItem("lastCnbRate") || "{}");
+      if (stored.value) {
+        cnbRate = stored.value;
+        cnbRateDate = stored.date || "neuvedeno";
+        source = "uložený kurz (localStorage)";
+        console.warn("⚙️ Použit uložený kurz:", cnbRate);
+      }
     }
   }
 
-  // 💾 Uložit nový kurz, pokud existuje
+  // 💾 Uložení aktuálního kurzu
   if (cnbRate && cnbRateDate) {
     localStorage.setItem("lastCnbRate", JSON.stringify({ value: cnbRate, date: cnbRateDate, time: Date.now() }));
-    cnbInfo.textContent = `Kurz ČNB: 1 € = ${cnbRate.toFixed(4)} Kč (platný k ${cnbRateDate})`;
+  }
+
+  // 🧾 Výpis do konzole a patičky
+  if (cnbRate) {
+    console.log(`📈 Kurz aktivní: 1 € = ${cnbRate.toFixed(4)} Kč (${cnbRateDate}, zdroj ${source})`);
   } else {
-    cnbInfo.textContent = `⚠️ Kurz ČNB nebyl nalezen a žádný záložní kurz nebyl k dispozici.`;
+    console.error("🚫 Kurz EUR se nepodařilo získat ani ze záloh.");
+  }
+
+  // Aktualizace info v patičce (pokud už je prvek vykreslen)
+  const foot = document.getElementById("cnbInfo");
+  if (foot) {
+    if (cnbRate && cnbRateDate) {
+      foot.textContent = `Kurz ${source}: 1 € = ${cnbRate.toLocaleString("cs-CZ",{minimumFractionDigits:4,maximumFractionDigits:4})} Kč (platný k ${cnbRateDate})`;
+    } else {
+      foot.textContent = "⚠️ Kurz není k dispozici – zkontrolujte připojení nebo soubor lastRate.json";
+    }
   }
 }
-</script>
+
 
 
 
