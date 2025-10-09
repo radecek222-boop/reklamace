@@ -289,14 +289,30 @@ confirmPeriod.onclick=()=>{
 
 
 
+
+
+
+
+
+
+
+
+
+
 // 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 8 – Výběr technika
-const techList=[{name:"Milan Kolín",key:"kolin"},{name:"Radek Zikmund",key:"zikmund"}];
-techModal.innerHTML=`
+const techList = [
+  { name: "Milan Kolín", key: "kolin" },
+  { name: "Radek Zikmund", key: "zikmund" }
+];
+
+techModal.innerHTML = `
   <div class="modal-box">
     <h2>Vyber technika</h2>
     <div style="margin-bottom:20px;text-align:left;">
-      ${techList.map(t=>`<label style="display:block;margin:5px 0;">
-      <input type="radio" name="techSelect" value="${t.key}">${t.name}</label>`).join("")}
+      ${techList.map(t => `
+        <label style="display:block;margin:5px 0;">
+          <input type="radio" name="techSelect" value="${t.key}">${t.name}
+        </label>`).join("")}
     </div>
     <div class="modal-actions">
       <button id="confirmTech" class="btn btn-dark">Potvrdit</button>
@@ -304,16 +320,20 @@ techModal.innerHTML=`
     </div>
   </div>
 `;
-document.addEventListener("click",e=>{
-  if(e.target.id==="confirmTech"){
-    const sel=document.querySelector("input[name='techSelect']:checked");
-    if(!sel)return;
-    localStorage.setItem("selectedTech",sel.value);
+
+document.addEventListener("click", e => {
+  if (e.target.id === "confirmTech") {
+    const sel = document.querySelector("input[name='techSelect']:checked");
+    if (!sel) return;
+    localStorage.setItem("selectedTech", sel.value);
     techModal.classList.remove("active");
     renderResults();
   }
-  if(e.target.id==="closeTech")techModal.classList.remove("active");
-};
+  if (e.target.id === "closeTech") {
+    techModal.classList.remove("active");
+  }
+}); // ✅ správně uzavřený addEventListener
+
 
 
 
