@@ -63,7 +63,7 @@ textarea { min-height:80px; resize:vertical; }
   width:100%;
   height:200px;
   background:white;
-  touch-action:none;
+  touch-action: none;
 }
 .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
 
@@ -134,6 +134,7 @@ button:hover { transform:scale(1.03); opacity:0.9; }
     <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO 09769684</div>
   </div>
 
+  <!-- 🟨 Údaje o zákazníkovi -->
   <div class="two-col-table">
     <div class="col">
       <table>
@@ -147,7 +148,8 @@ button:hover { transform:scale(1.03); opacity:0.9; }
     </div>
     <div class="col">
       <table>
-        <tr><td class="label">Technik<span class="en-label">Technician</span></td><td><select id="technician"><option>Milan Kolín</option><option>Radek Zikmund</option><option>Kolín/Zikmund</option></select></td></tr>
+        <tr><td class="label">Technik<span class="en-label">Technician</span></td><td>
+          <select id="technician"><option>Milan Kolín</option><option>Radek Zikmund</option><option>Kolín/Zikmund</option></select></td></tr>
         <tr><td class="label">Datum návštěvy<span class="en-label">Visit date</span></td><td><input id="visit-date" type="date"></td></tr>
         <tr><td class="label">Datum doručení<span class="en-label">Delivery date</span></td><td><input id="delivery-date" type="date"></td></tr>
         <tr><td class="label">Datum podání reklamace<span class="en-label">Complaint date</span></td><td><input id="claim-date" type="date"></td></tr>
@@ -157,16 +159,24 @@ button:hover { transform:scale(1.03); opacity:0.9; }
     </div>
   </div>
 
+  <!-- 🟨 Textové sekce s překladačem -->
   <div class="section-title">Zákazník reklamuje<span class="en-label">Customer complaint</span></div>
-  <div class="split-section"><textarea id="description-cz" placeholder="CZ"></textarea><textarea id="description-en" placeholder="EN" readonly></textarea></div>
+  <div class="split-section">
+    <textarea id="description-cz" placeholder="CZ"></textarea>
+    <textarea id="description-en" placeholder="EN" readonly></textarea>
+  </div>
 
   <div class="section-title">Problém zjištěný technikem<span class="en-label">Detected problem</span></div>
-  <div class="split-section"><textarea id="problem-cz" placeholder="CZ"></textarea><textarea id="problem-en" placeholder="EN" readonly></textarea></div>
+  <div class="split-section">
+    <textarea id="problem-cz" placeholder="CZ"></textarea>
+    <textarea id="problem-en" placeholder="EN" readonly></textarea>
+  </div>
 
   <div class="section-title">Návrh opravy<span class="en-label">Repair proposal</span></div>
-  <div class="split-section"><textarea id="repair-cz" placeholder="CZ"></textarea><textarea id="repair-en" placeholder="EN" readonly></textarea></div>
-
-</div> <!-- ✅ doplněno pro správné uzavření hlavního obsahu -->
+  <div class="split-section">
+    <textarea id="repair-cz" placeholder="CZ"></textarea>
+    <textarea id="repair-en" placeholder="EN" readonly></textarea>
+  </div>
   <!-- 🟨 Sekce E – Ceny a stavy -->
   <div class="two-col-table">
     <div class="col">
@@ -174,7 +184,7 @@ button:hover { transform:scale(1.03); opacity:0.9; }
         <tr><td class="label">Počet opravovaných dílů<span class="en-label">Number of repaired parts</span></td><td><input id="parts" type="number" min="0"></td></tr>
         <tr><td class="label">Cena za práci<span class="en-label">Work cost</span></td><td><input id="price-work" type="number" step="0.01" oninput="updateTotal()"></td></tr>
         <tr><td class="label">Cena za materiál<span class="en-label">Material cost</span></td><td><input id="price-material" type="number" step="0.01" oninput="updateTotal()"></td></tr>
-        <tr><td class="label">Cena za druhého technika<span class="en-label">Second technician cost</span></td><td><input id="price-second" type="number" step="0.01" oninput="updateTotal()"></td></tr>
+        <tr><td class="label">Cena za druhého technika<span class="en-label">Second technician</span></td><td><input id="price-second" type="number" step="0.01" oninput="updateTotal()"></td></tr>
         <tr><td class="label">Cena za dopravu<span class="en-label">Transport cost</span></td><td><input id="price-transport" type="number" step="0.01" oninput="updateTotal()"></td></tr>
         <tr><td class="label">Cena celkem<span class="en-label">Total cost</span></td><td><input id="price-total" readonly></td></tr>
       </table>
@@ -237,8 +247,7 @@ button:hover { transform:scale(1.03); opacity:0.9; }
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="wgs-sync.js"></script>
-  <!-- 🟨 Sekce I – Auto-předvyplnění dat z localStorage -->
+  <!-- 🟨 Sekce I – Auto-předvyplnění dat -->
   <script>
   window.addEventListener("DOMContentLoaded", () => {
     try {
@@ -266,15 +275,18 @@ button:hover { transform:scale(1.03); opacity:0.9; }
   });
   </script>
 
-  <!-- 🟨 Sekce I.2 – Překladač CZ → EN (MyMemory API – bez klíče) -->
+  <!-- 🟨 Sekce I.2 – Funkční překladač CZ → EN -->
   <script>
   async function translateCZtoEN(text) {
     if (!text.trim()) return "";
     try {
-      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=cs|en`;
-      const res = await fetch(url);
+      const res = await fetch("https://api.mymemory.translated.net", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ q:text, source:"cs", target:"en", format:"text" })
+      });
       const data = await res.json();
-      return data.responseData?.translatedText || "";
+      return data.translatedText || "";
     } catch(e) {
       console.warn("⚠️ Překlad selhal:", e.message);
       return "";
@@ -282,100 +294,51 @@ button:hover { transform:scale(1.03); opacity:0.9; }
   }
 
   function initTranslator(prefix) {
-    const cz = document.getElementById(`${prefix}-cz`);
-    const en = document.getElementById(`${prefix}-en`);
-    if (!cz || !en) return;
+    const cz=document.getElementById(`${prefix}-cz`);
+    const en=document.getElementById(`${prefix}-en`);
+    if(!cz||!en) return;
     let t;
-    cz.addEventListener("input", () => {
+    cz.addEventListener("input",()=>{
       clearTimeout(t);
-      if (!cz.value.trim()) { en.value = ""; return; }
-      en.value = "⏳ Překládám...";
-      t = setTimeout(async () => {
-        en.value = await translateCZtoEN(cz.value);
-      }, 700);
+      if(!cz.value.trim()){en.value="";return;}
+      en.value="⏳ Překládám...";
+      t=setTimeout(async()=>{
+        en.value=await translateCZtoEN(cz.value);
+      },600);
     });
   }
 
-  window.addEventListener("DOMContentLoaded", async () => {
-    ["description", "problem", "repair"].forEach(initTranslator);
-    for (const f of ["description", "problem", "repair"]) {
-      const cz = document.getElementById(`${f}-cz`);
-      const en = document.getElementById(`${f}-en`);
-      if (cz && en && cz.value && !en.value.trim()) {
-        en.value = "⏳ Překládám...";
-        en.value = await translateCZtoEN(cz.value);
+  window.addEventListener("DOMContentLoaded",async()=>{
+    ["description","problem","repair"].forEach(initTranslator);
+    for(const f of ["description","problem","repair"]){
+      const cz=document.getElementById(`${f}-cz`);
+      const en=document.getElementById(`${f}-en`);
+      if(cz&&en&&cz.value&&!en.value.trim()){
+        en.value="⏳ Překládám...";
+        en.value=await translateCZtoEN(cz.value);
       }
     }
   });
   </script>
 
-  <!-- 🟨 Sekce I.3 – Načtení dat z orders.json podle URL -->
-  <script>
-  async function loadProtocolFromOrders() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const claim = urlParams.get("cislo");
-    if (!claim) return;
-    try {
-      console.log("📥 Načítám záznam z Workeru:", claim);
-      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders");
-      const all = await res.json();
-      const record = all.find(r => r.cislo === claim);
-      if (!record) return console.warn("⚠️ Reklamace s tímto číslem nebyla nalezena.");
-      localStorage.setItem("protokolData", JSON.stringify(record));
-
-      document.getElementById("claim-number").value = record.cislo || "";
-      document.getElementById("brand").value = record.contract || "";
-      document.getElementById("customer").value = record.zakaznik || "";
-      document.getElementById("address").value = record.adresa || "";
-      document.getElementById("phone").value = record.telefon || "";
-      document.getElementById("email").value = record.email || "";
-      document.getElementById("model").value = record.produkt || "";
-      document.getElementById("claim-date").value = record.datum_reklamace || "";
-      document.getElementById("visit-date").value = record.datum || "";
-      if (record.popis) {
-        document.getElementById("description-cz").value = record.popis;
-        document.getElementById("description-en").value = record.popis;
-      }
-      console.log("✅ Data z reklamace načtena:", record.cislo);
-    } catch (e) {
-      console.error("❌ Chyba při načítání z Workeru:", e);
-    }
-  }
-  window.addEventListener("DOMContentLoaded", loadProtocolFromOrders);
-  </script>
-
-  <!-- 🟨 Sekce J – PDF, e-mail, uložení, podpis fix -->
+  <!-- 🟨 Sekce J – PDF, e-mail, uložení -->
   <script>
   let signaturePad;
 
-  // 🖊️ Inicializace podpisu s jistým vykreslením
-  window.addEventListener("DOMContentLoaded", () => {
-    const canvas = document.getElementById("signature-pad");
-    if (!canvas) return;
-    setTimeout(() => {
-      canvas.style.display = "block";
-      canvas.style.background = "#fff";
-      canvas.style.border = "2px dashed #888";
-      canvas.style.width = "100%";
-      canvas.style.height = "200px";
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-      signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
-    }, 50);
-
-    const today = new Date().toISOString().split("T")[0];
-    document.getElementById("visit-date").value ||= today;
-    document.getElementById("sign-date").value ||= today;
-
-    const btns = document.querySelector(".btns");
-    if (btns) {
-      btns.style.display = "grid";
-      btns.style.visibility = "visible";
-      btns.style.opacity = "1";
+  window.addEventListener("DOMContentLoaded",()=>{
+    const canvas=document.getElementById("signature-pad");
+    function resizeCanvas(){
+      canvas.width=canvas.offsetWidth;
+      canvas.height=canvas.offsetHeight;
     }
+    resizeCanvas();
+    window.addEventListener("resize",resizeCanvas,{passive:true});
+    signaturePad=new SignaturePad(canvas,{backgroundColor:"white"});
+    const today=new Date().toISOString().split("T")[0];
+    visitDate.value ||= today;
+    signDate.value ||= today;
   });
 
-  // 🧾 PDF export – tlačítka skryta, podpis vždy viditelný
   async function generatePDF(){
     const { jsPDF } = window.jspdf;
     const wrapper=document.querySelector(".wrapper");
@@ -386,23 +349,14 @@ button:hover { transform:scale(1.03); opacity:0.9; }
     doc.setTextColor(220,220,220);
     doc.text("WHITE GLOVE SERVICE",105,150,{align:"center",angle:45});
 
-    const btns=document.querySelector(".btns");
-    const originalVis=btns.style.visibility;
-    btns.style.visibility="hidden";
-
     wrapper.classList.add("force-desktop");
-    const canvas=await html2canvas(wrapper,{scale:2,backgroundColor:"#fff"});
+    const canvas=await html2canvas(wrapper,{scale:2});
     const imgData=canvas.toDataURL("image/jpeg",0.95);
     wrapper.classList.remove("force-desktop");
-    btns.style.visibility=originalVis;
 
     if(!signaturePad.isEmpty()){
       const sig=signaturePad.toDataURL("image/png");
       doc.addImage(sig,"PNG",30,250,60,20);
-    } else {
-      doc.setFontSize(10);
-      doc.setTextColor(150);
-      doc.text("✘ Bez podpisu zákazníka",30,260);
     }
 
     doc.addImage(imgData,"JPEG",0,0,210,297);
@@ -449,5 +403,7 @@ button:hover { transform:scale(1.03); opacity:0.9; }
   }
   </script>
 </div>
+ <script src="wgs-sync.js"></script>
+ 
 </body>
 </html>
