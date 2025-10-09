@@ -63,7 +63,7 @@ textarea { min-height:80px; resize:vertical; }
   width:100%;
   height:200px;
   background:white;
-  touch-action: none;
+  touch-action:none;
 }
 .signature-label { font-size:0.9em; color:#444; margin:4px 0 20px; }
 
@@ -165,7 +165,7 @@ button:hover { transform:scale(1.03); opacity:0.9; }
 
   <div class="section-title">Návrh opravy<span class="en-label">Repair proposal</span></div>
   <div class="split-section"><textarea id="repair-cz" placeholder="CZ"></textarea><textarea id="repair-en" placeholder="EN" readonly></textarea></div>
-  <!-- 🟨 Sekce I – Auto-předvyplnění dat -->
+  <!-- 🟨 Sekce I – Auto-předvyplnění dat z localStorage -->
   <script>
   window.addEventListener("DOMContentLoaded", () => {
     try {
@@ -193,18 +193,15 @@ button:hover { transform:scale(1.03); opacity:0.9; }
   });
   </script>
 
-  <!-- 🟨 Sekce I.2 – Překladač CZ → EN (translate.com) -->
+  <!-- 🟨 Sekce I.2 – Překladač CZ → EN (MyMemory API – bez klíče) -->
   <script>
   async function translateCZtoEN(text) {
     if (!text.trim()) return "";
     try {
-      const res = await fetch("https://translate.argosopentech.com/translate", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ q:text, source:"cs", target:"en", format:"text" })
-      });
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=cs|en`;
+      const res = await fetch(url);
       const data = await res.json();
-      return data.translatedText || "";
+      return data.responseData?.translatedText || "";
     } catch(e) {
       console.warn("⚠️ Překlad selhal:", e.message);
       return "";
@@ -212,28 +209,28 @@ button:hover { transform:scale(1.03); opacity:0.9; }
   }
 
   function initTranslator(prefix) {
-    const cz=document.getElementById(`${prefix}-cz`);
-    const en=document.getElementById(`${prefix}-en`);
-    if(!cz||!en) return;
+    const cz = document.getElementById(`${prefix}-cz`);
+    const en = document.getElementById(`${prefix}-en`);
+    if (!cz || !en) return;
     let t;
-    cz.addEventListener("input",()=>{
+    cz.addEventListener("input", () => {
       clearTimeout(t);
-      if(!cz.value.trim()){en.value="";return;}
-      en.value="⏳ Překládám...";
-      t=setTimeout(async()=>{
-        en.value=await translateCZtoEN(cz.value);
-      },600);
+      if (!cz.value.trim()) { en.value = ""; return; }
+      en.value = "⏳ Překládám...";
+      t = setTimeout(async () => {
+        en.value = await translateCZtoEN(cz.value);
+      }, 700);
     });
   }
 
-  window.addEventListener("DOMContentLoaded",async()=>{
-    ["description","problem","repair"].forEach(initTranslator);
-    for(const f of ["description","problem","repair"]){
-      const cz=document.getElementById(`${f}-cz`);
-      const en=document.getElementById(`${f}-en`);
-      if(cz&&en&&cz.value&&!en.value.trim()){
-        en.value="⏳ Překládám...";
-        en.value=await translateCZtoEN(cz.value);
+  window.addEventListener("DOMContentLoaded", async () => {
+    ["description", "problem", "repair"].forEach(initTranslator);
+    for (const f of ["description", "problem", "repair"]) {
+      const cz = document.getElementById(`${f}-cz`);
+      const en = document.getElementById(`${f}-en`);
+      if (cz && en && cz.value && !en.value.trim()) {
+        en.value = "⏳ Překládám...";
+        en.value = await translateCZtoEN(cz.value);
       }
     }
   });
@@ -292,43 +289,41 @@ button:hover { transform:scale(1.03); opacity:0.9; }
     signDate.value ||= today;
   });
 
-// 🧾 GENEROVÁNÍ PDF – tlačítka se nezobrazí v PDF
-async function generatePDF(){
-  const { jsPDF } = window.jspdf;
-  const wrapper = document.querySelector(".wrapper");
-  const doc = new jsPDF("p","mm","a4");
+  // 🧾 GENEROVÁNÍ PDF – tlačítka skryta, podpis vždy viditelný
+  async function generatePDF(){
+    const { jsPDF } = window.jspdf;
+    const wrapper=document.querySelector(".wrapper");
+    const doc=new jsPDF("p","mm","a4");
 
-  // 💧 Vodoznak
-  doc.setFont("helvetica","bold");
-  doc.setFontSize(48);
-  doc.setTextColor(220,220,220);
-  doc.text("WHITE GLOVE SERVICE",105,150,{align:"center",angle:45});
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(48);
+    doc.setTextColor(220,220,220);
+    doc.text("WHITE GLOVE SERVICE",105,150,{align:"center",angle:45});
 
-  // ⛔️ Dočasné skrytí tlačítek (zůstanou neviditelné jen během exportu)
-  const btns = document.querySelector(".btns");
-  const originalVisibility = btns.style.visibility;
-  btns.style.visibility = "hidden";
+    // skrytí tlačítek během exportu
+    const btns=document.querySelector(".btns");
+    const originalVis=btns.style.visibility;
+    btns.style.visibility="hidden";
 
-  // 🧱 Převod stránky do obrázku (bez tlačítek)
-  wrapper.classList.add("force-desktop");
-  const canvas = await html2canvas(wrapper,{scale:2,backgroundColor:"#fff"});
-  const imgData = canvas.toDataURL("image/jpeg",0.95);
-  wrapper.classList.remove("force-desktop");
+    wrapper.classList.add("force-desktop");
+    const canvas=await html2canvas(wrapper,{scale:2,backgroundColor:"#fff"});
+    const imgData=canvas.toDataURL("image/jpeg",0.95);
+    wrapper.classList.remove("force-desktop");
+    btns.style.visibility=originalVis;
 
-  // ✅ Vrátíme tlačítka zpět
-  btns.style.visibility = originalVisibility;
+    // podpis (nebo fallback text)
+    if(!signaturePad.isEmpty()){
+      const sig=signaturePad.toDataURL("image/png");
+      doc.addImage(sig,"PNG",30,250,60,20);
+    } else {
+      doc.setFontSize(10);
+      doc.setTextColor(150);
+      doc.text("✘ Bez podpisu zákazníka",30,260);
+    }
 
-  // ✍️ Podpis zákazníka se přidá navíc (zůstává viditelný)
-  if(!signaturePad.isEmpty()){
-    const sig = signaturePad.toDataURL("image/png");
-    doc.addImage(sig,"PNG",30,250,60,20);
+    doc.addImage(imgData,"JPEG",0,0,210,297);
+    return doc;
   }
-
-  // 📄 Obrázek celé stránky do PDF
-  doc.addImage(imgData,"JPEG",0,0,210,297);
-  return doc;
-}
-
 
   async function exportPDF(){
     const doc=await generatePDF();
