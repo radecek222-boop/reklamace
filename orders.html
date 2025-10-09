@@ -389,22 +389,72 @@ async function compressImage(file,maxSizeMB=1.2,maxDim=800){
   while(blob.size/1024/1024>maxSizeMB&&q>0.4){q-=0.1;blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));}
   return blob;
 }
-fotkyInput.addEventListener("change",async()=>{
-  preview.innerHTML="";compressedFiles=[];
-  const files=Array.from(fotkyInput.files).slice(0,5);
-  for(const file of files){
-    if(!file.type.startsWith("image/"))continue;
-    const item=document.createElement("div");item.classList.add("preview-item");
-    const img=document.createElement("img");
-    const progress=document.createElement("div");progress.classList.add("progress-bar");
-    const status=document.createElement("div");status.classList.add("preview-status");status.textContent="Kompres...";
-    const remove=document.createElement("button");remove.classList.add("remove-btn");remove.textContent="×";
-    remove.onclick=()=>{item.remove();compressedFiles=compressedFiles.filter(f=>f.file!==file);};
-    item.append(progress,status,remove);preview.append(item);
-    const reader=new FileReader();reader.onload=e=>{img.src=e.target.result;item.append(img);};reader.readAsDataURL(file);
-    const blob=await compressImage(file);compressedFiles.push({file,blob,progress,status});
-    progress.style.width="100%";progress.style.background="linear-gradient(90deg,#4caf50,#8bc34a)";
-    status.textContent="✅ Připraveno";
+fotkyInput.addEventListener("change", async () => {
+  preview.innerHTML = "";
+  compressedFiles = [];
+  const submitBtn = document.querySelector(".btn-send");
+  submitBtn.disabled = true;
+
+  const files = Array.from(fotkyInput.files).slice(0, 5);
+  let allValid = true;
+
+  for (const file of files) {
+    // ❌ Kontrola typu
+    if (!file.type.startsWith("image/")) continue;
+
+    // ❌ Kontrola velikosti
+    if (file.size / 1024 / 1024 > 5) {
+      const warn = document.createElement("div");
+      warn.textContent = `Soubor "${file.name}" je větší než 5 MB a nebude přidán.`;
+      warn.style.cssText = "color:#c00;font-weight:600;margin:6px 0;";
+      preview.append(warn);
+      allValid = false;
+      continue;
+    }
+
+    // 🟢 Vytvoření náhledu
+    const item = document.createElement("div");
+    item.classList.add("preview-item");
+
+    const img = document.createElement("img");
+    const progress = document.createElement("div");
+    progress.classList.add("progress-bar");
+
+    const status = document.createElement("div");
+    status.classList.add("preview-status");
+    status.textContent = "Kompres...";
+
+    const remove = document.createElement("button");
+    remove.classList.add("remove-btn");
+    remove.textContent = "×";
+    remove.onclick = () => {
+      item.remove();
+      compressedFiles = compressedFiles.filter(f => f.file !== file);
+      // Aktivuj tlačítko jen pokud zůstávají validní soubory
+      submitBtn.disabled = compressedFiles.length === 0;
+    };
+
+    item.append(img, progress, status, remove);
+    preview.append(item);
+
+    // 🖼️ Načtení náhledu
+    const reader = new FileReader();
+    reader.onload = e => (img.src = e.target.result);
+    reader.readAsDataURL(file);
+
+    // 🧩 Komprese
+    const blob = await compressImage(file);
+    compressedFiles.push({ file, blob, progress, status });
+
+    progress.style.width = "100%";
+    progress.style.background = "linear-gradient(90deg,#4caf50,#8bc34a)";
+    status.textContent = "✅ Připraveno";
+  }
+
+  // ✅ Aktivace tlačítka pouze pokud jsou všechny validní
+  submitBtn.disabled = !allValid || compressedFiles.length === 0;
+});
+
   }
 });
 
