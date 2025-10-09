@@ -1098,7 +1098,7 @@ button, input, select, textarea {
 
 
 
-      <!-- 🟨 ZAČÁTEK ČÁSTI 10/10 – ZÁVĚR FORMULÁŘE + KALENDÁŘ + KONEC HTML -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 10/10 – ZÁVĚR FORMULÁŘE + KONEC HTML -->
 
 <!-- 🧭 Akční tlačítka formuláře -->
 <div class="actions">
@@ -1109,107 +1109,11 @@ button, input, select, textarea {
 </form>
 </div> <!-- konec wrapperu -->
 
-<!-- 📅 Vanilla Calendar -->
-<link rel="stylesheet" href="vanilla-calendar.min.css">
-<script src="vanilla-calendar.min.js"></script>
-
-<!-- Kalendářní modal -->
-<div id="calendarModal" class="calendar-modal">
-  <div class="calendar-content">
-    <div id="vanillaCalendar"></div>
-    <button id="closeCalendar" class="btn btn-send" style="margin-top:15px;width:100%">Zavřít</button>
-  </div>
-</div>
-
-<style>
-.calendar-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-  margin-top: 10px;
-}
-.calendar-box {
-  flex: 1;
-  min-width: 250px;
-}
-.calendar-box label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 5px;
-}
-.banner-btn {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #cfcfcf;
-  background: linear-gradient(180deg, #f8f8f8 0%, #e6e6e6 100%);
-  color: #111;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.banner-btn:hover { transform: scale(1.02); }
-.calendar-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-.calendar-modal.active { display:flex; }
-.calendar-content {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-  animation: popIn 0.25s ease;
-}
-@keyframes popIn { from { transform:scale(0.9); opacity:0; } to { transform:scale(1); opacity:1; } }
-</style>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const modal = document.getElementById("calendarModal");
-  const closeBtn = document.getElementById("closeCalendar");
-  let targetInput = null;
-  let targetButton = null;
-
-  const calendar = new VanillaCalendar("#vanillaCalendar", {
-    settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
-    actions: {
-      clickDay: (e) => {
-        const chosen = e.target.dataset.calendarDay;
-        if (chosen && targetInput && targetButton) {
-          targetInput.value = chosen;
-          targetButton.textContent = chosen;
-          // 🔹 modal se zavře, ale formulář zůstane aktivní
-          modal.classList.remove("active");
-        }
-      }
-    }
-  });
-  calendar.init();
-
-  document.getElementById("btnProdej").addEventListener("click", () => {
-    targetInput = document.getElementById("datum_prodeje");
-    targetButton = document.getElementById("btnProdej");
-    modal.classList.add("active");
-  });
-
-  document.getElementById("btnReklamace").addEventListener("click", () => {
-    targetInput = document.getElementById("datum_reklamace");
-    targetButton = document.getElementById("btnReklamace");
-    modal.classList.add("active");
-  });
-
-  closeBtn.addEventListener("click", () => modal.classList.remove("active"));
-});
-</script>
+<!-- ✅ Koncové uzávěrky -->
+<!-- Žádný druhý kalendář ani duplikátní VanillaCalendar zde není -->
+<!-- Kalendář je kompletně řízen částí 3/10 -->
 
 </body>
 </html>
 
-<!-- 🟨 KONEC ČÁSTI 10/10 – ZÁVĚR FORMULÁŘE + KALENDÁŘ + KONEC HTML -->
+<!-- 🟨 KONEC ČÁSTI 10/10 – ZÁVĚR FORMULÁŘE + KONEC HTML -->
