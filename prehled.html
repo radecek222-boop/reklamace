@@ -190,6 +190,16 @@ async function loadClients(){
  }catch{clientList.innerHTML="<p>❌ Chyba načtení.</p>";}
 }
 
+// 🇨🇿🇸🇰 Rozdělení zakázek podle zkratky
+function isCzechOrder(order){
+ const cz=["NCE","NBU","NBR"];
+ return cz.some(p=>String(order.cislo||"").startsWith(p));
+}
+function isSlovakOrder(order){
+ const sk=["NZA","NBA","NKE"];
+ return sk.some(p=>String(order.cislo||"").startsWith(p));
+}
+
 // výpočet
 function convertToEUR(v){
  if(typeof v==="string"&&v.includes("€"))return parseFloat(v.replace(/[^\d,.-]/g,"").replace(",","."));
@@ -218,17 +228,29 @@ function render(){
    });
  }
  if(from&&to)f=f.filter(x=>{const d=new Date(x.datumProtokolu||x.datum_reklamace||x.datum);return d>=from&&d<=to;});
- let total=0;
- f.forEach(x=>total+=convertToEUR(x.cenaCelkem||x.cena||x.total));
- const totalCZK=total*cnbRate;
- const display=currency==="CZK"?fmtCZK(totalCZK):fmtEUR(total);
+
+ // 🇨🇿🇸🇰 rozdělení
+ const czOrders=f.filter(isCzechOrder);
+ const skOrders=f.filter(isSlovakOrder);
+
+ let totalEUR=f.reduce((a,x)=>a+convertToEUR(x.cenaCelkem||x.cena||x.total),0);
+ const totalCZK=totalEUR*cnbRate;
+ const display=currency==="CZK"?fmtCZK(totalCZK):fmtEUR(totalEUR);
  infoObrat.firstChild.textContent=`Obrat: ${display}`;
- resultsTableBody.innerHTML=f.map(x=>`<tr>
-  <td>${x.zakaznik||"–"}</td>
-  <td>${x.cislo||x.typ==="pozáruční"?"Pozáruční":"–"}</td>
-  <td>${x.contract||"–"}</td>
-  <td>${currency==="CZK"?fmtCZK(convertToEUR(x.cenaCelkem||x.cena||x.total)*cnbRate):fmtEUR(convertToEUR(x.cenaCelkem||x.cena||x.total))}</td>
- </tr>`).join("")||( `<tr><td colspan="4" style="text-align:center;color:#888;padding:20px;">Žádné výsledky</td></tr>`);
+
+ function rowHTML(arr){
+  return arr.map(x=>`<tr>
+    <td>${x.zakaznik||"–"}</td>
+    <td>${x.cislo||x.typ==="pozáruční"?"Pozáruční":"–"}</td>
+    <td>${x.contract||"–"}</td>
+    <td>${currency==="CZK"?fmtCZK(convertToEUR(x.cenaCelkem||x.cena||x.total)*cnbRate):fmtEUR(convertToEUR(x.cenaCelkem||x.cena||x.total))}</td>
+  </tr>`).join("");
+ }
+
+ resultsTableBody.innerHTML=
+  (czOrders.length?`<tr><th colspan="4">🇨🇿 České zakázky</th></tr>${rowHTML(czOrders)}`:"")+
+  (skOrders.length?`<tr><th colspan="4">🇸🇰 Slovenské zakázky</th></tr>${rowHTML(skOrders)}`:"")+
+  ((!czOrders.length&&!skOrders.length)?`<tr><td colspan="4" style="text-align:center;color:#888;padding:20px;">Žádné výsledky</td></tr>`:"");
 }
 
 // ovládání
