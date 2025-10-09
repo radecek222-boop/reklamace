@@ -485,6 +485,64 @@
 
 <!-- 🟨 ZAČÁTEK ČÁSTI 5/10 – LOGIKA PRO FOTKY -->
 
+<style>
+.photo-item {
+  width: 100px; height: 100px;
+  border-radius: 10px; overflow: hidden;
+  position: relative; background: #ddd;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+.photo-item img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.photo-remove {
+  position: absolute;
+  top: 4px; left: 4px;
+  background: rgba(255,255,255,0.9);
+  border: none; border-radius: 50%;
+  width: 20px; height: 20px;
+  color: #f00; font-weight: bold;
+  cursor: pointer; font-size: 14px;
+}
+.photo-check {
+  position: absolute;
+  top: 4px; right: 4px;
+  background: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  width: 20px; height: 20px;
+  color: #00a86b; font-weight: bold;
+  display: none; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.photo-item.uploaded .photo-check { display: flex; }
+
+.progress-bar {
+  position: absolute; bottom: 0; left: 0;
+  height: 5px; background: #7d5fff; width: 0%;
+  transition: width .4s ease;
+}
+.photo-item.processing::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: rgba(255,255,255,0.4);
+  animation: pulse 1s infinite;
+}
+@keyframes pulse { 0% {opacity: .6;} 50% {opacity: 1;} 100% {opacity: .6;} }
+
+/* Jednotná tlačítka dole */
+.photo-modal-actions button,
+.photo-modal-actions label {
+  flex: 1;
+  text-align: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95em;
+  height: 42px;
+}
+</style>
+
 <script>
 (function(){
   const openPhotoModal=document.getElementById("openPhotoModal");
@@ -531,18 +589,25 @@
       const img=document.createElement("img");
       const bar=document.createElement("div");
       bar.className="progress-bar";
-      item.append(img,bar);
+      const removeBtn=document.createElement("button");
+      removeBtn.className="photo-remove";
+      removeBtn.textContent="×";
+      removeBtn.onclick=()=>{photoFiles=photoFiles.filter(f=>f!==file);renderSelected();};
+      const check=document.createElement("div");
+      check.className="photo-check";
+      check.textContent="✓";
+      item.append(img,bar,removeBtn,check);
       photoPreview.append(item);
 
       const reader=new FileReader();
       reader.onload=e=>(img.src=e.target.result);
       reader.readAsDataURL(file);
 
-      let p=0;const prog=setInterval(()=>{p+=15;if(p>90)p=90;bar.style.width=p+"%";},200);
+      let p=0;const prog=setInterval(()=>{p+=10;if(p>90)p=90;bar.style.width=p+"%";},150);
       const blob=await compressImage(file);
       clearInterval(prog);bar.style.width="100%";
-      setTimeout(()=>item.classList.remove("processing"),300);
-      compressedPhotos.push({file,blob,preview:img.src});
+      setTimeout(()=>item.classList.remove("processing"),200);
+      compressedPhotos.push({file,blob,preview:img.src,item});
     }
   }
 
@@ -551,11 +616,12 @@
     uploadBtn.disabled=true;
 
     for(const p of compressedPhotos){
-      const formData=new FormData();
-      formData.append("file",p.blob,p.file.name);
       try{
+        const formData=new FormData();
+        formData.append("file",p.blob,p.file.name);
         const r=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload",{method:"POST",body:formData});
         const res=await r.json();
+        p.item.classList.add("uploaded");
         window.uploadedPhotos.push({filename:res.filename,name:p.file.name,preview:p.preview});
       }catch(e){console.error(e);}
     }
@@ -571,7 +637,7 @@
       row.className="photo-item-main";
       const img=document.createElement("img");
       img.className="photo-thumb";
-      img.src=p.preview; // zobrazí náhled komprimované fotky bez otazníku
+      img.src=p.preview;
       const name=document.createElement("div");
       name.className="photo-name";
       name.textContent=p.name;
@@ -583,6 +649,7 @@
 </script>
 
 <!-- 🟨 KONEC ČÁSTI 5/10 – LOGIKA PRO FOTKY -->
+
 
 
 
