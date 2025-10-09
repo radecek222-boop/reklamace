@@ -575,13 +575,18 @@ document.getElementById("reklamaceForm").addEventListener("submit", async (e) =>
 
 
 
-    <script>
-// 🗓️ Modální kalendář – elegantní a funkční
+<script>
+// 🗓️ Modální kalendář – opraveno, aby neukončoval formulář
 document.addEventListener("DOMContentLoaded", () => {
   const modal = document.getElementById("calendarModal");
   const closeBtn = document.getElementById("closeCalendar");
   let targetInput = null;
   let targetButton = null;
+
+  // 💡 Všechna tlačítka mají typ="button" → nikdy nespustí submit
+  document.getElementById("btnProdej").setAttribute("type", "button");
+  document.getElementById("btnReklamace").setAttribute("type", "button");
+  closeBtn.setAttribute("type", "button");
 
   const calendar = new VanillaCalendar("#vanillaCalendar", {
     settings: {
@@ -590,39 +595,40 @@ document.addEventListener("DOMContentLoaded", () => {
       visibility: { theme: "light" }
     },
     actions: {
-      clickDay: (e) => {
+      clickDay: (e, dates) => {
         const chosen = e.target.dataset.calendarDay;
         if (chosen && targetInput && targetButton) {
           targetInput.value = chosen;
           targetButton.textContent = chosen;
-          modal.classList.remove("active"); // 💡 automaticky zavře po výběru
+          modal.classList.remove("active"); // zavře jen okno, neodesílá nic
         }
       }
     }
   });
   calendar.init();
 
-  // 🟢 Otevření pro datum prodeje
-  document.getElementById("btnProdej").addEventListener("click", () => {
+  // 🟢 Otevření kalendářů
+  document.getElementById("btnProdej").addEventListener("click", (ev) => {
+    ev.preventDefault();
     targetInput = document.getElementById("datum_prodeje");
     targetButton = document.getElementById("btnProdej");
     modal.classList.add("active");
   });
 
-  // 🟢 Otevření pro datum reklamace
-  document.getElementById("btnReklamace").addEventListener("click", () => {
+  document.getElementById("btnReklamace").addEventListener("click", (ev) => {
+    ev.preventDefault();
     targetInput = document.getElementById("datum_reklamace");
     targetButton = document.getElementById("btnReklamace");
     modal.classList.add("active");
   });
 
-  // 🔘 Zavření manuálně
+  // 🔘 Zavření ručně
   closeBtn.addEventListener("click", () => modal.classList.remove("active"));
 });
 </script>
 
 <style>
-/* 🎨 Styl bannerů (tlačítek kalendáře a nahrávání fotek) */
+/* 🎨 Styl bannerů (světlý šedý gradient, černé písmo) */
 .banner-btn {
   display: block;
   width: 100%;
@@ -632,17 +638,17 @@ document.addEventListener("DOMContentLoaded", () => {
   font-size: 1em;
   text-align: center;
   border: 1px solid #ccc;
-  background: linear-gradient(135deg, #f1f1f1, #dcdcdc);
+  background: linear-gradient(135deg, #f2f2f2, #dbdbdb);
   color: #111;
   cursor: pointer;
   margin-top: 6px;
   transition: all 0.25s ease;
 }
 .banner-btn:hover {
-  background: linear-gradient(135deg, #e6e6e6, #cfcfcf);
+  background: linear-gradient(135deg, #e9e9e9, #d0d0d0);
 }
 
-/* 💡 Modalní pozadí sjednoceno */
+/* 🪟 Modal */
 .calendar-modal {
   position: fixed;
   inset: 0;
