@@ -176,3 +176,128 @@ h1 {
 
 
   
+<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 2 – Modální okna -->
+<style>
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 4000;
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+.modal-overlay.active {
+  display: flex;
+  opacity: 1;
+}
+.modal-box {
+  background: rgba(40,40,40,.95);
+  color: #fff;
+  padding: 40px 30px;
+  border-radius: 14px;
+  box-shadow: 0 4px 25px rgba(0,0,0,.45);
+  text-align: center;
+  max-width: 380px;
+  width: 90%;
+}
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.client-list {
+  text-align: left;
+  margin-bottom: 25px;
+  max-height: 240px;
+  overflow-y: auto;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.08);
+  padding: 10px;
+}
+.client-list label {
+  display: block;
+  padding: 5px;
+  cursor: pointer;
+}
+.client-list input {
+  margin-right: 6px;
+}
+.period-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 15px 12px;
+  margin-bottom: 20px;
+}
+.period-fields select,
+.period-fields input {
+  width: 100%;
+  background: #222;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 1em;
+  outline: none;
+}
+.period-fields select:focus,
+.period-fields input:focus {
+  border-color: #00c851;
+  box-shadow: 0 0 6px rgba(0,200,81,0.4);
+}
+</style>
+
+<!-- 🧾 Výběr zadavatele -->
+<div id="clientModal" class="modal-overlay">
+  <div class="modal-box">
+    <h2>Vyber zadavatele</h2>
+    <div id="loadingClients" class="loading">Načítám…</div>
+    <div id="clientList" class="client-list" style="display:none;"></div>
+    <div class="modal-actions">
+      <button id="confirmClients" class="btn btn-dark">Potvrdit</button>
+      <button id="closeClients" class="btn btn-light">Zavřít</button>
+    </div>
+  </div>
+</div>
+
+<!-- 🧰 Výběr technika -->
+<div id="techModal" class="modal-overlay"></div>
+
+<!-- 📅 Výběr období -->
+<div id="periodModal" class="modal-overlay">
+  <div class="modal-box">
+    <h2>Vyber období</h2>
+    <div class="period-fields">
+      <label>Od:</label><input type="date" id="dateFrom">
+      <label>Do:</label><input type="date" id="dateTo">
+      <label>Měsíc:</label>
+      <select id="monthSelect">
+        <option value="">– Nevybráno –</option>
+        <option value="01">Leden</option>
+        <option value="02">Únor</option>
+        <option value="03">Březen</option>
+        <option value="04">Duben</option>
+        <option value="05">Květen</option>
+        <option value="06">Červen</option>
+        <option value="07">Červenec</option>
+        <option value="08">Srpen</option>
+        <option value="09">Září</option>
+        <option value="10">Říjen</option>
+        <option value="11">Listopad</option>
+        <option value="12">Prosinec</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button id="confirmPeriod" class="btn btn-dark">Potvrdit</button>
+      <button id="closePeriod" class="btn btn-light">Zavřít</button>
+    </div>
+  </div>
+</div>
