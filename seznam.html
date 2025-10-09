@@ -721,7 +721,7 @@ function initCalendarAndTime(overlay, item, index) {
 
 
 
-<!-- 🟩 C-4: TLAČÍTKA AKCÍ – kompletní, ověřená verze -->
+<!-- 🟩 C-4: TLAČÍTKA AKCÍ – doplněná o "Zákazník čeká na díly" -->
 <script>
 function initDetailButtons(overlay, item, index) {
   const id = item.cislo || `radek-${index}`;
@@ -745,6 +745,22 @@ function initDetailButtons(overlay, item, index) {
       window.location.href = `sms:+420${tel}?body=${encodeURIComponent(sms)}`;
     }
     overlay.remove(); renderTable(dataAll);
+  };
+
+  /* 🟣 ZÁKAZNÍK ČEKÁ NA DÍLY */
+  const waitBtn = document.createElement("button");
+  waitBtn.id = "waitBtn";
+  waitBtn.className = "btn-action btn-purple";
+  waitBtn.textContent = "Zákazník čeká na díly";
+  // vložíme nové tlačítko těsně před "Zákazník zrušil"
+  overlay.querySelector(".left-buttons").insertBefore(waitBtn, overlay.querySelector("#cancelBtn"));
+
+  waitBtn.onclick = () => {
+    stavy[id] = "ceka";
+    item.stav = "ceka";
+    setNextToast("🟣 Zákazník čeká na díly", "warning");
+    overlay.remove();
+    renderTable(dataAll);
   };
 
   /* ❌ ZÁKAZNÍK ZRUŠIL */
@@ -800,6 +816,19 @@ function initDetailButtons(overlay, item, index) {
   };
 }
 </script>
+
+<!-- 🟣 Styl pro nové tlačítko -->
+<style>
+.btn-purple {
+  background: linear-gradient(135deg, #8e2de2, #c69aff);
+  color: #fff;
+}
+.stav-ceka {
+  background: #e9d7ff !important;
+  color: #4b0082 !important;
+  font-weight: 700;
+}
+</style>
 
 <!-- 🟩 DOPLŇKOVÝ STYL (pro vizuální rozestup) -->
 <style>
