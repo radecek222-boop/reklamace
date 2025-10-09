@@ -191,20 +191,20 @@
 <!-- 🟨 ZAČÁTEK ČÁSTI 3/10 – KALENDÁŘE (bannery + modal + JS) -->
 <div class="date-banners">
   <div class="date-banner">
-    <div class="date-banner__label">Datum prodeje</div>
+    <div class="date-banner__label">Datum požadavku</div>
     <div class="date-banner__controls">
-      <input type="hidden" id="datum_prodeje" name="datum_prodeje" required />
-      <button type="button" id="btnProdej" class="btn-date">Vyber datum</button>
-      <span id="lblProdej" class="date-selected">–</span>
+      <input type="hidden" id="datum_pozadavek" name="datum_pozadavek" required />
+      <button type="button" id="btnPozadavek" class="btn-date">Vyber datum</button>
+      <span id="lblPozadavek" class="date-selected">–</span>
     </div>
   </div>
 
   <div class="date-banner">
-    <div class="date-banner__label">Datum reklamace</div>
+    <div class="date-banner__label">Datum plánované návštěvy</div>
     <div class="date-banner__controls">
-      <input type="hidden" id="datum_reklamace" name="datum_reklamace" required />
-      <button type="button" id="btnReklamace" class="btn-date">Vyber datum</button>
-      <span id="lblReklamace" class="date-selected">–</span>
+      <input type="hidden" id="datum_navsteva" name="datum_navsteva" required />
+      <button type="button" id="btnNavsteva" class="btn-date">Vyber datum</button>
+      <span id="lblNavsteva" class="date-selected">–</span>
     </div>
   </div>
 </div>
@@ -284,8 +284,8 @@
   .calendar-modal.active { display: flex; }
   .calendar-content {
     background: #fff;
-    padding: 16px;
-    border-radius: 12px;
+    padding: 20px;
+    border-radius: 14px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.25);
     width: min(480px,92vw);
   }
@@ -294,7 +294,7 @@
 </style>
 
 <script>
-/* 🗓️ VanillaCalendar – oprava: výběr data neodesílá formulář */
+/* 🗓️ VanillaCalendar – robustní loader a init */
 (function(){
   if (window.__wgsCalInit) return;
   window.__wgsCalInit = true;
@@ -302,36 +302,43 @@
   let targetHidden = null;
   let targetLabel  = null;
 
-  const modal       = document.getElementById("calendarModal");
-  const btnClose    = document.getElementById("closeCalendar");
-  const btnProdej   = document.getElementById("btnProdej");
-  const btnRekl     = document.getElementById("btnReklamace");
-  const lblProdej   = document.getElementById("lblProdej");
-  const lblRekl     = document.getElementById("lblReklamace");
-  const inputProdej = document.getElementById("datum_prodeje");
-  const inputRekl   = document.getElementById("datum_reklamace");
+  const modal        = document.getElementById("calendarModal");
+  const btnClose     = document.getElementById("closeCalendar");
+  const btnPozadavek = document.getElementById("btnPozadavek");
+  const btnNavsteva  = document.getElementById("btnNavsteva");
+  const lblPozadavek = document.getElementById("lblPozadavek");
+  const lblNavsteva  = document.getElementById("lblNavsteva");
+  const inputPozadavek = document.getElementById("datum_pozadavek");
+  const inputNavsteva  = document.getElementById("datum_navsteva");
 
-  function ensureCalendar(){
-    if (!window.VanillaCalendar) {
-      console.error("VanillaCalendar není načten.");
-      return null;
-    }
+  function loadCalendarLib(cb){
+    if (window.VanillaCalendar) return cb();
+    const s = document.createElement("script");
+    s.src = "vanilla-calendar.min.js";
+    s.onload = cb;
+    s.onerror = () => {
+      const cdn = document.createElement("script");
+      cdn.src = "https://cdn.jsdelivr.net/gh/UmalGhosh/vanilla-calendar@2.8.1/build/vanilla-calendar.min.js";
+      cdn.onload = cb;
+      cdn.onerror = () => console.error("❌ VanillaCalendar se nepodařilo načíst (lokální ani CDN).");
+      document.head.appendChild(cdn);
+    };
+    document.head.appendChild(s);
+  }
+
+  function makeOrGetCalendar(){
     if (!window.__wgsVanillaCalendar) {
       window.__wgsVanillaCalendar = new VanillaCalendar("#vanillaCalendar", {
-        settings: {
-          lang: "cs",
-          selection: { day: "single" },
-          visibility: { theme: "light" }
-        },
+        settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
         actions: {
           clickDay: (e) => {
-            e.preventDefault();     // zabrání submitu
+            e.preventDefault();
             e.stopPropagation();
             const chosen = e?.target?.dataset?.calendarDay;
             if (!chosen || !targetHidden || !targetLabel) return;
             targetHidden.value = chosen;
             targetLabel.textContent = chosen;
-            modal.classList.remove("active"); // zavře pouze modal
+            modal.classList.remove("active");
             targetHidden = null;
             targetLabel  = null;
           }
@@ -339,26 +346,31 @@
       });
       window.__wgsVanillaCalendar.init();
     }
-    return window.__wgsVanillaCalendar;
   }
 
   function openCalendar(forHidden, forLabel){
     targetHidden = forHidden;
     targetLabel  = forLabel;
-    ensureCalendar();
-    modal.classList.add("active");
+
+    if (window.VanillaCalendar) {
+      makeOrGetCalendar();
+      modal.classList.add("active");
+    } else {
+      loadCalendarLib(() => {
+        makeOrGetCalendar();
+        modal.classList.add("active");
+      });
+    }
   }
 
-  btnProdej.addEventListener("click", (ev)=>{
-    ev.preventDefault();
-    ev.stopPropagation();
-    openCalendar(inputProdej, lblProdej);
+  btnPozadavek.addEventListener("click", (ev)=>{
+    ev.preventDefault(); ev.stopPropagation();
+    openCalendar(inputPozadavek, lblPozadavek);
   });
 
-  btnRekl.addEventListener("click", (ev)=>{
-    ev.preventDefault();
-    ev.stopPropagation();
-    openCalendar(inputRekl, lblRekl);
+  btnNavsteva.addEventListener("click", (ev)=>{
+    ev.preventDefault(); ev.stopPropagation();
+    openCalendar(inputNavsteva, lblNavsteva);
   });
 
   btnClose.addEventListener("click", (ev)=>{
@@ -370,7 +382,6 @@
     if (e.target === modal) modal.classList.remove("active");
   });
 
-  // Zabrání odeslání formuláře při kliknutí uvnitř kalendáře
   modal.addEventListener("click", (e)=>{
     if (e.target.closest(".vanilla-calendar")) {
       e.preventDefault();
@@ -380,6 +391,7 @@
 })();
 </script>
 <!-- 🟨 KONEC ČÁSTI 3/10 – KALENDÁŘE (bannery + modal + JS) -->
+
 
 
 
