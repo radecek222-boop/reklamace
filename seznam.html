@@ -1577,6 +1577,55 @@ body {
 </style>
 <!-- 🟪 KONEC G-3 -->
 
+<!-- 🟩 TOAST potvrzení -->
+<style>
+.toast {
+  position: fixed;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, #00a86b, #00d084);
+  color: #fff;
+  font-weight: 600;
+  padding: 12px 22px;
+  border-radius: 30px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  z-index: 9999;
+}
+.toast.show {
+  opacity: 1;
+  transform: translate(-50%, -10px);
+}
+.toast.error {
+  background: linear-gradient(90deg, #c93030, #e74c3c);
+}
+</style>
+
+<div id="toast" class="toast"></div>
+
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+  const toast = document.getElementById("toast");
+  const msg = sessionStorage.getItem("wgsToastMsg");
+  const type = sessionStorage.getItem("wgsToastType");
+
+  if (msg) {
+    toast.textContent = msg;
+    if (type === "error") toast.classList.add("error");
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 4000);
+    setTimeout(() => {
+      sessionStorage.removeItem("wgsToastMsg");
+      sessionStorage.removeItem("wgsToastType");
+    }, 4200);
+  }
+});
+</script>
+
+
 
 
 
