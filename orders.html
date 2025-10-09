@@ -5,54 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Nová reklamace – White Glove Service</title>
 
+  <!-- 📍 Leaflet mapa -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
-  <!-- ✅ Vanilla Calendar – lokální z GitHub Pages -->
-<link rel="stylesheet" href="vanilla-calendar.min.css">
-<script src="vanilla-calendar.min.js"></script>
-
-
+  <!-- 📅 Vanilla Calendar (lokální verze) -->
+  <link rel="stylesheet" href="vanilla-calendar.min.css">
+  <script src="vanilla-calendar.min.js"></script>
 
   <style>
-    /* 📅 Kalendáře vedle sebe */
-.calendar-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-  margin-top: 10px;
-}
-
-.calendar-box {
-  flex: 1;
-  min-width: 250px;
-}
-
-.calendar-box label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 5px;
-}
-
-.vanilla-calendar {
-  width: 100%;
-  max-width: 100%;
-}
-
     body {
       font-family: "Inter", system-ui, sans-serif;
       background: #f6f7fb;
-      margin: 0; padding: 0;
-      display: flex; justify-content: center; align-items: flex-start;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
       min-height: 100vh;
     }
     .wrapper {
       background: #fff;
-      padding: 30px; margin: 40px 15px;
+      padding: 30px;
+      margin: 40px 15px;
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      width: 100%; max-width: 700px;
+      width: 100%;
+      max-width: 700px;
       box-sizing: border-box;
     }
     h1, h2 { text-align: center; margin: 0 0 20px; }
@@ -61,9 +40,13 @@
 
     label { display: block; font-weight: 600; margin-top: 15px; margin-bottom: 5px; }
     input, textarea, select {
-      width: 100%; padding: 10px; font-size: 1em;
-      border: 1px solid #ccc; border-radius: 6px;
-      box-sizing: border-box; transition: border 0.2s;
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+      transition: border 0.2s;
     }
     input:focus, textarea:focus, select:focus {
       border-color: #0046ff; outline: none;
@@ -79,20 +62,29 @@
     .btn {
       display: inline-block;
       padding: 12px 28px;
-      border-radius: 8px; font-weight: 600;
-      border: none; color: white;
-      cursor: pointer; font-size: 1em;
+      border-radius: 8px;
+      font-weight: 600;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 1em;
       transition: transform 0.15s ease-in-out, opacity 0.2s;
       box-shadow: 0 3px 8px rgba(0,0,0,0.15);
     }
     .btn:hover { transform: scale(1.04); opacity: 0.9; }
     .btn-back { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
     .btn-send { background: linear-gradient(135deg, #0046ff, #357aff); }
+
     .actions {
-      text-align: center; margin-top: 25px;
-      display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;
+      text-align: center;
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
     }
 
+    /* 🧭 Mapový náhled */
     .address-wrapper { position: relative; }
     .suggestions {
       position: absolute; top: 100%; left: 0; width: 100%;
@@ -104,12 +96,15 @@
     .suggestions div:hover { background: #f0f0f0; }
 
     #mapPreview {
-      width: 100%; height: 250px; margin-top: 10px;
-      border-radius: 14px; overflow: hidden;
-      transition: height 0.3s ease, box-shadow 0.3s ease;
+      width: 100%;
+      height: 250px;
+      margin-top: 10px;
+      border-radius: 14px;
+      overflow: hidden;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
+    /* 🖼️ Náhled fotek */
     .preview { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
     .preview-item {
       width:90px; height:90px; position:relative;
@@ -138,9 +133,7 @@
       box-shadow:0 1px 3px rgba(0,0,0,0.2);
     }
 
-    .smooth { opacity:0; max-height:0; overflow:hidden; transition:all 0.4s ease; }
-    .smooth.show { opacity:1; max-height:500px; margin-top:10px; }
-
+    /* 💾 Animace a čekání */
     .wait-overlay {
       display:none; position:fixed; inset:0;
       background:rgba(255,255,255,0.85);
@@ -150,6 +143,7 @@
       z-index:2000;
     }
     .wait-overlay.active { display:flex; }
+
     .hourglass {
       border:4px solid #ccc; border-top:4px solid #0046ff;
       border-radius:50%; width:40px; height:40px;
@@ -157,6 +151,7 @@
     }
     @keyframes spin { 0%{transform:rotate(0)}100%{transform:rotate(360deg)} }
 
+    /* ✅ Potvrzení */
     .success-check {
       display:none; position:fixed; inset:0;
       justify-content:center; align-items:center;
@@ -164,6 +159,7 @@
       z-index:2100;
     }
     .success-check.active { display:flex; }
+
     .checkmark {
       width:80px; height:80px; stroke-width:3;
       stroke:url(#grad1); fill:none;
@@ -172,12 +168,44 @@
     }
     @keyframes draw { to{stroke-dashoffset:0;} }
 
-    @media (max-width:600px) {
-      #mapPreview{height:180px; border-radius:10px;}
-      .wrapper{padding:20px; margin:20px 10px;}
-      h1{font-size:2em;}
-      .preview-item{width:80px; height:80px;}
+    /* 📅 Modalní kalendář */
+    .calendar-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 10px;
     }
+    .calendar-box {
+      flex: 1;
+      min-width: 250px;
+    }
+    .calendar-box label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .calendar-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      animation: fadeIn 0.25s ease;
+    }
+    .calendar-modal.active { display:flex; }
+    .calendar-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+      animation: popIn 0.25s ease;
+    }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    @keyframes popIn { from { transform:scale(0.9); opacity:0; } to { transform:scale(1); opacity:1; } }
   </style>
 </head>
 
@@ -222,24 +250,28 @@
       <label>Model / Název produktu:</label>
       <input type="text" name="produkt" required placeholder="např. C142" />
 
-<!-- 📅 Dvojice kalendářů vedle sebe -->
-<div class="calendar-row">
-  <div class="calendar-box">
-    <label>Datum prodeje:</label>
-    <input type="hidden" id="datum_prodeje" name="datum_prodeje" required />
-    <div id="calendarProdej"></div>
-  </div>
+      <!-- 📅 Výběr dat pomocí modálního kalendáře -->
+      <div class="calendar-row">
+        <div class="calendar-box">
+          <label>Datum prodeje:</label>
+          <input type="hidden" id="datum_prodeje" name="datum_prodeje" required />
+          <button type="button" id="btnProdej" class="btn btn-back" style="width:100%">Vyber datum</button>
+        </div>
 
-  <div class="calendar-box">
-    <label>Datum reklamace:</label>
-    <input type="hidden" id="datum_reklamace" name="datum_reklamace" required />
-    <div id="calendarReklamace"></div>
-  </div>
-</div>
+        <div class="calendar-box">
+          <label>Datum reklamace:</label>
+          <input type="hidden" id="datum_reklamace" name="datum_reklamace" required />
+          <button type="button" id="btnReklamace" class="btn btn-back" style="width:100%">Vyber datum</button>
+        </div>
+      </div>
 
-
-
-
+      <!-- 🪟 Modal kalendář -->
+      <div id="calendarModal" class="calendar-modal">
+        <div class="calendar-content">
+          <div id="vanillaCalendar"></div>
+          <button id="closeCalendar" class="btn btn-send" style="margin-top:15px;width:100%">Zavřít</button>
+        </div>
+      </div>
       <label>Popis závady:</label>
       <textarea name="popis" required placeholder="Popište závadu nebo problém..."></textarea>
 
@@ -255,7 +287,6 @@
         <option value="Natuzzi Editions - Vimrova">Natuzzi Editions – Vimrova</option>
         <option value="Natuzzi Italia - Bratislava">Natuzzi Italia – Bratislava</option>
         <option value="Natuzzi Italia - Jama">Natuzzi Italia – Jama</option>
-        <option value="Natuzzi Italia - River">Natuzzi Italia – River</option>
         <option value="Natuzzi Italia - SOHO">Natuzzi Italia – SOHO</option>
         <option value="Softaly - SOHO">Softaly – SOHO</option>
         <option value="Phase - Klucarova">Phase – Klucarova</option>
@@ -279,11 +310,13 @@
     </form>
   </div>
 
+  <!-- 💾 Overlay načítání -->
   <div class="wait-overlay" id="waitOverlay">
     <div class="hourglass"></div>
     <p>Prosím čekejte…</p>
   </div>
 
+  <!-- ✅ Hotovo animace -->
   <div class="success-check" id="successCheck">
     <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
       <defs>
@@ -298,6 +331,7 @@
   </div>
 
 <script>
+// 🔧 Validace polí
 const telefonInput=document.getElementById("telefon");
 const predvolba=document.getElementById("predvolba");
 const emailInput=document.getElementById("email");
@@ -308,7 +342,7 @@ function validatePSC(){return /^\d{3}\s?\d{2}$/.test(pscInput.value.trim());}
 const cisloInput=document.querySelector('input[name="cislo"]');
 cisloInput.addEventListener("input",()=>{cisloInput.value=cisloInput.value.toUpperCase();});
 
-// --- Sekce „Jiná“ ---
+// 🔹 Sekce „Jiná“
 const selectZpracoval=document.getElementById("zpracoval");
 const jinaSekce=document.getElementById("jinaSekce");
 const jinaInputs=jinaSekce.querySelectorAll("input");
@@ -324,13 +358,14 @@ selectZpracoval.addEventListener("change",()=>{
   }
 });
 
-// --- Geoapify + Nominatim ---
+// 🌍 Geoapify + mapa
 const uliceInput=document.getElementById("ulice");
 const mestoInput=document.getElementById("mesto");
 const suggestionContainer=document.getElementById("suggestions");
 let adresaPlatna=false;
 const GEOAPIFY_KEY="b363199bb14e47189558d03b81ca9ba1";
 let suggestTimer=null;
+
 uliceInput.addEventListener("input",()=>{clearTimeout(suggestTimer);suggestTimer=setTimeout(runAutocomplete,300);});
 async function runAutocomplete(){
   const query=uliceInput.value.trim();adresaPlatna=false;suggestionContainer.innerHTML="";
@@ -353,6 +388,7 @@ async function runAutocomplete(){
     }catch{suggestionContainer.innerHTML="<div style='padding:8px;color:red'>Chyba načítání</div>";}
   }
 }
+
 function renderSuggestions(items){
   suggestionContainer.innerHTML="";
   items.forEach(p=>{
@@ -373,7 +409,7 @@ function renderSuggestions(items){
 }
 document.addEventListener("click",e=>{if(!suggestionContainer.contains(e.target)&&e.target!==uliceInput)suggestionContainer.innerHTML="";});
 
-// --- Náhled + komprese + mazání ---
+// 🖼️ Komprese fotek
 const fotkyInput=document.getElementById("fotky");
 const preview=document.getElementById("preview");
 let compressedFiles=[];
@@ -389,6 +425,7 @@ async function compressImage(file,maxSizeMB=1.2,maxDim=800){
   while(blob.size/1024/1024>maxSizeMB&&q>0.4){q-=0.1;blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));}
   return blob;
 }
+
 fotkyInput.addEventListener("change", async () => {
   preview.innerHTML = "";
   compressedFiles = [];
@@ -396,81 +433,44 @@ fotkyInput.addEventListener("change", async () => {
   submitBtn.disabled = true;
 
   const files = Array.from(fotkyInput.files).slice(0, 5);
-  let allValid = true;
-
   for (const file of files) {
-    // ❌ Kontrola typu
     if (!file.type.startsWith("image/")) continue;
+    if (file.size / 1024 / 1024 > 5) continue;
 
-    // ❌ Kontrola velikosti
-    if (file.size / 1024 / 1024 > 5) {
-      const warn = document.createElement("div");
-      warn.textContent = `Soubor "${file.name}" je větší než 5 MB a nebude přidán.`;
-      warn.style.cssText = "color:#c00;font-weight:600;margin:6px 0;";
-      preview.append(warn);
-      allValid = false;
-      continue;
-    }
-
-    // 🟢 Vytvoření náhledu
     const item = document.createElement("div");
     item.classList.add("preview-item");
-
     const img = document.createElement("img");
     const progress = document.createElement("div");
     progress.classList.add("progress-bar");
-
     const status = document.createElement("div");
     status.classList.add("preview-status");
     status.textContent = "Kompres...";
-
     const remove = document.createElement("button");
     remove.classList.add("remove-btn");
     remove.textContent = "×";
-    remove.onclick = () => {
-      item.remove();
-      compressedFiles = compressedFiles.filter(f => f.file !== file);
-      // Aktivuj tlačítko jen pokud zůstávají validní soubory
-      submitBtn.disabled = compressedFiles.length === 0;
-    };
-
+    remove.onclick = () => { item.remove(); compressedFiles = compressedFiles.filter(f => f.file !== file); };
     item.append(img, progress, status, remove);
     preview.append(item);
 
-    // 🖼️ Načtení náhledu
     const reader = new FileReader();
     reader.onload = e => (img.src = e.target.result);
     reader.readAsDataURL(file);
 
-    // 🧩 Komprese
     const blob = await compressImage(file);
     compressedFiles.push({ file, blob, progress, status });
-
     progress.style.width = "100%";
     progress.style.background = "linear-gradient(90deg,#4caf50,#8bc34a)";
     status.textContent = "✅ Připraveno";
   }
-
-  // ✅ Aktivace tlačítka pouze pokud jsou všechny validní
-  submitBtn.disabled = !allValid || compressedFiles.length === 0;
+  submitBtn.disabled = compressedFiles.length === 0;
 });
 
-  }
-});
-
-// --- Odeslání přes Worker ---
+// 💾 Odeslání na Worker
 document.getElementById("reklamaceForm").addEventListener("submit",async e=>{
   e.preventDefault();
   const wait=document.getElementById("waitOverlay");
   wait.classList.add("active");
   const f=e.target;
-  const fields=f.querySelectorAll("input[required], textarea[required], select[required]");
-  let valid=true;
-  fields.forEach(i=>{if(!i.value.trim()){i.classList.add("invalid");valid=false;}else i.classList.remove("invalid");});
-  if(!validateTelefon()){telefonInput.classList.add("invalid");valid=false;}
-  if(!validateEmail()){emailInput.classList.add("invalid");valid=false;}
-  if(!adresaPlatna){alert("Vyber prosím adresu z našeptávače.");uliceInput.classList.add("invalid");valid=false;}
-  if(!valid){wait.classList.remove("active");alert("Zkontroluj červeně označená pole.");return;}
 
   const dataObj={
     typ:"reklamace",
@@ -484,8 +484,7 @@ document.getElementById("reklamaceForm").addEventListener("submit",async e=>{
     datum_prodeje:f.datum_prodeje.value,
     datum_reklamace:f.datum_reklamace.value,
     popis:f.popis.value,
-    fotky:[],
-    jinaZadavatel:f.zpracoval.value==="Jiná"?{jmeno:f.jinaJmeno?.value||"",email:f.jinaEmail?.value||"",telefon:f.jinaTelefon?.value||""}:null
+    fotky:[]
   };
 
   try{
@@ -495,9 +494,8 @@ document.getElementById("reklamaceForm").addEventListener("submit",async e=>{
       const formData=new FormData();
       formData.append("file",fch.blob,fch.file.name);
       const up=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload",{method:"POST",body:formData});
-      if(!up.ok)throw new Error("Upload selhal");
-      const r=await up.json();dataObj.fotky.push(r.filename);
-      fch.progress.style.background="linear-gradient(90deg,#4caf50,#8bc34a)";
+      const r=await up.json();
+      dataObj.fotky.push(r.filename);
       fch.status.textContent="✅ Hotovo";
     }
 
@@ -509,64 +507,49 @@ document.getElementById("reklamaceForm").addEventListener("submit",async e=>{
 
     wait.classList.remove("active");
     document.getElementById("successCheck").classList.add("active");
-    const snd=new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_2d18bdf1d3.mp3?filename=success-1-6297.mp3");
-    snd.play();
     setTimeout(()=>window.location.href="index.html",2500);
   }catch(err){
     wait.classList.remove("active");
     alert("Chyba při odesílání: "+err.message);
   }
 });
- 
-// --- Mini Vanilla Calendar pro výběr datumu prodeje a reklamace ---
+
+// 🗓️ Modální kalendář
 document.addEventListener("DOMContentLoaded", () => {
-  // Kalendář pro Datum prodeje
-  const prodejInput = document.getElementById("datum_prodeje");
-  const calProdej = new VanillaCalendar("#calendarProdej", {
-    settings: {
-      lang: "cs",
-      selection: { day: "single" },
-      visibility: { theme: "light" }
-    },
-    actions: {
-      clickDay: (e) => {
-        const chosen = e.target.dataset.calendarDay;
-        if (chosen) {
-          prodejInput.value = chosen;
-          e.target.closest(".vanilla-calendar").querySelectorAll(".vanilla-calendar-day__btn_selected")
-            .forEach(b => b.classList.remove("vanilla-calendar-day__btn_selected"));
-          e.target.classList.add("vanilla-calendar-day__btn_selected");
-        }
-      }
-    }
-  });
-  calProdej.init();
+  const modal = document.getElementById("calendarModal");
+  const closeBtn = document.getElementById("closeCalendar");
+  let targetInput = null;
+  let targetButton = null;
 
-  // Kalendář pro Datum reklamace
-  const reklInput = document.getElementById("datum_reklamace");
-  const calRekl = new VanillaCalendar("#calendarReklamace", {
-    settings: {
-      lang: "cs",
-      selection: { day: "single" },
-      visibility: { theme: "light" }
-    },
+  const calendar = new VanillaCalendar("#vanillaCalendar", {
+    settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
     actions: {
       clickDay: (e) => {
         const chosen = e.target.dataset.calendarDay;
-        if (chosen) {
-          reklInput.value = chosen;
-          e.target.closest(".vanilla-calendar").querySelectorAll(".vanilla-calendar-day__btn_selected")
-            .forEach(b => b.classList.remove("vanilla-calendar-day__btn_selected"));
-          e.target.classList.add("vanilla-calendar-day__btn_selected");
+        if (chosen && targetInput && targetButton) {
+          targetInput.value = chosen;
+          targetButton.textContent = chosen;
+          modal.classList.remove("active");
         }
       }
     }
   });
-  calRekl.init();
+  calendar.init();
+
+  document.getElementById("btnProdej").addEventListener("click", () => {
+    targetInput = document.getElementById("datum_prodeje");
+    targetButton = document.getElementById("btnProdej");
+    modal.classList.add("active");
+  });
+
+  document.getElementById("btnReklamace").addEventListener("click", () => {
+    targetInput = document.getElementById("datum_reklamace");
+    targetButton = document.getElementById("btnReklamace");
+    modal.classList.add("active");
+  });
+
+  closeBtn.addEventListener("click", () => modal.classList.remove("active"));
 });
-
-
-  </script>
-
+</script>
 </body>
 </html>
