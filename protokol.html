@@ -276,50 +276,54 @@ button:hover { transform:scale(1.03); opacity:0.9; }
   </script>
 
   <!-- 🟨 Sekce I.2 – Funkční překladač CZ → EN -->
-  <script>
-  async function translateCZtoEN(text) {
-    if (!text.trim()) return "";
-    try {
-      const res = await fetch("https://api.mymemory.translated.net", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ q:text, source:"cs", target:"en", format:"text" })
-      });
-      const data = await res.json();
-      return data.translatedText || "";
-    } catch(e) {
-      console.warn("⚠️ Překlad selhal:", e.message);
-      return "";
-    }
+<script>
+// 🌍 Překlad z češtiny do angličtiny pomocí MyMemory API
+async function translateCZtoEN(text) {
+  if (!text.trim()) return "";
+  try {
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=cs|en`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return data.responseData?.translatedText || "";
+  } catch (e) {
+    console.warn("⚠️ Překlad selhal:", e.message);
+    return "";
   }
+}
 
-  function initTranslator(prefix) {
-    const cz=document.getElementById(`${prefix}-cz`);
-    const en=document.getElementById(`${prefix}-en`);
-    if(!cz||!en) return;
-    let t;
-    cz.addEventListener("input",()=>{
-      clearTimeout(t);
-      if(!cz.value.trim()){en.value="";return;}
-      en.value="⏳ Překládám...";
-      t=setTimeout(async()=>{
-        en.value=await translateCZtoEN(cz.value);
-      },600);
-    });
-  }
+// ✍️ Automatický překlad při psaní do pole
+function initTranslator(prefix) {
+  const cz = document.getElementById(`${prefix}-cz`);
+  const en = document.getElementById(`${prefix}-en`);
+  if (!cz || !en) return;
 
-  window.addEventListener("DOMContentLoaded",async()=>{
-    ["description","problem","repair"].forEach(initTranslator);
-    for(const f of ["description","problem","repair"]){
-      const cz=document.getElementById(`${f}-cz`);
-      const en=document.getElementById(`${f}-en`);
-      if(cz&&en&&cz.value&&!en.value.trim()){
-        en.value="⏳ Překládám...";
-        en.value=await translateCZtoEN(cz.value);
-      }
-    }
+  let timeout;
+  cz.addEventListener("input", () => {
+    clearTimeout(timeout);
+    if (!cz.value.trim()) { en.value = ""; return; }
+    en.value = "⏳ Překládám...";
+    timeout = setTimeout(async () => {
+      en.value = await translateCZtoEN(cz.value);
+    }, 700);
   });
-  </script>
+}
+
+// 🚀 Automatická inicializace při načtení
+window.addEventListener("DOMContentLoaded", async () => {
+  ["description", "problem", "repair"].forEach(initTranslator);
+
+  // 🧠 Překlad i při načtení z localStorage, pokud chybí EN verze
+  for (const f of ["description", "problem", "repair"]) {
+    const cz = document.getElementById(`${f}-cz`);
+    const en = document.getElementById(`${f}-en`);
+    if (cz && en && cz.value && !en.value.trim()) {
+      en.value = "⏳ Překládám...";
+      en.value = await translateCZtoEN(cz.value);
+    }
+  }
+});
+</script>
+
 
   <!-- 🟨 Sekce J – PDF, e-mail, uložení -->
   <script>
