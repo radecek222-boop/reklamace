@@ -1265,7 +1265,7 @@ function openPlanModal() {
 <!-- 🟦 E-2: KALENDÁŘ A NAČTENÍ DNÍ -->
 <script>
 function initPlanCalendar(overlay){
-  const cal = new VanillaCalendar("#planCalendar",{
+  const cal = new VanillaCalendar(overlay.querySelector("#planCalendar"), {
     settings:{ lang:"cs", selection:{ day:"single" }, visibility:{ theme:"light" }},
     actions:{ clickDay:e=>{
       const d = e.target.dataset.calendarDay;
@@ -1335,10 +1335,12 @@ async function loadPlanForDay(date, overlay) {
 
   // 🟩 navíc – automaticky vykreslí E-5 s trasou, vzdálenostmi a klikacími odkazy
   try {
-    await renderPlanDetail(list);
-    console.log("✅ E-5 (detailní mapa a plán) úspěšně načtena");
-  } catch (err) {
-    console.error("❌ Chyba při vykreslování E-5:", err);
+if (typeof renderPlanDetail === "function") {
+  await renderPlanDetail(list);
+  console.log("✅ E-5 (detailní mapa a plán) načtena");
+} else {
+  console.warn("⚠️ renderPlanDetail není zatím načtena");
+
   }
 }
 </script>
@@ -1497,6 +1499,130 @@ document.addEventListener("DOMContentLoaded", () => {
 <!-- 🧭 KONEC DEBUG OVERLAY -->
 
 <!-- 🟪 KONEC E-5 -->
+
+<!-- 🟩 NOVÁ SEKCE: renderPlanDetail() – detailní plán dne -->
+<script>
+// 🧭 Funkce pro zobrazení detailu plánu dne
+async function renderPlanDetail(list = []) {
+  console.log("🗺️ renderPlanDetail spuštěn, počet zákazníků:", list.length);
+  const overlay = document.getElementById("planDetailOverlay");
+  if (!overlay) return console.warn("⚠️ Chybí #planDetailOverlay v DOM");
+
+  const mapBox = document.getElementById("planMapDetail");
+  const listBox = document.getElementById("planListDetail");
+  const banner = document.getElementById("planBannerDetail");
+
+  if (!mapBox || !listBox || !banner) return console.warn("⚠️ renderPlanDetail: chybí cílové elementy");
+
+  listBox.innerHTML = "";
+  mapBox.innerHTML = "";
+
+  // 📍 Výchozí bod WGS
+  const START = [50.086367, 14.611751]; // Václava Kovaříka, Běchovice
+  const map = L.map(mapBox).setView(START, 11);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "© OpenStreetMap",
+    maxZoom: 19
+  }).addTo(map);
+
+  const markers = [];
+  const points = [START];
+  const startMarker = L.marker(START, { title: "WGS (start/cíl)" })
+    .addTo(map)
+    .bindPopup("🏠 White Glove Service<br>Václava Kovaříka – Praha 9, Běchovice");
+  markers.push(startMarker);
+
+  // 🧩 Žádní zákazníci → jen WGS
+  if (!list.length) {
+    map.setView(START, 11);
+    listBox.innerHTML = "<div style='text-align:center;color:#555;'>Žádní zákazníci v plánu dne.</div>";
+    banner.textContent = "🚗 Žádné zakázky pro tento den";
+    return;
+  }
+
+  // 🕒 Seřadit zákazníky podle času
+  list.sort((a,b)=>(a.cas||"").localeCompare(b.cas||""));
+
+  // 📍 Geolokace zákazníků + vykreslení
+  for (const [i, item] of list.entries()) {
+    if (!item.adresa) continue;
+    try {
+      const geo = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`
+      ).then(r=>r.json());
+      if (geo[0]) {
+        const pos = [+geo[0].lat, +geo[0].lon];
+        points.push(pos);
+        const popup = `<strong>${i+1}. ${item.zakaznik || "Zákazník"}</strong><br>${item.adresa}<br>⏰ ${item.cas || "-"}`;
+        const marker = L.marker(pos,{title:item.zakaznik||""}).addTo(map).bindPopup(popup);
+        markers.push(marker);
+      }
+    } catch(err){
+      console.warn("⚠️ Geolokace selhala:", item.adresa, err);
+    }
+  }
+
+  // 🧭 Nakreslit trasu
+  if (points.length > 1) {
+    L.polyline(points, { color:"#0046ff", weight:4, opacity:0.8 }).addTo(map);
+    const bounds = L.featureGroup(markers).getBounds().pad(0.3);
+    map.fitBounds(bounds);
+  }
+
+  // 📋 Seznam segmentů vpravo (legendy)
+  list.forEach((r,i)=>{
+    const phone = (r.telefon || "").replace(/\s+/g,"");
+    const wazeLink = `https://waze.com/ul?q=${encodeURIComponent(r.adresa||"")}`;
+    const telLink = phone ? `tel:${phone}` : "#";
+    listBox.innerHTML += `
+      <div class="segment">
+        <div class="seg-index">${i+1}</div>
+        <div class="seg-info">
+          <strong>${r.zakaznik || "-"}</strong><br>
+          ${r.adresa || ""}<br>
+          ⏰ ${r.cas || "-"}
+        </div>
+        <div class="seg-links">
+          ${phone ? `<a href="${telLink}" class="phone">📞</a>` : ""}
+          ${r.adresa ? `<a href="${wazeLink}" target="_blank" class="waze">🗺️</a>` : ""}
+        </div>
+      </div>`;
+  });
+
+  // 🚘 Výpočet vzdálenosti a odjezdu
+  const totalKm = await computeRouteDistance(points);
+  const avgSpeed = 45; // km/h
+  const minutes = Math.round((totalKm / avgSpeed) * 60 + list.length * 10);
+  const lastTime = list[list.length - 1]?.cas || "12:00";
+  const [h,m] = lastTime.split(":").map(Number);
+  const arrival = new Date();
+  arrival.setHours(h, m);
+  const departure = new Date(arrival.getTime() - minutes * 60000);
+  const depStr = departure.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" });
+
+  banner.textContent = `🚗 Nejpozději vyrazit v ${depStr} (${totalKm.toFixed(1)} km, cca ${minutes} min)`;
+
+  // 🧭 Debug informace
+  updateDebugOverlay({ count:list.length, totalKm, minutes, departure:depStr });
+
+  // 🎬 Zobrazit overlay
+  openPlanDetail();
+}
+
+// 🧮 Pomocná funkce – přibližná délka trasy v km
+async function computeRouteDistance(points){
+  if(points.length<2)return 0;
+  let dist=0;
+  for(let i=1;i<points.length;i++){
+    const [a,b]=points[i-1], [c,d]=points[i];
+    const R=6371, dLat=(c-a)*Math.PI/180, dLon=(d-b)*Math.PI/180;
+    const x=Math.sin(dLat/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dLon/2)**2;
+    dist += R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+  }
+  return dist;
+}
+</script>
+<!-- 🟩 KONEC renderPlanDetail -->
 
 
 <!-- 🟩 E-6: MODÁLNÍ OKNO – PLÁN DNE -->
