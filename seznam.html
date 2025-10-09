@@ -306,8 +306,21 @@ window.addEventListener("DOMContentLoaded", loadData);
 
 
 
-<!-- 🟩 ZAČÁTEK ČÁSTI 3/10 (Detail zákazníka – finální layout se 4 tlačítky) -->
+<!-- 🟩 OPRAVENÁ ČÁST 3/10 (Detail zákazníka – mapa z configu + modré dny) -->
 <script>
+// 🧭 Načtení souřadnic WGS z externího configu
+let WGS_COORDS = [50.049, 14.523];
+fetch("wgs-config-map.js")
+  .then(r => r.text())
+  .then(t => {
+    const match = t.match(/\[([\d\.\, ]+)\]/);
+    if (match) {
+      WGS_COORDS = match[1].split(",").map(n => parseFloat(n.trim()));
+      console.log("📍 WGS souřadnice načteny:", WGS_COORDS);
+    }
+  })
+  .catch(e => console.warn("Nelze načíst wgs-config-map.js", e));
+
 function openDetail(index) {
   const item = dataAll[index];
   if (!item) return;
@@ -319,7 +332,6 @@ function openDetail(index) {
   overlay.innerHTML = `
     <div class="detail-modal">
       <div class="grid-layout">
-        <!-- 🧭 Levý panel – kalendář, čas + akce -->
         <div class="left-panel">
           <div id="miniCalendar"></div>
           <div class="custom-time-picker">
@@ -334,36 +346,41 @@ function openDetail(index) {
           </div>
         </div>
 
-        <!-- 🧾 Pravý panel – informace a mapa -->
         <div class="right-panel">
           <div class="customer-info">
             <h2>${item.zakaznik || "Zákazník"}</h2>
-            <p><strong>Adresa:</strong> <a href="https://waze.com/ul?q=${encodeURIComponent(adresaUpravena)}" target="_blank">${adresaUpravena}</a></p>
-            <p><strong>Telefon:</strong> <a href="tel:${(item.telefon||"").replace("+420","").trim()}">${(item.telefon||"").replace("+420","").trim()}</a></p>
+            <p><strong>Adresa:</strong> 
+              <a href="https://waze.com/ul?q=${encodeURIComponent(adresaUpravena)}" target="_blank">
+                ${adresaUpravena || "Neuvedeno"}
+              </a>
+            </p>
+            <p><strong>Telefon:</strong> 
+              <a href="tel:${(item.telefon||"").replace("+420","").trim()}">
+                ${(item.telefon||"").replace("+420","").trim()}
+              </a>
+            </p>
             <p><strong>Email:</strong> ${item.email||"–"}</p>
             <p><strong>Produkt / model:</strong> ${item.produkt||"–"}</p>
             <p><strong>Popis závady:</strong> ${item.popis||"–"}</p>
           </div>
-          <div class="distance-banner" id="mapDistance">📍 Vzdálenost od WGS – počítám...</div>
+          <div class="distance-banner" id="mapDistance">📍 Načítám mapu…</div>
           <div id="mapDetail"></div>
         </div>
       </div>
     </div>
   `;
-
   document.body.appendChild(overlay);
   setTimeout(()=>overlay.classList.add("active"),10);
-  const id = item.cislo || `radek-${index}`;
+
   const infoBox = overlay.querySelector("#termInfoBox");
 
-  /* 🗓️ Kalendář */
-  const miniCal = new VanillaCalendar("#miniCalendar",{
-    settings:{lang:"cs",selection:{day:"single"},visibility:{theme:"light"}},
-    actions:{clickDay:e=>{
+  // 🗓️ Mini kalendář + označení obsazených dnů
+  const miniCal = new VanillaCalendar("#miniCalendar", {
+    settings:{ lang:"cs", selection:{ day:"single" }, visibility:{ theme:"light" } },
+    actions:{ clickDay:e=>{
       const chosen=e.target.dataset.calendarDay;
       if(chosen){
         overlay.dataset.datum=chosen;
-        e.target.classList.add("vanilla-calendar-day__btn_selected");
         updateTermInfoBox(infoBox,chosen,null);
         flashBox(infoBox,"gray");
       }
@@ -371,108 +388,81 @@ function openDetail(index) {
   });
   miniCal.init();
 
-  /* 🕒 Hodiny */
-  const hSel=overlay.querySelector("#hours"),mSel=overlay.querySelector("#minutes");
+  // 🔵 Označí dny s domluvenými termíny
+  setTimeout(()=>{
+    const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData")||"[]");
+    const days = [...new Set(ulozene.map(z=>z.datum))];
+    document.querySelectorAll("#miniCalendar .vanilla-calendar-day__btn").forEach(btn=>{
+      if(days.includes(btn.dataset.calendarDay)){
+        const dot=document.createElement("span");
+        dot.classList.add("dot");
+        dot.style.cssText="position:absolute;top:4px;left:50%;transform:translateX(-50%);width:8px;height:8px;border-radius:50%;background:#0046ff;";
+        btn.appendChild(dot);
+      }
+    });
+  },300);
+
+  // 🕒 Výběr času
+  const hSel=overlay.querySelector("#hours"), mSel=overlay.querySelector("#minutes");
   for(let h=7;h<20;h++)hSel.innerHTML+=`<option>${String(h).padStart(2,"0")}</option>`;
   for(let m=0;m<60;m+=5)mSel.innerHTML+=`<option>${String(m).padStart(2,"0")}</option>`;
   hSel.addEventListener("change",()=>updateTime(infoBox,overlay));
   mSel.addEventListener("change",()=>updateTime(infoBox,overlay));
 
-  /* 🗺️ Mapa + výpočet vzdálenosti */
+  // 🗺️ Mapa
+  const map = L.map(overlay.querySelector("#mapDetail")).setView(WGS_COORDS, 11);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);
+  const wgsMarker = L.marker(WGS_COORDS,{title:"WGS"}).addTo(map);
+
   if(item.adresa){
-    const wgs=[50.049,14.523];
-    const map=L.map(overlay.querySelector("#mapDetail")).setView(wgs,9);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);
-    const wgsM=L.marker(wgs,{title:"WGS"}).addTo(map);
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`)
       .then(r=>r.json()).then(d=>{
         if(d[0]){
           const c=[+d[0].lat,+d[0].lon];
           const cust=L.marker(c,{title:"Zákazník"}).addTo(map);
-          L.polyline([wgs,c],{color:"#0046ff",weight:3}).addTo(map);
-          const dist=calcDistanceCoords(wgs[0],wgs[1],c[0],c[1]);
+          L.polyline([WGS_COORDS,c],{color:"#0046ff",weight:3}).addTo(map);
+          const dist=calcDistanceCoords(WGS_COORDS[0],WGS_COORDS[1],c[0],c[1]);
           overlay.querySelector("#mapDistance").innerHTML=`Vzdálenost od WGS: ${dist.toFixed(1)} km`;
-          map.fitBounds(L.featureGroup([wgsM,cust]).getBounds().pad(0.3));
+          map.fitBounds(L.featureGroup([wgsMarker,cust]).getBounds().pad(0.3));
+        } else {
+          overlay.querySelector("#mapDistance").textContent="📍 Zákazník bez přesné adresy";
         }
-      });
+      })
+      .catch(()=>overlay.querySelector("#mapDistance").textContent="📍 Nelze načíst polohu zákazníka");
+  } else {
+    overlay.querySelector("#mapDistance").textContent="📍 Zákazník bez adresy – zobrazeno pouze sídlo WGS";
   }
 
-  /* 💾 Uložit termín */
+  // 🧭 Akce tlačítek
+  overlay.querySelector("#closeBtn").onclick=()=>overlay.remove();
   overlay.querySelector("#saveTermBtn").onclick=()=>{
-    const datum=overlay.dataset.datum;
-    const cas=`${hSel.value}:${mSel.value}`;
-    if(!datum||!cas)return alert("Vyberte datum a čas!");
-    ulozitTerminNaGitHub(item,id,datum,cas,overlay,overlay.querySelector("#saveTermBtn"),infoBox);
+    const d=overlay.dataset.datum;
+    const c=`${hSel.value}:${mSel.value}`;
+    if(!d||!c)return alert("Vyberte datum a čas!");
+    const id=item.cislo||`radek-${index}`;
+    ulozitTerminNaGitHub(item,id,d,c,overlay,overlay.querySelector("#saveTermBtn"),infoBox);
   };
-
-  /* ☎️ Nezvedá */
   overlay.querySelector("#noAnswerBtn").onclick=()=>{
+    const id=item.cislo||`radek-${index}`;
     stavy[id]="nezveda";
     item.stav="nezveda";
     localStorage.setItem("stavyReklamaci",JSON.stringify(stavy));
     overlay.remove();
     renderTable(dataAll);
-    showToast("📩 Zákazník nezvedá", "warning");
+    showToast("📩 Zákazník nezvedá","warning");
   };
-
-  /* ❌ Zrušil */
   overlay.querySelector("#cancelBtn").onclick=()=>{
+    const id=item.cislo||`radek-${index}`;
     stavy[id]="zruseno";
     item.stav="zruseno";
     localStorage.setItem("stavyReklamaci",JSON.stringify(stavy));
     overlay.remove();
     renderTable(dataAll);
-    showToast("❌ Zákazník zrušil termín", "error");
+    showToast("❌ Zákazník zrušil termín","error");
   };
-
-  overlay.querySelector("#closeBtn").onclick=()=>overlay.remove();
-}
-
-/* 📦 Pomocné funkce */
-function updateTermInfoBox(b,d,c){
-  const date=new Date(d);
-  const den=date.toLocaleDateString("cs-CZ",{weekday:"long",day:"numeric",month:"long"});
-  b.textContent=c?`${den} – ${c}`:`${den}`;
-}
-function updateTime(b,o){
-  const d=o.dataset.datum;if(!d)return;
-  const c=`${o.querySelector("#hours").value}:${o.querySelector("#minutes").value}`;
-  updateTermInfoBox(b,d,c);flashBox(b,"green");
-}
-function flashBox(b,color){
-  b.classList.remove("flash-gray","flash-green");void b.offsetWidth;
-  b.classList.add(color==="green"?"flash-green":"flash-gray");
-}
-function calcDistanceCoords(a,b,c,d){
-  const R=6371,dL=(c-a)*Math.PI/180,dO=(d-b)*Math.PI/180;
-  const x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dO/2)**2;
-  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
 }
 </script>
 
-<style>
-.grid-layout{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-.left-panel,.right-panel{background:#fff;border-radius:10px;padding:10px;}
-#miniCalendar{margin-bottom:12px;}
-.custom-time-picker{display:flex;justify-content:center;align-items:center;gap:6px;margin-bottom:10px;}
-.custom-time-picker select{font-size:1.1em;font-weight:600;border:1px solid #ccc;border-radius:8px;padding:5px 10px;}
-.term-info-box{background:#f0f0f0;padding:10px;text-align:center;font-weight:600;border-radius:8px;margin-top:8px;transition:background .3s;}
-.flash-gray{animation:flashGray 0.4s;}
-.flash-green{animation:flashGreen 0.5s 2;}
-@keyframes flashGray{0%{background:#d6d6d6;}100%{background:#f0f0f0;}}
-@keyframes flashGreen{0%,100%{background:#b6f7a8;}50%{background:#d8ffd2;}}
-.customer-info h2{text-align:center;margin:0 0 8px;}
-.customer-info p{margin:4px 0;font-size:.95em;color:#000;}
-.distance-banner{background:#f6f6f6;border-radius:8px;padding:8px;text-align:center;font-weight:600;margin:10px 0;}
-#mapDetail{height:260px;border-radius:10px;border:1px solid #ddd;}
-.left-buttons{display:flex;flex-direction:column;gap:10px;margin-top:10px;}
-.btn-action{padding:10px;border:none;border-radius:8px;font-weight:600;color:#fff;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,0.15);}
-.btn-green{background:linear-gradient(135deg,#28a745,#6fdd72);}
-.btn-orange{background:linear-gradient(135deg,#ff9800,#ffc270);color:#222;}
-.btn-red{background:linear-gradient(135deg,#dc3545,#f87171);}
-.btn-gray{background:linear-gradient(135deg,#6c757d,#a0a4a7);}
-</style>
-<!-- 🟩 KONEC ČÁSTI 3/10 -->
 
 
 
