@@ -190,8 +190,7 @@
 
 
 
-      <!-- 🟨 ZAČÁTEK ČÁSTI 3/10 – KALENDÁŘE (bannery + modal + JS) -->
-<!-- Bannery s tlačítky pro výběr data -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 3/10 – KALENDÁŘE (bannery + modal + JS) -->
 <div class="date-banners">
   <div class="date-banner">
     <div class="date-banner__label">Datum prodeje</div>
@@ -221,7 +220,6 @@
 </div>
 
 <style>
-  /* Bannery – decentní šedé gradienty, černé písmo */
   .date-banners {
     display: grid;
     grid-template-columns: 1fr;
@@ -272,9 +270,9 @@
     font-weight: 600;
   }
 
-  /* Modal kalendáře */
   .calendar-modal {
-    position: fixed; inset: 0;
+    position: fixed;
+    inset: 0;
     background: rgba(0,0,0,0.6);
     display: none;
     justify-content: center; align-items: center;
@@ -294,9 +292,7 @@
 </style>
 
 <script>
-/* Inicializace kalendáře a obsluha výběru dne
-   – modal se po výběru dne sám zavře
-   – jen vyplní hidden input a textový štítek, nic dalšího nedělá */
+/* 🗓️ Inicializace VanillaCalendar bez ukončení formuláře */
 (function(){
   if (window.__wgsCalInit) return;
   window.__wgsCalInit = true;
@@ -313,26 +309,27 @@
   const inputProdej = document.getElementById("datum_prodeje");
   const inputRekl = document.getElementById("datum_reklamace");
 
-  // Ochrana: VanillaCalendar musí být načten
   function ensureCalendar(){
     if (!window.VanillaCalendar) {
       console.error("VanillaCalendar není načten.");
       return null;
     }
-    // vytvoříme instanci jen jednou
     if (!window.__wgsVanillaCalendar) {
       window.__wgsVanillaCalendar = new VanillaCalendar("#vanillaCalendar", {
-        settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
+        settings: { 
+          lang: "cs",
+          selection: { day: "single" },
+          visibility: { theme: "light" }
+        },
         actions: {
           clickDay: (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             const chosen = e?.target?.dataset?.calendarDay;
             if (!chosen || !targetHidden || !targetLabel) return;
-            // zapiš datum do hidden pole a do štítku
             targetHidden.value = chosen;
             targetLabel.textContent = chosen;
-            // zavři modal – jen modal, formulář zůstává aktivní
             modal.classList.remove("active");
-            // reset tarčíků
             targetHidden = null;
             targetLabel = null;
           }
@@ -350,19 +347,26 @@
     modal.classList.add("active");
   }
 
-  btnProdej.addEventListener("click", () => openCalendar(inputProdej, lblProdej));
-  btnRekl.addEventListener("click", () => openCalendar(inputRekl, lblRekl));
+  btnProdej.addEventListener("click", (ev)=>{
+    ev.preventDefault();
+    openCalendar(inputProdej, lblProdej);
+  });
+  btnRekl.addEventListener("click", (ev)=>{
+    ev.preventDefault();
+    openCalendar(inputRekl, lblRekl);
+  });
 
-  // Zavření přes tlačítko
-  btnClose.addEventListener("click", () => modal.classList.remove("active"));
-
-  // Zavření klikem mimo obsah
-  modal.addEventListener("click", (e) => {
+  btnClose.addEventListener("click", (ev)=>{
+    ev.preventDefault();
+    modal.classList.remove("active");
+  });
+  modal.addEventListener("click", (e)=>{
     if (e.target === modal) modal.classList.remove("active");
   });
 })();
 </script>
 <!-- 🟨 KONEC ČÁSTI 3/10 – KALENDÁŘE (bannery + modal + JS) -->
+
 
 
 
