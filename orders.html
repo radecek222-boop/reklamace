@@ -188,7 +188,9 @@
 
 
 
-<!-- 🟨 ZAČÁTEK ČÁSTI 3/10 – KALENDÁŘE (oprava výběru data) -->
+
+
+      <!-- 🟨 ZAČÁTEK ČÁSTI 3/10 – KALENDÁŘE (rozšířený výběr roku) -->
 <div class="date-banners">
   <div class="date-banner">
     <div class="date-banner__label">Datum požadavku</div>
@@ -212,6 +214,13 @@
 <div id="calendarModal" class="calendar-modal">
   <div class="calendar-content">
     <div id="vanillaCalendar"></div>
+    <div class="calendar-controls">
+      <button id="prevMonth" class="btn-calnav">‹</button>
+      <span id="monthLabel"></span>
+      <select id="yearSelect"></select>
+      <button id="nextMonth" class="btn-calnav">›</button>
+    </div>
+    <div id="calendarDays"></div>
     <button id="closeCalendar" type="button" class="btn-date close-btn">Zavřít</button>
   </div>
 </div>
@@ -248,6 +257,7 @@
     border-radius: 8px; border: 1px dashed #cfcfcf; background: #fafafa;
     color: #111; text-align: center; font-weight: 600;
   }
+
   .calendar-modal {
     position: fixed; inset: 0; background: rgba(0,0,0,0.6);
     display: none; justify-content: center; align-items: center; z-index: 9999;
@@ -258,12 +268,33 @@
     background: #fff; padding: 20px; border-radius: 14px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.25); width: min(480px,92vw);
   }
-  .close-btn { width: 100%; margin-top: 12px; }
+  .calendar-controls {
+    display: flex; justify-content: center; align-items: center;
+    gap: 10px; margin-bottom: 8px;
+  }
+  .btn-calnav {
+    background: #f1f1f1; border: 1px solid #ccc; border-radius: 6px;
+    width: 30px; height: 30px; font-weight: bold; cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .btn-calnav:hover { background: #e2e2e2; }
+  #monthLabel { font-weight: 700; font-size: 1.1em; min-width: 120px; text-align: center; }
+  #yearSelect { padding: 4px 6px; font-size: 1em; }
+  #calendarDays {
+    display: grid; grid-template-columns: repeat(7,1fr);
+    gap: 4px; text-align: center; font-weight: 600; font-size: 0.9em;
+  }
+  .day-cell {
+    padding: 8px; border-radius: 6px; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .day-cell:hover { background: #eaeaea; }
+  .day-cell.today { background: #cde9ff; }
+  .day-cell.selected { background: #00b56a; color: white; }
   @keyframes calFadeIn { from { opacity: 0 } to { opacity: 1 } }
 </style>
 
 <script>
-/* 🗓️ VanillaCalendar – finální verze s univerzálním klikem */
 (function(){
   if (window.__wgsCalInit) return;
   window.__wgsCalInit = true;
@@ -280,92 +311,87 @@
   const inputPozadavek = document.getElementById("datum_pozadavek");
   const inputNavsteva  = document.getElementById("datum_navsteva");
 
-  function loadCalendarLib(cb){
-    if (window.VanillaCalendar) return cb();
-    const s = document.createElement("script");
-    s.src = "vanilla-calendar.min.js";
-    s.onload = cb;
-    s.onerror = () => {
-      const cdn = document.createElement("script");
-      cdn.src = "https://cdn.jsdelivr.net/gh/UmalGhosh/vanilla-calendar@2.8.1/build/vanilla-calendar.min.js";
-      cdn.onload = cb;
-      cdn.onerror = () => console.error("❌ VanillaCalendar se nepodařilo načíst.");
-      document.head.appendChild(cdn);
-    };
-    document.head.appendChild(s);
+  const monthLabel = document.getElementById("monthLabel");
+  const yearSelect = document.getElementById("yearSelect");
+  const daysContainer = document.getElementById("calendarDays");
+  const months = ["Leden","Únor","Březen","Duben","Květen","Červen","Červenec","Srpen","Září","Říjen","Listopad","Prosinec"];
+
+  let current = new Date();
+
+  // Naplnění seznamu let
+  const currentYear = new Date().getFullYear();
+  for(let y=currentYear-5; y<=currentYear+1; y++){
+    const opt = document.createElement("option");
+    opt.value = y;
+    opt.textContent = y;
+    if(y===current.getFullYear()) opt.selected = true;
+    yearSelect.appendChild(opt);
   }
 
-  function makeOrGetCalendar(){
-    if (!window.__wgsVanillaCalendar) {
-      window.__wgsVanillaCalendar = new VanillaCalendar("#vanillaCalendar", {
-        settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
-        actions: {
-          clickDay: (e) => handleCalendarClick(e)
-        }
-      });
-      window.__wgsVanillaCalendar.init();
+  function renderCalendar(){
+    monthLabel.textContent = months[current.getMonth()];
+    yearSelect.value = current.getFullYear();
+    daysContainer.innerHTML = "";
+
+    const firstDay = new Date(current.getFullYear(), current.getMonth(), 1);
+    const startDay = (firstDay.getDay() + 6) % 7; // pondělí jako první
+    const daysInMonth = new Date(current.getFullYear(), current.getMonth()+1, 0).getDate();
+
+    for(let i=0; i<startDay; i++){
+      const empty = document.createElement("div");
+      daysContainer.appendChild(empty);
+    }
+
+    for(let d=1; d<=daysInMonth; d++){
+      const btn = document.createElement("div");
+      btn.className = "day-cell";
+      btn.textContent = d;
+
+      const iso = `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+      btn.dataset.day = iso;
+
+      const todayISO = new Date().toISOString().split("T")[0];
+      if (iso === todayISO) btn.classList.add("today");
+
+      btn.onclick = ()=>{
+        if (!targetHidden || !targetLabel) return;
+        targetHidden.value = iso;
+        targetLabel.textContent = iso;
+        modal.classList.remove("active");
+      };
+
+      daysContainer.appendChild(btn);
     }
   }
 
-  // 🧠 Centrální handler výběru dne
-  function handleCalendarClick(e){
-    e.preventDefault();
-    e.stopPropagation();
-    const btn = e?.target?.closest(".vanilla-calendar-day__btn");
-    if (!btn) return;
-    const chosen = btn.dataset.calendarDay;
-    if (!chosen || !targetHidden || !targetLabel) return;
-    targetHidden.value = chosen;
-    targetLabel.textContent = chosen;
-    modal.classList.remove("active");
-    targetHidden = null;
-    targetLabel  = null;
-  }
-
-  // 🩹 Fallback: zachytí kliknutí na dny i když knihovna selže
-  document.addEventListener("click", (e)=>{
-    if (!modal.classList.contains("active")) return;
-    if (e.target.closest(".vanilla-calendar-day__btn")) {
-      handleCalendarClick(e);
-    }
-  });
+  document.getElementById("prevMonth").onclick = ()=>{
+    current.setMonth(current.getMonth()-1);
+    renderCalendar();
+  };
+  document.getElementById("nextMonth").onclick = ()=>{
+    current.setMonth(current.getMonth()+1);
+    renderCalendar();
+  };
+  yearSelect.onchange = ()=>{
+    current.setFullYear(parseInt(yearSelect.value));
+    renderCalendar();
+  };
 
   function openCalendar(forHidden, forLabel){
     targetHidden = forHidden;
     targetLabel  = forLabel;
-
-    if (window.VanillaCalendar) {
-      makeOrGetCalendar();
-      modal.classList.add("active");
-    } else {
-      loadCalendarLib(() => {
-        makeOrGetCalendar();
-        modal.classList.add("active");
-      });
-    }
+    renderCalendar();
+    modal.classList.add("active");
   }
 
-  btnPozadavek.addEventListener("click", (ev)=>{
-    ev.preventDefault(); ev.stopPropagation();
-    openCalendar(inputPozadavek, lblPozadavek);
-  });
-
-  btnNavsteva.addEventListener("click", (ev)=>{
-    ev.preventDefault(); ev.stopPropagation();
-    openCalendar(inputNavsteva, lblNavsteva);
-  });
-
-  btnClose.addEventListener("click", (ev)=>{
-    ev.preventDefault();
-    modal.classList.remove("active");
-  });
-
-  modal.addEventListener("click", (e)=>{
-    if (e.target === modal) modal.classList.remove("active");
-  });
+  btnPozadavek.onclick = (e)=>{ e.preventDefault(); openCalendar(inputPozadavek, lblPozadavek); };
+  btnNavsteva.onclick  = (e)=>{ e.preventDefault(); openCalendar(inputNavsteva, lblNavsteva); };
+  btnClose.onclick     = ()=> modal.classList.remove("active");
+  modal.onclick         = (e)=>{ if (e.target===modal) modal.classList.remove("active"); };
 })();
 </script>
-<!-- 🟨 KONEC ČÁSTI 3/10 – KALENDÁŘE (oprava výběru data) -->
+<!-- 🟨 KONEC ČÁSTI 3/10 – KALENDÁŘE (rozšířený výběr roku) -->
+
 
 
 
