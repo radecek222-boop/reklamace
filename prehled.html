@@ -325,29 +325,22 @@ const cnbInfo           = document.getElementById("cnbInfo");
 
 
 
-<!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 4 – Načtení kurzu EUR/CZK (spolehlivější zdroj + zálohy) -->
+<!-- 🔹 Sekce 4 – Načtení kurzu EUR/CZK (spolehlivější zdroj + zálohy) -->
 <script>
 async function loadCNBrate() {
   let source = "exchangerate.host";
-
   try {
-    // 🟢 1️⃣ Primární – exchangerate.host API
     const resp = await fetch("https://api.exchangerate.host/latest?base=EUR&symbols=CZK");
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
-
-    if (data && typeof data === "object" && data.rates && typeof data.rates.CZK === "number") {
+    if (data && data.rates && typeof data.rates.CZK === "number") {
       cnbRate = data.rates.CZK;
       cnbRateDate = data.date || new Date().toISOString().split("T")[0];
       source = "exchangerate.host";
       console.log(`📈 Kurz EUR/CZK z exchangerate.host: ${cnbRate} (${cnbRateDate})`);
-    } else {
-      throw new Error("Neplatná data z API");
-    }
+    } else throw new Error("Neplatná data z API");
   } catch (err) {
     console.warn("⚠️ Nelze načíst kurz z exchangerate.host:", err);
-
-    // 🟡 2️⃣ Fallback – GitHub záloha
     try {
       const res = await fetch("https://radecek222-boop.github.io/reklamace/lastRate.json?t=" + Date.now());
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -357,13 +350,9 @@ async function loadCNBrate() {
         cnbRateDate = backup.date || "neuvedeno";
         source = "GitHub záloha";
         console.log(`💾 Kurz EUR/CZK z GitHub záloha: ${cnbRate} (${cnbRateDate})`);
-      } else {
-        throw new Error("Neplatná data zálohy");
-      }
+      } else throw new Error("Neplatná data zálohy");
     } catch (err2) {
       console.error("❌ Nepodařilo se načíst ani GitHub zálohu:", err2);
-
-      // 🔴 3️⃣ Poslední možnost – localStorage
       const stored = JSON.parse(localStorage.getItem("lastCnbRate") || "{}");
       if (stored.value) {
         cnbRate = stored.value;
@@ -374,7 +363,6 @@ async function loadCNBrate() {
     }
   }
 
-  // 💾 Uložení aktuálního kurzu
   if (cnbRate && cnbRateDate) {
     localStorage.setItem("lastCnbRate", JSON.stringify({
       value: cnbRate,
@@ -383,7 +371,6 @@ async function loadCNBrate() {
     }));
   }
 
-  // 🧾 Výpis do konzole a do patičky
   const foot = document.getElementById("cnbInfo");
   if (foot) {
     if (cnbRate && cnbRateDate) {
@@ -397,6 +384,9 @@ async function loadCNBrate() {
   }
 }
 </script>
+
+
+  
 <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 6 – Zadavatelé (fixní + automatické doplnění nových + zpětná vazba) -->
 <script>
 async function loadClients() {
@@ -517,6 +507,7 @@ document.addEventListener("click", (e) => {
   }
 });
 </script>
+  
 <!-- 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 Sekce 8 – Načtení zakázek + vykreslení -->
 <script>
 /**
