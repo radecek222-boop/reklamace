@@ -234,10 +234,10 @@ tr.stav-hotovo:hover td {
 
 
 
-<!-- 🟦 SEKCE B – NAČÍTÁNÍ DAT + TABULKA + DEBUG -->
+<!-- 🟦 SEKCE B – NAČÍTÁNÍ DAT + TABULKA + DEBUG (2025-10-10 oprava) -->
 <script>
 /* ============================= */
-/* ⚙️ KONSTANTY A PROMĚNNÉ       */
+/* ⚙️ KONSTANTY A PROMĚNNÉ        */
 /* ============================= */
 const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
 const tableContainer = document.getElementById("tableContainer");
@@ -248,23 +248,30 @@ let dataAll = [];
 let stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
 
 /* ============================= */
-/* 🔄 AUTOMATICKÉ NAČÍTÁNÍ DAT   */
+/* 🔄 AUTOMATICKÉ NAČÍTÁNÍ DAT    */
 /* ============================= */
 setInterval(loadData, 120000); // každé 2 minuty
 
 /* ============================= */
-/* 🧭 NAČÍTÁNÍ DAT Z API          */
+/* 🧭 NAČÍTÁNÍ DAT Z WORKERU (iPhone-safe) */
 /* ============================= */
 async function loadData() {
-  console.log("📥 Načítám data z Workeru…");
+  console.log("📥 Načítám data z Workeru (iPhone-safe)…");
   tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
 
   try {
-    const res = await fetch(API_URL, { mode: "cors", cache: "no-store" });
-    if (!res.ok) throw new Error(`Chyba HTTP ${res.status}`);
+    const url = API_URL + "?t=" + Date.now();
+    const res = await fetch(url, {
+      method: "GET",
+      mode: "cors",        // ✅ umožní CORS v Safari na iPhonu
+      cache: "no-store",   // ✅ obejde cache
+      headers: { "Accept": "application/json" }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
     let data = await res.json();
 
-    // 🧠 Normalizace – zajistí, že vždy pracujeme s polem
+    // 🧠 Normalizace – vždy pracujeme s polem
     if (!Array.isArray(data)) {
       if (typeof data === "object" && Object.keys(data).length > 0) {
         data = Object.values(data);
@@ -274,7 +281,7 @@ async function loadData() {
     }
 
     console.log("📦 Worker data:", data);
-    updateDebug(data.length); // aktualizace panelu debug
+    updateDebug(data.length);
 
     if (data.length === 0) {
       tableContainer.innerHTML = "<div>Žádné záznamy</div>";
@@ -300,7 +307,7 @@ async function loadData() {
 }
 
 /* ============================= */
-/* 📋 VYKRESLENÍ TABULKY         */
+/* 📋 VYKRESLENÍ TABULKY          */
 /* ============================= */
 function renderTable(arr) {
   if (!arr || !arr.length) {
@@ -320,7 +327,6 @@ function renderTable(arr) {
     </thead>
     <tbody>`;
 
-  // 🧩 Smyčka přes všechny záznamy
   arr.forEach((r, i) => {
     const id = r.cislo || `radek-${i}`;
     const stav = stavy[id] || r.stav || "novy";
@@ -336,7 +342,7 @@ function renderTable(arr) {
            style="color:#000;font-weight:600;">${r.telefon.replace('+420','').trim()}</a>`
       : "–";
 
-    // 🟩 Nastavení barvy a textu podle stavu
+    // 🟩 Barva a text stavu
     let barva = "";
     let stavText = stav;
 
@@ -350,7 +356,6 @@ function renderTable(arr) {
       stavText = `${den} ${r.cas}`;
     }
 
-    // 🧱 Jeden řádek tabulky
     html += `
       <tr class="stav-${stav}" data-index="${i}" data-id="${id}">
         <td>${r.zakaznik || "–"}</td>
@@ -380,7 +385,6 @@ searchInput.addEventListener("input", () => {
     (r.adresa || "").toLowerCase().includes(q)
   ));
 });
-
 
 /* ============================= */
 /* 🔁 RUČNÍ NAČTENÍ DAT           */
@@ -418,6 +422,7 @@ function updateDebug(count) {
   <small>Aktualizace: <span id="debugTime">–</span></small>
 </div>
 <!-- 🟦 KONEC SEKCE B -->
+
 
  
 
