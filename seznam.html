@@ -1091,111 +1091,103 @@ function calcDistanceCoords(a, b, c, d) {
   padding: 10px;
 }
 
-/* 🗓️ Kalendář + čas */
-#miniCalendar { margin-bottom: 12px; }
-.custom-time-picker {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
+<style>
+/* 📅 Kalendář a hodiny vedle sebe */
+.date-time-row {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 10px;
+  align-items: stretch;
   margin-bottom: 10px;
 }
-.custom-time-picker select {
-  font-size: 1.1em;
-  font-weight: 600;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 5px 10px;
-}
 
-/* 🟨 Informační boxy */
-.info-box {
-  background: #f4f5f7;
-  border-radius: 10px;
-  padding: 12px 14px;
-  margin-bottom: 14px;
-  cursor: pointer;
-  transition: background .2s;
-}
-.info-box:hover { background: #e9ecf1; }
-.box-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 6px;
-}
-.box-content p {
-  margin: 3px 0;
-  font-size: 0.92em;
-}
-.icon {
-  font-size: 1.1em;
-  color: #555;
-}
-
-/* 🟦 Tlačítka vlevo */
-.left-buttons {
+/* 🕒 Moderní hodiny – zarovnané k horní hraně kalendáře */
+.time-picker-modern {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 10px;
+  justify-content: flex-start; /* zarovnání k hornímu okraji */
+  align-items: center;
+  height: 100%;                 /* výška se přizpůsobí výšce kalendáře */
+  box-sizing: border-box;
+  position: relative;
 }
-.btn-action {
-  padding: 10px;
+
+/* Ikona hodin */
+.clock-button {
+  background: none;
   border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  color: #fff;
   cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-}
-.btn-green  { background: linear-gradient(135deg, #28a745, #6fdd72); }
-.btn-orange { background: linear-gradient(135deg, #ff9800, #ffc270); color: #222; }
-.btn-red    { background: linear-gradient(135deg, #dc3545, #f87171); }
-.btn-gray   { background: linear-gradient(135deg, #6c757d, #a0a4a7); }
-.btn-blue   { background: linear-gradient(135deg, #0046ff, #357aff); color: #fff; }
-
-/* 🧩 Prostor mapy */
-.distance-banner {
-  background: #f6f6f6;
-  border-radius: 8px;
-  padding: 8px;
-  text-align: center;
-  font-weight: 600;
-  margin: 10px 0;
-}
-#mapDetail {
-  height: 280px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  margin-top: 8px;
-}
-
-/* 🔁 Animace term-info boxu */
-.term-info-box {
-  background: #f0f0f0;
   padding: 10px;
+  margin-top: 0;                /* zarovná přesně s horním okrajem */
+  transition: transform .25s ease, opacity .25s ease;
+}
+.clock-button:hover {
+  transform: scale(1.1);
+  opacity: .8;
+}
+.clock-icon {
+  width: 72px;
+  height: 72px;
+  color: #111;
+  stroke: #222;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Dropdown pro výběr času */
+.time-dropdown {
+  position: absolute;
+  bottom: 6px;                  /* spodní hrana zarovnaná s dolní hranou kalendáře */
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 6px 10px;
+  display: none;
+  box-shadow: 0 3px 10px rgba(0,0,0,.15);
+  gap: 6px;
+  font-weight: 600;
+}
+.time-dropdown.show {
+  display: flex;
+  align-items: center;
+}
+.time-dropdown select {
+  font-size: 1em;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+.time-dropdown span {
+  font-size: 1.1em;
+  font-weight: 700;
+  color: #222;
+}
+
+/* Info box s vybraným termínem */
+.term-info-box {
+  background: #f3f3f3;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 6px 8px;
   text-align: center;
   font-weight: 600;
-  border-radius: 8px;
+  color: #555;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-top: 8px;
-  transition: background .3s;
 }
-.flash-gray { animation: flashGray .4s; }
-.flash-green { animation: flashGreen .5s 2; }
-@keyframes flashGray { 0%{background:#d6d6d6;}100%{background:#f0f0f0;} }
-@keyframes flashGreen { 0%,100%{background:#b6f7a8;}50%{background:#d8ffd2;} }
 
-/* 📱 Mobilní úpravy */
-@media (max-width: 700px) {
-  .grid-layout { grid-template-columns: 1fr; }
-  .left-buttons { flex-direction: column; }
-  #mapDetail { height: 240px; }
-  .detail-modal { padding: 10px; }
+/* 📱 Mobilní přizpůsobení */
+@media (max-width:700px){
+  .date-time-row { grid-template-columns: 1fr; }
+  .clock-icon { width: 56px; height: 56px; }
+  .time-picker-modern { height: auto; align-items: flex-start; }
+  .time-dropdown { position: relative; bottom: auto; margin-top: 6px; }
 }
 </style>
+
 <!-- 🟩 KONEC C-STYLE -->
 
 
