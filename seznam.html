@@ -590,7 +590,7 @@ function initCalendarAndTime(overlay, item, index) {
 
 
 
-<!-- 🟩 C-4: LOGIKA TLAČÍTEK – bez ikon, jednotný vzhled -->
+<!-- 🟩 C-4: LOGIKA TLAČÍTEK – jednotný vzhled + černé písmo -->
 <script>
 function initDetailButtons(overlay, item, index) {
   const id = item.cislo || `radek-${index}`;
@@ -644,30 +644,48 @@ function initDetailButtons(overlay, item, index) {
 </script>
 
 <style>
+/* 🎨 Styl všech tlačítek v detailu */
 .btn-action {
   width: 100%;
   padding: 11px 0;
-  font-family: Inter, sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 0.95em;
   font-weight: 500;
   border: none;
   border-radius: 8px;
-  color: #000; /* černý text */
+  color: #000 !important;          /* ✅ pevně černé písmo */
+  background: #eee;
   cursor: pointer;
   transition: opacity 0.2s ease, transform 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
 }
-.btn-action:hover { opacity: 0.85; transform: scale(1.02); }
+.btn-action:hover {
+  opacity: 0.88;
+  transform: scale(1.02);
+}
 
-/* 🎨 Barvy */
-.btn-green   { background: linear-gradient(135deg, #7ad67f, #a6f3a9); }
-.btn-purple  { background: linear-gradient(135deg, #d3a4ff, #b87dfd); }
-.btn-blue    { background: linear-gradient(135deg, #a7c7ff, #84a9ff); }
-.btn-gray    { background: linear-gradient(135deg, #cccccc, #eeeeee); }
-.btn-darkgray{ background: linear-gradient(135deg, #b0b0b0, #d0d0d0); }
-.btn-reflex  { background: linear-gradient(135deg, #9dff00, #b8ff4d); }
+/* 🎨 Barevné varianty */
+.btn-green   { background: linear-gradient(135deg, #8bf58b, #b6ffb6); }
+.btn-purple  { background: linear-gradient(135deg, #d4b5ff, #b993ff); }
+.btn-blue    { background: linear-gradient(135deg, #bcd5ff, #8fb7ff); }
+.btn-gray    { background: linear-gradient(135deg, #dadada, #eeeeee); }
+.btn-darkgray{ background: linear-gradient(135deg, #c0c0c0, #d8d8d8); }
+.btn-reflex  { background: linear-gradient(135deg, #aaff00, #c8ff4d); }
+
+/* jednotné mezery v blocích */
+.btn-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.btn-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 </style>
 <!-- 🟩 KONEC C-4 -->
+
 
 
 
