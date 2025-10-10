@@ -718,7 +718,7 @@ function initCalendarAndTime(overlay, item, index) {
 </script>
 <!-- 🟩 KONEC C-3 -->
 
-<!-- 🟩 C-4: TLAČÍTKA AKCÍ – včetně „Kontaktovat zákazníka“ -->
+<!-- 🟩 C-4: TLAČÍTKA AKCÍ – aktualizováno, odstraněna „Nezvedá“ a „Zrušil“ -->
 <script>
 function initDetailButtons(overlay, item, index) {
   const id = item.cislo || `radek-${index}`;
@@ -743,28 +743,16 @@ function initDetailButtons(overlay, item, index) {
     ulozitTerminNaGitHub(item, id, datum, cas, overlay, overlay.querySelector("#saveTermBtn"), infoBox);
   };
 
-  /* 📩 NEZVEDÁ (SMS) */
-  overlay.querySelector("#noAnswerBtn").onclick = () => {
-    stavy[id] = "nezveda"; item.stav = "nezveda";
-    setNextToast("📩 SMS o nezvednutí byla připravena", "warning");
-    if (item.telefon) {
-      const tel = item.telefon.replace(/\+?420|\s+/g, "");
-      const sms = "Dobrý den, volali jsme ohledně Vaší reklamace. Prosím ozvěte se zpět. WGS";
-      window.location.href = `sms:+420${tel}?body=${encodeURIComponent(sms)}`;
-    }
-    overlay.remove(); renderTable(dataAll);
-  };
-
   /* 🟣 ZÁKAZNÍK ČEKÁ NA DÍLY – uloží i na GitHub */
   setTimeout(() => {
     const leftButtons = overlay.querySelector(".left-buttons");
-    const cancelBtn = overlay.querySelector("#cancelBtn");
-    if (leftButtons && cancelBtn) {
+    const closeBtn = overlay.querySelector("#closeBtn");
+    if (leftButtons && closeBtn) {
       const waitBtn = document.createElement("button");
       waitBtn.id = "waitBtn";
       waitBtn.className = "btn-action btn-purple";
       waitBtn.textContent = "Zákazník čeká na díly";
-      leftButtons.insertBefore(waitBtn, cancelBtn);
+      leftButtons.insertBefore(waitBtn, closeBtn);
 
       waitBtn.onclick = async () => {
         try {
@@ -785,18 +773,6 @@ function initDetailButtons(overlay, item, index) {
       };
     }
   }, 150);
-
-  /* ❌ ZÁKAZNÍK ZRUŠIL */
-  overlay.querySelector("#cancelBtn").onclick = () => {
-    stavy[id] = "zruseno"; item.stav = "zruseno";
-    setNextToast("❌ Termín zrušen", "error");
-    if (item.telefon) {
-      const tel = item.telefon.replace(/\+?420|\s+/g, "");
-      const sms = "Dobrý den, Váš termín servisu byl zrušen na základě Vašeho požadavku. WGS";
-      window.location.href = `sms:+420${tel}?body=${encodeURIComponent(sms)}`;
-    }
-    overlay.remove(); renderTable(dataAll);
-  };
 
   /* 🔙 ZPĚT */
   overlay.querySelector("#closeBtn").onclick = () => overlay.remove();
@@ -904,6 +880,7 @@ function openContactModal(item, index, overlay) {
 }
 </style>
 <!-- 🟩 KONEC C-4 -->
+
 
 
 
