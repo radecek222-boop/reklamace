@@ -539,6 +539,104 @@ document.addEventListener("DOMContentLoaded", () => {
 </footer>
 
 </div> <!-- wrapper -->
+
+
+
+<!-- 🟩 ZAČÁTEK SEKCE 4/4 – EXPORT DO PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+window.generatePdf = async function(){
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("p","mm","a4");
+  const margin = 15;
+  let y = 25;
+  const lineHeight = 6;
+  const data = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
+
+  // 🧾 HLAVIČKA
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(18);
+  pdf.text("WHITE GLOVE SERVICE", margin, y);
+  y += 10;
+
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(11);
+  if (data.zakaznik) { pdf.text(`Customer: ${data.zakaznik}`, margin, y); y += lineHeight; }
+  if (data.adresa) { pdf.text(`Address: ${data.adresa}`, margin, y); y += lineHeight; }
+  if (data.cislo) { pdf.text(`Order number: ${data.cislo}`, margin, y); y += 10; }
+
+  // 🖼 SEZNAM SEKČÍ
+  const sections = [
+    { id:"before", label:"BEFORE" },
+    { id:"id", label:"ID" },
+    { id:"problem", label:"DETAIL BUG" },
+    { id:"repair", label:"REPAIR" },
+    { id:"after", label:"AFTER" }
+  ];
+
+  for (const sec of sections) {
+    const el = document.getElementById("preview-" + sec.id);
+    if (!el || !el.children.length) continue;
+
+    // Nadpis sekce
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(13);
+    pdf.text(sec.label, margin, y);
+    y += 5;
+
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(10);
+
+    // Shromáždíme všechny miniatury
+    const imgs = Array.from(el.querySelectorAll("img"));
+    const imgSize = 85;     // šířka obrázku v PDF (mm)
+    const gap = 10;
+    let x = margin;
+
+    for (let i = 0; i < imgs.length; i++) {
+      const img = imgs[i];
+      const canvas = await html2canvas(img, { scale: 2 });
+      const imgData = canvas.toDataURL("image/jpeg", 0.9);
+
+      // nová řádka po dvou fotkách
+      if (i % 2 === 0 && i > 0) {
+        y += imgSize / 2 + 8;
+        x = margin;
+      }
+
+      // nová stránka, pokud se nevejde
+      if (y + imgSize / 2 + 25 > 285) {
+        pdf.addPage();
+        y = 25;
+      }
+
+      pdf.addImage(imgData, "JPEG", x, y, imgSize, imgSize / 2);
+      x += imgSize + gap;
+    }
+
+    y += imgSize / 2 + 14;
+  }
+
+  // 📅 DATUM GENEROVÁNÍ
+  const today = new Date().toLocaleDateString("cs-CZ");
+  pdf.setFont("helvetica", "italic");
+  pdf.setFontSize(9);
+  pdf.text(`Generated on ${today}`, margin, 290);
+
+  // 💾 ULOŽENÍ
+  const filename = data.cislo
+    ? `photo_${data.cislo}.pdf`
+    : "photo_report.pdf";
+  pdf.save(filename);
+};
+</script>
+<!-- 🟩 KONEC SEKCE 4/4 – EXPORT DO PDF -->
+
+
+  
+  
 </body>
 </html>
 <!-- 🟩 KONEC ČÁSTI 3/3 -->
