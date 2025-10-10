@@ -1168,6 +1168,87 @@ function calcDistanceCoords(a, b, c, d) {
 </style>
 <!-- 🟩 KONEC C-STYLE -->
 
+<!-- 🟩 C-6: EDITACE ZÁKAZNÍKA A POPISU -->
+<script>
+function openCustomerDetail(item, overlay) {
+  const box = overlay.querySelector("#customerBox");
+  const content = box.querySelector(".box-content");
+
+  // HTML formulář pro editaci
+  content.innerHTML = `
+    <label>Jméno:<br><input id="editZakaznik" value="${item.zakaznik || ""}" /></label><br>
+    <label>Adresa:<br><input id="editAdresa" value="${item.adresa || ""}" /></label><br>
+    <label>Telefon:<br><input id="editTelefon" value="${item.telefon || ""}" /></label><br>
+    <label>Email:<br><input id="editEmail" value="${item.email || ""}" /></label><br>
+    <label>Produkt / model:<br><input id="editProdukt" value="${item.produkt || ""}" /></label><br>
+    <button id="saveCustomerBtn" class="btn-green">💾 Uložit</button>
+    <button id="cancelCustomerBtn" class="btn-gray">Zrušit</button>
+  `;
+
+  // tlačítka
+  content.querySelector("#saveCustomerBtn").onclick = async () => {
+    item.zakaznik = content.querySelector("#editZakaznik").value.trim();
+    item.adresa = content.querySelector("#editAdresa").value.trim();
+    item.telefon = content.querySelector("#editTelefon").value.trim();
+    item.email = content.querySelector("#editEmail").value.trim();
+    item.produkt = content.querySelector("#editProdukt").value.trim();
+
+    try {
+      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update", record: item })
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      setNextToast("✅ Údaje zákazníka byly uloženy", "success");
+      overlay.remove();
+      renderTable(dataAll);
+    } catch (err) {
+      alert("❌ Chyba při ukládání: " + err.message);
+    }
+  };
+
+  content.querySelector("#cancelCustomerBtn").onclick = () => overlay.remove();
+}
+
+function openPopisEditor(item, overlay) {
+  const box = overlay.querySelector("#popisBox");
+  const content = box.querySelector(".box-content");
+
+  // textarea pro popis závady
+  content.innerHTML = `
+    <textarea id="editPopis" style="width:100%;min-height:120px;
+      border-radius:8px;border:1px solid #ccc;padding:6px;">${item.popis || ""}</textarea>
+    <div style="margin-top:8px;text-align:right;">
+      <button id="savePopisBtn" class="btn-green">💾 Uložit</button>
+      <button id="cancelPopisBtn" class="btn-gray">Zrušit</button>
+    </div>
+  `;
+
+  content.querySelector("#savePopisBtn").onclick = async () => {
+    item.popis = content.querySelector("#editPopis").value.trim();
+
+    try {
+      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update", record: item })
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      setNextToast("✅ Popis závady uložen", "success");
+      overlay.remove();
+      renderTable(dataAll);
+    } catch (err) {
+      alert("❌ Chyba při ukládání: " + err.message);
+    }
+  };
+
+  content.querySelector("#cancelPopisBtn").onclick = () => overlay.remove();
+}
+</script>
+<!-- 🟩 KONEC C-6 -->
+
+
 
 
 
