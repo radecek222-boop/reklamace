@@ -715,9 +715,17 @@ function openDetail(index) {
             <div id="miniCalendar"></div>
 
             <div class="date-right-column">
-              <div class="custom-time-picker">
-                <select id="hours"></select><span>:</span><select id="minutes"></select>
+              <!-- 🕒 Nové moderní hodiny -->
+              <div class="modern-time-picker">
+                <div class="clock-icon" id="openTimePicker">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="black" viewBox="0 0 24 24">
+                    <path d="M12 1a11 11 0 1 0 0 22 11 11 0 0 0 0-22zm0 20a9 9 0 1 1 0-18 9 9 0 0 1 0 18z"/>
+                    <path d="M12.5 7h-1v6l4.5 2.5.5-.9-4-2.3V7z"/>
+                  </svg>
+                </div>
+                <input type="time" id="hiddenTimeInput" step="300" class="hidden-time-input">
               </div>
+
               <div class="term-info-box" id="termInfoBox">Není vybrán datum a čas</div>
             </div>
           </div>
@@ -778,7 +786,7 @@ function initDetailButtons(overlay, item, index) {
 
   overlay.querySelector("#saveTermBtn").onclick = () => {
     const datum = overlay.dataset.datum;
-    const cas = `${overlay.querySelector("#hours").value}:${overlay.querySelector("#minutes").value}`;
+    const cas = overlay.querySelector("#hiddenTimeInput").value;
     if (!datum || !cas) return alert("Vyberte datum a čas!");
     ulozitTerminNaGitHub(item, id, datum, cas, overlay, overlay.querySelector("#saveTermBtn"), infoBox);
   };
@@ -817,117 +825,62 @@ function initDetailButtons(overlay, item, index) {
 </script>
 
 <style>
-/* 🗓️ + ⏰ rozložení */
-.date-time-row {
-  display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: 12px;
-  align-items: stretch;
-  margin-bottom: 10px;
+/* 🕒 Moderní černé hodiny (náhrada původních selectů) */
+.modern-time-picker {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#f8f8f8;
+  border-radius:10px;
+  padding:14px 0;
+  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+  cursor:pointer;
 }
-#miniCalendar {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  min-height: 280px;
+.clock-icon {
+  transition:transform .3s ease, opacity .3s ease;
 }
-.date-right-column {
-  display: grid;
-  grid-template-rows: 1fr auto;
-  gap: 12px;
-  height: 100%;
-}
-
-/* ⏰ čas */
-.custom-time-picker {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  background: #f8f8f8;
-  border-radius: 10px;
-  padding: 10px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}
-.custom-time-picker select {
-  font-size: 1.05em;
-  font-weight: 600;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 5px 10px;
-}
-
-/* 🔔 informační box */
-.term-info-box {
-  background: #f3f3f3;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 10px 12px;
-  text-align: center;
-  font-family: "Inter", sans-serif;
-  font-weight: 600;
-  color: #555;
-  height: 45px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  transition: background 0.4s, color 0.4s;
-}
-.flash-green {
-  animation: flashGreen 1.2s ease;
-}
-@keyframes flashGreen {
-  0%   { background:#d5f8d5; color:#116d2b; }
-  50%  { background:#e9ffe9; color:#116d2b; }
-  100% { background:#f3f3f3; color:#555; }
-}
-
-/* 🟩 DLAŽDICE 2×3 */
-.tile-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 15px;
-}
-.tile-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  height: 85px;
-  border: none;
-  border-radius: 12px;
-  font-family: "Inter", sans-serif;
-  font-size: 0.95em;
-  font-weight: 600;
-  color: #fff;
-  cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
-.tile-btn:hover { transform: scale(1.03); opacity: 0.9; }
-
-/* barvy */
-.btn-grayContact { background: linear-gradient(135deg,#888,#aaa); }
-.btn-lightgray   { background: linear-gradient(135deg,#aaa,#ccc); }
-.btn-green       { background: linear-gradient(135deg,#4caf50,#6fdd72); }
-.btn-purple      { background: linear-gradient(135deg,#b993ff,#d4b5ff); }
-.btn-blue        { background: linear-gradient(135deg,#357aff,#6fa8ff); }
-@keyframes blinkRed {
-  0%,100% { background: linear-gradient(135deg,#ff4d4d,#ff8080); }
-  50%     { background: linear-gradient(135deg,#ff7373,#ffa0a0); }
-}
-.btn-redBlink { animation: blinkRed 1.5s infinite; }
-
-/* 📱 stejné rozložení i na mobilu */
-@media (max-width: 700px) {
-  .date-time-row { grid-template-columns: 1fr 0.9fr; }
-  .tile-grid { grid-template-columns: 1fr 1fr; }
-  .tile-btn { height: 75px; font-size: 0.9em; }
+.clock-icon:hover { transform:scale(1.1); opacity:.85; }
+.hidden-time-input {
+  position:absolute;
+  opacity:0;
+  width:0;
+  height:0;
+  border:none;
 }
 </style>
+<script>
+// 💡 Aktivuje animaci ikonky hodin, dokud není čas zvolen
+document.addEventListener("click", e => {
+  if (e.target.closest(".clock-icon")) return; // neřeší opakované kliknutí
+  const overlay = document.querySelector(".detail-overlay.active");
+  if (!overlay) return;
+
+  const timeInput = overlay.querySelector("#hiddenTimeInput");
+  const clock = overlay.querySelector(".clock-icon");
+
+  if (timeInput && clock && !timeInput.value) {
+    clock.classList.add("pulse-clock");
+  }
+
+  timeInput?.addEventListener("change", () => {
+    clock.classList.remove("pulse-clock");
+  }, { once: true });
+});
+</script>
+
+<style>
+/* 💫 Efekt jemného pulzování ikonky hodin, dokud není vybrán čas */
+.pulse-clock {
+  animation: pulseClock 1.6s ease-in-out infinite;
+}
+@keyframes pulseClock {
+  0%,100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.12); opacity: 0.7; }
+}
+</style>
+
 <!-- 🟩 KONEC C-1 + C-4 -->
+
 
 
 
@@ -963,33 +916,92 @@ function initMapForDetail(overlay, item) {
 <!-- 🟩 KONEC C-2 -->
 
 
-<!-- 🟩 C-3: KALENDÁŘ A ČAS -->
+<!-- 🟩 C-3: KALENDÁŘ A ČAS (moderní SVG hodiny, iPhone kompatibilní) -->
 <script>
 function initCalendarAndTime(overlay, item, index) {
   const infoBox = overlay.querySelector("#termInfoBox");
+
+  // 📅 Vanilla Calendar
   const miniCal = new VanillaCalendar("#miniCalendar", {
     settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
-    actions: { clickDay: e => {
-      const chosen = e.target.dataset.calendarDay;
-      if (chosen) {
-        overlay.dataset.datum = chosen;
-        updateTermInfoBox(infoBox, chosen, null);
-        flashBox(infoBox, "gray");
+    actions: {
+      clickDay: e => {
+        const chosen = e.target.dataset.calendarDay;
+        if (chosen) {
+          overlay.dataset.datum = chosen;
+          updateTermInfoBox(infoBox, chosen, null);
+          flashBox(infoBox, "gray");
+        }
       }
-    } }
+    }
   });
   miniCal.init();
 
-  // hodiny
-  const hSel = overlay.querySelector("#hours"), mSel = overlay.querySelector("#minutes");
-  for (let h = 7; h < 20; h++) hSel.innerHTML += `<option>${String(h).padStart(2,"0")}</option>`;
-  for (let m = 0; m < 60; m += 5) mSel.innerHTML += `<option>${String(m).padStart(2,"0")}</option>`;
-  hSel.addEventListener("change", () => updateTime(infoBox, overlay));
-  mSel.addEventListener("change", () => updateTime(infoBox, overlay));
+  // ⏰ SVG hodiny + skrytý input
+  const timeInput = overlay.querySelector("#hiddenTimeInput");
+  const clockIcon = overlay.querySelector("#openTimePicker");
+
+  // otevře systémový time-picker (Safari / iPhone)
+  clockIcon.addEventListener("click", () => {
+    try { timeInput.showPicker(); }
+    catch { timeInput.focus(); }
+  });
+
+  // po výběru času
+  timeInput.addEventListener("change", () => {
+    const val = timeInput.value;
+    if (val) {
+      overlay.dataset.cas = val;
+      const [h, m] = val.split(":");
+      updateTermInfoBox(infoBox, overlay.dataset.datum, `${h}:${m}`);
+      flashBox(infoBox, "green");
+    }
+  });
 }
 </script>
-<!-- 🟩 KONEC C-3 -->
 
+<style>
+/* 🕒 Moderní černé SVG hodiny + time picker (iPhone kompatibilní) */
+.modern-time-picker {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#f8f8f8;
+  border-radius:10px;
+  padding:14px 0;
+  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+  cursor:pointer;
+}
+.clock-icon {
+  transition:transform .3s ease, opacity .3s ease;
+}
+.clock-icon:hover { transform:scale(1.1); opacity:.85; }
+
+/* ⚙️ Skrytý input – musí zůstat kliknutelný pro showPicker() */
+.hidden-time-input {
+  position:absolute;
+  opacity:0;
+  width:0;
+  height:0;
+  border:none;
+}
+
+/* 🪄 Informační box */
+.term-info-box {
+  background:#f3f3f3;
+  border:1px solid #ddd;
+  border-radius:10px;
+  padding:10px 12px;
+  text-align:center;
+  font-weight:600;
+  color:#555;
+  height:45px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+</style>
+<!-- 🟩 KONEC C-3 -->
 
 
 
