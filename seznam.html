@@ -511,7 +511,7 @@ function updateDebug(count) {
 <!-- 🟦 KONEC SEKCE B -->
 
 
-<!-- 🟦 ZAČÁTEK B-2 – MOBILNÍ BLOKY (FINÁLNÍ ZAROVNÁNÍ A ROZESTUPY) -->
+<!-- 🟦 ZAČÁTEK B-2 – MOBILNÍ BLOKY (FINÁLNÍ ZAROVNÁNÍ A BARVY) -->
 <script>
 function normalizeAddress(address) {
   if (!address) return "Neznámá adresa";
@@ -590,15 +590,18 @@ function renderMobileBlocks(arr) {
 </script>
 
 <style>
+/* 📱 Kontejner – přesná šířka jako tlačítka */
 .mob-container {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: 100%;
+  width: calc(100% + 50px);
+  margin-left: -25px;
+  margin-right: -25px;
   margin-top: 5px;
 }
 
-/* 📦 blok */
+/* 📦 Jeden blok */
 .mob-block {
   width: 100%;
   border-radius: 10px;
@@ -614,7 +617,7 @@ function renderMobileBlocks(arr) {
   box-shadow: 0 3px 8px rgba(0,0,0,0.15);
 }
 
-/* horní řádek – adresa + Waze */
+/* 🏷️ Horní řádek – adresa + Waze */
 .mob-top {
   display: flex;
   justify-content: space-between;
@@ -638,7 +641,7 @@ function renderMobileBlocks(arr) {
   text-decoration: none;
 }
 
-/* prostřední řádek – stav + telefon */
+/* 📅 Prostřední řádek – stav + telefon */
 .mob-mid {
   display: flex;
   justify-content: space-between;
@@ -662,9 +665,11 @@ function renderMobileBlocks(arr) {
   text-decoration: none;
   font-size: 1.1em;
   box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+  position: relative;
+  bottom: 0;
 }
 
-/* spodní řádek – jméno */
+/* 👤 Spodní řádek – jméno */
 .mob-name {
   margin-top: 2px;
   font-size: 0.95em;
@@ -672,13 +677,14 @@ function renderMobileBlocks(arr) {
   color: #000;
 }
 
-/* efekt blikání nových */
+/* ✨ Efekt blikání pro nové */
 @keyframes blinkRow {
   0%,100% { background:#fff9b1; }
   50% { background:#fff06b; }
 }
 </style>
-<!-- 🟦 KONEC B-2 – MOBILNÍ BLOKY (FINÁLNÍ ZAROVNÁNÍ A ROZESTUPY) -->
+<!-- 🟦 KONEC B-2 – MOBILNÍ BLOKY (FINÁLNÍ ZAROVNÁNÍ A BARVY) -->
+
 
 
 
