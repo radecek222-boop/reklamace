@@ -776,24 +776,31 @@ function initDetailButtons(overlay, item, index) {
   const id = item.cislo || `radek-${index}`;
   const infoBox = overlay.querySelector("#termInfoBox");
 
-  overlay.querySelector("#saveTermBtn").onclick = () => {
+  // 🟢 Uložit / změnit termín
+  overlay.querySelector("#saveTermBtn").onclick = async () => {
     const datum = overlay.dataset.datum;
     const cas = `${overlay.querySelector("#hours").value}:${overlay.querySelector("#minutes").value}`;
     if (!datum || !cas) return alert("Vyberte datum a čas!");
-    ulozitTerminNaGitHub(item, id, datum, cas, overlay, overlay.querySelector("#saveTermBtn"), infoBox);
-  };
 
-  overlay.querySelector("#waitBtn").onclick = async () => {
     try {
-      stavy[id] = "ceka";
-      item.stav = "ceka";
+      item.datum = datum;
+      item.cas = cas;
+      item.stav = "domluveno";
+      stavy[id] = "domluveno";
+
       const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "update", record: item })
       });
       if (!res.ok) throw new Error("HTTP " + res.status);
-      setNextToast("🟣 Zákazník čeká na díly", "warning");
+
+      setNextToast("🟢 Termín uložen", "success");
+      localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+
+      // 🔄 Aktualizuj data po uložení (GitHub → Worker → frontend)
+      setTimeout(() => loadData(), 1000);
+
       overlay.remove();
       renderTable(dataAll);
     } catch (err) {
@@ -801,17 +808,47 @@ function initDetailButtons(overlay, item, index) {
     }
   };
 
+  // 🟣 Zákazník čeká na díly
+  overlay.querySelector("#waitBtn").onclick = async () => {
+    try {
+      item.stav = "ceka";
+      stavy[id] = "ceka";
+
+      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update", record: item })
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+
+      setNextToast("🟣 Zákazník čeká na díly", "warning");
+      localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+
+      setTimeout(() => loadData(), 1000);
+
+      overlay.remove();
+      renderTable(dataAll);
+    } catch (err) {
+      alert("❌ Chyba při ukládání: " + err.message);
+    }
+  };
+
+  // 📄 Vytvořit protokol
   overlay.querySelector("#createProtocolBtn").onclick = () => {
     localStorage.setItem("protokolData", JSON.stringify(item));
     window.location.href = "protokol.html";
   };
 
+  // 📸 Zahájit návštěvu (fotky)
   overlay.querySelector("#startVisitBtn").onclick = () => {
     localStorage.setItem("currentCustomer", JSON.stringify(item));
     window.location.href = "photocustomer.html";
   };
 
+  // ☎️ Kontaktovat zákazníka
   overlay.querySelector("#contactBtn").onclick = () => openContactModal(item, index, overlay);
+
+  // 🔙 Zpět
   overlay.querySelector("#closeBtn").onclick = () => overlay.remove();
 }
 </script>
@@ -828,7 +865,7 @@ function initDetailButtons(overlay, item, index) {
 #miniCalendar {
   background: #fff;
   border-radius: 10px;
-  box-shadow: none;        /* žádný stín */
+  box-shadow: none;
   min-height: 280px;
 }
 .date-right-column {
@@ -844,13 +881,11 @@ function initDetailButtons(overlay, item, index) {
   justify-content: center;
   align-items: center;
   gap: 6px;
-  background: transparent; /* žádné pozadí */
-  box-shadow: none;        /* žádný stín */
+  background: transparent;
+  box-shadow: none;
   border-radius: 0;
   padding: 0;
-
 }
-
 .custom-time-picker select {
   font-size: 1em;
   font-weight: 600;
@@ -858,9 +893,7 @@ function initDetailButtons(overlay, item, index) {
   background: transparent;
   outline: none;
   color: #111;
- 
 }
-
 
 /* 🔔 informační box */
 .term-info-box {
