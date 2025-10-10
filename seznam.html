@@ -875,7 +875,7 @@ function recalcDeparture(totalDistanceKm, firstTime, speedKmH=70) {
 
 
 
-<!-- 🟩 ZAČÁTEK ČÁSTI 7/10 (funkční logika Plánu dne) -->
+<!-- 🟩 OPRAVENÁ ČÁST 7/10 (Plán dne – logika s bezpečným OSRM fetch) -->
 <script>
 let map, markersLayer, routeLayer, markerMap = {};
 const wgsCoords = [50.049, 14.523];
@@ -977,11 +977,16 @@ async function showPlanForDay(date) {
     let c = cache[t.adresa];
     if (!c) {
       const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(t.adresa)}`);
-      const data = await res.json();
-      if (data[0]) {
-        c = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-        cache[t.adresa] = c;
-        localStorage.setItem("geoCache", JSON.stringify(cache));
+      const txt = await res.text();
+      try {
+        const j = JSON.parse(txt);
+        if (j[0]) {
+          c = [parseFloat(j[0].lat), parseFloat(j[0].lon)];
+          cache[t.adresa] = c;
+          localStorage.setItem("geoCache", JSON.stringify(cache));
+        }
+      } catch {
+        console.warn("❌ Nominatim nevrátil JSON:", txt.substring(0,150));
       }
     }
     if (c) coords.push(c);
@@ -1042,28 +1047,31 @@ async function showPlanForDay(date) {
     };
   });
 
-  // 🛣️ Vykreslení trasy přes všechny body a zpět
+  // 🛣️ Vykreslení trasy přes všechny body a zpět (bezpečně)
   const coordStr = coords.map(c => `${c[1]},${c[0]}`).join(";");
-  const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson`);
-  const data = await res.json();
-  if (data.routes?.length) {
-    const r = data.routes[0];
-    const legs = r.legs || [];
-    let total = 0;
-    currentLegs = legs;
-    routeTable.innerHTML = "<tr><th>#</th><th>Odkud</th><th>Kam</th><th>Km</th></tr>";
-    legs.forEach((leg, i) => {
-      const km = (leg.distance / 1000).toFixed(1);
-      total += +km;
-      const from = i === 0 ? "WGS" : terminy[i-1]?.zakaznik || "Zákazník";
-      const to = i < terminy.length ? terminy[i]?.zakaznik : "WGS";
-      routeTable.innerHTML += `<tr><td>${i+1}</td><td>${from}</td><td>${to}</td><td>${km}</td></tr>`;
-      L.geoJSON(leg.geometry, { style: { color: "#0046ff", weight: 4, opacity: .85 } }).addTo(routeLayer);
-    });
-    totalKm.innerHTML = `<div style="text-align:center;font-weight:700;">CELKEM: ${total.toFixed(1)} km</div>`;
-    if (coords.length > 1) map.fitBounds(L.latLngBounds(coords).pad(0.2));
-    recalcDeparture();
+  const data = await safeFetchRoute(`https://router.project-osrm.org/route/v1/driving/${coordStr}?overview=full&geometries=geojson`);
+  if (!data || !data.routes?.length) {
+    overlay.style.display = "flex";
+    document.getElementById("mapOverlay").textContent = "❌ Nelze načíst trasu (OSRM)";
+    return;
   }
+
+  const r = data.routes[0];
+  const legs = r.legs || [];
+  let total = 0;
+  currentLegs = legs;
+  routeTable.innerHTML = "<tr><th>#</th><th>Odkud</th><th>Kam</th><th>Km</th></tr>";
+  legs.forEach((leg, i) => {
+    const km = (leg.distance / 1000).toFixed(1);
+    total += +km;
+    const from = i === 0 ? "WGS" : terminy[i-1]?.zakaznik || "Zákazník";
+    const to = i < terminy.length ? terminy[i]?.zakaznik : "WGS";
+    routeTable.innerHTML += `<tr><td>${i+1}</td><td>${from}</td><td>${to}</td><td>${km}</td></tr>`;
+    L.geoJSON(leg.geometry, { style: { color: "#0046ff", weight: 4, opacity: .85 } }).addTo(routeLayer);
+  });
+  totalKm.innerHTML = `<div style="text-align:center;font-weight:700;">CELKEM: ${total.toFixed(1)} km</div>`;
+  if (coords.length > 1) map.fitBounds(L.latLngBounds(coords).pad(0.2));
+  recalcDeparture();
 
   // 🔁 přepočet při změně rychlosti
   speedSelect.onchange = () => recalcDeparture();
@@ -1095,6 +1103,7 @@ function recalcDeparture() {
 }
 </script>
 <!-- 🟩 KONEC ČÁSTI 7/10 -->
+
 
 
 
