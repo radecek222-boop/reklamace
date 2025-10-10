@@ -188,25 +188,23 @@
 
 
 
-
-
-      <!-- 🟨 ZAČÁTEK ČÁSTI 3/10 – KALENDÁŘE (rozšířený výběr roku) -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 3/10 – KALENDÁŘE (datum_prodeje / datum_reklamace) -->
 <div class="date-banners">
   <div class="date-banner">
     <div class="date-banner__label">Datum dodání</div>
     <div class="date-banner__controls">
-      <input type="hidden" id="datum_pozadavek" name="datum_pozadavek" required />
-      <button type="button" id="btnPozadavek" class="btn-date">Vyber datum</button>
-      <span id="lblPozadavek" class="date-selected">–</span>
+      <input type="hidden" id="datum_prodeje" name="datum_prodeje" required />
+      <button type="button" id="btnDodani" class="btn-date">Vyber datum</button>
+      <span id="lblDodani" class="date-selected">–</span>
     </div>
   </div>
 
   <div class="date-banner">
     <div class="date-banner__label">Datum reklamace</div>
     <div class="date-banner__controls">
-      <input type="hidden" id="datum_navsteva" name="datum_navsteva" required />
-      <button type="button" id="btnNavsteva" class="btn-date">Vyber datum</button>
-      <span id="lblNavsteva" class="date-selected">–</span>
+      <input type="hidden" id="datum_reklamace" name="datum_reklamace" required />
+      <button type="button" id="btnReklamace" class="btn-date">Vyber datum</button>
+      <span id="lblReklamace" class="date-selected">–</span>
     </div>
   </div>
 </div>
@@ -225,75 +223,6 @@
   </div>
 </div>
 
-<style>
-  .date-banners {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
-    margin: 16px 0 6px;
-  }
-  @media (min-width: 640px) {
-    .date-banners { grid-template-columns: 1fr 1fr; }
-  }
-  .date-banner {
-    border: 1px solid #d9d9d9;
-    border-radius: 10px;
-    background: linear-gradient(180deg,#f7f7f7 0%,#ededed 100%);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-    padding: 12px 14px;
-  }
-  .date-banner__label { font-weight: 700; color: #111; margin-bottom: 6px; }
-  .date-banner__controls { display: flex; align-items: center; gap: 10px; }
-  .btn-date {
-    padding: 8px 14px; border-radius: 8px; border: 1px solid #c9c9c9;
-    background: linear-gradient(180deg,#fff 0%,#f2f2f2 100%);
-    color: #111; font-weight: 600; cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    transition: transform .12s ease, opacity .2s ease, border-color .2s ease;
-  }
-  .btn-date:hover { transform: scale(1.02); opacity: 0.95; border-color: #bfbfbf; }
-  .date-selected {
-    min-width: 110px; display: inline-block; padding: 6px 10px;
-    border-radius: 8px; border: 1px dashed #cfcfcf; background: #fafafa;
-    color: #111; text-align: center; font-weight: 600;
-  }
-
-  .calendar-modal {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
-    display: none; justify-content: center; align-items: center; z-index: 9999;
-    animation: calFadeIn .2s ease;
-  }
-  .calendar-modal.active { display: flex; }
-  .calendar-content {
-    background: #fff; padding: 20px; border-radius: 14px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.25); width: min(480px,92vw);
-  }
-  .calendar-controls {
-    display: flex; justify-content: center; align-items: center;
-    gap: 10px; margin-bottom: 8px;
-  }
-  .btn-calnav {
-    background: #f1f1f1; border: 1px solid #ccc; border-radius: 6px;
-    width: 30px; height: 30px; font-weight: bold; cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .btn-calnav:hover { background: #e2e2e2; }
-  #monthLabel { font-weight: 700; font-size: 1.1em; min-width: 120px; text-align: center; }
-  #yearSelect { padding: 4px 6px; font-size: 1em; }
-  #calendarDays {
-    display: grid; grid-template-columns: repeat(7,1fr);
-    gap: 4px; text-align: center; font-weight: 600; font-size: 0.9em;
-  }
-  .day-cell {
-    padding: 8px; border-radius: 6px; cursor: pointer;
-    transition: background 0.2s;
-  }
-  .day-cell:hover { background: #eaeaea; }
-  .day-cell.today { background: #cde9ff; }
-  .day-cell.selected { background: #00b56a; color: white; }
-  @keyframes calFadeIn { from { opacity: 0 } to { opacity: 1 } }
-</style>
-
 <script>
 (function(){
   if (window.__wgsCalInit) return;
@@ -302,14 +231,14 @@
   let targetHidden = null;
   let targetLabel  = null;
 
-  const modal        = document.getElementById("calendarModal");
-  const btnClose     = document.getElementById("closeCalendar");
-  const btnPozadavek = document.getElementById("btnPozadavek");
-  const btnNavsteva  = document.getElementById("btnNavsteva");
-  const lblPozadavek = document.getElementById("lblPozadavek");
-  const lblNavsteva  = document.getElementById("lblNavsteva");
-  const inputPozadavek = document.getElementById("datum_pozadavek");
-  const inputNavsteva  = document.getElementById("datum_navsteva");
+  const modal         = document.getElementById("calendarModal");
+  const btnClose      = document.getElementById("closeCalendar");
+  const btnDodani     = document.getElementById("btnDodani");
+  const btnReklamace  = document.getElementById("btnReklamace");
+  const lblDodani     = document.getElementById("lblDodani");
+  const lblReklamace  = document.getElementById("lblReklamace");
+  const inputDodani   = document.getElementById("datum_prodeje");
+  const inputReklamace= document.getElementById("datum_reklamace");
 
   const monthLabel = document.getElementById("monthLabel");
   const yearSelect = document.getElementById("yearSelect");
@@ -318,7 +247,7 @@
 
   let current = new Date();
 
-  // Naplnění seznamu let
+  // Naplnění let
   const currentYear = new Date().getFullYear();
   for(let y=currentYear-5; y<=currentYear+1; y++){
     const opt = document.createElement("option");
@@ -337,45 +266,27 @@
     const startDay = (firstDay.getDay() + 6) % 7; // pondělí jako první
     const daysInMonth = new Date(current.getFullYear(), current.getMonth()+1, 0).getDate();
 
-    for(let i=0; i<startDay; i++){
-      const empty = document.createElement("div");
-      daysContainer.appendChild(empty);
-    }
+    for(let i=0; i<startDay; i++) daysContainer.appendChild(document.createElement("div"));
 
     for(let d=1; d<=daysInMonth; d++){
       const btn = document.createElement("div");
       btn.className = "day-cell";
       btn.textContent = d;
-
       const iso = `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-      btn.dataset.day = iso;
-
-      const todayISO = new Date().toISOString().split("T")[0];
-      if (iso === todayISO) btn.classList.add("today");
-
+      if (iso === new Date().toISOString().split("T")[0]) btn.classList.add("today");
       btn.onclick = ()=>{
         if (!targetHidden || !targetLabel) return;
         targetHidden.value = iso;
         targetLabel.textContent = iso;
         modal.classList.remove("active");
       };
-
       daysContainer.appendChild(btn);
     }
   }
 
-  document.getElementById("prevMonth").onclick = ()=>{
-    current.setMonth(current.getMonth()-1);
-    renderCalendar();
-  };
-  document.getElementById("nextMonth").onclick = ()=>{
-    current.setMonth(current.getMonth()+1);
-    renderCalendar();
-  };
-  yearSelect.onchange = ()=>{
-    current.setFullYear(parseInt(yearSelect.value));
-    renderCalendar();
-  };
+  document.getElementById("prevMonth").onclick = ()=>{ current.setMonth(current.getMonth()-1); renderCalendar(); };
+  document.getElementById("nextMonth").onclick = ()=>{ current.setMonth(current.getMonth()+1); renderCalendar(); };
+  yearSelect.onchange = ()=>{ current.setFullYear(parseInt(yearSelect.value)); renderCalendar(); };
 
   function openCalendar(forHidden, forLabel){
     targetHidden = forHidden;
@@ -384,13 +295,16 @@
     modal.classList.add("active");
   }
 
-  btnPozadavek.onclick = (e)=>{ e.preventDefault(); openCalendar(inputPozadavek, lblPozadavek); };
-  btnNavsteva.onclick  = (e)=>{ e.preventDefault(); openCalendar(inputNavsteva, lblNavsteva); };
+  btnDodani.onclick    = (e)=>{ e.preventDefault(); openCalendar(inputDodani, lblDodani); };
+  btnReklamace.onclick = (e)=>{ e.preventDefault(); openCalendar(inputReklamace, lblReklamace); };
   btnClose.onclick     = ()=> modal.classList.remove("active");
   modal.onclick         = (e)=>{ if (e.target===modal) modal.classList.remove("active"); };
 })();
 </script>
-<!-- 🟨 KONEC ČÁSTI 3/10 – KALENDÁŘE (rozšířený výběr roku) -->
+<!-- 🟨 KONEC ČÁSTI 3/10 – KALENDÁŘE -->
+
+
+
 
 
 
@@ -775,7 +689,7 @@ document.getElementById("selectFiles").addEventListener("click",()=>{
 
 
 
-      <!-- 🟨 ZAČÁTEK ČÁSTI 7/10 – ODESLÁNÍ FORMULÁŘE -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 7/10 – ODESLÁNÍ FORMULÁŘE (SLAZENÉ S NOVÝMI DATY) -->
 
 <!-- 💾 Overlay načítání -->
 <div class="wait-overlay" id="waitOverlay">
@@ -808,6 +722,7 @@ document.getElementById("reklamaceForm").addEventListener("submit", async (e) =>
   const f = e.target;
   const predvolba = document.getElementById("predvolba");
 
+  // 🟢 Odesíláme správné názvy polí (datum_prodeje, datum_reklamace)
   const dataObj = {
     typ: "reklamace",
     contract: f.zpracoval.value,
@@ -817,8 +732,8 @@ document.getElementById("reklamaceForm").addEventListener("submit", async (e) =>
     telefon: `${predvolba.value} ${f.telefon.value}`,
     email: f.email.value,
     produkt: f.produkt.value,
-    datum_prodeje: f.datum_prodeje.value,
-    datum_reklamace: f.datum_reklamace.value,
+    datum_prodeje: f.datum_prodeje.value || "",
+    datum_reklamace: f.datum_reklamace.value || "",
     popis: f.popis.value,
     fotky: (window.uploadedPhotos || []).map(p => p.filename || "")
   };
@@ -843,6 +758,7 @@ document.getElementById("reklamaceForm").addEventListener("submit", async (e) =>
 </script>
 
 <!-- 🟨 KONEC ČÁSTI 7/10 – ODESLÁNÍ FORMULÁŘE -->
+
 
 
 
@@ -1037,7 +953,7 @@ button, input, select, textarea {
 
 
 
-      <!-- 🟨 ZAČÁTEK ČÁSTI 9/10 – MAPA GEOAPIFY -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 9/10 – MAPA GEOAPIFY (OPRAVENO) -->
 
 <!-- Leaflet knihovna -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
@@ -1049,79 +965,103 @@ button, input, select, textarea {
   const mestoInput = document.getElementById("mesto");
   const pscInput = document.getElementById("psc");
   const suggestionContainer = document.getElementById("suggestions");
-  const GEOAPIFY_KEY = "b363199bb14e47189558d03b81ca9ba1";
+  const GEOAPIFY_KEY = "b363199bb14e47189558d03b81ca9ba1"; // 🔑 klíč zůstává
   let suggestTimer = null;
   let adresaPlatna = false;
 
-  uliceInput.addEventListener("input", ()=>{
+  // 🧠 Odložené volání autocomplete (300 ms po psaní)
+  uliceInput.addEventListener("input", () => {
     clearTimeout(suggestTimer);
     suggestTimer = setTimeout(runAutocomplete, 300);
   });
 
-  async function runAutocomplete(){
+  // ⚙️ Načtení návrhů adres
+  async function runAutocomplete() {
     const query = uliceInput.value.trim();
     adresaPlatna = false;
     suggestionContainer.innerHTML = "";
-    if(query.length < 3) return;
+
+    // ✅ kontrola délky – voláme až po 3 znacích
+    if (!query || query.length < 3) return;
 
     try {
-      const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&lang=cs&limit=5&filter=countrycode:cze,svk,aut&apiKey=${GEOAPIFY_KEY}`;
+      const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&lang=cs&limit=5&apiKey=${GEOAPIFY_KEY}`;
       const res = await fetch(url);
+      if (!res.ok) throw new Error(res.status);
       const data = await res.json();
-      if(!data.features || !data.features.length) throw new Error("No results");
-      renderSuggestions(data.features.map(f=>f.properties));
-    } catch {
+
+      if (data.features?.length) {
+        renderSuggestions(data.features.map(f => f.properties));
+      } else {
+        throw new Error("No results");
+      }
+
+    } catch (err) {
+      console.warn("Geoapify selhalo:", err.message);
+      // 🌍 fallback na Nominatim
       try {
         const url2 = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=cz,sk,at&limit=5&q=${encodeURIComponent(query)}`;
-        const res2 = await fetch(url2, { headers: {"Accept-Language":"cs"} });
+        const res2 = await fetch(url2, { headers: { "Accept-Language": "cs" } });
         const data2 = await res2.json();
-        if(data2.length){
-          renderSuggestions(data2.map(n=>({
-            formatted:n.display_name,
-            street:n.address?.road,
-            housenumber:n.address?.house_number,
-            city:n.address?.city || n.address?.town || n.address?.village,
-            postcode:n.address?.postcode,
-            lat:n.lat, lon:n.lon
+        if (data2.length) {
+          renderSuggestions(data2.map(n => ({
+            formatted: n.display_name,
+            street: n.address?.road,
+            housenumber: n.address?.house_number,
+            city: n.address?.city || n.address?.town || n.address?.village,
+            postcode: n.address?.postcode,
+            lat: n.lat, lon: n.lon
           })));
+        } else {
+          suggestionContainer.innerHTML = "<div style='padding:8px;color:#777'>Žádné výsledky</div>";
         }
-      } catch {
-        suggestionContainer.innerHTML = "<div style='padding:8px;color:red'>Chyba načítání</div>";
+      } catch (fallbackErr) {
+        suggestionContainer.innerHTML = "<div style='padding:8px;color:red'>Chyba načítání adres</div>";
       }
     }
   }
 
-  function renderSuggestions(items){
+  // 📋 vykreslení návrhů do DOM
+  function renderSuggestions(items) {
     suggestionContainer.innerHTML = "";
-    items.forEach(p=>{
+    items.forEach(p => {
       const div = document.createElement("div");
       div.textContent = p.formatted || p.label || `${p.street || ""} ${p.housenumber || ""}, ${p.city || ""}`;
-      div.onclick = ()=>{
-        uliceInput.value = `${p.street||""} ${p.housenumber||""}`.trim();
+      div.onclick = () => {
+        uliceInput.value = `${p.street || ""} ${p.housenumber || ""}`.trim();
         mestoInput.value = p.city || "";
         pscInput.value = p.postcode || "";
         adresaPlatna = true;
         suggestionContainer.innerHTML = "";
 
+        // 🗺️ vykreslení mapy
         const mapDiv = document.getElementById("mapPreview");
         mapDiv.innerHTML = "";
-        const map = L.map(mapDiv, { center:[p.lat, p.lon], zoom:16, zoomControl:false, attributionControl:false });
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(map);
+        const map = L.map(mapDiv, {
+          center: [p.lat, p.lon],
+          zoom: 16,
+          zoomControl: false,
+          attributionControl: false
+        });
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
         L.marker([p.lat, p.lon]).addTo(map);
-        setTimeout(()=>map.invalidateSize(),300);
+        setTimeout(() => map.invalidateSize(), 300);
       };
       suggestionContainer.appendChild(div);
     });
   }
 
-  document.addEventListener("click", e=>{
-    if(!suggestionContainer.contains(e.target) && e.target!==uliceInput)
+  // 🧹 Zavření seznamu návrhů při kliknutí mimo
+  document.addEventListener("click", e => {
+    if (!suggestionContainer.contains(e.target) && e.target !== uliceInput) {
       suggestionContainer.innerHTML = "";
+    }
   });
 })();
 </script>
 
-<!-- 🟨 KONEC ČÁSTI 9/10 – MAPA GEOAPIFY -->
+<!-- 🟨 KONEC ČÁSTI 9/10 – MAPA GEOAPIFY (OPRAVENO) -->
+
 
 
 
