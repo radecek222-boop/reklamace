@@ -322,8 +322,7 @@ tr.stav-hotovo:hover td {
 
 
 
-
-<!-- 🟦 SEKCE B – NAČÍTÁNÍ DAT + TABULKA + DEBUG -->
+<!-- 🟦 SEKCE B – NAČÍTÁNÍ DAT + TABULKA + DEBUG (opravená verze) -->
 <script>
 /* ============================= */
 /* ⚙️ KONSTANTY A PROMĚNNÉ       */
@@ -353,28 +352,25 @@ async function loadData() {
     if (!res.ok) throw new Error(`Chyba HTTP ${res.status}`);
     let data = await res.json();
 
-    // 🧠 Normalizace – zajistí, že vždy pracujeme s polem
     if (!Array.isArray(data)) {
       if (typeof data === "object" && Object.keys(data).length > 0) {
         data = Object.values(data);
-      } else {
-        throw new Error("Worker nevrací platné záznamy");
-      }
+      } else throw new Error("Worker nevrací platné záznamy");
     }
 
     console.log("📦 Worker data:", data);
-    updateDebug(data.length); // aktualizace panelu debug
+    updateDebug(data.length);
 
-    if (data.length === 0) {
+    if (!data.length) {
       tableContainer.innerHTML = "<div>Žádné záznamy</div>";
       return;
     }
 
-    // 💾 Přidání uložených termínů z localStorage
-    const ulozeneTerminy = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
+    // 💾 doplnění uložených termínů
+    const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
     data.forEach(z => {
-      const ulozeny = ulozeneTerminy.find(u => u.cislo === z.cislo);
-      if (ulozeny) { z.datum = ulozeny.datum; z.cas = ulozeny.cas; }
+      const u = ulozene.find(x => x.cislo === z.cislo);
+      if (u) { z.datum = u.datum; z.cas = u.cas; }
     });
 
     dataAll = data.reverse();
@@ -389,7 +385,7 @@ async function loadData() {
 }
 
 /* ============================= */
-/* 📋 VYKRESLENÍ TABULKY         */
+/* 📋 VYKRESLENÍ TABULKY / BLOKŮ */
 /* ============================= */
 function renderTable(arr) {
   if (!arr || !arr.length) {
@@ -397,6 +393,14 @@ function renderTable(arr) {
     return;
   }
 
+  // 📱 Mobilní zobrazení
+  if (window.innerWidth < 700) {
+    console.log("📱 Mobilní režim – vykresluji bloky");
+    renderMobileBlocks(arr);
+    return;
+  }
+
+  // 💻 Desktop tabulka
   let html = `
   <table>
     <thead>
@@ -409,57 +413,57 @@ function renderTable(arr) {
     </thead>
     <tbody>`;
 
-  // 🧩 Smyčka přes všechny záznamy
   arr.forEach((r, i) => {
     const id = r.cislo || `radek-${i}`;
     const stav = stavy[id] || r.stav || "novy";
 
     const adresa = r.adresa
-      ? `<a href="https://waze.com/ul?q=${encodeURIComponent(r.adresa)}"
-           target="_blank"
-           style="color:#000;font-weight:600;">${r.adresa}</a>`
-      : "–";
-
+      ? `<a href="https://waze.com/ul?q=${encodeURIComponent(r.adresa)}" target="_blank"
+         style="color:#000;font-weight:600;">${r.adresa}</a>` : "–";
     const telefon = r.telefon
       ? `<a href="tel:${r.telefon.replace('+420','').trim()}"
-           style="color:#000;font-weight:600;">${r.telefon.replace('+420','').trim()}</a>`
-      : "–";
+         style="color:#000;font-weight:600;">${r.telefon.replace('+420','').trim()}</a>` : "–";
 
-    // 🟩 Nastavení barvy a textu podle stavu
+    // 🎨 Stav + barva + text
     let barva = "";
     let stavText = stav;
-
-    if (r.stav && r.stav.toLowerCase() === "hotovo") {
-      barva = "background:#b6f2c0; color:#116d2b; font-weight:700;";
-      stavText = "HOTOVO";
-    } else if (stav === "domluveno" && r.datum && r.cas) {
+    if (stav === "domluveno" && r.datum && r.cas) {
       const d = new Date(r.datum);
-      const den = d.toLocaleDateString("cs-CZ",
-        { weekday: "short", day: "numeric", month: "numeric" });
-      stavText = `${den} ${r.cas}`;
+      stavText = `${d.toLocaleDateString("cs-CZ",{weekday:"short",day:"numeric",month:"numeric"})} ${r.cas}`;
+      barva = "background:#dfe8ff;color:#0046ff;font-weight:700;";
+    } else if (stav === "ceka") {
+      stavText = "Čeká na díly";
+      barva = "background:#ede0ff;color:#5c00b8;font-weight:700;";
+    } else if (stav === "nezveda") {
+      stavText = "Zákazník nezvedá – poslána SMS";
+      barva = "background:#ffe6b3;color:#cc7a00;font-weight:700;";
+    } else if (stav === "zruseno") {
+      stavText = "Zrušeno";
+      barva = "background:#ffcccc;color:#a30000;font-weight:700;";
+    } else if (stav === "novy") {
+      stavText = "Nová";
+      barva = "background:#fff9b1;color:#000;font-weight:700;animation:blinkRow 1.2s infinite;";
     }
 
-    // 🧱 Jeden řádek tabulky
     html += `
-      <tr class="stav-${stav}" data-index="${i}" data-id="${id}">
+      <tr class="stav-${stav}" data-index="${i}">
         <td>${r.zakaznik || "–"}</td>
         <td>${adresa}</td>
         <td>${telefon}</td>
-        <td style="${barva} text-align:center;">${stavText}</td>
+        <td style="${barva}text-align:center;">${stavText}</td>
       </tr>`;
   });
 
   html += "</tbody></table>";
   tableContainer.innerHTML = html;
 
-  // 🧭 Akce po kliknutí na řádek
   document.querySelectorAll("tbody tr").forEach(row => {
     row.addEventListener("click", () => openDetail(row.dataset.index));
   });
 }
 
 /* ============================= */
-/* 🔍 VYHLEDÁVÁNÍ                 */
+/* 🔍 VYHLEDÁVÁNÍ                */
 /* ============================= */
 searchInput.addEventListener("input", () => {
   const q = searchInput.value.trim().toLowerCase();
@@ -470,14 +474,13 @@ searchInput.addEventListener("input", () => {
   ));
 });
 
-
 /* ============================= */
 /* 🔁 RUČNÍ NAČTENÍ DAT           */
 /* ============================= */
 reloadBtn.addEventListener("click", loadData);
 
 /* ============================= */
-/* 🧩 DEBUG PANEL AKTUALIZACE     */
+/* 🧩 DEBUG PANEL                 */
 /* ============================= */
 function updateDebug(count) {
   const c = document.getElementById("debugCount");
@@ -485,28 +488,28 @@ function updateDebug(count) {
   if (!c || !t) return;
   c.textContent = count;
   t.textContent = new Date().toLocaleTimeString("cs-CZ",
-    { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    { hour:"2-digit", minute:"2-digit", second:"2-digit" });
 }
 </script>
 
-<!-- 🧩 DEBUG PANEL (VIZUÁLNÍ INFO) -->
+<style>
+@keyframes blinkRow {
+  0%,100% { background:#fff9b1; }
+  50% { background:#fff06b; }
+}
+</style>
+
+<!-- 🧩 DEBUG PANEL (vizuální info) -->
 <div id="debugBox"
-     style="font-family:Inter,sans-serif;
-            font-size:12px;
-            color:#333;
-            position:fixed;
-            bottom:10px;
-            right:12px;
-            background:#f7f7f7;
-            border:1px solid #ccc;
-            border-radius:8px;
-            padding:8px 12px;
-            box-shadow:0 2px 6px rgba(0,0,0,0.1);
-            z-index:9999;">
+     style="font-family:Inter,sans-serif;font-size:12px;color:#333;
+            position:fixed;bottom:10px;right:12px;background:#f7f7f7;
+            border:1px solid #ccc;border-radius:8px;padding:8px 12px;
+            box-shadow:0 2px 6px rgba(0,0,0,0.1);z-index:9999;">
   Načteno: <span id="debugCount">0</span> záznamů<br>
   <small>Aktualizace: <span id="debugTime">–</span></small>
 </div>
 <!-- 🟦 KONEC SEKCE B -->
+
 
 <!-- 🟦 ZAČÁTEK B-2: MOBILNÍ BLOKY (upravený layout – adresa nahoře, jméno dole) -->
 <script>
@@ -633,7 +636,7 @@ function renderMobileBlocks(arr) {
 .mob-block.stav-zruseno { border-left-color: #ff5c5c; }
 .mob-block.stav-hotovo { border-left-color: #5cd65c; }
 </style>
-<!-- 🟦 KONEC B-2: MOBILNÍ BLOKY (upravený layout) -->
+<!-- 🟦 KONEC -2: MOBILNÍ BLOBKY (upravený layout) -->
 
 
  
