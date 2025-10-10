@@ -322,7 +322,7 @@ tr.stav-hotovo:hover td {
 
 
 
-<!-- 🟦 SEKCE B – NAČÍTÁNÍ DAT + TABULKA + DEBUG -->
+<!-- 🟦 SEKCE B – NAČÍTÁNÍ DAT + TABULKA + DEBUG (AUTODETEKCE ZAŘÍZENÍ) -->
 <script>
 /* ============================= */
 /* ⚙️ KONSTANTY A PROMĚNNÉ       */
@@ -376,7 +376,13 @@ async function loadData() {
     });
 
     dataAll = data.reverse();
-    renderTable(dataAll);
+
+    // 🧠 Detekce zařízení
+    if (window.innerWidth < 700) {
+      renderMobileBlocks(dataAll);
+    } else {
+      renderTable(dataAll);
+    }
 
   } catch (err) {
     console.error("❌ Chyba při načítání:", err);
@@ -473,17 +479,32 @@ function renderTable(arr) {
 /* ============================= */
 searchInput.addEventListener("input", () => {
   const q = searchInput.value.trim().toLowerCase();
-  if (!q) return renderTable(dataAll);
-  renderTable(dataAll.filter(r =>
+  if (!q) {
+    if (window.innerWidth < 700) renderMobileBlocks(dataAll);
+    else renderTable(dataAll);
+    return;
+  }
+  const filtered = dataAll.filter(r =>
     (r.zakaznik || "").toLowerCase().includes(q) ||
     (r.adresa || "").toLowerCase().includes(q)
-  ));
+  );
+  if (window.innerWidth < 700) renderMobileBlocks(filtered);
+  else renderTable(filtered);
 });
 
 /* ============================= */
 /* 🔁 RUČNÍ NAČTENÍ DAT           */
 /* ============================= */
 reloadBtn.addEventListener("click", loadData);
+
+/* ============================= */
+/* 🔄 AUTO-PŘEPÍNÁNÍ PŘI ZMĚNĚ VELIKOSTI OBRAZOVKY */
+/* ============================= */
+window.addEventListener("resize", () => {
+  if (!dataAll.length) return;
+  if (window.innerWidth < 700) renderMobileBlocks(dataAll);
+  else renderTable(dataAll);
+});
 
 /* ============================= */
 /* 🧩 DEBUG PANEL AKTUALIZACE     */
@@ -508,26 +529,7 @@ tr.stav-novy {
   animation: blinkRow 1.5s infinite;
 }
 </style>
-
-<!-- 🧩 DEBUG PANEL (VIZUÁLNÍ INFO) -->
-<div id="debugBox"
-     style="font-family:Inter,sans-serif;
-            font-size:12px;
-            color:#333;
-            position:fixed;
-            bottom:10px;
-            right:12px;
-            background:#f7f7f7;
-            border:1px solid #ccc;
-            border-radius:8px;
-            padding:8px 12px;
-            box-shadow:0 2px 6px rgba(0,0,0,0.1);
-            z-index:9999;">
-  Načteno: <span id="debugCount">0</span> záznamů<br>
-  <small>Aktualizace: <span id="debugTime">–</span></small>
-</div>
 <!-- 🟦 KONEC SEKCE B -->
-
 
 
 <!-- 🟦 ZAČÁTEK B-2 – MOBILNÍ BLOKY (FINÁLNÍ ZAROVNÁNÍ A BARVY) -->
