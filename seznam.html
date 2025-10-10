@@ -429,7 +429,7 @@ function updateDebug(count) {
 
 
 
-<!-- 🟩 C-1: DETAIL ZÁKAZNÍKA – upravené rozložení tlačítek -->
+<!-- 🟩 C-1: DETAIL ZÁKAZNÍKA – šedé Kontaktovat zákazníka + blikající Zahájit návštěvu -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -455,8 +455,8 @@ function openDetail(index) {
 
           <!-- 🟩 BLOK TLAČÍTEK -->
           <div class="left-buttons">
-            <!-- 🟥 Kontaktovat zákazníka -->
-            <button id="contactBtn" class="btn-action btn-redContact">
+            <!-- Šedé tlačítko kontaktování -->
+            <button id="contactBtn" class="btn-action btn-grayContact">
               Kontaktovat zákazníka
             </button>
 
@@ -467,12 +467,12 @@ function openDetail(index) {
               </div>
               <div class="btn-col">
                 <button id="createProtocolBtn" class="btn-action btn-blue">Vytvořit protokol</button>
-                <button id="closeBtn" class="btn-action btn-gray">Zpět</button>
+                <button id="closeBtn" class="btn-action btn-lightgray">Zpět</button>
               </div>
             </div>
 
-            <!-- 🟢 Velké tlačítko dole -->
-            <button id="startVisitBtn" class="btn-action btn-reflex">
+            <!-- 🟢 Velké blikající tlačítko dole -->
+            <button id="startVisitBtn" class="btn-action btn-reflexBlink">
               ZAHÁJIT NÁVŠTĚVU U ZÁKAZNÍKA
             </button>
           </div>
@@ -535,37 +535,47 @@ function openDetail(index) {
   gap: 10px;
 }
 
-/* jednotný vzhled všech tlačítek */
+/* 🎨 Jednotný styl tlačítek */
 .btn-action {
   width: 100%;
   padding: 11px 0;
   font-family: "Inter", sans-serif;
   font-size: 0.95em;
-  font-weight: 500;
+  font-weight: 400;          /* ❗ne tučné */
   border: none;
   border-radius: 8px;
-  color: #000 !important;
+  color: #fff !important;    /* ❗bílé písmo */
   cursor: pointer;
   transition: opacity 0.2s ease, transform 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
-.btn-action:hover { opacity: 0.88; transform: scale(1.02); }
+.btn-action:hover { opacity: 0.85; transform: scale(1.02); }
 
-/* barvy tlačítek */
-.btn-green   { background: linear-gradient(135deg, #8bf58b, #b6ffb6); }
-.btn-purple  { background: linear-gradient(135deg, #d4b5ff, #b993ff); }
-.btn-blue    { background: linear-gradient(135deg, #bcd5ff, #8fb7ff); }
-.btn-gray    { background: linear-gradient(135deg, #dadada, #eeeeee); }
-.btn-reflex  { background: linear-gradient(135deg, #aaff00, #c8ff4d); }
-
-/* kontaktovací tlačítko – dvojnásobná výška */
-.btn-redContact {
-  background: linear-gradient(135deg, #ff6666, #ff9999);
+/* 🩶 Kontaktovat zákazníka (šedé) */
+.btn-grayContact {
+  background: linear-gradient(135deg, #777, #999);
   height: calc(2 * 42px);
   font-size: 1.05em;
   letter-spacing: 0.3px;
   border-radius: 10px;
 }
+
+/* 🟢 Blikající reflexní tlačítko */
+@keyframes blinkReflex {
+  0%, 100% { background: linear-gradient(135deg, #aaff00, #c8ff4d); }
+  50%      { background: linear-gradient(135deg, #ccff66, #e5ff99); }
+}
+.btn-reflexBlink {
+  animation: blinkReflex 1.5s infinite;
+  font-size: 1.05em;
+  border-radius: 10px;
+}
+
+/* 🎨 Ostatní barvy */
+.btn-green     { background: linear-gradient(135deg, #4caf50, #6fdd72); }
+.btn-purple    { background: linear-gradient(135deg, #b993ff, #d4b5ff); }
+.btn-blue      { background: linear-gradient(135deg, #357aff, #6fa8ff); }
+.btn-lightgray { background: linear-gradient(135deg, #aaa, #ccc); }
 </style>
 <!-- 🟩 KONEC C-1 -->
 
