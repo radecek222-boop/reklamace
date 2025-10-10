@@ -511,16 +511,14 @@ function updateDebug(count) {
 <!-- 🟦 KONEC SEKCE B -->
 
 
-<!-- 🟦 ZAČÁTEK B-2 – MOBILNÍ BLOKY (SE ZKRÁCENOU ADRESOU A ZAROVNÁNÍM VLEVO) -->
+<!-- 🟦 ZAČÁTEK B-2 – MOBILNÍ BLOKY (FINÁLNÍ ZAROVNÁNÍ A ROZESTUPY) -->
 <script>
 function normalizeAddress(address) {
   if (!address) return "Neznámá adresa";
   let parts = address.split(",");
-  // odstraníme PSČ, stát a nadbytečné části
   parts = parts.map(p => p.trim()).filter(p => !/^\d{3}\s?\d{2}/.test(p) && !/Česko|Czech/i.test(p));
   let ulice = parts[0] || "";
   let mesto = parts[1] || "";
-  // rozlišení Prahy podle PSČ
   const m = address.match(/\b1\d{2}\s?(\d{2})\b/);
   if (/Praha/i.test(mesto) && m) {
     const obvod = m[1]?.[0];
@@ -579,11 +577,11 @@ function renderMobileBlocks(arr) {
           <div class="mob-addr">${adresa}</div>
           ${wazeUrl ? `<a href="${wazeUrl}" target="_blank" class="waze-btn">WAZE</a>` : ""}
         </div>
+        <div class="mob-name">${r.zakaznik || "Neznámý zákazník"}</div>
         <div class="mob-mid">
           <div class="mob-date">${stavText}</div>
           ${phoneUrl ? `<a href="${phoneUrl}" class="phone-btn">📞</a>` : ""}
         </div>
-        <div class="mob-name">${r.zakaznik || "Neznámý zákazník"}</div>
       </div>`;
   }).join("");
 
@@ -597,13 +595,14 @@ function renderMobileBlocks(arr) {
   flex-direction: column;
   gap: 10px;
   width: 100%;
+  margin-top: 5px;
 }
 
 /* 📦 blok */
 .mob-block {
   width: 100%;
   border-radius: 10px;
-  padding: 10px 12px;
+  padding: 10px 14px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.08);
   color: #000;
   text-align: left;
@@ -620,7 +619,7 @@ function renderMobileBlocks(arr) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 .mob-addr {
   font-weight: 600;
@@ -631,7 +630,7 @@ function renderMobileBlocks(arr) {
 .waze-btn {
   border: 1px solid #0066ff;
   border-radius: 6px;
-  padding: 2px 8px;
+  padding: 1px 7px 2px;
   font-size: 0.8em;
   font-weight: 600;
   color: #0066ff;
@@ -643,13 +642,14 @@ function renderMobileBlocks(arr) {
 .mob-mid {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-top: 3px;
+  align-items: flex-end;
+  margin-top: 6px;
 }
 .mob-date {
   font-size: 0.9em;
   font-weight: 600;
   color: #000;
+  flex: 1;
 }
 .phone-btn {
   display: flex;
@@ -666,7 +666,7 @@ function renderMobileBlocks(arr) {
 
 /* spodní řádek – jméno */
 .mob-name {
-  margin-top: 3px;
+  margin-top: 2px;
   font-size: 0.95em;
   font-weight: 700;
   color: #000;
@@ -678,7 +678,8 @@ function renderMobileBlocks(arr) {
   50% { background:#fff06b; }
 }
 </style>
-<!-- 🟦 KONEC B-2 – MOBILNÍ BLOKY (SE ZKRÁCENOU ADRESOU A ZAROVNÁNÍM VLEVO) -->
+<!-- 🟦 KONEC B-2 – MOBILNÍ BLOKY (FINÁLNÍ ZAROVNÁNÍ A ROZESTUPY) -->
+
 
 
 
