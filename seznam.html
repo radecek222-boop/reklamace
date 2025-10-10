@@ -341,14 +341,15 @@ let stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
 setInterval(loadData, 120000); // každé 2 minuty
 
 /* ============================= */
-/* 🧭 NAČÍTÁNÍ DAT Z API          */
+/* 🧭 NAČÍTÁNÍ DAT Z API (OKAMŽITÉ) */
 /* ============================= */
 async function loadData() {
   console.log("📥 Načítám data z Workeru…");
   tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
 
   try {
-    const res = await fetch(API_URL, { mode: "cors", cache: "no-store" });
+    // ⚡️ Přidán timestamp pro obejití cache
+    const res = await fetch(`${API_URL}?t=${Date.now()}`, { mode: "cors", cache: "no-store" });
     if (!res.ok) throw new Error(`Chyba HTTP ${res.status}`);
     let data = await res.json();
 
