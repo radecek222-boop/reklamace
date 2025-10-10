@@ -228,16 +228,14 @@ h2 {
 
 
 
-  <!-- 🟩 ZAČÁTEK ČÁSTI 3/3 – UPLOAD + SPODNÍ TLAČÍTKA + FOOTER -->
-
-<!-- 🟨 SEKCE 9 – UPLOAD VŠECH FOTEK -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 3/3 – TLAČÍTKA + NOTIFIKACE + OVERLAY -->
 <div class="actions" id="uploadSection">
-  <button type="button" id="btnUploadAll" class="btn-send">Upload to server</button>
+  <button type="button" id="btnUploadAll" class="btn-send">NAHRÁT</button>
 </div>
 
 <div class="wait-overlay" id="waitOverlay">
   <div class="hourglass"></div>
-  <p>Probíhá nahrávání fotografií / Uploading photos…</p>
+  <p>Nahrávám fotografie...</p>
 </div>
 
 <style>
@@ -295,14 +293,14 @@ uploadBtn.addEventListener("click",async()=>{
   wait.classList.add("active");
   await fakeUpload();
   wait.classList.remove("active");
-  showNotif("success","Fotky byly nahrány / Photos uploaded successfully");
+  showNotif("success","Fotky byly nahrány");
 });
 async function fakeUpload(){
   return new Promise(r=>setTimeout(r,2000));
 }
 </script>
 
-<!-- 🟨 SEKCE 10 – NOTIFIKACE -->
+<!-- 🟨 NOTIFIKACE -->
 <div id="notif" class="notif"></div>
 <style>
 .notif{
@@ -334,7 +332,7 @@ async function fakeUpload(){
 (function(){
 const n=document.getElementById("notif");
 let t=null;
-window.showNotif=function(type="success",text="Uloženo / Saved"){
+window.showNotif=function(type="success",text="Uloženo"){
   n.className=`notif ${type}`;
   n.textContent=text;
   n.classList.add("show");
@@ -346,8 +344,8 @@ window.showNotif=function(type="success",text="Uloženo / Saved"){
 
 <!-- 🟨 SPODNÍ TLAČÍTKA -->
 <div class="actions bottom-actions">
-  <a href="index.html" class="btn-back">Zpět na menu / Back to menu</a>
-  <button type="button" id="btnReloadData" class="btn-gray">Načíst uložené / Reload</button>
+  <a href="index.html" class="btn-back">ZPĚT</a>
+  <button type="button" id="btnExportPdf" class="btn-gray">EXPORT TO PDF</button>
 </div>
 
 <style>
@@ -383,18 +381,8 @@ window.showNotif=function(type="success",text="Uloženo / Saved"){
   background:linear-gradient(135deg,#6c757d,#a0a4a7);
   color:#fff;
 }
-.btn-back:hover,.btn-gray:hover{
-  transform:scale(1.05);
-  opacity:.9;
-}
+.btn-back:hover,.btn-gray:hover{transform:scale(1.05);opacity:.9;}
 </style>
-
-<script>
-document.getElementById("btnReloadData").addEventListener("click",()=>{
-  showNotif("warning","Obnovuji / Reloading…");
-  setTimeout(()=>location.reload(),800);
-});
-</script>
 
 <footer style="text-align:center;margin:30px 0 20px;font-size:0.8em;color:#888;">
   White Glove Service s.r.o. • © 2025
