@@ -308,6 +308,56 @@ reloadBtn.addEventListener("click", loadData);
 </script>
 <!-- 🟦 KONEC SEKCE B -->
 
+<!-- 🟦 B-2: VYKRESLENÍ TABULKY – renderTable() -->
+<script>
+function renderTable(arr) {
+  if (!Array.isArray(arr) || !arr.length) {
+    tableContainer.innerHTML = "<div style='text-align:center;padding:20px;color:#555;'>Žádné záznamy k zobrazení.</div>";
+    return;
+  }
+
+  // 📋 Sestavení HTML tabulky
+  let html = `
+    <table>
+      <thead>
+        <tr>
+          <th>Typ</th>
+          <th>Číslo</th>
+          <th>Zákazník</th>
+          <th>Adresa</th>
+          <th>Telefon</th>
+          <th>Datum</th>
+          <th>Čas</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+  arr.forEach((r, i) => {
+    const stavClass =
+      r.stav === "zruseno" ? "stav-zruseno" :
+      r.stav === "domluveno" ? "stav-domluveno" :
+      r.stav === "ceka" ? "stav-nezveda" :
+      "stav-novy";
+
+    html += `
+      <tr class="${stavClass}" onclick="openDetail(${i})">
+        <td>${r.typ || "-"}</td>
+        <td>${r.cislo || "-"}</td>
+        <td>${r.zakaznik || "-"}</td>
+        <td>${r.adresa || "-"}</td>
+        <td>${r.telefon || "-"}</td>
+        <td>${r.datum || "-"}</td>
+        <td>${r.cas || "-"}</td>
+      </tr>`;
+  });
+
+  html += "</tbody></table>";
+  tableContainer.innerHTML = html;
+}
+</script>
+<!-- 🟦 KONEC B-2 -->
+
+
 
  
 
