@@ -318,7 +318,7 @@ window.addEventListener("DOMContentLoaded", loadData);
 
 
 
-<!-- 🟩 OPRAVENÁ ČÁST 3/10 (Detail zákazníka – mapa z configu + modré dny) -->
+<!-- 🟩 OPRAVENÁ ČÁST 3/10 (Detail zákazníka – s ochranou fetch Nominatim) -->
 <script>
 // 🧭 Načtení souřadnic WGS z externího configu
 let WGS_COORDS = [50.049, 14.523];
@@ -367,13 +367,13 @@ function openDetail(index) {
               </a>
             </p>
             <p><strong>Telefon:</strong> 
-              <a href="tel:${(item.telefon||"").replace("+420","").trim()}">
-                ${(item.telefon||"").replace("+420","").trim()}
+              <a href="tel:${(item.telefon || "").replace("+420","").trim()}">
+                ${(item.telefon || "").replace("+420","").trim()}
               </a>
             </p>
-            <p><strong>Email:</strong> ${item.email||"–"}</p>
-            <p><strong>Produkt / model:</strong> ${item.produkt||"–"}</p>
-            <p><strong>Popis závady:</strong> ${item.popis||"–"}</p>
+            <p><strong>Email:</strong> ${item.email || "–"}</p>
+            <p><strong>Produkt / model:</strong> ${item.produkt || "–"}</p>
+            <p><strong>Popis závady:</strong> ${item.popis || "–"}</p>
           </div>
           <div class="distance-banner" id="mapDistance">📍 Načítám mapu…</div>
           <div id="mapDetail"></div>
@@ -426,9 +426,19 @@ function openDetail(index) {
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);
   const wgsMarker = L.marker(WGS_COORDS,{title:"WGS"}).addTo(map);
 
+  // ✅ Ošetřený fetch Nominatim
   if(item.adresa){
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`)
-      .then(r=>r.json()).then(d=>{
+      .then(async r=>{
+        const text = await r.text();
+        try {
+          return JSON.parse(text);
+        } catch {
+          console.warn("❌ Nominatim nevrátil JSON:", text.substring(0,200));
+          throw new Error("Nominatim server vrátil neplatná data");
+        }
+      })
+      .then(d=>{
         if(d[0]){
           const c=[+d[0].lat,+d[0].lon];
           const cust=L.marker(c,{title:"Zákazník"}).addTo(map);
@@ -440,40 +450,45 @@ function openDetail(index) {
           overlay.querySelector("#mapDistance").textContent="📍 Zákazník bez přesné adresy";
         }
       })
-      .catch(()=>overlay.querySelector("#mapDistance").textContent="📍 Nelze načíst polohu zákazníka");
+      .catch(err=>{
+        console.error("❌ Chyba Nominatim:", err.message);
+        overlay.querySelector("#mapDistance").textContent="📍 Nelze načíst polohu zákazníka";
+      });
   } else {
     overlay.querySelector("#mapDistance").textContent="📍 Zákazník bez adresy – zobrazeno pouze sídlo WGS";
   }
 
   // 🧭 Akce tlačítek
-  overlay.querySelector("#closeBtn").onclick=()=>overlay.remove();
-  overlay.querySelector("#saveTermBtn").onclick=()=>{
-    const d=overlay.dataset.datum;
-    const c=`${hSel.value}:${mSel.value}`;
-    if(!d||!c)return alert("Vyberte datum a čas!");
-    const id=item.cislo||`radek-${index}`;
-    ulozitTerminNaGitHub(item,id,d,c,overlay,overlay.querySelector("#saveTermBtn"),infoBox);
+  overlay.querySelector("#closeBtn").onclick = () => overlay.remove();
+  overlay.querySelector("#saveTermBtn").onclick = () => {
+    const d = overlay.dataset.datum;
+    const c = `${hSel.value}:${mSel.value}`;
+    if (!d || !c) return alert("Vyberte datum a čas!");
+    const id = item.cislo || `radek-${index}`;
+    ulozitTerminNaGitHub(item, id, d, c, overlay, overlay.querySelector("#saveTermBtn"), infoBox);
   };
-  overlay.querySelector("#noAnswerBtn").onclick=()=>{
-    const id=item.cislo||`radek-${index}`;
-    stavy[id]="nezveda";
-    item.stav="nezveda";
-    localStorage.setItem("stavyReklamaci",JSON.stringify(stavy));
+  overlay.querySelector("#noAnswerBtn").onclick = () => {
+    const id = item.cislo || `radek-${index}`;
+    stavy[id] = "nezveda";
+    item.stav = "nezveda";
+    localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
     overlay.remove();
     renderTable(dataAll);
-    showToast("📩 Zákazník nezvedá","warning");
+    showToast("📩 Zákazník nezvedá", "warning");
   };
-  overlay.querySelector("#cancelBtn").onclick=()=>{
-    const id=item.cislo||`radek-${index}`;
-    stavy[id]="zruseno";
-    item.stav="zruseno";
-    localStorage.setItem("stavyReklamaci",JSON.stringify(stavy));
+  overlay.querySelector("#cancelBtn").onclick = () => {
+    const id = item.cislo || `radek-${index}`;
+    stavy[id] = "zruseno";
+    item.stav = "zruseno";
+    localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
     overlay.remove();
     renderTable(dataAll);
-    showToast("❌ Zákazník zrušil termín","error");
+    showToast("❌ Zákazník zrušil termín", "error");
   };
 }
 </script>
+<!-- 🟩 KONEC ČÁSTI 3/10 -->
+
 
 
 
