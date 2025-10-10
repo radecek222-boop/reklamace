@@ -740,154 +740,75 @@ function renderMobileBlocks(arr) {
 
 
 
-<!-- 🟥 C-1: DETAIL ZÁKAZNÍKA – šedé kontaktovat + blikající červené zahájit návštěvu -->
+<!-- 🟨 ZAČÁTEK C-1: DETAIL ZÁKAZNÍKA (openDetail + zvýraznění domluvených dnů) -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
   if (!item) return;
 
+  // 🔹 Vytvoření hlavního překryvu
   const overlay = document.createElement("div");
   overlay.className = "detail-overlay";
-  const adresaUpravena = normalizePrahaAddress(item.adresa || "");
-
   overlay.innerHTML = `
     <div class="detail-modal">
-      <div class="grid-layout">
-
-        <!-- 🧭 LEVÝ PANEL -->
-        <div class="left-panel">
-          <div id="miniCalendar"></div>
-
-          <div class="custom-time-picker">
-            <select id="hours"></select><span>:</span><select id="minutes"></select>
-          </div>
-
-          <div class="term-info-box" id="termInfoBox">Vyberte datum a čas</div>
-
-          <!-- 🟩 BLOK TLAČÍTEK -->
-          <div class="left-buttons">
-
-            <!-- 🩶 Úzké tlačítko kontaktovat zákazníka -->
-            <button id="contactBtn" class="btn-action btn-grayContact">
-              Kontaktovat zákazníka
-            </button>
-
-            <div class="btn-grid">
-              <div class="btn-col">
-                <button id="saveTermBtn" class="btn-action btn-green">Uložit / Změnit termín</button>
-                <button id="waitBtn" class="btn-action btn-purple">Zákazník čeká na díly</button>
-              </div>
-              <div class="btn-col">
-                <button id="createProtocolBtn" class="btn-action btn-blue">Vytvořit protokol</button>
-                <button id="closeBtn" class="btn-action btn-lightgray">Zpět</button>
-              </div>
-            </div>
-
-            <!-- 🔴 Velké blikající tlačítko dole -->
-            <button id="startVisitBtn" class="btn-action btn-redBlink">
-              ZAHÁJIT NÁVŠTĚVU U ZÁKAZNÍKA
-            </button>
-          </div>
-        </div>
-
-        <!-- 🧾 PRAVÝ PANEL -->
-        <div class="right-panel">
-          <!-- 🧍‍♂️ Údaje zákazníka -->
-          <div class="info-box clickable" id="customerBox">
-            <div class="box-header"><strong>Zákazník</strong><span class="icon">✏️</span></div>
-            <div class="box-content">
-              <p><strong>Jméno:</strong> ${item.zakaznik || "–"}</p>
-              <p><strong>Adresa:</strong> ${adresaUpravena}</p>
-              <p><strong>Telefon:</strong> ${(item.telefon || "–")}</p>
-              <p><strong>Email:</strong> ${item.email || "–"}</p>
-              <p><strong>Produkt / model:</strong> ${item.produkt || "–"}</p>
-            </div>
-          </div>
-
-          <!-- 🧰 Popis závady -->
-          <div class="info-box clickable" id="popisBox">
-            <div class="box-header"><strong>Popis závady</strong><span class="icon">📝</span></div>
-            <div class="box-content" id="popisContent">${item.popis || "–"}</div>
-          </div>
-
-          <!-- 🌍 Mapa -->
-          <div class="distance-banner" id="mapDistance">📍 Počítám vzdálenost…</div>
-          <div id="mapDetail"></div>
-        </div>
+      <div class="detail-header">
+        <h2>${item.zakaznik || "Zákazník"}</h2>
+        <button class="close-detail">✕</button>
       </div>
-    </div>`;
 
+      <div class="detail-body">
+        <p><strong>Adresa:</strong> 
+          <a href="https://waze.com/ul?q=${encodeURIComponent(item.adresa || "")}" 
+             target="_blank">${item.adresa || "Neuvedeno"}</a>
+        </p>
+        <p><strong>Telefon:</strong> 
+          ${item.telefon ? `<a href="tel:${item.telefon.replace(/\s+/g, '')}" class="phone-link">${item.telefon}</a>` : "Neuvedeno"}
+        </p>
+        <div id="calendar"></div>
+      </div>
+    </div>
+  `;
   document.body.appendChild(overlay);
-  setTimeout(() => overlay.classList.add("active"), 10);
 
-  initCalendarAndTime(overlay, item, index);
-  initMapForDetail(overlay, item);
-  initDetailButtons(overlay, item, index);
+  // 🟢 Zavření detailu
+  overlay.querySelector(".close-detail").addEventListener("click", () => overlay.remove());
 
-  overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
-  overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
+  // 🗓️ Inicializace VanillaCalendar
+  const calendar = new VanillaCalendar('#calendar', {
+    settings: { lang: "cs", selection: { day: "single" } },
+  });
+  calendar.init();
+
+  // 🟦 Zvýraznění domluvených dnů
+  highlightScheduledDays(document.querySelector("#calendar"), dataAll);
+}
+
+/* 💡 Pomocná funkce pro zvýraznění dnů s domluveným termínem */
+function highlightScheduledDays(calendarElem, allData) {
+  if (!calendarElem) return;
+  const scheduledDates = allData
+    .filter(r => (r.stav || "").toLowerCase() === "domluveno" && r.datum)
+    .map(r => r.datum);
+
+  const btns = calendarElem.querySelectorAll(".vanilla-calendar-day__btn");
+  btns.forEach(btn => {
+    const day = btn.getAttribute("data-calendar-day");
+    if (scheduledDates.includes(day)) {
+      btn.classList.add("has-schedule");
+    }
+  });
 }
 </script>
 
 <style>
-.left-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 12px;
+/* 💅 Styl pro zvýrazněné dny (stav = domluveno) */
+.vanilla-calendar-day__btn.has-schedule {
+  background: #0078ff33;
+  border: 1px solid #0078ff;
+  border-radius: 50%;
 }
-.btn-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.btn-col {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* 🎨 Jednotný vzhled všech tlačítek */
-.btn-action {
-  width: 100%;
-  padding: 11px 0;
-  font-family: "Inter", sans-serif;
-  font-size: 0.95em;
-  font-weight: 400;      /* ne tučné */
-  border: none;
-  border-radius: 8px;
-  color: #fff !important; /* bílé písmo */
-  cursor: pointer;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
-.btn-action:hover { opacity: 0.85; transform: scale(1.02); }
-
-/* 🩶 Kontaktovat zákazníka (stejné jako ostatní) */
-.btn-grayContact {
-  background: linear-gradient(135deg, #888, #aaa);
-}
-
-/* 🔴 Zahájit návštěvu – červené blikající, dvojnásobná výška i šířka */
-@keyframes blinkRed {
-  0%, 100% { background: linear-gradient(135deg, #ff4d4d, #ff8080); }
-  50%      { background: linear-gradient(135deg, #ff7373, #ffa0a0); }
-}
-.btn-redBlink {
-  animation: blinkRed 1.5s infinite;
-  height: calc(2 * 42px);
-  font-size: 1.05em;
-  letter-spacing: 0.3px;
-  border-radius: 10px;
-}
-
-/* 🎨 Ostatní barvy */
-.btn-green     { background: linear-gradient(135deg, #4caf50, #6fdd72); }
-.btn-purple    { background: linear-gradient(135deg, #b993ff, #d4b5ff); }
-.btn-blue      { background: linear-gradient(135deg, #357aff, #6fa8ff); }
-.btn-lightgray { background: linear-gradient(135deg, #aaa, #ccc); }
 </style>
-<!-- 🟥 KONEC C-1 -->
+<!-- 🟨 KONEC C-1: DETAIL ZÁKAZNÍKA (openDetail + zvýraznění dnů) -->
 
 
 
