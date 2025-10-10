@@ -1011,13 +1011,19 @@ function initMapForDetail(overlay, item) {
 
 
 
-<!-- 🟩 C-3: KALENDÁŘ, ČAS A PŘEHLED DNE (finální opravená verze) -->
+<!-- 🟩 C-3: KALENDÁŘ, ČAS A PŘEHLED DNE (opravená verze s funkčním klikem) -->
 <script>
 function initCalendarAndTime(overlay, item, index) {
   const infoBox = overlay.querySelector("#termInfoBox");
 
-  // 🗓️ Inicializace VanillaCalendar
-  const miniCal = new VanillaCalendar("#miniCalendar", {
+  // 🗓️ Inicializace VanillaCalendar uvnitř overlay
+  const miniCalEl = overlay.querySelector("#miniCalendar");
+  if (!miniCalEl) {
+    console.error("❌ Kalendář #miniCalendar nebyl nalezen v overlay.");
+    return;
+  }
+
+  const miniCal = new VanillaCalendar(miniCalEl, {
     settings: {
       lang: "cs",
       selection: { day: "single" },
@@ -1026,19 +1032,19 @@ function initCalendarAndTime(overlay, item, index) {
     actions: {
       clickDay: e => {
         const chosen = e.target.dataset.calendarDay;
-        if (chosen) {
-          // 💾 uložíme datum do overlayu
-          overlay.dataset.datum = chosen;
+        if (!chosen) return;
 
-          // 🟢 aktualizace panelu s datem
-          updateTermInfoBox(infoBox, chosen, null);
+        // 💾 uloží datum do overlay
+        overlay.dataset.datum = chosen;
 
-          // ✨ vizuální potvrzení výběru
-          flashBox(infoBox, "gray");
+        // 🟢 aktualizace panelu s datem
+        updateTermInfoBox(infoBox, chosen, null);
 
-          // 📋 přehled ostatních zákazníků toho dne
-          showDaySummary(chosen, overlay);
-        }
+        // ✨ vizuální potvrzení výběru
+        flashBox(infoBox, "gray");
+
+        // 📋 přehled ostatních zákazníků toho dne
+        showDaySummary(chosen, overlay);
       }
     }
   });
@@ -1047,23 +1053,24 @@ function initCalendarAndTime(overlay, item, index) {
   // ⏰ Naplnění hodin a minut
   const hSel = overlay.querySelector("#hours"),
         mSel = overlay.querySelector("#minutes");
-  hSel.innerHTML = "";
-  mSel.innerHTML = "";
-  for (let h = 7; h < 20; h++)
-    hSel.innerHTML += `<option>${String(h).padStart(2,"0")}</option>`;
-  for (let m = 0; m < 60; m += 5)
-    mSel.innerHTML += `<option>${String(m).padStart(2,"0")}</option>`;
+  if (hSel && mSel) {
+    hSel.innerHTML = "";
+    mSel.innerHTML = "";
+    for (let h = 7; h < 20; h++)
+      hSel.innerHTML += `<option>${String(h).padStart(2,"0")}</option>`;
+    for (let m = 0; m < 60; m += 5)
+      mSel.innerHTML += `<option>${String(m).padStart(2,"0")}</option>`;
 
-  // změna času → aktualizace infoBoxu
-  hSel.addEventListener("change", () => updateTime(infoBox, overlay));
-  mSel.addEventListener("change", () => updateTime(infoBox, overlay));
+    hSel.addEventListener("change", () => updateTime(infoBox, overlay));
+    mSel.addEventListener("change", () => updateTime(infoBox, overlay));
+  }
 }
 
 /* 🔄 aktualizace boxu s vybraným datem + časem */
 function updateTime(infoBox, overlay) {
   const d = overlay.dataset.datum;
-  const h = overlay.querySelector("#hours").value;
-  const m = overlay.querySelector("#minutes").value;
+  const h = overlay.querySelector("#hours")?.value;
+  const m = overlay.querySelector("#minutes")?.value;
   if (d && h && m) {
     infoBox.textContent = `${new Date(d).toLocaleDateString("cs-CZ")} ${h}:${m}`;
     flashBox(infoBox, "green");
@@ -1152,23 +1159,19 @@ function showDaySummary(dateStr, overlay) {
 
 /* ✨ flash efekty panelu s datem */
 .flash-green { animation: flashGreen 1.2s ease; }
-.flash-gray  { animation: flashGray 1s ease; }
-
+.flash-gray { animation: flashGray 1s ease; }
 @keyframes flashGreen {
-  0%   { background:#d5f8d5; color:#116d2b; }
-  50%  { background:#e9ffe9; color:#116d2b; }
+  0% { background:#d5f8d5; color:#116d2b; }
+  50% { background:#e9ffe9; color:#116d2b; }
   100% { background:#f3f3f3; color:#555; }
 }
 @keyframes flashGray {
-  0%   { background:#eee; }
-  50%  { background:#f9f9f9; }
+  0% { background:#eee; }
+  50% { background:#f9f9f9; }
   100% { background:#f3f3f3; }
 }
 </style>
 <!-- 🟩 KONEC C-3 -->
-
-
-
 
 
 
