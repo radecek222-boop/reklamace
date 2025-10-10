@@ -1006,31 +1006,131 @@ function initMapForDetail(overlay, item) {
 <!-- 🟩 KONEC C-2 -->
 
 
-<!-- 🟩 C-3: KALENDÁŘ A ČAS -->
+
+
+
+
+
+<!-- 🟩 C-3: KALENDÁŘ, ČAS A PŘEHLED DNE -->
 <script>
 function initCalendarAndTime(overlay, item, index) {
   const infoBox = overlay.querySelector("#termInfoBox");
+
+  // 🗓️ Inicializace VanillaCalendar
   const miniCal = new VanillaCalendar("#miniCalendar", {
-    settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
-    actions: { clickDay: e => {
-      const chosen = e.target.dataset.calendarDay;
-      if (chosen) {
-        overlay.dataset.datum = chosen;
-        updateTermInfoBox(infoBox, chosen, null);
-        flashBox(infoBox, "gray");
+    settings: {
+      lang: "cs",
+      selection: { day: "single" },
+      visibility: { theme: "light" }
+    },
+    actions: {
+      clickDay: e => {
+        const chosen = e.target.dataset.calendarDay;
+        if (chosen) {
+          overlay.dataset.datum = chosen;
+          updateTermInfoBox(infoBox, chosen, null);
+          flashBox(infoBox, "gray");
+          showDaySummary(chosen, overlay); // 🟢 přehled dne pod kalendářem
+        }
       }
-    } }
+    }
   });
   miniCal.init();
 
-  // hodiny
-  const hSel = overlay.querySelector("#hours"), mSel = overlay.querySelector("#minutes");
-  for (let h = 7; h < 20; h++) hSel.innerHTML += `<option>${String(h).padStart(2,"0")}</option>`;
-  for (let m = 0; m < 60; m += 5) mSel.innerHTML += `<option>${String(m).padStart(2,"0")}</option>`;
+  // ⏰ Hodiny (rolovací menu)
+  const hSel = overlay.querySelector("#hours"),
+        mSel = overlay.querySelector("#minutes");
+  for (let h = 7; h < 20; h++)
+    hSel.innerHTML += `<option>${String(h).padStart(2,"0")}</option>`;
+  for (let m = 0; m < 60; m += 5)
+    mSel.innerHTML += `<option>${String(m).padStart(2,"0")}</option>`;
+
   hSel.addEventListener("change", () => updateTime(infoBox, overlay));
   mSel.addEventListener("change", () => updateTime(infoBox, overlay));
 }
+
+/* 🟢 NOVÁ FUNKCE: Přehled dne pod kalendářem */
+function showDaySummary(dateStr, overlay) {
+  // vyber všechny záznamy pro dané datum
+  const list = dataAll.filter(r => r.datum === dateStr && r.stav !== "zruseno");
+  const containerId = "daySummaryBox";
+  let box = overlay.querySelector(`#${containerId}`);
+
+  // vytvoř box pokud neexistuje
+  if (!box) {
+    box = document.createElement("div");
+    box.id = containerId;
+    box.className = "day-summary-box";
+    overlay.querySelector(".left-panel").appendChild(box);
+  }
+
+  // když není nic naplánováno
+  if (!list.length) {
+    box.innerHTML = `<div class="day-summary-empty">Žádné zakázky pro tento den</div>`;
+    return;
+  }
+
+  // seřadíme podle času
+  list.sort((a,b) => (a.cas||"").localeCompare(b.cas||""));
+
+  // vytvoříme přehled
+  box.innerHTML = `
+    <div class="day-summary-title">📅 Přehled dne (${new Date(dateStr).toLocaleDateString("cs-CZ")})</div>
+    <table class="day-summary-table">
+      <thead>
+        <tr><th>Zákazník</th><th>Adresa</th><th>Čas</th></tr>
+      </thead>
+      <tbody>
+        ${list.map(r=>`
+          <tr>
+            <td>${r.zakaznik || "–"}</td>
+            <td>${r.adresa || "–"}</td>
+            <td>${r.cas || "–"}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
 </script>
+
+<style>
+/* 📋 Přehled dne pod kalendářem */
+.day-summary-box {
+  margin-top: 10px;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.day-summary-title {
+  font-weight: 700;
+  color: #0046ff;
+  font-size: 0.95em;
+  margin-bottom: 6px;
+}
+.day-summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+.day-summary-table th,
+.day-summary-table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+.day-summary-table th {
+  background: #f2f5ff;
+  font-weight: 700;
+}
+.day-summary-empty {
+  text-align: center;
+  color: #777;
+  padding: 6px;
+}
+</style>
 <!-- 🟩 KONEC C-3 -->
 
 
