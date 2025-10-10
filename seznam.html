@@ -709,15 +709,25 @@ function openDetail(index) {
       <div class="grid-layout">
         <!-- 🧭 LEVÝ PANEL -->
         <div class="left-panel">
-
-          <!-- 🗓️ Kalendář vlevo + čas vpravo + info box pod hodinami -->
           <div class="date-time-row">
             <div id="miniCalendar"></div>
 
             <div class="date-right-column">
-              <div class="custom-time-picker">
+              <!-- ⏰ SVG hodiny (kliknutelné) -->
+              <div class="clock-wrapper" id="clockWrapper">
+                <svg id="clockIcon" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" fill="none" stroke="#333" stroke-width="1.8"/>
+                  <line x1="12" y1="12" x2="12" y2="6" stroke="#333" stroke-width="1.8" stroke-linecap="round"/>
+                  <line x1="12" y1="12" x2="16" y2="12" stroke="#333" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </div>
+
+              <!-- 🕓 Výběr času (skrytý dokud neklikneš) -->
+              <div class="custom-time-picker hidden" id="timePicker">
                 <select id="hours"></select><span>:</span><select id="minutes"></select>
               </div>
+
+              <!-- ℹ️ Info box -->
               <div class="term-info-box" id="termInfoBox">Není vybrán datum a čas</div>
             </div>
           </div>
@@ -768,6 +778,12 @@ function openDetail(index) {
 
   overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
   overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
+
+  // 🕓 kliknutí na SVG hodiny – zobrazí/skryje výběr času
+  overlay.querySelector("#clockIcon").addEventListener("click", () => {
+    const picker = overlay.querySelector("#timePicker");
+    picker.classList.toggle("hidden");
+  });
 }
 </script>
 
@@ -826,200 +842,19 @@ function initDetailButtons(overlay, item, index) {
   margin-bottom: 10px;
 }
 #miniCalendar {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  min-height: 280px;
+  background:#fff;
+  border-radius:10px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+  min-height:280px;
 }
 .date-right-column {
-  display: grid;
-  grid-template-rows: 1fr auto;
-  gap: 12px;
-  height: 100%;
+  display:grid;
+  grid-template-rows:1fr auto;
+  gap:12px;
+  height:100%;
 }
 
-/* ⏰ čas */
-.custom-time-picker {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  background: #f8f8f8;
-  border-radius: 10px;
-  padding: 10px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}
-.custom-time-picker select {
-  font-size: 1.05em;
-  font-weight: 600;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 5px 10px;
-}
-
-/* 🔔 informační box */
-.term-info-box {
-  background: #f3f3f3;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 10px 12px;
-  text-align: center;
-  font-family: "Inter", sans-serif;
-  font-weight: 600;
-  color: #555;
-  height: 45px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  transition: background 0.4s, color 0.4s;
-}
-.flash-green {
-  animation: flashGreen 1.2s ease;
-}
-@keyframes flashGreen {
-  0%   { background:#d5f8d5; color:#116d2b; }
-  50%  { background:#e9ffe9; color:#116d2b; }
-  100% { background:#f3f3f3; color:#555; }
-}
-
-/* 🟩 DLAŽDICE 2×3 */
-.tile-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 15px;
-}
-.tile-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  height: 85px;
-  border: none;
-  border-radius: 12px;
-  font-family: "Inter", sans-serif;
-  font-size: 0.95em;
-  font-weight: 600;
-  color: #fff;
-  cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
-.tile-btn:hover { transform: scale(1.03); opacity: 0.9; }
-
-/* barvy */
-.btn-grayContact { background: linear-gradient(135deg,#888,#aaa); }
-.btn-lightgray   { background: linear-gradient(135deg,#aaa,#ccc); }
-.btn-green       { background: linear-gradient(135deg,#4caf50,#6fdd72); }
-.btn-purple      { background: linear-gradient(135deg,#b993ff,#d4b5ff); }
-.btn-blue        { background: linear-gradient(135deg,#357aff,#6fa8ff); }
-@keyframes blinkRed {
-  0%,100% { background: linear-gradient(135deg,#ff4d4d,#ff8080); }
-  50%     { background: linear-gradient(135deg,#ff7373,#ffa0a0); }
-}
-.btn-redBlink { animation: blinkRed 1.5s infinite; }
-
-/* 📱 stejné rozložení i na mobilu */
-@media (max-width: 700px) {
-  .date-time-row { grid-template-columns: 1fr 0.9fr; }
-  .tile-grid { grid-template-columns: 1fr 1fr; }
-  .tile-btn { height: 75px; font-size: 0.9em; }
-}
-</style>
-<script>
-function openDetail(index) {
-  const item = dataAll[index];
-  if (!item) return;
-
-  const overlay = document.createElement("div");
-  overlay.className = "detail-overlay";
-  const adresaUpravena = normalizePrahaAddress(item.adresa || "");
-
-  overlay.innerHTML = `
-    <div class="detail-modal">
-      <div class="grid-layout">
-        <!-- 🧭 LEVÝ PANEL -->
-        <div class="left-panel">
-          <div class="date-time-row">
-            <div id="miniCalendar"></div>
-
-            <div class="date-right-column">
-              <!-- ⏰ SVG hodiny (kliknutelné) -->
-              <div class="clock-wrapper" id="clockWrapper">
-                <svg id="clockIcon" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="10" fill="none" stroke="#333" stroke-width="1.8"/>
-                  <line x1="12" y1="12" x2="12" y2="6" stroke="#333" stroke-width="1.8" stroke-linecap="round"/>
-                  <line x1="12" y1="12" x2="16" y2="12" stroke="#333" stroke-width="1.8" stroke-linecap="round"/>
-                </svg>
-              </div>
-
-              <!-- 🕓 Výběr času -->
-              <div class="custom-time-picker hidden" id="timePicker">
-                <select id="hours"></select><span>:</span><select id="minutes"></select>
-              </div>
-
-              <!-- ℹ️ Info box -->
-              <div class="term-info-box" id="termInfoBox">Není vybrán datum a čas</div>
-            </div>
-          </div>
-
-          <!-- 🟩 DLAŽDICE 3×2 -->
-          <div class="tile-grid">
-            <button id="contactBtn" class="tile-btn btn-grayContact">Kontaktovat zákazníka</button>
-            <button id="closeBtn" class="tile-btn btn-lightgray">Zpět</button>
-
-            <button id="saveTermBtn" class="tile-btn btn-green">Uložit / Změnit termín</button>
-            <button id="waitBtn" class="tile-btn btn-purple">Zákazník čeká na díly</button>
-
-            <button id="startVisitBtn" class="tile-btn btn-redBlink">Zahájit návštěvu</button>
-            <button id="createProtocolBtn" class="tile-btn btn-blue">Vytvořit protokol</button>
-          </div>
-        </div>
-
-        <!-- 🧾 PRAVÝ PANEL -->
-        <div class="right-panel">
-          <div class="info-box clickable" id="customerBox">
-            <div class="box-header"><strong>Zákazník</strong></div>
-            <div class="box-content">
-              <p><strong>Jméno:</strong> ${item.zakaznik || "–"}</p>
-              <p><strong>Adresa:</strong> ${adresaUpravena}</p>
-              <p><strong>Telefon:</strong> ${item.telefon || "–"}</p>
-              <p><strong>Email:</strong> ${item.email || "–"}</p>
-              <p><strong>Produkt / model:</strong> ${item.produkt || "–"}</p>
-            </div>
-          </div>
-
-          <div class="info-box clickable" id="popisBox">
-            <div class="box-header"><strong>Popis závady</strong></div>
-            <div class="box-content" id="popisContent">${item.popis || "–"}</div>
-          </div>
-
-          <div class="distance-banner" id="mapDistance">📍 Počítám vzdálenost…</div>
-          <div id="mapDetail"></div>
-        </div>
-      </div>
-    </div>`;
-
-  document.body.appendChild(overlay);
-  setTimeout(() => overlay.classList.add("active"), 10);
-
-  initCalendarAndTime(overlay, item, index);
-  initMapForDetail(overlay, item);
-  initDetailButtons(overlay, item, index);
-
-  overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
-  overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
-
-  // 🕓 kliknutí na SVG hodiny – zobrazí nebo skryje výběr času
-  overlay.querySelector("#clockIcon").addEventListener("click", () => {
-    const picker = overlay.querySelector("#timePicker");
-    picker.classList.toggle("hidden");
-  });
-}
-</script>
-
-<style>
+/* ⏰ SVG hodiny + výběr času */
 .clock-wrapper {
   display:flex;
   justify-content:center;
@@ -1032,41 +867,120 @@ function openDetail(index) {
   transition:transform .2s;
 }
 .clock-wrapper:hover { transform:scale(1.06); }
-.clock-wrapper svg {
-  width:42px;
-  height:42px;
-  stroke:#333;
-}
+.clock-wrapper svg { width:42px; height:42px; stroke:#333; }
 .hidden { display:none; }
 
-/* Jemné pulzování SVG, dokud není čas vybrán */
+.custom-time-picker {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:6px;
+  background:#f8f8f8;
+  border-radius:10px;
+  padding:10px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+}
+.custom-time-picker select {
+  font-size:1.05em;
+  font-weight:600;
+  border:1px solid #ccc;
+  border-radius:8px;
+  padding:5px 10px;
+}
+
+/* 🔔 info box */
+.term-info-box {
+  background:#f3f3f3;
+  border:1px solid #ddd;
+  border-radius:10px;
+  padding:10px 12px;
+  text-align:center;
+  font-family:"Inter",sans-serif;
+  font-weight:600;
+  color:#555;
+  height:45px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+  transition:background 0.4s,color 0.4s;
+}
+.flash-green { animation:flashGreen 1.2s ease; }
+@keyframes flashGreen {
+  0%{background:#d5f8d5;color:#116d2b;}
+  50%{background:#e9ffe9;color:#116d2b;}
+  100%{background:#f3f3f3;color:#555;}
+}
+
+/* 💫 Pulzování SVG dokud není čas vybrán */
 .pulse-clock {
   animation:pulseClock 1.6s ease-in-out infinite;
 }
 @keyframes pulseClock {
-  0%,100% { transform:scale(1); opacity:1; }
-  50% { transform:scale(1.12); opacity:0.7; }
+  0%,100%{transform:scale(1);opacity:1;}
+  50%{transform:scale(1.12);opacity:0.7;}
 }
-  <script>
-// 🕓 Dodatečné propojení SVG hodin s výběrem času a info boxem
+
+/* 🟩 DLAŽDICE 2×3 */
+.tile-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:15px;
+}
+.tile-btn {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  height:85px;
+  border:none;
+  border-radius:12px;
+  font-family:"Inter",sans-serif;
+  font-size:0.95em;
+  font-weight:600;
+  color:#fff;
+  cursor:pointer;
+  transition:transform 0.2s ease, opacity 0.2s ease;
+  box-shadow:0 2px 6px rgba(0,0,0,0.15);
+}
+.tile-btn:hover { transform:scale(1.03);opacity:0.9; }
+
+/* barvy dlaždic */
+.btn-grayContact { background:linear-gradient(135deg,#888,#aaa); }
+.btn-lightgray  { background:linear-gradient(135deg,#aaa,#ccc); }
+.btn-green      { background:linear-gradient(135deg,#4caf50,#6fdd72); }
+.btn-purple     { background:linear-gradient(135deg,#b993ff,#d4b5ff); }
+.btn-blue       { background:linear-gradient(135deg,#357aff,#6fa8ff); }
+@keyframes blinkRed {
+  0%,100%{background:linear-gradient(135deg,#ff4d4d,#ff8080);}
+  50%{background:linear-gradient(135deg,#ff7373,#ffa0a0);}
+}
+.btn-redBlink { animation:blinkRed 1.5s infinite; }
+
+/* 📱 mobilní úpravy */
+@media (max-width:700px){
+  .date-time-row { grid-template-columns:1fr 0.9fr; }
+  .tile-grid { grid-template-columns:1fr 1fr; }
+  .tile-btn { height:75px;font-size:0.9em; }
+}
+</style>
+
+<script>
+// 🕓 propojení SVG hodin s výběrem času a info boxem
 document.addEventListener("click", e => {
   const clock = e.target.closest("#clockIcon");
   if (!clock) return;
-
   const overlay = clock.closest(".detail-overlay");
   if (!overlay) return;
-
   const picker = overlay.querySelector("#timePicker");
   const infoBox = overlay.querySelector("#termInfoBox");
-
   picker.classList.toggle("hidden");
-
   if (!picker.classList.contains("hidden")) {
     clock.classList.add("pulse-clock");
   } else {
     clock.classList.remove("pulse-clock");
   }
-
   picker.querySelectorAll("select").forEach(sel => {
     sel.addEventListener("change", () => {
       const h = picker.querySelector("#hours").value;
@@ -1081,9 +995,8 @@ document.addEventListener("click", e => {
 });
 </script>
 
-</style>
-
 <!-- 🟩 KONEC C-1 + C-4 -->
+
 
 
 
