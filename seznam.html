@@ -695,9 +695,7 @@ function renderMobileBlocks(arr) {
 <!-- ================================================= -->
 
 
-
-
-<!-- 🟥 C-1: DETAIL ZÁKAZNÍKA – šedé kontaktovat + blikající červené zahájit návštěvu -->
+<!-- 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA – NOVÉ DLAŽDICE A ROZLOŽENÍ -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -710,46 +708,33 @@ function openDetail(index) {
   overlay.innerHTML = `
     <div class="detail-modal">
       <div class="grid-layout">
-
         <!-- 🧭 LEVÝ PANEL -->
         <div class="left-panel">
-          <div id="miniCalendar"></div>
 
-          <div class="custom-time-picker">
-            <select id="hours"></select><span>:</span><select id="minutes"></select>
+          <!-- 🗓️ Datum a čas vedle sebe -->
+          <div class="date-time-row">
+            <div id="miniCalendar"></div>
+            <div class="custom-time-picker">
+              <select id="hours"></select><span>:</span><select id="minutes"></select>
+            </div>
           </div>
-
           <div class="term-info-box" id="termInfoBox">Vyberte datum a čas</div>
 
-          <!-- 🟩 BLOK TLAČÍTEK -->
-          <div class="left-buttons">
+          <!-- 🟩 NOVÉ DLAŽDICE -->
+          <div class="tile-grid">
+            <button id="contactBtn" class="tile-btn btn-grayContact">Kontaktovat zákazníka</button>
+            <button id="closeBtn" class="tile-btn btn-lightgray">Zpět</button>
 
-            <!-- 🩶 Úzké tlačítko kontaktovat zákazníka -->
-            <button id="contactBtn" class="btn-action btn-grayContact">
-              Kontaktovat zákazníka
-            </button>
+            <button id="saveTermBtn" class="tile-btn btn-green">Uložit / Změnit termín</button>
+            <button id="waitBtn" class="tile-btn btn-purple">Zákazník čeká na díly</button>
 
-            <div class="btn-grid">
-              <div class="btn-col">
-                <button id="saveTermBtn" class="btn-action btn-green">Uložit / Změnit termín</button>
-                <button id="waitBtn" class="btn-action btn-purple">Zákazník čeká na díly</button>
-              </div>
-              <div class="btn-col">
-                <button id="createProtocolBtn" class="btn-action btn-blue">Vytvořit protokol</button>
-                <button id="closeBtn" class="btn-action btn-lightgray">Zpět</button>
-              </div>
-            </div>
-
-            <!-- 🔴 Velké blikající tlačítko dole -->
-            <button id="startVisitBtn" class="btn-action btn-redBlink">
-              ZAHÁJIT NÁVŠTĚVU U ZÁKAZNÍKA
-            </button>
+            <button id="startVisitBtn" class="tile-btn btn-redBlink">Zahájit návštěvu</button>
+            <button id="createProtocolBtn" class="tile-btn btn-blue">Vytvořit protokol</button>
           </div>
         </div>
 
         <!-- 🧾 PRAVÝ PANEL -->
         <div class="right-panel">
-          <!-- 🧍‍♂️ Údaje zákazníka -->
           <div class="info-box clickable" id="customerBox">
             <div class="box-header"><strong>Zákazník</strong><span class="icon">✏️</span></div>
             <div class="box-content">
@@ -761,13 +746,11 @@ function openDetail(index) {
             </div>
           </div>
 
-          <!-- 🧰 Popis závady -->
           <div class="info-box clickable" id="popisBox">
             <div class="box-header"><strong>Popis závady</strong><span class="icon">📝</span></div>
             <div class="box-content" id="popisContent">${item.popis || "–"}</div>
           </div>
 
-          <!-- 🌍 Mapa -->
           <div class="distance-banner" id="mapDistance">📍 Počítám vzdálenost…</div>
           <div id="mapDetail"></div>
         </div>
@@ -786,65 +769,110 @@ function openDetail(index) {
 }
 </script>
 
-<style>
-.left-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 12px;
+<script>
+function initDetailButtons(overlay, item, index) {
+  const id = item.cislo || `radek-${index}`;
+  const infoBox = overlay.querySelector("#termInfoBox");
+
+  overlay.querySelector("#saveTermBtn").onclick = () => {
+    const datum = overlay.dataset.datum;
+    const cas = `${overlay.querySelector("#hours").value}:${overlay.querySelector("#minutes").value}`;
+    if (!datum || !cas) return alert("Vyberte datum a čas!");
+    ulozitTerminNaGitHub(item, id, datum, cas, overlay, overlay.querySelector("#saveTermBtn"), infoBox);
+  };
+  overlay.querySelector("#waitBtn").onclick = async () => {
+    try {
+      stavy[id] = "ceka";
+      item.stav = "ceka";
+      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update", record: item })
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      setNextToast("🟣 Zákazník čeká na díly", "warning");
+      overlay.remove();
+      renderTable(dataAll);
+    } catch (err) { alert("❌ Chyba při ukládání: " + err.message); }
+  };
+  overlay.querySelector("#createProtocolBtn").onclick = () => {
+    localStorage.setItem("protokolData", JSON.stringify(item));
+    window.location.href = "protokol.html";
+  };
+  overlay.querySelector("#startVisitBtn").onclick = () => {
+    localStorage.setItem("currentCustomer", JSON.stringify(item));
+    window.location.href = "photocustomer.html";
+  };
+  overlay.querySelector("#contactBtn").onclick = () => openContactModal(item, index, overlay);
+  overlay.querySelector("#closeBtn").onclick = () => overlay.remove();
 }
-.btn-grid {
+</script>
+
+<style>
+/* 🟦 NOVÉ DLAŽDICE – rovnoměrné čtverce */
+.tile-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 12px;
+  margin-top: 15px;
 }
-.btn-col {
+.tile-btn {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* 🎨 Jednotný vzhled všech tlačítek */
-.btn-action {
-  width: 100%;
-  padding: 11px 0;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 85px;
+  border: none;
+  border-radius: 12px;
   font-family: "Inter", sans-serif;
   font-size: 0.95em;
-  font-weight: 400;      /* ne tučné */
-  border: none;
-  border-radius: 8px;
-  color: #fff !important; /* bílé písmo */
+  font-weight: 600;
+  color: #fff;
   cursor: pointer;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: transform 0.2s ease, opacity 0.2s ease;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
-.btn-action:hover { opacity: 0.85; transform: scale(1.02); }
+.tile-btn:hover { transform: scale(1.03); opacity: 0.9; }
 
-/* 🩶 Kontaktovat zákazníka (stejné jako ostatní) */
-.btn-grayContact {
-  background: linear-gradient(135deg, #888, #aaa);
-}
+/* 🩶 Barvy zachovány z původní verze */
+.btn-grayContact { background: linear-gradient(135deg, #888, #aaa); }
+.btn-lightgray   { background: linear-gradient(135deg, #aaa, #ccc); }
+.btn-green       { background: linear-gradient(135deg, #4caf50, #6fdd72); }
+.btn-purple      { background: linear-gradient(135deg, #b993ff, #d4b5ff); }
+.btn-blue        { background: linear-gradient(135deg, #357aff, #6fa8ff); }
 
-/* 🔴 Zahájit návštěvu – červené blikající, dvojnásobná výška i šířka */
+/* 🔴 Blikající červené pro návštěvu */
 @keyframes blinkRed {
-  0%, 100% { background: linear-gradient(135deg, #ff4d4d, #ff8080); }
+  0%,100% { background: linear-gradient(135deg, #ff4d4d, #ff8080); }
   50%      { background: linear-gradient(135deg, #ff7373, #ffa0a0); }
 }
 .btn-redBlink {
   animation: blinkRed 1.5s infinite;
-  height: calc(2 * 42px);
-  font-size: 1.05em;
-  letter-spacing: 0.3px;
-  border-radius: 10px;
 }
 
-/* 🎨 Ostatní barvy */
-.btn-green     { background: linear-gradient(135deg, #4caf50, #6fdd72); }
-.btn-purple    { background: linear-gradient(135deg, #b993ff, #d4b5ff); }
-.btn-blue      { background: linear-gradient(135deg, #357aff, #6fa8ff); }
-.btn-lightgray { background: linear-gradient(135deg, #aaa, #ccc); }
+/* 🕓 Datum + čas v jednom řádku */
+.date-time-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+#miniCalendar { flex: 1; }
+.custom-time-picker {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.custom-time-picker select {
+  font-size: 1.05em;
+  font-weight: 600;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 5px 10px;
+}
 </style>
-<!-- 🟥 KONEC C-1 -->
+<!-- 🟩 KONEC C-1 + C-4 -->
+
+
 
 
 
@@ -906,106 +934,6 @@ function initCalendarAndTime(overlay, item, index) {
 
 
 
-<!-- 🟩 C-4: LOGIKA TLAČÍTEK – červené Kontaktovat zákazníka + černé písmo -->
-<script>
-function initDetailButtons(overlay, item, index) {
-  const id = item.cislo || `radek-${index}`;
-  const infoBox = overlay.querySelector("#termInfoBox");
-
-  // 💾 Uložit / Změnit termín
-  overlay.querySelector("#saveTermBtn").onclick = () => {
-    const datum = overlay.dataset.datum;
-    const cas = `${overlay.querySelector("#hours").value}:${overlay.querySelector("#minutes").value}`;
-    if (!datum || !cas) return alert("Vyberte datum a čas!");
-    ulozitTerminNaGitHub(item, id, datum, cas, overlay, overlay.querySelector("#saveTermBtn"), infoBox);
-  };
-
-  // 🟣 Zákazník čeká na díly
-  overlay.querySelector("#waitBtn").onclick = async () => {
-    try {
-      stavy[id] = "ceka";
-      item.stav = "ceka";
-      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "update", record: item })
-      });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      setNextToast("🟣 Zákazník čeká na díly", "warning");
-      overlay.remove();
-      renderTable(dataAll);
-    } catch (err) {
-      alert("❌ Chyba při ukládání: " + err.message);
-    }
-  };
-
-  // 🧾 Vytvořit protokol
-  overlay.querySelector("#createProtocolBtn").onclick = () => {
-    localStorage.setItem("protokolData", JSON.stringify(item));
-    window.location.href = "protokol.html";
-  };
-
-  // 🟢 Zahájit návštěvu
-  overlay.querySelector("#startVisitBtn").onclick = () => {
-    localStorage.setItem("currentCustomer", JSON.stringify(item));
-    window.location.href = "photocustomer.html";
-  };
-
-  // ☎️ Kontaktovat zákazníka
-  overlay.querySelector("#contactBtn").onclick = () => openContactModal(item, index, overlay);
-
-  // 🔙 Zpět
-  overlay.querySelector("#closeBtn").onclick = () => overlay.remove();
-}
-</script>
-
-<style>
-/* 🎨 Vzhled tlačítek – jednotné rozměry a černé písmo */
-.btn-action {
-  width: 100%;
-  padding: 11px 0;
-  font-family: "Inter", sans-serif;
-  font-size: 0.95em;
-  font-weight: 500;
-  border: none;
-  border-radius: 8px;
-  color: #000 !important; /* ✅ pevně černé písmo */
-  cursor: pointer;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-}
-.btn-action:hover { opacity: 0.88; transform: scale(1.02); }
-
-/* 🟥 Kontaktovat zákazníka – dvojnásobná výška, červený gradient */
-.btn-redContact {
-  background: linear-gradient(135deg, #ff6666, #ff9999);
-  height: calc(2 * 42px); /* přibližně výška dvou tlačítek */
-  font-size: 1.05em;
-  letter-spacing: 0.3px;
-  border-radius: 10px;
-}
-
-/* 🎨 Ostatní barvy */
-.btn-green   { background: linear-gradient(135deg, #8bf58b, #b6ffb6); }
-.btn-purple  { background: linear-gradient(135deg, #d4b5ff, #b993ff); }
-.btn-blue    { background: linear-gradient(135deg, #bcd5ff, #8fb7ff); }
-.btn-gray    { background: linear-gradient(135deg, #dadada, #eeeeee); }
-.btn-darkgray{ background: linear-gradient(135deg, #c0c0c0, #d8d8d8); }
-.btn-reflex  { background: linear-gradient(135deg, #aaff00, #c8ff4d); }
-
-/* Rozložení sloupců */
-.btn-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.btn-col {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-</style>
-<!-- 🟩 KONEC C-4 -->
 
 
 
