@@ -322,7 +322,7 @@ tr.stav-hotovo:hover td {
 
 
 
-<!-- 🟦 SEKCE B – NAČÍTÁNÍ DAT + TABULKA + DEBUG (AUTODETEKCE ZAŘÍZENÍ) -->
+<!-- 🟦 SEKCE B – NAČÍTÁNÍ DAT + TABULKA + DEBUG (SE ZACHOVÁNÍM STAVŮ) -->
 <script>
 /* ============================= */
 /* ⚙️ KONSTANTY A PROMĚNNÉ       */
@@ -352,6 +352,7 @@ async function loadData() {
     if (!res.ok) throw new Error(`Chyba HTTP ${res.status}`);
     let data = await res.json();
 
+    // 🧠 Normalizace – jistota, že je to pole
     if (!Array.isArray(data)) {
       if (typeof data === "object" && Object.keys(data).length > 0) {
         data = Object.values(data);
@@ -368,16 +369,24 @@ async function loadData() {
       return;
     }
 
-    // 💾 Uložené termíny z localStorage
+    // 💾 Přidání uložených termínů (datum + čas)
     const ulozeneTerminy = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
     data.forEach(z => {
       const ulozeny = ulozeneTerminy.find(u => u.cislo === z.cislo);
       if (ulozeny) { z.datum = ulozeny.datum; z.cas = ulozeny.cas; }
     });
 
+    // 🟢 Sloučení uložených stavů (čeká, domluveno, zrušeno, atd.)
+    const ulozeneStavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
+    data.forEach(z => {
+      if (ulozeneStavy[z.cislo]) {
+        z.stav = ulozeneStavy[z.cislo];
+      }
+    });
+
     dataAll = data.reverse();
 
-    // 🧠 Detekce zařízení
+    // 🧭 Rozhodnutí podle zařízení
     if (window.innerWidth < 700) {
       renderMobileBlocks(dataAll);
     } else {
@@ -427,7 +436,7 @@ function renderTable(arr) {
            style="color:#000;font-weight:600;">${r.telefon.replace('+420','').trim()}</a>`
       : "–";
 
-    // 🎨 Barva a text podle stavu
+    // 🎨 Barvy podle stavu
     let bg = "", txt = "";
     switch (stav.toLowerCase()) {
       case "domluveno":  bg="#dfe8ff"; txt="#0046ff"; break;
@@ -468,7 +477,6 @@ function renderTable(arr) {
   html += "</tbody></table>";
   tableContainer.innerHTML = html;
 
-  // 🧭 Kliknutí na řádek
   document.querySelectorAll("tbody tr").forEach(row => {
     row.addEventListener("click", () => openDetail(row.dataset.index));
   });
@@ -479,11 +487,6 @@ function renderTable(arr) {
 /* ============================= */
 searchInput.addEventListener("input", () => {
   const q = searchInput.value.trim().toLowerCase();
-  if (!q) {
-    if (window.innerWidth < 700) renderMobileBlocks(dataAll);
-    else renderTable(dataAll);
-    return;
-  }
   const filtered = dataAll.filter(r =>
     (r.zakaznik || "").toLowerCase().includes(q) ||
     (r.adresa || "").toLowerCase().includes(q)
@@ -529,7 +532,26 @@ tr.stav-novy {
   animation: blinkRow 1.5s infinite;
 }
 </style>
+
+<!-- 🧩 DEBUG PANEL (VIZUÁLNÍ INFO) -->
+<div id="debugBox"
+     style="font-family:Inter,sans-serif;
+            font-size:12px;
+            color:#333;
+            position:fixed;
+            bottom:10px;
+            right:12px;
+            background:#f7f7f7;
+            border:1px solid #ccc;
+            border-radius:8px;
+            padding:8px 12px;
+            box-shadow:0 2px 6px rgba(0,0,0,0.1);
+            z-index:9999;">
+  Načteno: <span id="debugCount">0</span> záznamů<br>
+  <small>Aktualizace: <span id="debugTime">–</span></small>
+</div>
 <!-- 🟦 KONEC SEKCE B -->
+
 
 
 <!-- 🟦 ZAČÁTEK B-2 – MOBILNÍ BLOKY (FINÁLNÍ ZAROVNÁNÍ A BARVY) -->
