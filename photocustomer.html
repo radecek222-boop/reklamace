@@ -101,7 +101,7 @@ h2 {
 
 
 
-  <!-- 🟩 ZAČÁTEK ČÁSTI 2/3 – BLOKY FOTOGRAFIÍ -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 2/3 – KLIKACÍ BLOKY + NÁHLED -->
 <style>
 .photo-block {
   border:1px solid #ccc;
@@ -109,41 +109,19 @@ h2 {
   padding:14px;
   margin-top:18px;
   background:linear-gradient(180deg,#f8f8f8 0%,#ececec 100%);
+  transition:background .2s,transform .1s;
+  cursor:pointer;
 }
-.photo-header {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:8px;
+.photo-block:hover {
+  background:#f2f2f2;
+  transform:scale(1.01);
 }
 .photo-header h4 {
-  margin:0;
+  margin:0 0 8px;
   font-size:1.05em;
   font-weight:700;
   color:#111;
 }
-.photo-buttons{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-}
-.btn-photo{
-  flex:1 1 48%; /* poloviční šířka */
-  background:linear-gradient(135deg,#e0e0e0,#f5f5f5);
-  color:#333;
-  -webkit-appearance:none;
-  appearance:none;
-  background-clip:padding-box;
-  font-weight:600;
-  border:none;
-  border-radius:8px;
-  padding:10px;
-  cursor:pointer;
-  font-size:0.9em;
-  box-shadow:0 2px 5px rgba(0,0,0,0.1);
-  transition:transform .15s ease,opacity .2s;
-}
-.btn-photo:hover{transform:scale(1.03);opacity:.9;}
 .photo-preview {
   display:flex;
   flex-wrap:wrap;
@@ -155,12 +133,14 @@ h2 {
   border-radius:8px;
   object-fit:cover;
   box-shadow:0 2px 5px rgba(0,0,0,0.15);
-  position:relative;
+  cursor:pointer;
+  transition:transform .15s ease;
 }
+.photo-thumb:hover { transform:scale(1.05); }
 .photo-remove {
   position:absolute;
-  top:2px;
-  right:2px;
+  top:3px;
+  right:3px;
   width:22px;
   height:22px;
   border:none;
@@ -172,76 +152,68 @@ h2 {
   line-height:18px;
   font-size:16px;
   box-shadow:0 1px 3px rgba(0,0,0,0.25);
-  transition:transform .15s ease;
 }
-.photo-remove:hover{transform:scale(1.15);}
 .progress-bar-container{
-  width:100%;background:#ddd;border-radius:8px;height:16px;margin-top:12px;overflow:hidden;
+  width:100%;
+  background:#ddd;
+  border-radius:8px;
+  height:16px;
+  margin-top:12px;
+  overflow:hidden;
 }
 .progress-bar-fill{
   background:linear-gradient(135deg,#00b56a,#00da80);
-  height:100%;width:0%;
+  height:100%;
+  width:0%;
   transition:width .3s ease;
 }
 .progress-text{
-  text-align:center;font-size:0.85em;color:#333;font-weight:600;margin-top:4px;
+  text-align:center;
+  font-size:0.85em;
+  color:#333;
+  font-weight:600;
+  margin-top:4px;
+}
+
+/* fullscreen náhled */
+#fullscreenView {
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.85);
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+}
+#fullscreenView img {
+  max-width:90%;
+  max-height:90%;
+  border-radius:10px;
+  box-shadow:0 0 20px rgba(0,0,0,0.5);
+}
+#fullscreenView.active { display:flex; }
+#fullscreenClose {
+  position:absolute;
+  top:20px;
+  right:25px;
+  background:#fff;
+  border:none;
+  font-size:1.5em;
+  border-radius:50%;
+  width:40px;
+  height:40px;
+  cursor:pointer;
+  font-weight:700;
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
 }
 </style>
 
-<!-- BLOK 1 -->
-<div class="photo-block">
-  <div class="photo-header">
-    <h4>Před opravou<br><span class="subtitle">Before repair</span></h4>
-  </div>
-  <div class="photo-buttons">
-    <button type="button" class="btn-photo" data-section="before">Přidat fotografie / Add photos</button>
-  </div>
-  <div class="photo-preview" id="preview-before"></div>
-</div>
-
-<!-- BLOK 2 -->
-<div class="photo-block">
-  <div class="photo-header">
-    <h4>ID štítek<br><span class="subtitle">ID label</span></h4>
-  </div>
-  <div class="photo-buttons">
-    <button type="button" class="btn-photo" data-section="id">Přidat fotografie / Add photos</button>
-  </div>
-  <div class="photo-preview" id="preview-id"></div>
-</div>
-
-<!-- 🆕 BLOK 3 – DETAIL PROBLÉMU -->
-<div class="photo-block">
-  <div class="photo-header">
-    <h4>Detail problému<br><span class="subtitle">Problem detail</span></h4>
-  </div>
-  <div class="photo-buttons">
-    <button type="button" class="btn-photo" data-section="problem">Přidat fotografie / Add photos</button>
-  </div>
-  <div class="photo-preview" id="preview-problem"></div>
-</div>
-
-<!-- BLOK 4 -->
-<div class="photo-block">
-  <div class="photo-header">
-    <h4>Během opravy<br><span class="subtitle">During repair</span></h4>
-  </div>
-  <div class="photo-buttons">
-    <button type="button" class="btn-photo" data-section="repair">Přidat fotografie / Add photos</button>
-  </div>
-  <div class="photo-preview" id="preview-repair"></div>
-</div>
-
-<!-- BLOK 5 -->
-<div class="photo-block">
-  <div class="photo-header">
-    <h4>Po opravě<br><span class="subtitle">After repair</span></h4>
-  </div>
-  <div class="photo-buttons">
-    <button type="button" class="btn-photo" data-section="after">Přidat fotografie / Add photos</button>
-  </div>
-  <div class="photo-preview" id="preview-after"></div>
-</div>
+<!-- BLOKY -->
+<div class="photo-block" data-section="before"><h4>Před opravou<br><span class="subtitle">Before repair</span></h4><div class="photo-preview" id="preview-before"></div></div>
+<div class="photo-block" data-section="id"><h4>ID štítek<br><span class="subtitle">ID label</span></h4><div class="photo-preview" id="preview-id"></div></div>
+<div class="photo-block" data-section="problem"><h4>Detail problému<br><span class="subtitle">Problem detail</span></h4><div class="photo-preview" id="preview-problem"></div></div>
+<div class="photo-block" data-section="repair"><h4>Během opravy<br><span class="subtitle">During repair</span></h4><div class="photo-preview" id="preview-repair"></div></div>
+<div class="photo-block" data-section="after"><h4>Po opravě<br><span class="subtitle">After repair</span></h4><div class="photo-preview" id="preview-after"></div></div>
 
 <input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
 
@@ -250,8 +222,100 @@ h2 {
 </div>
 <div class="progress-text" id="progressText">0%</div>
 
-<!-- 🟩 KONEC ČÁSTI 2/3 -->
+<!-- fullscreen náhled -->
+<div id="fullscreenView">
+  <button id="fullscreenClose">×</button>
+  <img id="fullscreenImg" src="">
+</div>
 
+<script>
+(function(){
+  const input=document.getElementById("photoInput");
+  const sections={before:[],id:[],problem:[],repair:[],after:[]};
+  const fill=document.getElementById("progressFill");
+  const text=document.getElementById("progressText");
+  const full=document.getElementById("fullscreenView");
+  const fullImg=document.getElementById("fullscreenImg");
+  const fullClose=document.getElementById("fullscreenClose");
+
+  const data=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
+  const orderNum=data.cislo||"";
+
+  // Klikací bloky
+  document.querySelectorAll(".photo-block").forEach(block=>{
+    block.addEventListener("click",()=>{
+      input.dataset.section=block.dataset.section;
+      input.click();
+    });
+  });
+
+  // Upload handler
+  input.addEventListener("change",async()=>{
+    const section=input.dataset.section;
+    if(!section)return;
+    const files=Array.from(input.files).slice(0,10);
+    for(const [i,f] of files.entries()){
+      const blob=await compressImage(f);
+      const url=URL.createObjectURL(blob);
+      const name=`${section}-${orderNum}-${i+1}`;
+      sections[section].push({blob,url,name});
+    }
+    render(section);
+    input.value="";
+  });
+
+  // Komprese
+  async function compressImage(file,maxDim=180){
+    const img=await createImageBitmap(file);
+    const canvas=document.createElement("canvas");
+    let[w,h]=[img.width,img.height];
+    if(w>h&&w>maxDim){h=Math.round(h*(maxDim/w));w=maxDim;}
+    else if(h>w&&h>maxDim){w=Math.round(w*(maxDim/h));h=maxDim;}
+    canvas.width=w;canvas.height=h;
+    const ctx=canvas.getContext("2d");
+    ctx.drawImage(img,0,0,w,h);
+    return new Promise(r=>canvas.toBlob(r,"image/jpeg",0.85));
+  }
+
+  // Render miniatur
+  function render(section){
+    const cont=document.getElementById("preview-"+section);
+    cont.innerHTML="";
+    sections[section].forEach((p,i)=>{
+      const img=document.createElement("img");
+      img.src=p.url;
+      img.className="photo-thumb";
+      img.title=p.name;
+      img.onclick=()=>openFullscreen(p.url);
+      cont.append(img);
+    });
+  }
+
+  // Fullscreen náhled
+  function openFullscreen(src){
+    fullImg.src=src;
+    full.classList.add("active");
+  }
+  fullClose.addEventListener("click",()=>full.classList.remove("active"));
+  full.addEventListener("click",(e)=>{if(e.target===full)full.classList.remove("active");});
+
+  // Nahrávání všech
+  async function uploadAll(){
+    const all=Object.values(sections).flat();
+    if(!all.length)return alert("Není vybrána žádná fotografie / No photos selected.");
+    let uploaded=0;
+    for(const p of all){
+      await new Promise(r=>setTimeout(r,250));
+      uploaded++;
+      const pct=Math.round((uploaded/all.length)*100);
+      fill.style.width=pct+"%";
+      text.textContent=pct+"%";
+    }
+  }
+  window.uploadAll=uploadAll;
+})();
+</script>
+<!-- 🟩 KONEC ČÁSTI 2/3 – KLIKACÍ BLOKY + NÁHLED -->
 
 
 
