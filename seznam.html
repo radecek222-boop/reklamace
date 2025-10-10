@@ -605,7 +605,7 @@ function initCalendarAndTime(overlay, item, index) {
 </script>
 <!-- 🟩 KONEC C-3 -->
 
-<!-- 🟩 C-4: LOGIKA TLAČÍTEK (sjednocený vzhled + nová struktura) -->
+<!-- 🟩 C-4: LOGIKA TLAČÍTEK (sjednocený vzhled + oprava modálu) -->
 <script>
 function initDetailButtons(overlay, item, index) {
   const id = item.cislo || `radek-${index}`;
@@ -650,8 +650,11 @@ function initDetailButtons(overlay, item, index) {
     }
   };
 
-  /* 🔙 ZPĚT */
-  overlay.querySelector("#closeBtn").onclick = () => overlay.remove();
+  /* 🔙 ZPĚT – zavře detail a případné modály */
+  overlay.querySelector("#closeBtn").onclick = () => {
+    document.querySelectorAll(".small-modal").forEach(m => m.remove());
+    overlay.remove();
+  };
 
   /* 🧾 VYTVOŘIT PROTOKOL */
   overlay.querySelector("#createProtocolBtn").onclick = () => {
@@ -664,12 +667,16 @@ function initDetailButtons(overlay, item, index) {
   };
 }
 
-/* 🧩 MODÁL – Kontaktovat zákazníka (bez ikonek, jednotný vzhled) */
+/* 🧩 MODÁL – Kontaktovat zákazníka (bez ikon, jednotný vzhled, kontrola duplicity) */
 function openContactModal(item, index, overlay) {
+  // 🧹 Pokud už je okno otevřené, zavřeme ho (zabrání duplicitám)
+  const existing = document.querySelector(".small-modal.contact-modal");
+  if (existing) existing.remove();
+
   const modal = document.createElement("div");
-  modal.className = "small-modal";
+  modal.className = "small-modal contact-modal";
   modal.innerHTML = `
-    <div class="small-inner contact-modal">
+    <div class="small-inner">
       <h3>Kontaktovat zákazníka</h3>
       <div class="contact-buttons">
         <button id="callBtn" class="btn-action btn-blue">Volat zákazníkovi</button>
@@ -680,14 +687,17 @@ function openContactModal(item, index, overlay) {
     </div>`;
 
   document.body.appendChild(modal);
+
   const tel = (item.telefon || "").replace(/\+?420|\s+/g, "");
 
+  // ☎️ VOLAT
   modal.querySelector("#callBtn").onclick = () => {
     if (!tel) return alert("Telefonní číslo není uvedeno.");
     window.location.href = `tel:+420${tel}`;
     modal.remove();
   };
 
+  // 📩 NEZVEDÁ – POSLAT SMS
   modal.querySelector("#smsBtn").onclick = () => {
     stavy[item.cislo] = "nezveda";
     item.stav = "nezveda";
@@ -699,6 +709,7 @@ function openContactModal(item, index, overlay) {
     renderTable(dataAll);
   };
 
+  // ❌ ZRUŠENO ZÁKAZNÍKEM
   modal.querySelector("#cancelCustBtn").onclick = () => {
     stavy[item.cislo] = "zruseno";
     item.stav = "zruseno";
@@ -710,20 +721,64 @@ function openContactModal(item, index, overlay) {
     renderTable(dataAll);
   };
 
+  // 🔘 ZAVŘÍT
   modal.querySelector("#closeContactBtn").onclick = () => modal.remove();
 }
 </script>
 
 <style>
+/* 🟦 STYL TLAČÍTEK A MODÁLU – jednotný vzhled */
 .contact-buttons {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
+.btn-action {
+  width: 100%;
+  padding: 10px 0;
+  font-family: Inter, sans-serif;
+  font-size: 0.95em;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.btn-action:hover { opacity: 0.9; }
+
+/* 🎨 Barvy */
+.btn-green  { background: linear-gradient(135deg,#009c3b,#00b34d); }
+.btn-blue   { background: linear-gradient(135deg,#0077ff,#409fff); }
+.btn-purple { background: linear-gradient(135deg,#8e2de2,#c69aff); }
+.btn-gray   { background: linear-gradient(135deg,#6c757d,#a8b0b8); }
 .btn-orange { background: linear-gradient(135deg,#ff8c00,#ffa733); }
-.btn-red { background: linear-gradient(135deg,#d63333,#f06a6a); }
+.btn-red    { background: linear-gradient(135deg,#d63333,#f06a6a); }
+
+/* 🪟 Modální okno kontaktu */
+.small-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 10000;
+}
+.small-inner {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+  width: 90%;
+  max-width: 420px;
+  text-align: center;
+}
+.small-inner h3 {
+  margin-bottom: 12px;
+  font-weight: 800;
+  font-size: 1.2em;
+}
 </style>
 <!-- 🟩 KONEC C-4 -->
+
 
 
 
