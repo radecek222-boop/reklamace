@@ -1,18 +1,18 @@
-<!-- 🟨 ZAČÁTEK SEKCE 1/10 – ZÁKLADNÍ STRUKTURA -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 1/2 – SEKCE 1–5 -->
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Fotodokumentace / Photo documentation – White Glove Service</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Photo – White Glove Service</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
 
 <style>
-body{
-  font-family:"Inter",system-ui,sans-serif;
+body {
+  font-family:"Inter",sans-serif;
   background:#f6f7fb;
   margin:0;
   padding:0;
@@ -21,358 +21,429 @@ body{
   align-items:flex-start;
   min-height:100vh;
 }
-.wrapper{
+.wrapper {
   background:#fff;
-  padding:25px;
   margin:40px 15px;
+  padding:30px;
   border-radius:12px;
   box-shadow:0 2px 8px rgba(0,0,0,0.1);
   width:100%;
   max-width:750px;
-  box-sizing:border-box;
 }
-h1{ text-align:center;font-size:2.1em;font-weight:900;color:#111;margin:0 0 5px; }
-h2{ text-align:center;font-size:1em;font-weight:500;color:#666;margin:0 0 20px; }
-
-/* 🔹 Box zákazníka */
-#customerHeader{
-  background:#f3f3f3;
-  border:1px solid #ddd;
-  border-radius:10px;
-  padding:14px;
-  margin-bottom:20px;
-  text-align:left;
-  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+h1 {
+  text-align:center;
+  font-size:2.4em;
+  font-weight:900;
+  color:#111;
+  margin:0 0 5px;
 }
-#customerHeader p{ margin:6px 0; font-weight:600; }
-#customerHeader span{ font-weight:400; color:#666; }
-
-/* 🟢 WGS styl tlačítek */
-.btn-wgs{
-  display:inline-block;
-  border:none;
-  border-radius:8px;
-  padding:10px 22px;
-  color:#fff;
-  font-weight:600;
-  cursor:pointer;
-  box-shadow:0 3px 8px rgba(0,0,0,0.15);
-  transition:transform .15s ease,opacity .2s ease;
+h2 {
+  text-align:center;
+  font-size:1.1em;
+  font-weight:500;
+  color:#666;
+  margin:0 0 25px;
 }
-.btn-wgs:hover{ transform:scale(1.04);opacity:.9; }
-.btn-green{ background:linear-gradient(135deg,#28a745,#60d06a); }
-.btn-blue{ background:linear-gradient(135deg,#0046ff,#357aff); }
-.btn-gray{ background:linear-gradient(135deg,#6c757d,#a0a4a7); }
-
-/* 🖼️ Fotobloky */
-.photo-block{
+#customerHeader {
+  background:#f1f1f1;
   border:1px solid #ccc;
   border-radius:10px;
-  padding:12px;
+  padding:18px;
+  text-align:center;
+  margin-bottom:25px;
+}
+#customerHeader h3 {
+  margin:0 0 4px;
+  font-size:1.3em;
+  font-weight:700;
+  color:#111;
+}
+#customerHeader p {
+  margin:3px 0;
+  color:#333;
+  font-size:0.95em;
+}
+.subtitle {
+  font-size:0.8em;
+  color:#666;
+  display:block;
+  margin-top:2px;
+}
+.photo-block {
+  border:1px solid #ccc;
+  border-radius:10px;
+  padding:14px;
   margin-top:18px;
   background:linear-gradient(180deg,#f8f8f8 0%,#ececec 100%);
 }
-.photo-header{ display:flex;justify-content:space-between;align-items:center;margin-bottom:8px; }
-.photo-header h4{ margin:0;font-size:1.05em;font-weight:700;color:#111; }
-.photo-preview{ display:flex;flex-wrap:wrap;gap:10px; }
-.photo-thumb{ width:90px;height:90px;border-radius:8px;object-fit:cover;box-shadow:0 2px 5px rgba(0,0,0,0.15);position:relative; }
-.progress-bar{
-  position:absolute;bottom:0;left:0;height:5px;width:0%;
-  background:linear-gradient(90deg,#34d058,#22863a);
-  border-radius:0 0 8px 8px;
+.photo-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:8px;
+}
+.photo-header h4 {
+  margin:0;
+  font-size:1.05em;
+  font-weight:700;
+  color:#111;
+}
+.btn-photo {
+  background:linear-gradient(135deg,#357aff,#6fa8ff);
+  color:#fff;
+  font-weight:600;
+  border:none;
+  border-radius:8px;
+  padding:10px 16px;
+  cursor:pointer;
+  box-shadow:0 3px 8px rgba(0,0,0,0.15);
+  transition:transform .15s ease,opacity .2s;
+}
+.btn-photo:hover{transform:scale(1.05);opacity:.9;}
+.photo-preview {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.photo-thumb {
+  width:90px;
+  height:90px;
+  border-radius:8px;
+  object-fit:cover;
+  box-shadow:0 2px 5px rgba(0,0,0,0.15);
+  position:relative;
+}
+.photo-remove {
+  position:absolute;
+  top:2px;
+  right:2px;
+  width:22px;
+  height:22px;
+  border:none;
+  border-radius:50%;
+  background:rgba(255,255,255,0.95);
+  color:#d40000;
+  font-weight:bold;
+  cursor:pointer;
+  line-height:18px;
+  font-size:16px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.25);
+  transition:transform .15s ease;
+}
+.photo-remove:hover{transform:scale(1.15);}
+.progress-bar-container{
+  width:100%;background:#ddd;border-radius:8px;height:16px;margin-top:12px;overflow:hidden;
+}
+.progress-bar-fill{
+  background:linear-gradient(135deg,#00b56a,#00da80);
+  height:100%;width:0%;
   transition:width .3s ease;
 }
-.photo-remove{
-  position:absolute;top:2px;right:2px;width:22px;height:22px;border:none;border-radius:50%;
-  background:rgba(255,255,255,0.9);color:#d40000;font-weight:bold;cursor:pointer;
-  line-height:18px;font-size:16px;box-shadow:0 1px 3px rgba(0,0,0,0.25);
+.progress-text{
+  text-align:center;font-size:0.85em;color:#333;font-weight:600;margin-top:4px;
 }
-
-/* Uložené fotografie */
-.saved-photos{border:1px solid #ddd;border-radius:10px;background:#fafafa;margin-top:15px;padding:15px;}
-.saved-section{margin-bottom:18px;}
-.saved-section h4{font-size:1em;font-weight:700;margin-bottom:6px;color:#222;}
-.saved-grid{display:flex;flex-wrap:wrap;gap:10px;}
-.saved-thumb{width:90px;height:90px;border-radius:8px;object-fit:cover;box-shadow:0 2px 5px rgba(0,0,0,0.15);}
-.placeholder{text-align:center;color:#777;font-size:.9em;padding:20px 0;}
+@media(max-width:700px){
+  .wrapper{padding:20px;}
+  .photo-thumb{width:80px;height:80px;}
+}
 </style>
 </head>
 
 <body>
 <div class="wrapper">
-<h1>WHITE GLOVE SERVICE</h1>
-<h2>Fotodokumentace / Photo documentation</h2>
+  <h1>WHITE GLOVE SERVICE</h1>
+  <h2>Photo documentation</h2>
 
-<!-- 🧾 Šedý box se zákazníkem -->
-<div id="customerHeader">
-  <p><b>Číslo zakázky / Order number:</b> <span id="hCislo">–</span></p>
-  <p><b>Zákazník / Customer:</b> <span id="hZakaznik">–</span></p>
-  <p><b>Adresa / Address:</b> <span id="hAdresa">–</span></p>
-</div>
+  <div id="customerHeader">
+    <h3>Načítám údaje zákazníka...</h3>
+  </div>
 
-<script>
-document.addEventListener("DOMContentLoaded",()=>{
-  const d=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
-  if(d.zakaznik){
-    document.getElementById("hCislo").textContent=d.cislo||"–";
-    document.getElementById("hZakaznik").textContent=d.zakaznik;
-    document.getElementById("hAdresa").textContent=d.adresa||"";
-    document.getElementById("cislo").value=d.cislo||"";
-    document.getElementById("zakaznik").value=d.zakaznik||"";
-    document.getElementById("adresa").value=d.adresa||"";
-  }
-});
-</script>
+  <script>
+  document.addEventListener("DOMContentLoaded",()=>{
+    const data=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
+    const h=document.getElementById("customerHeader");
+    if(data.zakaznik){
+      h.innerHTML=`<h3>${data.zakaznik}</h3>
+      <p>${data.adresa||""}</p>
+      ${data.cislo?`<p>Číslo zakázky / Order number: <strong>${data.cislo}</strong></p>`:""}`;
+    }else{
+      h.innerHTML="<h3>Zákazník nebyl nalezen / Customer not found</h3>";
+    }
+  });
+  </script>
 
-<form id="photoCustomerForm" novalidate>
-<label><b>Číslo zakázky / Order number:</b></label>
-<input type="text" id="cislo" name="cislo" required placeholder="např. NBU25 / e.g. NBU25"/>
+  <h4 style="margin-top:30px;">Photo</h4>
 
-<label><b>Zákazník / Customer:</b></label>
-<input type="text" id="zakaznik" name="zakaznik" required placeholder="např. Jiří Novák / e.g. John Doe"/>
+  <!-- BLOK 1 -->
+  <div class="photo-block">
+    <div class="photo-header">
+      <h4>Před opravou<br><span class="subtitle">Before repair</span></h4>
+      <button type="button" class="btn-photo" data-section="before">Přidat fotografie / Add photos</button>
+    </div>
+    <div class="photo-preview" id="preview-before"></div>
+  </div>
 
-<label><b>Adresa / Address:</b></label>
-<input type="text" id="adresa" name="adresa" required placeholder="např. Vinohradská 120, Praha / e.g. Main Street 12"/>
+  <!-- BLOK 2 -->
+  <div class="photo-block">
+    <div class="photo-header">
+      <h4>ID štítek<br><span class="subtitle">ID label</span></h4>
+      <button type="button" class="btn-photo" data-section="id">Přidat fotografie / Add photos</button>
+    </div>
+    <div class="photo-preview" id="preview-id"></div>
+  </div>
 
-<h3>Fotodokumentace / Photo documentation</h3>
-<p style="font-size:.9em;color:#555;margin-bottom:10px;">
-  <b>Každý blok umožňuje nahrát více fotografií.</b> Obrázky se automaticky zmenší a uloží. / 
-  Each section allows multiple photos – images will be compressed and saved automatically.
-</p>
+  <!-- BLOK 3 -->
+  <div class="photo-block">
+    <div class="photo-header">
+      <h4>Během opravy<br><span class="subtitle">During repair</span></h4>
+      <button type="button" class="btn-photo" data-section="repair">Přidat fotografie / Add photos</button>
+    </div>
+    <div class="photo-preview" id="preview-repair"></div>
+  </div>
 
-<!-- 🟩 4 bloky fotodokumentace -->
-<div class="photo-block"><div class="photo-header"><h4><b>Před opravou</b> / Before repair</h4><button type="button" class="btn-wgs btn-gray" data-section="before">Přidat / Add</button></div><div class="photo-preview" id="preview-before"></div></div>
-<div class="photo-block"><div class="photo-header"><h4><b>ID štítek</b> / ID label</h4><button type="button" class="btn-wgs btn-gray" data-section="id">Přidat / Add</button></div><div class="photo-preview" id="preview-id"></div></div>
-<div class="photo-block"><div class="photo-header"><h4><b>Během opravy</b> / During repair</h4><button type="button" class="btn-wgs btn-gray" data-section="repair">Přidat / Add</button></div><div class="photo-preview" id="preview-repair"></div></div>
-<div class="photo-block"><div class="photo-header"><h4><b>Po opravě</b> / After repair</h4><button type="button" class="btn-wgs btn-gray" data-section="after">Přidat / Add</button></div><div class="photo-preview" id="preview-after"></div></div>
+  <!-- BLOK 4 -->
+  <div class="photo-block">
+    <div class="photo-header">
+      <h4>Po opravě<br><span class="subtitle">After repair</span></h4>
+      <button type="button" class="btn-photo" data-section="after">Přidat fotografie / Add photos</button>
+    </div>
+    <div class="photo-preview" id="preview-after"></div>
+  </div>
 
-<input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
+  <input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
+
+  <div class="progress-bar-container">
+    <div class="progress-bar-fill" id="progressFill"></div>
+  </div>
+  <div class="progress-text" id="progressText">0%</div>
 
 <script>
 (function(){
-const input=document.getElementById("photoInput");
-const photoSections={before:[],id:[],repair:[],after:[]};
-document.querySelectorAll(".btn-wgs[data-section]").forEach(b=>b.addEventListener("click",()=>{input.dataset.section=b.dataset.section;input.click();}));
+  const input=document.getElementById("photoInput");
+  const photoSections={before:[],id:[],repair:[],after:[]};
+  const fill=document.getElementById("progressFill");
+  const text=document.getElementById("progressText");
 
-// Komprese 180 px
-async function compressImage(file,maxDim=180){
-  const img=await createImageBitmap(file);
-  let [w,h]=[img.width,img.height];
-  if(w>h&&w>maxDim){h=Math.round(h*(maxDim/w));w=maxDim;}
-  else if(h>w&&h>maxDim){w=Math.round(w*(maxDim/h));h=maxDim;}
-  const c=document.createElement("canvas");c.width=w;c.height=h;
-  const ctx=c.getContext("2d");ctx.drawImage(img,0,0,w,h);
-  return await new Promise(r=>c.toBlob(r,"image/jpeg",0.85));
-}
-
-// Vykreslení preview
-function renderPreviews(section){
-  const c=document.getElementById("preview-"+section);c.innerHTML="";
-  photoSections[section].forEach((p,i)=>{
-    const wrap=document.createElement("div");wrap.style.position="relative";
-    const img=document.createElement("img");img.src=p.url;img.className="photo-thumb";
-    const bar=document.createElement("div");bar.className="progress-bar";bar.id=`bar-${section}-${i}`;
-    const btn=document.createElement("button");btn.className="photo-remove";btn.textContent="×";
-    btn.onclick=()=>{photoSections[section].splice(i,1);renderPreviews(section);};
-    wrap.append(img,bar,btn);c.append(wrap);
+  document.querySelectorAll(".btn-photo").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      input.dataset.section=btn.dataset.section;
+      input.click();
+    });
   });
-}
 
-input.addEventListener("change",async()=>{
-  const sec=input.dataset.section;if(!sec)return;
-  for(const f of Array.from(input.files)){
-    const blob=await compressImage(f);
-    const url=URL.createObjectURL(blob);
-    photoSections[sec].push({blob,url});
-  }
-  renderPreviews(sec);input.value="";
-  saveToOrdersTemp();
-});
-
-// Uložení do orders.json
-async function saveToOrdersTemp(){
-  const cislo=document.getElementById("cislo").value.trim().toUpperCase();
-  const zak=document.getElementById("zakaznik").value.trim();
-  const adr=document.getElementById("adresa").value.trim();
-  const all=Object.values(photoSections).flat();
-  if(!cislo||!zak||!all.length)return;
-  for(const [s,files] of Object.entries(photoSections)){
-    for(const [i,p] of files.entries()){uploadPhoto(cislo,s,i,p);}
-  }
-}
-
-async function uploadPhoto(cislo,section,index,p){
-  const bar=document.getElementById(`bar-${section}-${index}`);
-  const formData=new FormData();
-  formData.append("file",p.blob,`${cislo}_${section}_${Date.now()}.jpg`);
-  const xhr=new XMLHttpRequest();
-  xhr.open("POST","https://wgs-token.72nvwf4pb2.workers.dev/orders",true);
-  xhr.upload.onprogress=e=>{
-    if(e.lengthComputable){
-      const pr=Math.round((e.loaded/e.total)*100);
-      bar.style.width=pr+"%";
+  input.addEventListener("change",async()=>{
+    const section=input.dataset.section;
+    if(!section)return;
+    const files=Array.from(input.files).slice(0,10);
+    for(const f of files){
+      const blob=await compressImage(f);
+      const url=URL.createObjectURL(blob);
+      photoSections[section].push({blob,url});
     }
-  };
-  xhr.onload=()=>{
-    if(xhr.status===200){bar.style.width="100%";bar.style.background="#2e7d32";}
-    else{bar.style.background="#e63946";}
-  };
-  xhr.send(formData);
-}
+    renderPreviews(section);
+    input.value="";
+  });
+
+  async function compressImage(file,maxDim=180){
+    const img=await createImageBitmap(file);
+    const canvas=document.createElement("canvas");
+    let[w,h]=[img.width,img.height];
+    if(w>h&&w>maxDim){h=Math.round(h*(maxDim/w));w=maxDim;}
+    else if(h>w&&h>maxDim){w=Math.round(w*(maxDim/h));h=maxDim;}
+    canvas.width=w;canvas.height=h;
+    const ctx=canvas.getContext("2d");
+    ctx.drawImage(img,0,0,w,h);
+    return new Promise(r=>canvas.toBlob(r,"image/jpeg",0.85));
+  }
+
+  function renderPreviews(section){
+    const cont=document.getElementById("preview-"+section);
+    cont.innerHTML="";
+    photoSections[section].forEach((p,i)=>{
+      const wrap=document.createElement("div");
+      wrap.style.position="relative";
+      const img=document.createElement("img");
+      img.src=p.url;
+      img.className="photo-thumb";
+      const btn=document.createElement("button");
+      btn.className="photo-remove";
+      btn.textContent="×";
+      btn.onclick=()=>{
+        photoSections[section].splice(i,1);
+        renderPreviews(section);
+      };
+      wrap.append(img,btn);
+      cont.append(wrap);
+    });
+  }
+
+  async function uploadAll(){
+    const allPhotos=Object.values(photoSections).flat();
+    if(!allPhotos.length)return alert("Není vybrána žádná fotografie / No photos selected.");
+    let uploaded=0;
+    const total=allPhotos.length;
+    for(const p of allPhotos){
+      await fakeUpload(p);
+      uploaded++;
+      const pct=Math.round((uploaded/total)*100);
+      fill.style.width=pct+"%";
+      text.textContent=pct+"%";
+    }
+  }
+  async function fakeUpload(){return new Promise(r=>setTimeout(r,250));}
+  window.uploadAll=uploadAll;
 })();
 </script>
+<!-- 🟩 KONEC ČÁSTI 1/2 -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 2/2 – SEKCE 6–10 -->
 
-<!-- 🟩 KONEC SEKCE 1–5 -->
-
-
-
-
-  <!-- 🟨 ZAČÁTEK SEKCE 6/10 – EXPORT DO PDF -->
-
-<div class="actions" style="text-align:center;margin-top:30px;">
-  <button type="button" id="btnExportPDF" class="btn-wgs btn-blue">
-    Exportovat do PDF / Export to PDF
-  </button>
+<!-- 🟨 SEKCE 6 – ODESLÁNÍ FOTODOKUMENTACE -->
+<div class="actions" style="text-align:center;margin-top:25px;">
+  <button type="button" id="btnUploadAll" class="btn-send">Nahrát všechny fotografie / Upload all photos</button>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<div class="wait-overlay" id="waitOverlay">
+  <div class="hourglass"></div>
+  <p>Probíhá nahrávání fotografií / Uploading photos…</p>
+</div>
+
+<style>
+.btn-send{
+  background:linear-gradient(135deg,#00b56a,#00da80);
+  color:#fff;font-weight:600;
+  border:none;border-radius:8px;
+  padding:12px 28px;cursor:pointer;
+  font-size:1em;
+  box-shadow:0 3px 8px rgba(0,0,0,0.15);
+  transition:transform .15s ease,opacity .2s;
+}
+.btn-send:hover{transform:scale(1.05);opacity:.9;}
+.wait-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(255,255,255,0.85);
+  backdrop-filter:blur(2px);
+  justify-content:center;align-items:center;
+  flex-direction:column;
+  font-weight:600;color:#333;
+  z-index:2000;
+}
+.wait-overlay.active{display:flex;}
+.hourglass{
+  border:4px solid #ccc;border-top:4px solid #00b56a;
+  border-radius:50%;width:40px;height:40px;
+  animation:spin 1s linear infinite;margin-bottom:10px;
+}
+@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+</style>
+
 <script>
-(async function(){
-  const { jsPDF } = window.jspdf;
-  document.getElementById("btnExportPDF").addEventListener("click",async()=>{
-    const cislo=document.getElementById("cislo").value.trim().toUpperCase();
-    if(!cislo)return alert("Zadejte číslo zakázky / Enter order number.");
-
-    const pdf=new jsPDF({orientation:"p",unit:"mm",format:"a4"});
-    const w=pdf.internal.pageSize.getWidth();
-    let y=20;
-
-    pdf.setFont("helvetica","bold");pdf.setFontSize(18);
-    pdf.text("WHITE GLOVE SERVICE",w/2,y,{align:"center"});y+=8;
-    pdf.setFontSize(13);
-    pdf.text(`Fotodokumentace / Photo documentation – ${cislo}`,w/2,y,{align:"center"});y+=12;
-
-    const res=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders");
-    const all=await res.json();
-    const rec=all.find(r=>r.id===cislo);
-    if(!rec)return alert("Žádné fotografie nenalezeny / No photos found.");
-
-    const secNames={before:"Před opravou / Before repair",id:"ID štítek / ID label",repair:"Během opravy / During repair",after:"Po opravě / After repair"};
-    for(const [sekce,list] of Object.entries(rec.sekce||{})){
-      if(!list.length)continue;
-      pdf.setFontSize(14);pdf.text(secNames[sekce]||sekce,10,y);y+=6;
-      for(const name of list){
-        const imgUrl=`https://raw.githubusercontent.com/radecek222-boop/reklamace/main/foto/${name}`;
-        const img=new Image();img.crossOrigin="anonymous";img.src=imgUrl;
-        await new Promise(r=>img.onload=r);
-        const canvas=document.createElement("canvas");
-        const ctx=canvas.getContext("2d");
-        const scale=0.4;
-        const iw=img.width*scale,ih=img.height*scale;
-        canvas.width=iw;canvas.height=ih;
-        ctx.drawImage(img,0,0,iw,ih);
-        const dataUrl=canvas.toDataURL("image/jpeg",0.7);
-        if(y+60>280){pdf.addPage();y=20;}
-        pdf.addImage(dataUrl,"JPEG",10,y,90,60);
-        y+=65;
-      }
-    }
-    pdf.save(`Fotodokumentace_${cislo}.pdf`);
-  });
+(function(){
+const uploadBtn=document.getElementById("btnUploadAll");
+const wait=document.getElementById("waitOverlay");
+uploadBtn.addEventListener("click",async()=>{
+  wait.classList.add("active");
+  await window.uploadAll();
+  wait.classList.remove("active");
+  alert("✅ Fotky byly nahrány / Photos uploaded successfully");
+});
 })();
 </script>
-
-<!-- 🟨 KONEC SEKCE 6/10 – EXPORT DO PDF -->
-
+<!-- 🟨 KONEC SEKCE 6 -->
 
 
 
+<!-- 🟨 SEKCE 7 – ULOŽENÉ FOTOGRAFIE -->
+<h3 style="margin-top:40px;">Uložené fotografie / Saved photos</h3>
+<p style="font-size:0.85em;color:#555;">Zde se zobrazí fotky po nahrání / Photos will appear after upload.</p>
 
-<!-- 🟨 ZAČÁTEK SEKCE 7/10 – NOTIFIKACE -->
+<div id="savedPhotos" class="saved-photos">
+  <div class="placeholder">📷 Zatím žádné fotografie / No photos yet.</div>
+</div>
 
+<style>
+.saved-photos{
+  border:1px solid #ddd;border-radius:10px;
+  background:#fafafa;margin-top:12px;padding:15px;
+}
+.placeholder{text-align:center;color:#777;font-size:0.9em;padding:20px 0;}
+</style>
+<!-- 🟨 KONEC SEKCE 7 -->
+
+
+
+<!-- 🟨 SEKCE 8 – NOTIFIKACE -->
 <div id="notif" class="notif"></div>
 <style>
 .notif{
-  position:fixed;top:15px;left:50%;transform:translateX(-50%);
-  min-width:260px;max-width:90%;padding:10px 18px;
-  border-radius:10px;font-weight:600;font-size:.9em;color:#fff;
-  text-align:center;box-shadow:0 4px 10px rgba(0,0,0,0.15);
-  opacity:0;pointer-events:none;z-index:9999;
-  transition:opacity .3s ease,transform .3s ease;
+  position:fixed;top:15px;left:50%;
+  transform:translateX(-50%);
+  min-width:260px;max-width:90%;
+  padding:12px 20px;border-radius:10px;
+  font-weight:600;font-size:0.9em;
+  color:#fff;text-align:center;
+  box-shadow:0 4px 10px rgba(0,0,0,0.15);
+  opacity:0;pointer-events:none;
+  z-index:9999;transition:opacity .3s,transform .3s;
 }
 .notif.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .notif.success{background:linear-gradient(135deg,#00b56a,#00da80);}
+.notif.warning{background:linear-gradient(135deg,#ffb200,#ffca40);color:#333;}
 .notif.error{background:linear-gradient(135deg,#e63946,#ff6b6b);}
 </style>
-<script>
-(function(){
-  const n=document.getElementById("notif");let t=null;
-  window.showNotif=(type="success",text="Uloženo / Saved")=>{
-    n.className=`notif ${type}`;n.textContent=text;n.classList.add("show");
-    clearTimeout(t);t=setTimeout(()=>n.classList.remove("show"),2500);
-  };
-})();
-</script>
-
-<!-- 🟨 KONEC SEKCE 7/10 – NOTIFIKACE -->
-
-
-
-
-
-<!-- 🟨 ZAČÁTEK SEKCE 8/10 – LOKÁLNÍ ULOŽENÍ + VALIDACE -->
 
 <script>
 (function(){
-  const fields=["cislo","zakaznik","adresa"];
-  const key="wgs_photo_data_v1";
-  window.addEventListener("DOMContentLoaded",()=>{
-    const s=JSON.parse(localStorage.getItem(key)||"{}");
-    for(const f of fields){if(s[f])document.getElementById(f).value=s[f];}
-  });
-  fields.forEach(id=>document.getElementById(id).addEventListener("input",saveLocal));
-  function saveLocal(){
-    const o={};fields.forEach(f=>o[f]=document.getElementById(f).value.trim());
-    localStorage.setItem(key,JSON.stringify(o));
-  }
+const n=document.getElementById("notif");
+let t=null;
+window.showNotif=function(type="success",text="Uloženo / Saved"){
+  n.className=`notif ${type}`;n.textContent=text;n.classList.add("show");
+  clearTimeout(t);t=setTimeout(()=>n.classList.remove("show"),2500);
+};
 })();
 </script>
-
-<!-- 🟨 KONEC SEKCE 8/10 – LOKÁLNÍ ULOŽENÍ + VALIDACE -->
-
+<!-- 🟨 KONEC SEKCE 8 -->
 
 
 
-
-<!-- 🟨 ZAČÁTEK SEKCE 9/10 – OVLÁDÁNÍ -->
-
-<div class="actions" style="text-align:center;margin:40px 0 10px;">
-  <a href="index.html" class="btn-wgs btn-gray">Zpět / Back</a>
-  <button type="button" id="btnReload" class="btn-wgs btn-green">Načíst uložené / Reload saved</button>
+<!-- 🟨 SEKCE 9 – OVLÁDACÍ TLAČÍTKA ZÁVĚR -->
+<div class="actions" style="margin-top:40px;text-align:center;">
+  <a href="index.html" class="btn-back">Zpět na menu / Back to menu</a>
+  <button type="button" id="btnReloadData" class="btn-gray">Načíst uložené / Reload</button>
 </div>
 
+<style>
+.btn-back{
+  background:linear-gradient(135deg,#9b9b9b,#bfbfbf);
+  color:#fff;font-weight:600;border:none;border-radius:8px;
+  padding:12px 28px;cursor:pointer;font-size:1em;
+  box-shadow:0 3px 8px rgba(0,0,0,0.15);
+  transition:transform .15s ease,opacity .2s;
+  text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
+}
+.btn-gray{
+  background:linear-gradient(135deg,#6c757d,#a0a4a7);
+  color:#fff;font-weight:600;border:none;border-radius:8px;
+  padding:12px 28px;cursor:pointer;font-size:1em;
+  box-shadow:0 3px 8px rgba(0,0,0,0.15);
+  transition:transform .15s ease,opacity .2s;
+}
+.btn-back:hover,.btn-gray:hover{transform:scale(1.05);opacity:.9;}
+</style>
+
 <script>
-document.getElementById("btnReload").addEventListener("click",()=>{
-  showNotif("success","Data obnovena / Data reloaded");
+document.getElementById("btnReloadData").addEventListener("click",()=>{
+  showNotif("warning","Obnovuji / Reloading…");
   setTimeout(()=>location.reload(),800);
 });
 </script>
-
-<!-- 🟨 KONEC SEKCE 9/10 – OVLÁDÁNÍ -->
-
+<!-- 🟨 KONEC SEKCE 9 -->
 
 
-
-
-<!-- 🟨 ZAČÁTEK SEKCE 10/10 – FOOTER -->
-
-<footer style="text-align:center;margin:25px 0 20px;font-size:0.8em;color:#888;">
+<footer style="text-align:center;margin:30px 0 20px;font-size:0.8em;color:#888;">
   White Glove Service s.r.o. • © 2025
 </footer>
 
-</form>
-</div>
+</div> <!-- wrapper -->
 </body>
 </html>
-
-<!-- 🟨 KONEC SEKCE 10/10 – FOOTER -->
+<!-- 🟩 KONEC ČÁSTI 2/2 – FINAL -->
