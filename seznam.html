@@ -234,38 +234,37 @@ tr.stav-hotovo:hover td {
 
 
 
-<!-- 🟦 B: NAČÍTÁNÍ DAT A TABULKA + DEBUG (opraveno + iPhone diagnostika) -->
+<!-- 🟦 SEKCE B – NAČÍTÁNÍ DAT + TABULKA + DEBUG (iPhone fix) -->
 <script>
 const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
-let dataAll = [];
+const tableContainer = document.getElementById("tableContainer");
+const searchInput = document.getElementById("search");
+const reloadBtn = document.getElementById("reloadBtn");
 
+let dataAll = [];
+let stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
+
+/* 🧭 Načtení dat z Workeru (iPhone-safe verze) */
 async function loadData() {
   console.log("📥 Načítám data z Workeru (iPhone-safe)…");
   tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
 
-  // 📱 Diagnostika pro iPhone Safari – malý overlay v rohu
-  const testDiv = document.createElement("div");
-  testDiv.style.position = "fixed";
-  testDiv.style.bottom = "10px";
-  testDiv.style.left = "10px";
-  testDiv.style.padding = "8px 10px";
-  testDiv.style.background = "rgba(0,0,0,0.65)";
-  testDiv.style.color = "#fff";
-  testDiv.style.fontSize = "11px";
-  testDiv.style.borderRadius = "6px";
-  testDiv.style.zIndex = "99999";
-  testDiv.style.pointerEvents = "none";
-  testDiv.textContent = "⏳ Načítám data...";
-  document.body.appendChild(testDiv);
+  // 📱 diagnostický panel v levém dolním rohu
+  const diag = document.createElement("div");
+  Object.assign(diag.style, {
+    position: "fixed", bottom: "10px", left: "10px",
+    padding: "6px 10px", background: "rgba(0,0,0,0.6)",
+    color: "#fff", fontSize: "11px", borderRadius: "6px",
+    zIndex: "99999", pointerEvents: "none"
+  });
+  diag.textContent = "⏳ Načítám data...";
+  document.body.appendChild(diag);
 
   try {
     const res = await fetch(API_URL + "?t=" + Date.now(), {
-      method: "GET",
-      mode: "cors",
-      cache: "no-store",
+      method: "GET", mode: "cors", cache: "no-store",
       headers: { "Accept": "application/json" }
     });
-
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     console.log("📦 Worker data:", data);
@@ -277,19 +276,37 @@ async function loadData() {
       if (ulozeny) { z.datum = ulozeny.datum; z.cas = ulozeny.cas; }
     });
 
-    dataAll = data.reverse();
-    renderTable(dataAll);
-
-    testDiv.textContent = `✅ Načteno ${dataAll.length} záznamů`;
+    dataAll = Array.isArray(data) ? data.reverse() : [];
+    if (typeof renderTable === "function") {
+      renderTable(dataAll);
+      diag.textContent = `✅ Načteno ${dataAll.length} záznamů`;
+    } else {
+      diag.textContent = "⚠️ renderTable() není definována";
+      console.warn("⚠️ Funkce renderTable() není k dispozici při načtení.");
+    }
 
   } catch (err) {
     console.error("❌ Chyba při načítání:", err);
-    tableContainer.innerHTML = `<div style='color:red;font-weight:600;'>Chyba načítání: ${err.message}</div>`;
-    testDiv.textContent = "❌ Chyba načítání: " + err.message;
+    tableContainer.innerHTML =
+      `<div style='color:red;font-weight:600;'>Chyba načítání: ${err.message}</div>`;
+    diag.textContent = "❌ " + err.message;
   }
 }
-</script>
 
+/* 🔍 Vyhledávání */
+searchInput.addEventListener("input", () => {
+  const q = searchInput.value.trim().toLowerCase();
+  if (!q) return renderTable(dataAll);
+  renderTable(dataAll.filter(r =>
+    (r.zakaznik || "").toLowerCase().includes(q) ||
+    (r.adresa || "").toLowerCase().includes(q)
+  ));
+});
+
+/* 🔁 Ruční načtení */
+reloadBtn.addEventListener("click", loadData);
+</script>
+<!-- 🟦 KONEC SEKCE B -->
 
 
  
@@ -1276,61 +1293,48 @@ function formatTimeShort(h, m) {
       crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         crossorigin=""></script>
-<script src="wgs-config-map.js"></script>
 
-<!-- 📅 Vanilla Calendar (tvá verze z GitHubu) -->
+<!-- 📅 Vanilla Calendar (lokální verze z GitHubu) -->
 <link rel="stylesheet"
       href="https://radecek222-boop.github.io/reklamace/vanilla-calendar.min.css">
 <script src="https://radecek222-boop.github.io/reklamace/vanilla-calendar.min.js"></script>
 
-<!-- 📄 jsPDF (pro export PDF – volitelné) -->
+<!-- 📄 jsPDF (export PDF – volitelné) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <!-- 🟪 KONEC G-1 -->
+
 
 <!-- 🟪 G-2: GLOBÁLNÍ INICIALIZACE A OCHRANA -->
 <script>
 window.addEventListener("DOMContentLoaded", () => {
   console.log("✅ White Glove Service – systém spuštěn");
   console.log("🌍 Worker API:", API_URL);
-  console.log("📦 Připojení k GitHub repozitáři aktivní.");
 
-  // 1️⃣ Načtení dat z Workera
-  loadData();
-
-  // 2️⃣ Zobrazení toastu z minulé akce (po reloadu)
-  const toastMsg = sessionStorage.getItem("wgsToastMsg");
-  const toastType = sessionStorage.getItem("wgsToastType");
-  if (toastMsg) {
-    showToast(toastMsg, toastType);
-    sessionStorage.removeItem("wgsToastMsg");
-    sessionStorage.removeItem("wgsToastType");
+  // 1️⃣ Načtení dat z Workera (nespouštíme hned – řeší Safari fix v load)
+  if (typeof loadData === "function") {
+    console.log("🔄 loadData je připraven – čeká na onload event");
+  } else {
+    console.warn("⚠️ loadData ještě není načten v DOM");
   }
 
-  // 3️⃣ Napojení hlavních tlačítek
-  const planBtn = document.getElementById("planBtn");
-  if (planBtn) planBtn.onclick = openPlanModal; // 🔵 „Plán dne“
-
-  const reloadBtn = document.getElementById("reloadBtn");
-  if (reloadBtn) reloadBtn.onclick = loadData;  // 🔄 „Načíst znovu“
-
-  // 4️⃣ Kontrola načtených knihoven
+  // 2️⃣ Kontrola knihoven
   if (typeof L === "undefined") {
-    console.error("❌ Leaflet se nonačetl – zkontroluj CDN.");
+    console.error("❌ Leaflet se nonačetl – zkontroluj CDN");
   } else {
     console.log("🗺️ Leaflet OK");
   }
 
   if (typeof VanillaCalendar === "undefined") {
-    console.error("❌ Vanilla Calendar se nonačetl – zkontroluj link v sekci G-1.");
+    console.error("❌ Vanilla Calendar se nonačetl – zkontroluj link v G-1");
   } else {
-    console.log("📅 Vanilla Calendar inicializován (v2.8.1 – GitHub lokální verze)");
+    console.log("📅 Vanilla Calendar OK (v2.8.1)");
   }
 
-  console.log("🧭 Načteny všechny sekce A–G (verze v1.0 – 10/2025)");
+  console.log("🧭 Sekce G – inicializace dokončena (říjen 2025)");
 });
 
 window.addEventListener("error", e => {
-  console.error("⚠️ Chyba:", e.message, "→", e.filename, ":", e.lineno);
+  console.error("⚠️ JS Chyba:", e.message, "→", e.filename, ":", e.lineno);
 });
 window.addEventListener("unhandledrejection", e => {
   console.error("⚠️ Nezpracované Promise:", e.reason);
@@ -1338,10 +1342,8 @@ window.addEventListener("unhandledrejection", e => {
 </script>
 <!-- 🟪 KONEC G-2 -->
 
-<!-- 🟪 KONEC G-2 -->
 
-
-<!-- 🟪 G-3: ZÁVĚREČNÉ STYLY A INFO -->
+<!-- 🟪 G-3: ZÁVĚREČNÉ STYLY A GLOBÁLNÍ VZHLED -->
 <style>
 body {
   font-family: "Inter", system-ui, sans-serif;
@@ -1351,7 +1353,7 @@ body {
   padding: 0;
 }
 
-/* Přechody pro modální vrstvy a překryvy */
+/* Přechody pro modální vrstvy */
 .detail-overlay,
 #planModal,
 .loader-overlay,
@@ -1369,56 +1371,6 @@ body {
 ::selection { background:#0046ff; color:#fff; }
 </style>
 <!-- 🟪 KONEC G-3 -->
-
-<!-- 🟩 TOAST potvrzení -->
-<style>
-.toast {
-  position: fixed;
-  bottom: 25px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(90deg, #00a86b, #00d084);
-  color: #fff;
-  font-weight: 600;
-  padding: 12px 22px;
-  border-radius: 30px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  z-index: 9999;
-}
-.toast.show {
-  opacity: 1;
-  transform: translate(-50%, -10px);
-}
-.toast.error {
-  background: linear-gradient(90deg, #c93030, #e74c3c);
-}
-</style>
-
-<div id="toast" class="toast"></div>
-
-<script>
-window.addEventListener("DOMContentLoaded", () => {
-  const toast = document.getElementById("toast");
-  const msg = sessionStorage.getItem("wgsToastMsg");
-  const type = sessionStorage.getItem("wgsToastType");
-
-  if (msg) {
-    toast.textContent = msg;
-    if (type === "error") toast.classList.add("error");
-    toast.classList.add("show");
-    setTimeout(() => toast.classList.remove("show"), 4000);
-    setTimeout(() => {
-      sessionStorage.removeItem("wgsToastMsg");
-      sessionStorage.removeItem("wgsToastType");
-    }, 4200);
-  }
-});
-</script>
-
-
 
 
 
