@@ -714,7 +714,13 @@ function openDetail(index) {
           <div class="date-time-row">
             <div id="miniCalendar"></div>
 
-    
+            <div class="date-right-column">
+              <div class="custom-time-picker">
+                <select id="hours"></select><span>:</span><select id="minutes"></select>
+              </div>
+              <div class="term-info-box" id="termInfoBox">Není vybrán datum a čas</div>
+            </div>
+          </div>
 
           <!-- 🟩 DLAŽDICE 3×2 -->
           <div class="tile-grid">
@@ -961,83 +967,28 @@ function initMapForDetail(overlay, item) {
 <script>
 function initCalendarAndTime(overlay, item, index) {
   const infoBox = overlay.querySelector("#termInfoBox");
-
-  // 📅 Kalendář
   const miniCal = new VanillaCalendar("#miniCalendar", {
     settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
-    actions: {
-      clickDay: e => {
-        const chosen = e.target.dataset.calendarDay;
-        if (chosen) {
-          overlay.dataset.datum = chosen;
-          updateTermInfoBox(infoBox, chosen, null);
-          flashBox(infoBox, "gray");
-        }
+    actions: { clickDay: e => {
+      const chosen = e.target.dataset.calendarDay;
+      if (chosen) {
+        overlay.dataset.datum = chosen;
+        updateTermInfoBox(infoBox, chosen, null);
+        flashBox(infoBox, "gray");
       }
-    }
+    } }
   });
   miniCal.init();
 
-  // 🕒 Ikona hodin + skrytý input
-  const timePicker = document.createElement("div");
-  timePicker.className = "modern-time-picker";
-  timePicker.innerHTML = `
-    <div class="clock-icon" id="openTimePicker">
-      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="black" viewBox="0 0 24 24">
-        <path d="M12 1a11 11 0 1 0 0 22 11 11 0 0 0 0-22zm0 20a9 9 0 1 1 0-18 9 9 0 0 1 0 18z"/>
-        <path d="M12.5 7h-1v6l4.5 2.5.5-.9-4-2.3V7z"/>
-      </svg>
-    </div>
-    <input type="time" id="hiddenTimeInput" step="300" class="hidden-time-input">
-  `;
-
-  const rightCol = overlay.querySelector(".date-right-column");
-  rightCol.insertBefore(timePicker, infoBox);
-
-  const timeInput = timePicker.querySelector("#hiddenTimeInput");
-  const clockIcon = timePicker.querySelector("#openTimePicker");
-
-  clockIcon.addEventListener("click", () => timeInput.showPicker());
-  timeInput.addEventListener("change", () => {
-    const val = timeInput.value;
-    if (val) {
-      overlay.dataset.cas = val;
-      const [h, m] = val.split(":");
-      updateTermInfoBox(infoBox, overlay.dataset.datum, `${h}:${m}`);
-      flashBox(infoBox, "green");
-    }
-  });
+  // hodiny
+  const hSel = overlay.querySelector("#hours"), mSel = overlay.querySelector("#minutes");
+  for (let h = 7; h < 20; h++) hSel.innerHTML += `<option>${String(h).padStart(2,"0")}</option>`;
+  for (let m = 0; m < 60; m += 5) mSel.innerHTML += `<option>${String(m).padStart(2,"0")}</option>`;
+  hSel.addEventListener("change", () => updateTime(infoBox, overlay));
+  mSel.addEventListener("change", () => updateTime(infoBox, overlay));
 }
 </script>
-
-<style>
-/* 🕒 Styl černých hodin */
-.modern-time-picker {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #f8f8f8;
-  border-radius: 10px;
-  padding: 14px 0;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}
-.clock-icon {
-  cursor: pointer;
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-.clock-icon:hover {
-  transform: scale(1.12);
-  opacity: 0.85;
-}
-.hidden-time-input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-</style>
 <!-- 🟩 KONEC C-3 -->
-
-
 
 
 
