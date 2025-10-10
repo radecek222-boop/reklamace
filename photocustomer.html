@@ -228,7 +228,7 @@ h2 {
 
 
 
-<!-- 🟩 ZAČÁTEK ČÁSTI 3/3 – TLAČÍTKA + NOTIFIKACE + OVERLAY -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 3/3 – FUNKČNÍ TLAČÍTKA + NOTIFIKACE + OVERLAY -->
 <div class="actions" id="uploadSection">
   <button type="button" id="btnUploadAll" class="btn-send">NAHRÁT</button>
 </div>
@@ -286,20 +286,6 @@ h2 {
 @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
 </style>
 
-<script>
-const uploadBtn=document.getElementById("btnUploadAll");
-const wait=document.getElementById("waitOverlay");
-uploadBtn.addEventListener("click",async()=>{
-  wait.classList.add("active");
-  await fakeUpload();
-  wait.classList.remove("active");
-  showNotif("success","Fotky byly nahrány");
-});
-async function fakeUpload(){
-  return new Promise(r=>setTimeout(r,2000));
-}
-</script>
-
 <!-- 🟨 NOTIFIKACE -->
 <div id="notif" class="notif"></div>
 <style>
@@ -327,20 +313,6 @@ async function fakeUpload(){
 .notif.warning{background:linear-gradient(135deg,#ffb200,#ffca40);color:#333;}
 .notif.error{background:linear-gradient(135deg,#e63946,#ff6b6b);}
 </style>
-
-<script>
-(function(){
-const n=document.getElementById("notif");
-let t=null;
-window.showNotif=function(type="success",text="Uloženo"){
-  n.className=`notif ${type}`;
-  n.textContent=text;
-  n.classList.add("show");
-  clearTimeout(t);
-  t=setTimeout(()=>n.classList.remove("show"),2500);
-};
-})();
-</script>
 
 <!-- 🟨 SPODNÍ TLAČÍTKA -->
 <div class="actions bottom-actions">
@@ -383,6 +355,56 @@ window.showNotif=function(type="success",text="Uloženo"){
 }
 .btn-back:hover,.btn-gray:hover{transform:scale(1.05);opacity:.9;}
 </style>
+
+<!-- 🟨 JS FUNKCE PRO TLAČÍTKA -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const uploadBtn = document.getElementById("btnUploadAll");
+  const exportBtn = document.getElementById("btnExportPdf");
+  const wait = document.getElementById("waitOverlay");
+
+  window.showNotif = function(type="success", text="Hotovo") {
+    const n=document.getElementById("notif");
+    if(!n) return;
+    n.className=`notif ${type}`;
+    n.textContent=text;
+    n.classList.add("show");
+    clearTimeout(window._notifTimer);
+    window._notifTimer=setTimeout(()=>n.classList.remove("show"),2500);
+  };
+
+  uploadBtn?.addEventListener("click", async () => {
+    try {
+      wait?.classList.add("active");
+      if (typeof window.uploadAll === "function") {
+        await window.uploadAll();  // přímé volání z části 2/3
+        showNotif("success","Fotky byly nahrány");
+      } else {
+        showNotif("warning","Funkce uploadAll() není dostupná");
+      }
+    } catch(e) {
+      console.error(e);
+      showNotif("error","Chyba při nahrávání");
+    } finally {
+      wait?.classList.remove("active");
+    }
+  });
+
+  exportBtn?.addEventListener("click", async () => {
+    try {
+      if (typeof window.generatePdf === "function") {
+        await window.generatePdf(); // volání funkce z protokolu
+        showNotif("success","PDF vytvořeno");
+      } else {
+        showNotif("warning","Export PDF zatím není aktivní");
+      }
+    } catch(e) {
+      console.error(e);
+      showNotif("error","Chyba při exportu PDF");
+    }
+  });
+});
+</script>
 
 <footer style="text-align:center;margin:30px 0 20px;font-size:0.8em;color:#888;">
   White Glove Service s.r.o. • © 2025
