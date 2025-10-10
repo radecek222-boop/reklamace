@@ -511,7 +511,7 @@ function updateDebug(count) {
 <!-- 🟦 KONEC SEKCE B -->
 
 
-<!-- 🟦 ZAČÁTEK B-2: MOBILNÍ BLOKY (upravený layout – adresa nahoře, jméno dole) -->
+<!-- 🟦 ZAČÁTEK B-2: MOBILNÍ BLOKY (FINAL – probarvené, přes celý displej) -->
 <script>
 function renderMobileBlocks(arr) {
   if (!arr || !arr.length) {
@@ -520,21 +520,52 @@ function renderMobileBlocks(arr) {
   }
 
   const html = arr.map((r, i) => {
-    const stav = r.stav || "novy";
-    const adresa = r.adresa || "";
-    const datum = r.datum ? new Date(r.datum).toLocaleDateString("cs-CZ", { day:"2-digit", month:"2-digit", year:"numeric" }) : "";
+    const stav = (r.stav || "novy").toLowerCase();
+    const adresa = r.adresa || "Neznámá adresa";
+    const datum = r.datum
+      ? new Date(r.datum).toLocaleDateString("cs-CZ", { day: "2-digit", month: "2-digit", year: "numeric" })
+      : "";
     const cas = r.cas || "";
     const wazeUrl = r.adresa ? `https://waze.com/ul?q=${encodeURIComponent(r.adresa)}` : "";
     const phoneUrl = r.telefon ? `tel:${r.telefon.replace(/\s+/g, '')}` : "";
 
+    // 🟩 Text a barva dle stavu
+    let stavText = "";
+    let barva = "";
+    switch (stav) {
+      case "domluveno":
+        stavText = `${datum}${cas ? " · " + cas : ""}`;
+        barva = "background:#dfe8ff;color:#0046ff;";
+        break;
+      case "ceka":
+        stavText = "Čeká na díly";
+        barva = "background:#ede0ff;color:#5c00b8;";
+        break;
+      case "nezveda":
+        stavText = "Zákazník nezvedá – poslána SMS";
+        barva = "background:#ffe6b3;color:#cc7a00;";
+        break;
+      case "zruseno":
+        stavText = "Zrušeno";
+        barva = "background:#ffcccc;color:#a30000;";
+        break;
+      case "hotovo":
+        stavText = "Hotovo";
+        barva = "background:#b6f2c0;color:#116d2b;";
+        break;
+      default:
+        stavText = "Nová";
+        barva = "background:#fff9b1;color:#000;animation:blinkRow 1.3s infinite;";
+    }
+
     return `
-      <div class="mob-block stav-${stav}" onclick="openDetail(${i})">
+      <div class="mob-block" style="${barva}" onclick="openDetail(${i})">
         <div class="mob-top">
-          <div class="mob-addr">${adresa || "Neznámá adresa"}</div>
+          <div class="mob-addr">${adresa}</div>
           ${wazeUrl ? `<a href="${wazeUrl}" target="_blank" class="waze-btn">WAZE</a>` : ""}
         </div>
         <div class="mob-mid">
-          <div class="mob-date">${datum}${cas ? " · " + cas : ""}</div>
+          <div class="mob-date">${stavText}</div>
           ${phoneUrl ? `<a href="${phoneUrl}" class="phone-btn">📞</a>` : ""}
         </div>
         <div class="mob-name">${r.zakaznik || "Neznámý zákazník"}</div>
@@ -546,27 +577,29 @@ function renderMobileBlocks(arr) {
 </script>
 
 <style>
-/* 📱 Kontejner pro mobilní bloky */
+/* 📱 Kontejner – celé přes displej */
 .mob-container {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 10px;
+  gap: 14px;
+  margin: 0;
   width: 100%;
 }
 
-/* 📦 Jeden záznam */
+/* 📦 Jeden blok (plná šířka displeje) */
 .mob-block {
-  width: 100%;
-  background: #fff;
-  border-radius: 12px;
-  padding: 12px 16px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-  border-left: 6px solid transparent;
-  transition: transform .15s ease, box-shadow .15s ease;
+  width: 100vw;
+  margin-left: -8px; /* odstraní vnitřní padding stránky */
+  border-radius: 0;
+  padding: 14px 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   box-sizing: border-box;
+  transition: transform .15s ease, box-shadow .15s ease;
 }
-.mob-block:hover { transform: scale(1.01); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+.mob-block:hover {
+  transform: scale(1.01);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+}
 
 /* 🏷️ Horní řádek – adresa + Waze */
 .mob-top {
@@ -577,16 +610,15 @@ function renderMobileBlocks(arr) {
 }
 .mob-addr {
   font-weight: 600;
-  font-size: 1em;
-  color: #222;
+  font-size: 1.05em;
   flex: 1;
+  color: inherit;
   word-break: break-word;
 }
 .waze-btn {
-  display: inline-block;
   border: 1px solid #0066ff;
   border-radius: 6px;
-  padding: 3px 10px 4px;
+  padding: 3px 10px;
   font-size: 0.85em;
   font-weight: 600;
   color: #0066ff;
@@ -595,7 +627,7 @@ function renderMobileBlocks(arr) {
   flex-shrink: 0;
 }
 
-/* 📅 Prostřední řádek – datum + telefonní ikona */
+/* 📅 Prostřední řádek – datum / stav + telefon */
 .mob-mid {
   display: flex;
   justify-content: space-between;
@@ -604,39 +636,36 @@ function renderMobileBlocks(arr) {
 }
 .mob-date {
   font-size: 1.05em;
-  font-weight: 600;
-  color: #111;
+  font-weight: 700;
 }
 .phone-btn {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  background: #f0f0f0;
+  background: rgba(255,255,255,0.8);
   text-decoration: none;
-  font-size: 1.3em;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  flex-shrink: 0;
+  font-size: 1.4em;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
 /* 👤 Spodní řádek – jméno */
 .mob-name {
   margin-top: 8px;
-  font-size: 1.1em;
+  font-size: 1.15em;
   font-weight: 700;
-  color: #000;
+  color: inherit;
 }
 
-/* 🟢 Barvy dle stavu */
-.mob-block.stav-novy { border-left-color: #ffea70; }
-.mob-block.stav-domluveno { border-left-color: #80aaff; }
-.mob-block.stav-nezveda { border-left-color: #ffa84d; }
-.mob-block.stav-zruseno { border-left-color: #ff5c5c; }
-.mob-block.stav-hotovo { border-left-color: #5cd65c; }
+/* ✨ Efekt blikání pro nové */
+@keyframes blinkRow {
+  0%,100% { background:#fff9b1; }
+  50% { background:#fff06b; }
+}
 </style>
-<!-- 🟦 KONEC -2: MOBILNÍ BLOBKY (upravený layout) -->
+<!-- 🟦 KONEC B-2: MOBILNÍ BLOKY (FINAL) -->
 
 
  
