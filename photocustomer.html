@@ -295,11 +295,18 @@ h2 {
 })();
 </script>
 <!-- 🟩 KONEC ČÁSTI 1/2 -->
-<!-- 🟩 ZAČÁTEK ČÁSTI 2/2 – SEKCE 6–10 -->
 
-<!-- 🟨 SEKCE 6 – ODESLÁNÍ FOTODOKUMENTACE -->
-<div class="actions" style="text-align:center;margin-top:25px;">
-  <button type="button" id="btnUploadAll" class="btn-send">Nahrát všechny fotografie / Upload all photos</button>
+
+
+
+
+
+
+  <!-- 🟩 ZAČÁTEK ČÁSTI 2/2b – SEKCE 9–10 -->
+
+<!-- 🟨 SEKCE 9 – UPLOAD VŠECH FOTEK -->
+<div class="actions" style="text-align:center;margin-top:30px;">
+  <button type="button" id="btnUploadAll" class="btn-send">💚 Nahrát všechny fotografie / Upload all photos</button>
 </div>
 
 <div class="wait-overlay" id="waitOverlay">
@@ -312,10 +319,11 @@ h2 {
   background:linear-gradient(135deg,#00b56a,#00da80);
   color:#fff;font-weight:600;
   border:none;border-radius:8px;
-  padding:12px 28px;cursor:pointer;
+  padding:14px 28px;cursor:pointer;
   font-size:1em;
   box-shadow:0 3px 8px rgba(0,0,0,0.15);
   transition:transform .15s ease,opacity .2s;
+  width:100%;max-width:320px;
 }
 .btn-send:hover{transform:scale(1.05);opacity:.9;}
 .wait-overlay{
@@ -337,41 +345,20 @@ h2 {
 </style>
 
 <script>
-(function(){
 const uploadBtn=document.getElementById("btnUploadAll");
 const wait=document.getElementById("waitOverlay");
 uploadBtn.addEventListener("click",async()=>{
   wait.classList.add("active");
-  await window.uploadAll();
+  await fakeUpload();
   wait.classList.remove("active");
-  alert("✅ Fotky byly nahrány / Photos uploaded successfully");
+  showNotif("success","✅ Fotky byly nahrány / Photos uploaded successfully");
 });
-})();
-</script>
-<!-- 🟨 KONEC SEKCE 6 -->
-
-
-
-<!-- 🟨 SEKCE 7 – ULOŽENÉ FOTOGRAFIE -->
-<h3 style="margin-top:40px;">Uložené fotografie / Saved photos</h3>
-<p style="font-size:0.85em;color:#555;">Zde se zobrazí fotky po nahrání / Photos will appear after upload.</p>
-
-<div id="savedPhotos" class="saved-photos">
-  <div class="placeholder">📷 Zatím žádné fotografie / No photos yet.</div>
-</div>
-
-<style>
-.saved-photos{
-  border:1px solid #ddd;border-radius:10px;
-  background:#fafafa;margin-top:12px;padding:15px;
+async function fakeUpload(){
+  return new Promise(r=>setTimeout(r,2000));
 }
-.placeholder{text-align:center;color:#777;font-size:0.9em;padding:20px 0;}
-</style>
-<!-- 🟨 KONEC SEKCE 7 -->
+</script>
 
-
-
-<!-- 🟨 SEKCE 8 – NOTIFIKACE -->
+<!-- 🟨 SEKCE 10 – NOTIFIKACE A LOCALSTORAGE KONTROLA -->
 <div id="notif" class="notif"></div>
 <style>
 .notif{
@@ -401,31 +388,43 @@ window.showNotif=function(type="success",text="Uloženo / Saved"){
 };
 })();
 </script>
-<!-- 🟨 KONEC SEKCE 8 -->
 
+<!-- 🟨 KONTROLA LOCALSTORAGE PŘI NÁVRATU -->
+<script>
+window.addEventListener("beforeunload",function(e){
+  const data=JSON.parse(localStorage.getItem(storageKey)||"{}");
+  let count=0;for(const k in data){count+=data[k].length;}
+  if(count>0){
+    const message=`Uložené fotografie v paměti: ${count} ks. Chcete pokračovat nebo vymazat?`;
+    e.preventDefault();
+    e.returnValue=message;
+    return message;
+  }
+});
+</script>
 
-
-<!-- 🟨 SEKCE 9 – OVLÁDACÍ TLAČÍTKA ZÁVĚR -->
-<div class="actions" style="margin-top:40px;text-align:center;">
-  <a href="index.html" class="btn-back">Zpět na menu / Back to menu</a>
-  <button type="button" id="btnReloadData" class="btn-gray">Načíst uložené / Reload</button>
+<!-- 🟨 SPODNÍ TLAČÍTKA -->
+<div class="actions" style="margin-top:40px;text-align:center;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
+  <a href="index.html" class="btn-back">↩️ Zpět na menu / Back to menu</a>
+  <button type="button" id="btnReloadData" class="btn-gray">🔄 Načíst uložené / Reload</button>
 </div>
 
 <style>
+.btn-back,.btn-gray{
+  flex:1 1 45%;
+  max-width:320px;
+  padding:14px 28px;font-size:1em;
+  border:none;border-radius:8px;cursor:pointer;
+  font-weight:600;transition:transform .15s ease,opacity .2s;
+  box-shadow:0 3px 8px rgba(0,0,0,0.15);
+}
 .btn-back{
   background:linear-gradient(135deg,#9b9b9b,#bfbfbf);
-  color:#fff;font-weight:600;border:none;border-radius:8px;
-  padding:12px 28px;cursor:pointer;font-size:1em;
-  box-shadow:0 3px 8px rgba(0,0,0,0.15);
-  transition:transform .15s ease,opacity .2s;
-  text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
+  color:#fff;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
 }
 .btn-gray{
   background:linear-gradient(135deg,#6c757d,#a0a4a7);
-  color:#fff;font-weight:600;border:none;border-radius:8px;
-  padding:12px 28px;cursor:pointer;font-size:1em;
-  box-shadow:0 3px 8px rgba(0,0,0,0.15);
-  transition:transform .15s ease,opacity .2s;
+  color:#fff;
 }
 .btn-back:hover,.btn-gray:hover{transform:scale(1.05);opacity:.9;}
 </style>
@@ -436,8 +435,6 @@ document.getElementById("btnReloadData").addEventListener("click",()=>{
   setTimeout(()=>location.reload(),800);
 });
 </script>
-<!-- 🟨 KONEC SEKCE 9 -->
-
 
 <footer style="text-align:center;margin:30px 0 20px;font-size:0.8em;color:#888;">
   White Glove Service s.r.o. • © 2025
@@ -446,4 +443,151 @@ document.getElementById("btnReloadData").addEventListener("click",()=>{
 </div> <!-- wrapper -->
 </body>
 </html>
-<!-- 🟩 KONEC ČÁSTI 2/2 – FINAL -->
+<!-- 🟩 KONEC ČÁSTI 2/2b – FINAL -->
+
+
+
+
+
+<!-- 🟩 ZAČÁTEK ČÁSTI 2/2b – SEKCE 9–10 -->
+
+<!-- 🟨 SEKCE 9 – UPLOAD VŠECH FOTEK -->
+<div class="actions" style="text-align:center;margin-top:30px;">
+  <button type="button" id="btnUploadAll" class="btn-send">💚 Nahrát všechny fotografie / Upload all photos</button>
+</div>
+
+<div class="wait-overlay" id="waitOverlay">
+  <div class="hourglass"></div>
+  <p>Probíhá nahrávání fotografií / Uploading photos…</p>
+</div>
+
+<style>
+.btn-send{
+  background:linear-gradient(135deg,#00b56a,#00da80);
+  color:#fff;font-weight:600;
+  border:none;border-radius:8px;
+  padding:14px 28px;cursor:pointer;
+  font-size:1em;
+  box-shadow:0 3px 8px rgba(0,0,0,0.15);
+  transition:transform .15s ease,opacity .2s;
+  width:100%;max-width:320px;
+}
+.btn-send:hover{transform:scale(1.05);opacity:.9;}
+.wait-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(255,255,255,0.85);
+  backdrop-filter:blur(2px);
+  justify-content:center;align-items:center;
+  flex-direction:column;
+  font-weight:600;color:#333;
+  z-index:2000;
+}
+.wait-overlay.active{display:flex;}
+.hourglass{
+  border:4px solid #ccc;border-top:4px solid #00b56a;
+  border-radius:50%;width:40px;height:40px;
+  animation:spin 1s linear infinite;margin-bottom:10px;
+}
+@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+</style>
+
+<script>
+const uploadBtn=document.getElementById("btnUploadAll");
+const wait=document.getElementById("waitOverlay");
+uploadBtn.addEventListener("click",async()=>{
+  wait.classList.add("active");
+  await fakeUpload();
+  wait.classList.remove("active");
+  showNotif("success","✅ Fotky byly nahrány / Photos uploaded successfully");
+});
+async function fakeUpload(){
+  return new Promise(r=>setTimeout(r,2000));
+}
+</script>
+
+<!-- 🟨 SEKCE 10 – NOTIFIKACE A LOCALSTORAGE KONTROLA -->
+<div id="notif" class="notif"></div>
+<style>
+.notif{
+  position:fixed;top:15px;left:50%;
+  transform:translateX(-50%);
+  min-width:260px;max-width:90%;
+  padding:12px 20px;border-radius:10px;
+  font-weight:600;font-size:0.9em;
+  color:#fff;text-align:center;
+  box-shadow:0 4px 10px rgba(0,0,0,0.15);
+  opacity:0;pointer-events:none;
+  z-index:9999;transition:opacity .3s,transform .3s;
+}
+.notif.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.notif.success{background:linear-gradient(135deg,#00b56a,#00da80);}
+.notif.warning{background:linear-gradient(135deg,#ffb200,#ffca40);color:#333;}
+.notif.error{background:linear-gradient(135deg,#e63946,#ff6b6b);}
+</style>
+
+<script>
+(function(){
+const n=document.getElementById("notif");
+let t=null;
+window.showNotif=function(type="success",text="Uloženo / Saved"){
+  n.className=`notif ${type}`;n.textContent=text;n.classList.add("show");
+  clearTimeout(t);t=setTimeout(()=>n.classList.remove("show"),2500);
+};
+})();
+</script>
+
+<!-- 🟨 KONTROLA LOCALSTORAGE PŘI NÁVRATU -->
+<script>
+window.addEventListener("beforeunload",function(e){
+  const data=JSON.parse(localStorage.getItem(storageKey)||"{}");
+  let count=0;for(const k in data){count+=data[k].length;}
+  if(count>0){
+    const message=`Uložené fotografie v paměti: ${count} ks. Chcete pokračovat nebo vymazat?`;
+    e.preventDefault();
+    e.returnValue=message;
+    return message;
+  }
+});
+</script>
+
+<!-- 🟨 SPODNÍ TLAČÍTKA -->
+<div class="actions" style="margin-top:40px;text-align:center;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
+  <a href="index.html" class="btn-back">↩️ Zpět na menu / Back to menu</a>
+  <button type="button" id="btnReloadData" class="btn-gray">🔄 Načíst uložené / Reload</button>
+</div>
+
+<style>
+.btn-back,.btn-gray{
+  flex:1 1 45%;
+  max-width:320px;
+  padding:14px 28px;font-size:1em;
+  border:none;border-radius:8px;cursor:pointer;
+  font-weight:600;transition:transform .15s ease,opacity .2s;
+  box-shadow:0 3px 8px rgba(0,0,0,0.15);
+}
+.btn-back{
+  background:linear-gradient(135deg,#9b9b9b,#bfbfbf);
+  color:#fff;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
+}
+.btn-gray{
+  background:linear-gradient(135deg,#6c757d,#a0a4a7);
+  color:#fff;
+}
+.btn-back:hover,.btn-gray:hover{transform:scale(1.05);opacity:.9;}
+</style>
+
+<script>
+document.getElementById("btnReloadData").addEventListener("click",()=>{
+  showNotif("warning","Obnovuji / Reloading…");
+  setTimeout(()=>location.reload(),800);
+});
+</script>
+
+<footer style="text-align:center;margin:30px 0 20px;font-size:0.8em;color:#888;">
+  White Glove Service s.r.o. • © 2025
+</footer>
+
+</div> <!-- wrapper -->
+</body>
+</html>
+<!-- 🟩 KONEC ČÁSTI 2/2b – FINAL -->
