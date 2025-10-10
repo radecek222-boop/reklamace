@@ -1373,6 +1373,17 @@ body {
 <!-- 🟪 KONEC G-3 -->
 
 
+<!-- ✅ iPhone / Safari fix – načti data až po načtení všech skriptů -->
+<script>
+window.addEventListener("load", () => {
+  console.log("📱 iPhone-safe start: načítám data po načtení všech skriptů");
+  if (typeof loadData === "function") {
+    setTimeout(() => loadData(), 400);
+  } else {
+    console.error("⚠️ Funkce loadData() nenalezena");
+  }
+});
+</script>
 
 
 
