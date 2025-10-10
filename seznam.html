@@ -1168,30 +1168,44 @@ function calcDistanceCoords(a, b, c, d) {
 </style>
 <!-- 🟩 KONEC C-STYLE -->
 
-<!-- 🟩 C-6: EDITACE ZÁKAZNÍKA A POPISU -->
+
+
+
+
+
+
+<!-- 🟩 C-6: EDITACE ZÁKAZNÍKA A POPISU (moderní modální styl) -->
 <script>
 function openCustomerDetail(item, overlay) {
-  const box = overlay.querySelector("#customerBox");
-  const content = box.querySelector(".box-content");
+  const modal = document.createElement("div");
+  modal.className = "edit-modal";
 
-  // HTML formulář pro editaci
-  content.innerHTML = `
-    <label>Jméno:<br><input id="editZakaznik" value="${item.zakaznik || ""}" /></label><br>
-    <label>Adresa:<br><input id="editAdresa" value="${item.adresa || ""}" /></label><br>
-    <label>Telefon:<br><input id="editTelefon" value="${item.telefon || ""}" /></label><br>
-    <label>Email:<br><input id="editEmail" value="${item.email || ""}" /></label><br>
-    <label>Produkt / model:<br><input id="editProdukt" value="${item.produkt || ""}" /></label><br>
-    <button id="saveCustomerBtn" class="btn-green">💾 Uložit</button>
-    <button id="cancelCustomerBtn" class="btn-gray">Zrušit</button>
+  modal.innerHTML = `
+    <div class="edit-window">
+      <h3>✏️ Úprava údajů zákazníka</h3>
+      <div class="form-row"><label>Jméno</label><input id="editZakaznik" value="${item.zakaznik || ""}" /></div>
+      <div class="form-row"><label>Adresa</label><input id="editAdresa" value="${item.adresa || ""}" /></div>
+      <div class="form-row"><label>Telefon</label><input id="editTelefon" value="${item.telefon || ""}" /></div>
+      <div class="form-row"><label>Email</label><input id="editEmail" value="${item.email || ""}" /></div>
+      <div class="form-row"><label>Produkt / model</label><input id="editProdukt" value="${item.produkt || ""}" /></div>
+
+      <div class="btn-row">
+        <button id="saveCustomerBtn" class="btn-green">💾 Uložit</button>
+        <button id="cancelCustomerBtn" class="btn-gray">Zrušit</button>
+      </div>
+    </div>
   `;
 
-  // tlačítka
-  content.querySelector("#saveCustomerBtn").onclick = async () => {
-    item.zakaznik = content.querySelector("#editZakaznik").value.trim();
-    item.adresa = content.querySelector("#editAdresa").value.trim();
-    item.telefon = content.querySelector("#editTelefon").value.trim();
-    item.email = content.querySelector("#editEmail").value.trim();
-    item.produkt = content.querySelector("#editProdukt").value.trim();
+  document.body.appendChild(modal);
+  setTimeout(() => modal.classList.add("active"), 10);
+
+  modal.querySelector("#cancelCustomerBtn").onclick = () => modal.remove();
+  modal.querySelector("#saveCustomerBtn").onclick = async () => {
+    item.zakaznik = modal.querySelector("#editZakaznik").value.trim();
+    item.adresa = modal.querySelector("#editAdresa").value.trim();
+    item.telefon = modal.querySelector("#editTelefon").value.trim();
+    item.email = modal.querySelector("#editEmail").value.trim();
+    item.produkt = modal.querySelector("#editProdukt").value.trim();
 
     try {
       const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
@@ -1201,32 +1215,36 @@ function openCustomerDetail(item, overlay) {
       });
       if (!res.ok) throw new Error("HTTP " + res.status);
       setNextToast("✅ Údaje zákazníka byly uloženy", "success");
+      modal.remove();
       overlay.remove();
       renderTable(dataAll);
     } catch (err) {
       alert("❌ Chyba při ukládání: " + err.message);
     }
   };
-
-  content.querySelector("#cancelCustomerBtn").onclick = () => overlay.remove();
 }
 
 function openPopisEditor(item, overlay) {
-  const box = overlay.querySelector("#popisBox");
-  const content = box.querySelector(".box-content");
+  const modal = document.createElement("div");
+  modal.className = "edit-modal";
 
-  // textarea pro popis závady
-  content.innerHTML = `
-    <textarea id="editPopis" style="width:100%;min-height:120px;
-      border-radius:8px;border:1px solid #ccc;padding:6px;">${item.popis || ""}</textarea>
-    <div style="margin-top:8px;text-align:right;">
-      <button id="savePopisBtn" class="btn-green">💾 Uložit</button>
-      <button id="cancelPopisBtn" class="btn-gray">Zrušit</button>
+  modal.innerHTML = `
+    <div class="edit-window">
+      <h3>🛠️ Úprava popisu závady</h3>
+      <textarea id="editPopis" class="edit-textarea" placeholder="Zadejte popis problému">${item.popis || ""}</textarea>
+      <div class="btn-row">
+        <button id="savePopisBtn" class="btn-green">💾 Uložit</button>
+        <button id="cancelPopisBtn" class="btn-gray">Zrušit</button>
+      </div>
     </div>
   `;
 
-  content.querySelector("#savePopisBtn").onclick = async () => {
-    item.popis = content.querySelector("#editPopis").value.trim();
+  document.body.appendChild(modal);
+  setTimeout(() => modal.classList.add("active"), 10);
+
+  modal.querySelector("#cancelPopisBtn").onclick = () => modal.remove();
+  modal.querySelector("#savePopisBtn").onclick = async () => {
+    item.popis = modal.querySelector("#editPopis").value.trim();
 
     try {
       const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
@@ -1236,17 +1254,120 @@ function openPopisEditor(item, overlay) {
       });
       if (!res.ok) throw new Error("HTTP " + res.status);
       setNextToast("✅ Popis závady uložen", "success");
+      modal.remove();
       overlay.remove();
       renderTable(dataAll);
     } catch (err) {
       alert("❌ Chyba při ukládání: " + err.message);
     }
   };
-
-  content.querySelector("#cancelPopisBtn").onclick = () => overlay.remove();
 }
 </script>
+
+<style>
+/* 🌙 Překryv edit okna */
+.edit-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+.edit-modal.active { opacity: 1; }
+
+/* 💎 Okno */
+.edit-window {
+  background: #fff;
+  border-radius: 14px;
+  padding: 22px 26px;
+  width: 90%;
+  max-width: 460px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  font-family: "Inter", sans-serif;
+  animation: fadeIn .3s ease;
+}
+@keyframes fadeIn { from{transform:scale(.95);opacity:.6;} to{transform:scale(1);opacity:1;} }
+
+.edit-window h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  text-align: center;
+  font-weight: 700;
+  color: #222;
+}
+
+/* 📋 Formulářové řádky */
+.form-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+.form-row label {
+  font-size: 0.9em;
+  color: #444;
+  margin-bottom: 4px;
+}
+.form-row input {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 1em;
+  transition: border .2s;
+}
+.form-row input:focus {
+  outline: none;
+  border-color: #4caf50;
+}
+
+/* ✏️ Textarea */
+.edit-textarea {
+  width: 100%;
+  min-height: 120px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-family: "Inter", sans-serif;
+  resize: vertical;
+  transition: border .2s;
+}
+.edit-textarea:focus { border-color: #4caf50; outline: none; }
+
+/* 🔘 Tlačítka */
+.btn-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+.btn-green {
+  background: linear-gradient(135deg,#4caf50,#6fdd72);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 8px 16px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: transform .2s;
+}
+.btn-green:hover { transform: scale(1.05); }
+.btn-gray {
+  background: linear-gradient(135deg,#999,#bbb);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 8px 16px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+</style>
 <!-- 🟩 KONEC C-6 -->
+
 
 
 
