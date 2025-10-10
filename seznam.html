@@ -155,7 +155,7 @@ document.addEventListener("click", e => {
 
 
 
-<!-- 🟨 ZAČÁTEK ČÁSTI 2/10 (načítání dat z Workeru + vyhledávání) -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 2/10 (načítání dat z Workeru + vyhledávání – opraveno pro chybové HTML) -->
 <script>
 const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
 const tableContainer = document.getElementById("tableContainer");
@@ -223,13 +223,22 @@ function normalizePrahaAddress(addr) {
   return newAddr.trim();
 }
 
-/* 🗺️ Načtení dat z Workeru + sloučení s uloženými termíny */
+/* 🗺️ Načtení dat z Workeru + sloučení s uloženými termíny (bez pádu na HTML chybě) */
 async function loadData() {
   tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
   try {
     const res = await fetch(API_URL, { mode: "cors", cache: "no-store" });
-    if (!res.ok) throw new Error("Chyba při načítání dat");
-    const data = await res.json();
+    const text = await res.text(); // 🔍 načteme surový text
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      console.error("❌ Worker nevrátil JSON:", text.substring(0,200));
+      tableContainer.innerHTML = "<div style='color:red;font-weight:600;'>Server vrátil neplatná data – zkontroluj Worker.</div>";
+      return;
+    }
+
     if (!Array.isArray(data)) throw new Error("Neplatný formát dat");
 
     // 🧠 Načtené termíny z LocalStorage
@@ -246,8 +255,10 @@ async function loadData() {
     if (lastDataHash && newHash !== lastDataHash) playNotification();
     lastDataHash = newHash;
     renderTable(dataAll);
-  } catch(err) {
-    tableContainer.innerHTML = `<div style='color:red;'>Chyba načítání: ${err.message}</div>`;
+
+  } catch (err) {
+    console.error("❌ Chyba při načítání:", err);
+    tableContainer.innerHTML = `<div style='color:red;font-weight:600;'>Chyba načítání: ${err.message}</div>`;
   }
 }
 
@@ -303,6 +314,7 @@ reloadBtn.addEventListener("click", loadData);
 window.addEventListener("DOMContentLoaded", loadData);
 </script>
 <!-- 🟨 KONEC ČÁSTI 2/10 -->
+
 
 
 
