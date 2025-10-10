@@ -429,7 +429,7 @@ function updateDebug(count) {
 
 
 
-<!-- 🟩 C-1: DETAIL ZÁKAZNÍKA – šedé Kontaktovat zákazníka + blikající Zahájit návštěvu -->
+<!-- 🟥 C-1: DETAIL ZÁKAZNÍKA – šedé kontaktovat + blikající červené zahájit návštěvu -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -455,7 +455,8 @@ function openDetail(index) {
 
           <!-- 🟩 BLOK TLAČÍTEK -->
           <div class="left-buttons">
-            <!-- Šedé tlačítko kontaktování -->
+
+            <!-- 🩶 Úzké tlačítko kontaktovat zákazníka -->
             <button id="contactBtn" class="btn-action btn-grayContact">
               Kontaktovat zákazníka
             </button>
@@ -471,8 +472,8 @@ function openDetail(index) {
               </div>
             </div>
 
-            <!-- 🟢 Velké blikající tlačítko dole -->
-            <button id="startVisitBtn" class="btn-action btn-reflexBlink">
+            <!-- 🔴 Velké blikající tlačítko dole -->
+            <button id="startVisitBtn" class="btn-action btn-redBlink">
               ZAHÁJIT NÁVŠTĚVU U ZÁKAZNÍKA
             </button>
           </div>
@@ -535,39 +536,37 @@ function openDetail(index) {
   gap: 10px;
 }
 
-/* 🎨 Jednotný styl tlačítek */
+/* 🎨 Jednotný vzhled všech tlačítek */
 .btn-action {
   width: 100%;
   padding: 11px 0;
   font-family: "Inter", sans-serif;
   font-size: 0.95em;
-  font-weight: 400;          /* ❗ne tučné */
+  font-weight: 400;      /* ne tučné */
   border: none;
   border-radius: 8px;
-  color: #fff !important;    /* ❗bílé písmo */
+  color: #fff !important; /* bílé písmo */
   cursor: pointer;
   transition: opacity 0.2s ease, transform 0.2s ease;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 .btn-action:hover { opacity: 0.85; transform: scale(1.02); }
 
-/* 🩶 Kontaktovat zákazníka (šedé) */
+/* 🩶 Kontaktovat zákazníka (stejné jako ostatní) */
 .btn-grayContact {
-  background: linear-gradient(135deg, #777, #999);
+  background: linear-gradient(135deg, #888, #aaa);
+}
+
+/* 🔴 Zahájit návštěvu – červené blikající, dvojnásobná výška i šířka */
+@keyframes blinkRed {
+  0%, 100% { background: linear-gradient(135deg, #ff4d4d, #ff8080); }
+  50%      { background: linear-gradient(135deg, #ff7373, #ffa0a0); }
+}
+.btn-redBlink {
+  animation: blinkRed 1.5s infinite;
   height: calc(2 * 42px);
   font-size: 1.05em;
   letter-spacing: 0.3px;
-  border-radius: 10px;
-}
-
-/* 🟢 Blikající reflexní tlačítko */
-@keyframes blinkReflex {
-  0%, 100% { background: linear-gradient(135deg, #aaff00, #c8ff4d); }
-  50%      { background: linear-gradient(135deg, #ccff66, #e5ff99); }
-}
-.btn-reflexBlink {
-  animation: blinkReflex 1.5s infinite;
-  font-size: 1.05em;
   border-radius: 10px;
 }
 
@@ -577,7 +576,7 @@ function openDetail(index) {
 .btn-blue      { background: linear-gradient(135deg, #357aff, #6fa8ff); }
 .btn-lightgray { background: linear-gradient(135deg, #aaa, #ccc); }
 </style>
-<!-- 🟩 KONEC C-1 -->
+<!-- 🟥 KONEC C-1 -->
 
 
 
