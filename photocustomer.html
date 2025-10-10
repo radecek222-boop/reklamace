@@ -578,7 +578,7 @@
 
 
 
-      <!-- 🟨 ZAČÁTEK SEKCE 5/10 – PŘEHLED NAHRANÝCH FOTEK PO ULOŽENÍ -->
+<!-- 🟨 ZAČÁTEK SEKCE 5/10 – PŘEHLED NAHRANÝCH FOTEK PO ULOŽENÍ -->
 
 <h3 style="margin-top:40px;">Uložené fotografie</h3>
 <p style="font-size:0.85em;color:#555;">Níže se zobrazí přehled všech uložených fotek k vybranému zákazníkovi.</p>
@@ -635,7 +635,7 @@ async function loadSavedPhotos() {
   }
 
   try {
-    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer");
+    const res = await fetch(`https://wgs-token.72nvwf4pb2.workers.dev/photocustomer?t=${Date.now()}`, { cache: "no-store" });
     const all = await res.json();
     const rec = all.find(r => r.id === cislo);
     if(!rec) {
@@ -684,8 +684,7 @@ document.getElementById("cislo").addEventListener("change", loadSavedPhotos);
 
 
 
-
-      <!-- 🟨 ZAČÁTEK SEKCE 6/10 – EXPORT FOTODOKUMENTACE DO PDF -->
+<!-- 🟨 ZAČÁTEK SEKCE 6/10 – EXPORT FOTODOKUMENTACE DO PDF -->
 
 <div class="actions">
   <button type="button" id="btnExportPDF" class="btn-pdf">📄 Exportovat do PDF</button>
@@ -732,8 +731,8 @@ document.getElementById("cislo").addEventListener("change", loadSavedPhotos);
     pdf.text("Fotodokumentace – " + cislo, pageWidth/2, y, { align:"center" });
     y += 10;
 
-    // Načteme záznam z JSON
-    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer");
+    // Načteme záznam z JSON (⚡️ proti cache)
+    const res = await fetch(`https://wgs-token.72nvwf4pb2.workers.dev/photocustomer?t=${Date.now()}`, { cache: "no-store" });
     const all = await res.json();
     const rec = all.find(r => r.id === cislo);
     if(!rec) return alert("Pro tuto zakázku nebyly nalezeny žádné fotografie.");
@@ -766,7 +765,6 @@ document.getElementById("cislo").addEventListener("change", loadSavedPhotos);
         ctx.drawImage(img,0,0,w,h);
         const dataUrl = canvas.toDataURL("image/jpeg",0.7);
 
-        // Pokud se fotka nevejde na stránku
         if(y + 60 > 280){
           pdf.addPage();
           y = 20;
@@ -774,7 +772,7 @@ document.getElementById("cislo").addEventListener("change", loadSavedPhotos);
 
         pdf.addImage(dataUrl,"JPEG",margin,y,80,60);
         if((i+1)%2===0){
-          y += 65; // nový řádek po dvou fotkách
+          y += 65;
         } else {
           pdf.addImage(dataUrl,"JPEG",margin + 100,y,80,60);
         }
@@ -799,6 +797,7 @@ document.getElementById("cislo").addEventListener("change", loadSavedPhotos);
 </script>
 
 <!-- 🟨 KONEC SEKCE 6/10 – EXPORT FOTODOKUMENTACE DO PDF -->
+
 
 
 
@@ -975,7 +974,7 @@ document.getElementById("cislo").addEventListener("change", loadSavedPhotos);
 
 
 
-      <!-- 🟨 ZAČÁTEK SEKCE 9/10 – MAPA S FOTODOKUMENTACÍ ZÁKAZNÍKŮ -->
+<!-- 🟨 ZAČÁTEK SEKCE 9/10 – MAPA S FOTODOKUMENTACÍ ZÁKAZNÍKŮ -->
 
 <h3 style="margin-top:40px;">Mapa zákazníků s fotodokumentací</h3>
 <div id="mapCustomers"></div>
@@ -1010,10 +1009,9 @@ document.getElementById("cislo").addEventListener("change", loadSavedPhotos);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{ maxZoom:19 }).addTo(map);
 
   try {
-    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer");
+    const res = await fetch(`https://wgs-token.72nvwf4pb2.workers.dev/photocustomer?t=${Date.now()}`, { cache: "no-store" });
     const all = await res.json();
 
-    // pokud nejsou žádné záznamy
     if(!all.length){
       L.popup().setLatLng(map.getCenter())
         .setContent("<b>Žádné fotodokumentace zatím nejsou uloženy.</b>")
@@ -1062,7 +1060,6 @@ document.getElementById("cislo").addEventListener("change", loadSavedPhotos);
 </script>
 
 <!-- 🟨 KONEC SEKCE 9/10 – MAPA S FOTODOKUMENTACÍ ZÁKAZNÍKŮ -->
-
 
 
 
