@@ -234,61 +234,43 @@ tr.stav-hotovo:hover td {
 
 
 
-<!-- 🟦 SEKCE B – NAČÍTÁNÍ DAT + TABULKA + DEBUG (2025-10-10 oprava) -->
+<!-- 🟦 B: NAČÍTÁNÍ DAT A TABULKA + DEBUG (opraveno + iPhone diagnostika) -->
 <script>
-/* ============================= */
-/* ⚙️ KONSTANTY A PROMĚNNÉ        */
-/* ============================= */
 const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
-const tableContainer = document.getElementById("tableContainer");
-const searchInput = document.getElementById("search");
-const reloadBtn = document.getElementById("reloadBtn");
-
 let dataAll = [];
-let stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
 
-/* ============================= */
-/* 🔄 AUTOMATICKÉ NAČÍTÁNÍ DAT    */
-/* ============================= */
-setInterval(loadData, 120000); // každé 2 minuty
-
-/* ============================= */
-/* 🧭 NAČÍTÁNÍ DAT Z WORKERU (iPhone-safe) */
-/* ============================= */
 async function loadData() {
   console.log("📥 Načítám data z Workeru (iPhone-safe)…");
   tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
 
+  // 📱 Diagnostika pro iPhone Safari – malý overlay v rohu
+  const testDiv = document.createElement("div");
+  testDiv.style.position = "fixed";
+  testDiv.style.bottom = "10px";
+  testDiv.style.left = "10px";
+  testDiv.style.padding = "8px 10px";
+  testDiv.style.background = "rgba(0,0,0,0.65)";
+  testDiv.style.color = "#fff";
+  testDiv.style.fontSize = "11px";
+  testDiv.style.borderRadius = "6px";
+  testDiv.style.zIndex = "99999";
+  testDiv.style.pointerEvents = "none";
+  testDiv.textContent = "⏳ Načítám data...";
+  document.body.appendChild(testDiv);
+
   try {
-    const url = API_URL + "?t=" + Date.now();
-    const res = await fetch(url, {
+    const res = await fetch(API_URL + "?t=" + Date.now(), {
       method: "GET",
-      mode: "cors",        // ✅ umožní CORS v Safari na iPhonu
-      cache: "no-store",   // ✅ obejde cache
+      mode: "cors",
+      cache: "no-store",
       headers: { "Accept": "application/json" }
     });
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-    let data = await res.json();
-
-    // 🧠 Normalizace – vždy pracujeme s polem
-    if (!Array.isArray(data)) {
-      if (typeof data === "object" && Object.keys(data).length > 0) {
-        data = Object.values(data);
-      } else {
-        throw new Error("Worker nevrací platné záznamy");
-      }
-    }
-
+    const data = await res.json();
     console.log("📦 Worker data:", data);
-    updateDebug(data.length);
 
-    if (data.length === 0) {
-      tableContainer.innerHTML = "<div>Žádné záznamy</div>";
-      return;
-    }
-
-    // 💾 Přidání uložených termínů z localStorage
+    // 💾 přidání uložených termínů z localStorage
     const ulozeneTerminy = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
     data.forEach(z => {
       const ulozeny = ulozeneTerminy.find(u => u.cislo === z.cislo);
@@ -298,130 +280,16 @@ async function loadData() {
     dataAll = data.reverse();
     renderTable(dataAll);
 
+    testDiv.textContent = `✅ Načteno ${dataAll.length} záznamů`;
+
   } catch (err) {
     console.error("❌ Chyba při načítání:", err);
-    tableContainer.innerHTML =
-      `<div style='color:red;font-weight:600;'>Chyba načítání dat: ${err.message}</div>`;
-    updateDebug(0);
+    tableContainer.innerHTML = `<div style='color:red;font-weight:600;'>Chyba načítání: ${err.message}</div>`;
+    testDiv.textContent = "❌ Chyba načítání: " + err.message;
   }
-}
-
-/* ============================= */
-/* 📋 VYKRESLENÍ TABULKY          */
-/* ============================= */
-function renderTable(arr) {
-  if (!arr || !arr.length) {
-    tableContainer.innerHTML = "<div>Žádné záznamy</div>";
-    return;
-  }
-
-  let html = `
-  <table>
-    <thead>
-      <tr>
-        <th>Zákazník</th>
-        <th>Adresa</th>
-        <th>Telefon</th>
-        <th>Stav</th>
-      </tr>
-    </thead>
-    <tbody>`;
-
-  arr.forEach((r, i) => {
-    const id = r.cislo || `radek-${i}`;
-    const stav = stavy[id] || r.stav || "novy";
-
-    const adresa = r.adresa
-      ? `<a href="https://waze.com/ul?q=${encodeURIComponent(r.adresa)}"
-           target="_blank"
-           style="color:#000;font-weight:600;">${r.adresa}</a>`
-      : "–";
-
-    const telefon = r.telefon
-      ? `<a href="tel:${r.telefon.replace('+420','').trim()}"
-           style="color:#000;font-weight:600;">${r.telefon.replace('+420','').trim()}</a>`
-      : "–";
-
-    // 🟩 Barva a text stavu
-    let barva = "";
-    let stavText = stav;
-
-    if (r.stav && r.stav.toLowerCase() === "hotovo") {
-      barva = "background:#b6f2c0; color:#116d2b; font-weight:700;";
-      stavText = "HOTOVO";
-    } else if (stav === "domluveno" && r.datum && r.cas) {
-      const d = new Date(r.datum);
-      const den = d.toLocaleDateString("cs-CZ",
-        { weekday: "short", day: "numeric", month: "numeric" });
-      stavText = `${den} ${r.cas}`;
-    }
-
-    html += `
-      <tr class="stav-${stav}" data-index="${i}" data-id="${id}">
-        <td>${r.zakaznik || "–"}</td>
-        <td>${adresa}</td>
-        <td>${telefon}</td>
-        <td style="${barva} text-align:center;">${stavText}</td>
-      </tr>`;
-  });
-
-  html += "</tbody></table>";
-  tableContainer.innerHTML = html;
-
-  // 🧭 Akce po kliknutí na řádek
-  document.querySelectorAll("tbody tr").forEach(row => {
-    row.addEventListener("click", () => openDetail(row.dataset.index));
-  });
-}
-
-/* ============================= */
-/* 🔍 VYHLEDÁVÁNÍ                 */
-/* ============================= */
-searchInput.addEventListener("input", () => {
-  const q = searchInput.value.trim().toLowerCase();
-  if (!q) return renderTable(dataAll);
-  renderTable(dataAll.filter(r =>
-    (r.zakaznik || "").toLowerCase().includes(q) ||
-    (r.adresa || "").toLowerCase().includes(q)
-  ));
-});
-
-/* ============================= */
-/* 🔁 RUČNÍ NAČTENÍ DAT           */
-/* ============================= */
-reloadBtn.addEventListener("click", loadData);
-
-/* ============================= */
-/* 🧩 DEBUG PANEL AKTUALIZACE     */
-/* ============================= */
-function updateDebug(count) {
-  const c = document.getElementById("debugCount");
-  const t = document.getElementById("debugTime");
-  if (!c || !t) return;
-  c.textContent = count;
-  t.textContent = new Date().toLocaleTimeString("cs-CZ",
-    { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 </script>
 
-<!-- 🧩 DEBUG PANEL (VIZUÁLNÍ INFO) -->
-<div id="debugBox"
-     style="font-family:Inter,sans-serif;
-            font-size:12px;
-            color:#333;
-            position:fixed;
-            bottom:10px;
-            right:12px;
-            background:#f7f7f7;
-            border:1px solid #ccc;
-            border-radius:8px;
-            padding:8px 12px;
-            box-shadow:0 2px 6px rgba(0,0,0,0.1);
-            z-index:9999;">
-  Načteno: <span id="debugCount">0</span> záznamů<br>
-  <small>Aktualizace: <span id="debugTime">–</span></small>
-</div>
-<!-- 🟦 KONEC SEKCE B -->
 
 
  
