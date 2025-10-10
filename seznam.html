@@ -718,14 +718,22 @@ function initCalendarAndTime(overlay, item, index) {
 </script>
 <!-- 🟩 KONEC C-3 -->
 
-
-
-
-<!-- 🟩 C-4: TLAČÍTKA AKCÍ – včetně „Zákazník čeká na díly“ s uložením -->
+<!-- 🟩 C-4: TLAČÍTKA AKCÍ – včetně „Kontaktovat zákazníka“ -->
 <script>
 function initDetailButtons(overlay, item, index) {
   const id = item.cislo || `radek-${index}`;
   const infoBox = overlay.querySelector("#termInfoBox");
+
+  /* ☎️ KONTAKTOVAT ZÁKAZNÍKA (šedé tlačítko nad ostatními) */
+  const leftButtons = overlay.querySelector(".left-buttons");
+  if (leftButtons) {
+    const contactBtn = document.createElement("button");
+    contactBtn.id = "contactBtn";
+    contactBtn.className = "btn-action btn-gray";
+    contactBtn.textContent = "Kontaktovat zákazníka";
+    leftButtons.insertBefore(contactBtn, leftButtons.firstChild);
+    contactBtn.onclick = () => openContactModal(item, index, overlay);
+  }
 
   /* 💾 ULOŽIT / ZMĚNIT TERMÍN */
   overlay.querySelector("#saveTermBtn").onclick = () => {
@@ -830,9 +838,60 @@ function initDetailButtons(overlay, item, index) {
     }
   };
 }
+
+/* 🧩 MODÁL – Kontaktovat zákazníka */
+function openContactModal(item, index, overlay) {
+  const modal = document.createElement("div");
+  modal.className = "small-modal";
+  modal.innerHTML = `
+    <div class="small-inner">
+      <h3>Kontaktovat zákazníka</h3>
+      <button id="callBtn" class="btn-action btn-blue" style="width:100%;font-size:1.05em;">📞 Volat zákazníkovi</button>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+        <button id="smsBtn" class="btn-action btn-orange">📩 Nezvedá – poslána SMS</button>
+        <button id="cancelCustBtn" class="btn-action btn-red">❌ Zrušeno zákazníkem</button>
+      </div>
+      <button id="closeContactBtn" class="btn-action btn-gray" style="margin-top:12px;">Zavřít</button>
+    </div>`;
+
+  document.body.appendChild(modal);
+  const tel = (item.telefon || "").replace(/\+?420|\s+/g, "");
+
+  // ☎️ VOLAT
+  modal.querySelector("#callBtn").onclick = () => {
+    if (!tel) return alert("Telefonní číslo není uvedeno.");
+    window.location.href = `tel:+420${tel}`;
+    modal.remove();
+  };
+
+  // 📩 NEZVEDÁ – POSLAT SMS
+  modal.querySelector("#smsBtn").onclick = () => {
+    stavy[item.cislo] = "nezveda";
+    item.stav = "nezveda";
+    const sms = "Dobrý den, volali jsme ohledně Vaší reklamace. Prosím ozvěte se zpět. WGS";
+    window.location.href = `sms:+420${tel}?body=${encodeURIComponent(sms)}`;
+    setNextToast("📩 SMS o nezvednutí byla připravena", "warning");
+    modal.remove();
+    overlay.remove();
+    renderTable(dataAll);
+  };
+
+  // ❌ ZRUŠENO ZÁKAZNÍKEM
+  modal.querySelector("#cancelCustBtn").onclick = () => {
+    stavy[item.cislo] = "zruseno";
+    item.stav = "zruseno";
+    const sms = "Dobrý den, Váš termín servisu byl zrušen na základě Vašeho požadavku. WGS";
+    window.location.href = `sms:+420${tel}?body=${encodeURIComponent(sms)}`;
+    setNextToast("❌ Termín zrušen zákazníkem", "error");
+    modal.remove();
+    overlay.remove();
+    renderTable(dataAll);
+  };
+
+  modal.querySelector("#closeContactBtn").onclick = () => modal.remove();
+}
 </script>
 
-<!-- 🟣 Styl pro nové tlačítko -->
 <style>
 .btn-purple {
   background: linear-gradient(135deg,#8e2de2,#c69aff);
@@ -844,9 +903,8 @@ function initDetailButtons(overlay, item, index) {
   font-weight:700;
 }
 </style>
-
-
 <!-- 🟩 KONEC C-4 -->
+
 
 
 
