@@ -425,7 +425,7 @@ function updateDebug(count) {
 
 <!-- 🟩 SEKCE C – DETAIL ZÁKAZNÍKA (rozdělená verze) -->
 <!-- ================================================= -->
-<!-- 🟩 C-1: DETAIL ZÁKAZNÍKA – editace + uložení na GitHub + potvrzení (aktualizováno 2025-10-10) -->
+<!-- 🟩 C-1: DETAIL ZÁKAZNÍKA – rozložení tlačítek do dvou sloupců -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -449,14 +449,18 @@ function openDetail(index) {
 
           <div class="term-info-box" id="termInfoBox">Vyberte datum a čas</div>
 
+          <!-- 🔘 BLOK TLAČÍTEK -->
           <div class="left-buttons">
-            <!-- 🆕 tlačítko „Kontaktovat zákazníka“ se vloží skriptem C-4 -->
-            <button id="saveTermBtn" class="btn-action btn-green">Uložit / Změnit</button>
-            <button id="closeBtn" class="btn-action btn-gray">Zpět</button>
-
-            <div class="extra-buttons">
-              <button id="createProtocolBtn" class="btn-action btn-blue">Vytvořit protokol</button>
-              <button id="exportPdfBtn" class="btn-action btn-gray">Exportovat do PDF</button>
+            <!-- Kontaktovat zákazníka se vloží skriptem C-4 -->
+            <div class="buttons-grid">
+              <div class="col-left">
+                <button id="saveTermBtn" class="btn-action btn-green">Uložit / Změnit termín</button>
+                <button id="waitBtn" class="btn-action btn-purple">Zákazník čeká na díly</button>
+              </div>
+              <div class="col-right">
+                <button id="createProtocolBtn" class="btn-action btn-blue">Vytvořit protokol</button>
+                <button id="closeBtn" class="btn-action btn-gray">Zpět</button>
+              </div>
             </div>
           </div>
         </div>
@@ -468,12 +472,11 @@ function openDetail(index) {
           <div class="info-box clickable" id="customerBox">
             <div class="box-header">
               <strong>Zákazník</strong>
-              <span class="icon">✏️</span>
             </div>
             <div class="box-content">
               <p><strong>Jméno:</strong> ${item.zakaznik || "–"}</p>
               <p><strong>Adresa:</strong> ${adresaUpravena}</p>
-              <p><strong>Telefon:</strong> ${(item.telefon || "–")}</p>
+              <p><strong>Telefon:</strong> ${item.telefon || "–"}</p>
               <p><strong>Email:</strong> ${item.email || "–"}</p>
               <p><strong>Produkt / model:</strong> ${item.produkt || "–"}</p>
             </div>
@@ -483,7 +486,6 @@ function openDetail(index) {
           <div class="info-box clickable" id="popisBox">
             <div class="box-header">
               <strong>Popis závady</strong>
-              <span class="icon">📝</span>
             </div>
             <div class="box-content" id="popisContent">${item.popis || "–"}</div>
           </div>
@@ -505,144 +507,42 @@ function openDetail(index) {
   overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
   overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
 }
-
-/* 🧍‍♂️ Detail zákazníka */
-function openCustomerDetail(item, overlay) {
-  const modal = document.createElement("div");
-  modal.className = "small-modal";
-  modal.innerHTML = `
-    <div class="small-inner">
-      <h3>Upravit údaje zákazníka</h3>
-      <label>Jméno:</label>
-      <input id="editName" value="${item.zakaznik || ""}">
-      <label>Adresa:</label>
-      <input id="editAddress" value="${item.adresa || ""}">
-      <label>Telefon:</label>
-      <input id="editPhone" value="${item.telefon || ""}">
-      <label>Email:</label>
-      <input id="editEmail" value="${item.email || ""}">
-      <label>Produkt / model:</label>
-      <input id="editModel" value="${item.produkt || ""}">
-      <div class="modal-buttons">
-        <button id="saveCustomerBtn" class="btn-action btn-green">💾 Uložit</button>
-        <button id="closeCustomerBtn" class="btn-action btn-gray">Zavřít</button>
-      </div>
-    </div>`;
-  document.body.appendChild(modal);
-
-  modal.querySelector("#closeCustomerBtn").onclick = () => modal.remove();
-  modal.querySelector("#saveCustomerBtn").onclick = async () => {
-    item.zakaznik = modal.querySelector("#editName").value.trim();
-    item.adresa = modal.querySelector("#editAddress").value.trim();
-    item.telefon = modal.querySelector("#editPhone").value.trim();
-    item.email = modal.querySelector("#editEmail").value.trim();
-    item.produkt = modal.querySelector("#editModel").value.trim();
-
-    try {
-      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "update", record: item })
-      });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      modal.remove();
-      showSuccessOverlay("✅ Změny uloženy", "Data zákazníka byla aktualizována v GitHub repozitáři.");
-      setNextToast("✅ Údaje zákazníka upraveny", "success");
-      overlay.remove();
-      renderTable(dataAll);
-    } catch (e) {
-      alert("❌ Chyba při ukládání: " + e.message);
-    }
-  };
-}
-
-/* 🧰 Editor popisu závady */
-function openPopisEditor(item, overlay) {
-  const modal = document.createElement("div");
-  modal.className = "small-modal";
-  modal.innerHTML = `
-    <div class="small-inner">
-      <h3>Upravit popis závady</h3>
-      <textarea id="editPopis">${item.popis || ""}</textarea>
-      <div class="modal-buttons">
-        <button id="savePopisBtn" class="btn-action btn-green">💾 Uložit</button>
-        <button id="closePopisBtn" class="btn-action btn-gray">Zavřít</button>
-      </div>
-    </div>`;
-  document.body.appendChild(modal);
-
-  modal.querySelector("#closePopisBtn").onclick = () => modal.remove();
-  modal.querySelector("#savePopisBtn").onclick = async () => {
-    const val = modal.querySelector("#editPopis").value.trim();
-    item.popis = val;
-
-    try {
-      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "update", record: item })
-      });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      modal.remove();
-      overlay.querySelector("#popisContent").textContent = val || "–";
-      showSuccessOverlay("✅ Změny uloženy", "Popis závady byl aktualizován v GitHub repozitáři.");
-      setNextToast("✅ Popis závady upraven", "success");
-    } catch (e) {
-      alert("❌ Chyba při ukládání popisu: " + e.message);
-    }
-  };
-}
 </script>
 
 <style>
-.info-box {
-  background: #f4f5f7;
-  border-radius: 10px;
-  padding: 12px 14px;
-  margin-bottom: 14px;
-  cursor: pointer;
-  transition: background .2s;
+/* 🟦 Styl pro rozložení tlačítek */
+.left-buttons {
+  margin-top: 12px;
+  text-align: center;
 }
-.info-box:hover { background: #e9ecf1; }
-.box-header {
+.buttons-grid {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 6px;
+  gap: 10px;
 }
-.box-content p {
-  margin: 3px 0;
-  font-size: 0.92em;
+.col-left, .col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
 }
-.icon { font-size: 1.1em; color: #555; }
-.small-modal {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.55);
-  display: flex; justify-content: center; align-items: center;
-  z-index: 10000;
+.btn-action {
+  width: 100%;
+  padding: 10px 0;
+  font-family: Inter, sans-serif;
+  font-size: 0.95em;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
 }
-.small-inner {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.25);
-  width: 90%; max-width: 420px;
-}
-.small-inner h3 {
-  text-align: center;
-  margin-bottom: 10px;
-  font-weight: 800;
-}
-.small-inner input, .small-inner textarea {
-  width: 100%; box-sizing: border-box;
-  margin-bottom: 10px; padding: 8px;
-  border-radius: 8px; border: 1px solid #ccc;
-  font-family: Inter, sans-serif; font-size: 0.95em;
-}
-.modal-buttons { display: flex; justify-content: space-between; gap: 10px; }
-#editPopis { min-height: 120px; resize: vertical; }
+.btn-action:hover { opacity: 0.9; }
+.btn-green { background: linear-gradient(135deg,#009c3b,#00b34d); }
+.btn-blue { background: linear-gradient(135deg,#0077ff,#409fff); }
+.btn-purple { background: linear-gradient(135deg,#8e2de2,#c69aff); }
+.btn-gray { background: linear-gradient(135deg,#6c757d,#a8b0b8); }
 </style>
 <!-- 🟩 KONEC C-1 -->
 
@@ -705,19 +605,20 @@ function initCalendarAndTime(overlay, item, index) {
 </script>
 <!-- 🟩 KONEC C-3 -->
 
-<!-- 🟩 C-4: TLAČÍTKA AKCÍ – aktualizováno, odstraněna „Nezvedá“ a „Zrušil“ -->
+<!-- 🟩 C-4: LOGIKA TLAČÍTEK (sjednocený vzhled + nová struktura) -->
 <script>
 function initDetailButtons(overlay, item, index) {
   const id = item.cislo || `radek-${index}`;
   const infoBox = overlay.querySelector("#termInfoBox");
-
-  /* ☎️ KONTAKTOVAT ZÁKAZNÍKA (šedé tlačítko nad ostatními) */
   const leftButtons = overlay.querySelector(".left-buttons");
+
+  /* ☎️ KONTAKTOVAT ZÁKAZNÍKA – vloží se nad grid */
   if (leftButtons) {
     const contactBtn = document.createElement("button");
     contactBtn.id = "contactBtn";
     contactBtn.className = "btn-action btn-gray";
     contactBtn.textContent = "Kontaktovat zákazníka";
+    contactBtn.style.marginBottom = "12px";
     leftButtons.insertBefore(contactBtn, leftButtons.firstChild);
     contactBtn.onclick = () => openContactModal(item, index, overlay);
   }
@@ -730,36 +631,24 @@ function initDetailButtons(overlay, item, index) {
     ulozitTerminNaGitHub(item, id, datum, cas, overlay, overlay.querySelector("#saveTermBtn"), infoBox);
   };
 
-  /* 🟣 ZÁKAZNÍK ČEKÁ NA DÍLY – uloží i na GitHub */
-  setTimeout(() => {
-    const leftButtons = overlay.querySelector(".left-buttons");
-    const closeBtn = overlay.querySelector("#closeBtn");
-    if (leftButtons && closeBtn) {
-      const waitBtn = document.createElement("button");
-      waitBtn.id = "waitBtn";
-      waitBtn.className = "btn-action btn-purple";
-      waitBtn.textContent = "Zákazník čeká na díly";
-      leftButtons.insertBefore(waitBtn, closeBtn);
-
-      waitBtn.onclick = async () => {
-        try {
-          stavy[id] = "ceka";
-          item.stav = "ceka";
-          const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "update", record: item })
-          });
-          if (!res.ok) throw new Error("HTTP " + res.status);
-          setNextToast("🟣 Zákazník čeká na díly", "warning");
-          overlay.remove();
-          renderTable(dataAll);
-        } catch (err) {
-          alert("❌ Chyba při ukládání: " + err.message);
-        }
-      };
+  /* 🟣 ZÁKAZNÍK ČEKÁ NA DÍLY */
+  overlay.querySelector("#waitBtn").onclick = async () => {
+    try {
+      stavy[id] = "ceka";
+      item.stav = "ceka";
+      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update", record: item })
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      setNextToast("🟣 Zákazník čeká na díly", "warning");
+      overlay.remove();
+      renderTable(dataAll);
+    } catch (err) {
+      alert("❌ Chyba při ukládání: " + err.message);
     }
-  }, 150);
+  };
 
   /* 🔙 ZPĚT */
   overlay.querySelector("#closeBtn").onclick = () => overlay.remove();
@@ -773,61 +662,32 @@ function initDetailButtons(overlay, item, index) {
       alert("❌ Nepodařilo se uložit data pro protokol: " + e.message);
     }
   };
-
-  /* 📄 EXPORTOVAT DO PDF */
-  overlay.querySelector("#exportPdfBtn").onclick = async () => {
-    try {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(14);
-      doc.text("White Glove Service – Protokol", 10, 15);
-      doc.setFontSize(11);
-      let y = 30;
-      const lines = [
-        `Zákazník: ${item.zakaznik || "-"}`,
-        `Adresa: ${item.adresa || "-"}`,
-        `Telefon: ${item.telefon || "-"}`,
-        `Email: ${item.email || "-"}`,
-        `Produkt / model: ${item.produkt || "-"}`,
-        `Popis závady: ${item.popis || "-"}`,
-        `Datum servisu: ${item.datum || "-"} ${item.cas || ""}`,
-      ];
-      lines.forEach(line => { doc.text(line, 10, y); y += 8; });
-      const filename = `Protokol_${(item.cislo || "bez_cisla").replace(/\s+/g, "_")}.pdf`;
-      doc.save(filename);
-    } catch (err) {
-      alert("❌ Chyba při exportu PDF: " + err.message);
-    }
-  };
 }
 
-/* 🧩 MODÁL – Kontaktovat zákazníka */
+/* 🧩 MODÁL – Kontaktovat zákazníka (bez ikonek, jednotný vzhled) */
 function openContactModal(item, index, overlay) {
   const modal = document.createElement("div");
   modal.className = "small-modal";
   modal.innerHTML = `
-    <div class="small-inner">
+    <div class="small-inner contact-modal">
       <h3>Kontaktovat zákazníka</h3>
-      <button id="callBtn" class="btn-action btn-blue" style="width:100%;font-size:1.05em;">📞 Volat zákazníkovi</button>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
-        <button id="smsBtn" class="btn-action btn-orange">📩 Nezvedá – poslána SMS</button>
-        <button id="cancelCustBtn" class="btn-action btn-red">❌ Zrušeno zákazníkem</button>
+      <div class="contact-buttons">
+        <button id="callBtn" class="btn-action btn-blue">Volat zákazníkovi</button>
+        <button id="smsBtn" class="btn-action btn-orange">Nezvedá – poslána SMS</button>
+        <button id="cancelCustBtn" class="btn-action btn-red">Zrušeno zákazníkem</button>
+        <button id="closeContactBtn" class="btn-action btn-gray">Zavřít</button>
       </div>
-      <button id="closeContactBtn" class="btn-action btn-gray" style="margin-top:12px;">Zavřít</button>
     </div>`;
 
   document.body.appendChild(modal);
   const tel = (item.telefon || "").replace(/\+?420|\s+/g, "");
 
-  // ☎️ VOLAT
   modal.querySelector("#callBtn").onclick = () => {
     if (!tel) return alert("Telefonní číslo není uvedeno.");
     window.location.href = `tel:+420${tel}`;
     modal.remove();
   };
 
-  // 📩 NEZVEDÁ – POSLAT SMS
   modal.querySelector("#smsBtn").onclick = () => {
     stavy[item.cislo] = "nezveda";
     item.stav = "nezveda";
@@ -839,7 +699,6 @@ function openContactModal(item, index, overlay) {
     renderTable(dataAll);
   };
 
-  // ❌ ZRUŠENO ZÁKAZNÍKEM
   modal.querySelector("#cancelCustBtn").onclick = () => {
     stavy[item.cislo] = "zruseno";
     item.stav = "zruseno";
@@ -856,15 +715,13 @@ function openContactModal(item, index, overlay) {
 </script>
 
 <style>
-.btn-purple {
-  background: linear-gradient(135deg,#8e2de2,#c69aff);
-  color:#fff;
+.contact-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
-.stav-ceka {
-  background:#e9d7ff !important;
-  color:#4b0082 !important;
-  font-weight:700;
-}
+.btn-orange { background: linear-gradient(135deg,#ff8c00,#ffa733); }
+.btn-red { background: linear-gradient(135deg,#d63333,#f06a6a); }
 </style>
 <!-- 🟩 KONEC C-4 -->
 
