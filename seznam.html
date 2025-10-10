@@ -1011,7 +1011,7 @@ function initMapForDetail(overlay, item) {
 
 
 
-<!-- 🟩 C-3: KALENDÁŘ, ČAS A PŘEHLED DNE (opraveno) -->
+<!-- 🟩 C-3: KALENDÁŘ, ČAS A PŘEHLED DNE (finální opravená verze) -->
 <script>
 function initCalendarAndTime(overlay, item, index) {
   const infoBox = overlay.querySelector("#termInfoBox");
@@ -1027,8 +1027,17 @@ function initCalendarAndTime(overlay, item, index) {
       clickDay: e => {
         const chosen = e.target.dataset.calendarDay;
         if (chosen) {
+          // 💾 uložíme datum do overlayu
           overlay.dataset.datum = chosen;
-        
+
+          // 🟢 aktualizace panelu s datem
+          updateTermInfoBox(infoBox, chosen, null);
+
+          // ✨ vizuální potvrzení výběru
+          flashBox(infoBox, "gray");
+
+          // 📋 přehled ostatních zákazníků toho dne
+          showDaySummary(chosen, overlay);
         }
       }
     }
@@ -1141,7 +1150,7 @@ function showDaySummary(dateStr, overlay) {
   padding: 6px;
 }
 
-/* ✨ flash efekty */
+/* ✨ flash efekty panelu s datem */
 .flash-green { animation: flashGreen 1.2s ease; }
 .flash-gray  { animation: flashGray 1s ease; }
 
@@ -1157,7 +1166,6 @@ function showDaySummary(dateStr, overlay) {
 }
 </style>
 <!-- 🟩 KONEC C-3 -->
-
 
 
 
