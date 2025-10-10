@@ -694,7 +694,7 @@ function renderMobileBlocks(arr) {
 <!-- 🟩 SEKCE C – DETAIL ZÁKAZNÍKA (rozdělená verze) -->
 <!-- ================================================= -->
 
-<!-- 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA – VERZE S IKONOU HODIN -->
+<!-- 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA – VERZE S IKONOU HODIN (OPRAVENO) -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -757,17 +757,20 @@ function openDetail(index) {
       </div>
     </div>`;
 
+  // 🧩 Připojení do dokumentu
   document.body.appendChild(overlay);
   setTimeout(() => overlay.classList.add("active"), 10);
 
+  // 🗓️ a 🌍 inicializace funkcí
   initCalendarAndTime(overlay, item, index);
   initMapForDetail(overlay, item);
   initDetailButtons(overlay, item, index);
 
+  // 🧾 Klikací boxy
   overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
   overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
 
-  // ⏰ akce po kliknutí na ikonu hodin (zatím placeholder)
+  // ⏰ Akce po kliknutí na ikonu hodin
   overlay.querySelector("#clockIcon").onclick = () => {
     setNextToast("⏰ Výběr času bude doplněn", "info");
   };
@@ -799,9 +802,7 @@ function openDetail(index) {
   box-shadow: 0 4px 10px rgba(0,0,0,0.25);
 }
 </style>
-<!-- 🟩 KONEC C-1 + C-4 (IKONA HODIN) -->
-
-
+<!-- 🟩 KONEC C-1 + C-4 (IKONA HODIN, OPRAVENO) -->
 
 
 
