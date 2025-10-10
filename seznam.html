@@ -694,7 +694,7 @@ function renderMobileBlocks(arr) {
 <!-- 🟩 SEKCE C – DETAIL ZÁKAZNÍKA (rozdělená verze) -->
 <!-- ================================================= -->
 
-<!-- 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA – VERZE S IKONOU HODIN (OPRAVENO) -->
+<!-- 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA – ŽIVÉ HODINY VEDLE KALENDÁŘE -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -710,12 +710,19 @@ function openDetail(index) {
         <!-- 🧭 LEVÝ PANEL -->
         <div class="left-panel">
 
-          <!-- 🗓️ Kalendář vlevo + ikona hodin vpravo -->
+          <!-- 🗓️ Kalendář vlevo + živé hodiny vpravo -->
           <div class="date-time-row">
             <div id="miniCalendar"></div>
 
             <div class="date-right-column">
-              <div class="clock-icon" id="clockIcon" title="Vyber čas"></div>
+              <div class="live-clock" id="liveClock">
+                <div class="clock-face">
+                  <div class="hand hour"></div>
+                  <div class="hand minute"></div>
+                  <div class="hand second"></div>
+                  <div class="center-dot"></div>
+                </div>
+              </div>
               <div class="term-info-box" id="termInfoBox">Není vybrán datum</div>
             </div>
           </div>
@@ -757,52 +764,91 @@ function openDetail(index) {
       </div>
     </div>`;
 
-  // 🧩 Připojení do dokumentu
   document.body.appendChild(overlay);
   setTimeout(() => overlay.classList.add("active"), 10);
 
-  // 🗓️ a 🌍 inicializace funkcí
   initCalendarAndTime(overlay, item, index);
   initMapForDetail(overlay, item);
   initDetailButtons(overlay, item, index);
 
-  // 🧾 Klikací boxy
   overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
   overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
 
-  // ⏰ Akce po kliknutí na ikonu hodin
-  overlay.querySelector("#clockIcon").onclick = () => {
-    setNextToast("⏰ Výběr času bude doplněn", "info");
-  };
+  // ⏰ Spuštění animace hodin
+  startLiveClock(overlay.querySelector("#liveClock"));
+}
+
+// 🕒 Funkce pro živé hodiny
+function startLiveClock(clockContainer) {
+  const hourHand = clockContainer.querySelector(".hand.hour");
+  const minuteHand = clockContainer.querySelector(".hand.minute");
+  const secondHand = clockContainer.querySelector(".hand.second");
+
+  function updateClock() {
+    const now = new Date();
+    const h = now.getHours() % 12;
+    const m = now.getMinutes();
+    const s = now.getSeconds();
+    const hourDeg = (h + m / 60) * 30;
+    const minuteDeg = (m + s / 60) * 6;
+    const secondDeg = s * 6;
+
+    hourHand.style.transform = \`rotate(\${hourDeg}deg)\`;
+    minuteHand.style.transform = \`rotate(\${minuteDeg}deg)\`;
+    secondHand.style.transform = \`rotate(\${secondDeg}deg)\`;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
 }
 </script>
 
-<!-- 🎨 Styl ikony hodin -->
+<!-- 🎨 Styl živých hodin -->
 <style>
-.clock-icon {
+.live-clock {
   width: 70px;
   height: 70px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #357aff, #6fa8ff);
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
-  cursor: pointer;
-  transition: transform .2s ease, box-shadow .2s ease;
 }
-.clock-icon::before {
-  content: "🕒";
-  font-size: 38px;
-  color: #fff;
+
+.clock-face {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
-.clock-icon:hover {
-  transform: scale(1.08);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+
+.hand {
+  position: absolute;
+  width: 50%;
+  height: 2px;
+  background: #333;
+  top: 50%;
+  transform-origin: 100%;
+  transform: rotate(0deg);
+  transition: transform 0.5s cubic-bezier(.4,2.3,.3,1);
+}
+.hand.hour { width: 30%; height: 3px; background: #222; }
+.hand.minute { width: 40%; background: #444; }
+.hand.second { width: 45%; background: #e53935; height: 1.5px; }
+
+.center-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #333;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 </style>
-<!-- 🟩 KONEC C-1 + C-4 (IKONA HODIN, OPRAVENO) -->
+<!-- 🟩 KONEC C-1 + C-4 (ŽIVÉ HODINY) -->
 
 
 
