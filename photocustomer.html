@@ -1,4 +1,4 @@
-<!-- 🟩 ZAČÁTEK ČÁSTI 1/3 – HLAVIČKA + ZÁKAZNÍK -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 1/3 – HLAVIČKA + ZÁKAZNÍK (BEZ NADPISU PHOTO) -->
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -92,21 +92,18 @@ h2 {
     }
   });
   </script>
-
-  <h4 style="margin-top:30px;">Photo</h4>
 <!-- 🟩 KONEC ČÁSTI 1/3 -->
 
 
 
 
 
-
-<!-- 🟩 ZAČÁTEK ČÁSTI 2/3 – KLIKACÍ BLOKY + NÁHLED -->
+  <!-- 🟩 ZAČÁTEK ČÁSTI 2/3 – KLIKACÍ BLOKY + NÁHLED + MAZÁNÍ + NOVÉ HLAVIČKY -->
 <style>
 .photo-block {
   border:1px solid #ccc;
   border-radius:10px;
-  padding:14px;
+  padding:16px 14px 12px;
   margin-top:18px;
   background:linear-gradient(180deg,#f8f8f8 0%,#ececec 100%);
   transition:background .2s,transform .1s;
@@ -116,11 +113,11 @@ h2 {
   background:#f2f2f2;
   transform:scale(1.01);
 }
-.photo-header h4 {
-  margin:0 0 8px;
+.photo-title {
   font-size:1.05em;
   font-weight:700;
   color:#111;
+  margin-bottom:10px;
 }
 .photo-preview {
   display:flex;
@@ -137,22 +134,6 @@ h2 {
   transition:transform .15s ease;
 }
 .photo-thumb:hover { transform:scale(1.05); }
-.photo-remove {
-  position:absolute;
-  top:3px;
-  right:3px;
-  width:22px;
-  height:22px;
-  border:none;
-  border-radius:50%;
-  background:rgba(255,255,255,0.95);
-  color:#d40000;
-  font-weight:bold;
-  cursor:pointer;
-  line-height:18px;
-  font-size:16px;
-  box-shadow:0 1px 3px rgba(0,0,0,0.25);
-}
 .progress-bar-container{
   width:100%;
   background:#ddd;
@@ -183,37 +164,63 @@ h2 {
   background:rgba(0,0,0,0.85);
   justify-content:center;
   align-items:center;
+  flex-direction:column;
   z-index:9999;
 }
-#fullscreenView img {
+#fullscreenView.active { display:flex; }
+#fullscreenImg {
   max-width:90%;
-  max-height:90%;
+  max-height:85%;
   border-radius:10px;
   box-shadow:0 0 20px rgba(0,0,0,0.5);
 }
-#fullscreenView.active { display:flex; }
-#fullscreenClose {
+.fullscreen-buttons {
   position:absolute;
   top:20px;
   right:25px;
+  display:flex;
+  gap:10px;
+}
+.full-btn {
   background:#fff;
   border:none;
-  font-size:1.5em;
-  border-radius:50%;
-  width:40px;
-  height:40px;
-  cursor:pointer;
+  font-size:1em;
   font-weight:700;
+  border-radius:8px;
+  padding:8px 16px;
+  cursor:pointer;
   box-shadow:0 2px 8px rgba(0,0,0,0.3);
 }
+.full-btn:hover { opacity:0.9; }
+.full-btn.close { color:#111; }
+.full-btn.delete { background:#e63946; color:#fff; }
 </style>
 
 <!-- BLOKY -->
-<div class="photo-block" data-section="before"><h4>Před opravou<br><span class="subtitle">Before repair</span></h4><div class="photo-preview" id="preview-before"></div></div>
-<div class="photo-block" data-section="id"><h4>ID štítek<br><span class="subtitle">ID label</span></h4><div class="photo-preview" id="preview-id"></div></div>
-<div class="photo-block" data-section="problem"><h4>Detail problému<br><span class="subtitle">Problem detail</span></h4><div class="photo-preview" id="preview-problem"></div></div>
-<div class="photo-block" data-section="repair"><h4>Během opravy<br><span class="subtitle">During repair</span></h4><div class="photo-preview" id="preview-repair"></div></div>
-<div class="photo-block" data-section="after"><h4>Po opravě<br><span class="subtitle">After repair</span></h4><div class="photo-preview" id="preview-after"></div></div>
+<div class="photo-block" data-section="before">
+  <div class="photo-title">Před opravou / Before repair</div>
+  <div class="photo-preview" id="preview-before"></div>
+</div>
+
+<div class="photo-block" data-section="id">
+  <div class="photo-title">ID štítek / ID label</div>
+  <div class="photo-preview" id="preview-id"></div>
+</div>
+
+<div class="photo-block" data-section="problem">
+  <div class="photo-title">Detail problému / Problem detail</div>
+  <div class="photo-preview" id="preview-problem"></div>
+</div>
+
+<div class="photo-block" data-section="repair">
+  <div class="photo-title">Během opravy / During repair</div>
+  <div class="photo-preview" id="preview-repair"></div>
+</div>
+
+<div class="photo-block" data-section="after">
+  <div class="photo-title">Po opravě / After repair</div>
+  <div class="photo-preview" id="preview-after"></div>
+</div>
 
 <input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
 
@@ -224,7 +231,10 @@ h2 {
 
 <!-- fullscreen náhled -->
 <div id="fullscreenView">
-  <button id="fullscreenClose">×</button>
+  <div class="fullscreen-buttons">
+    <button id="btnDeletePhoto" class="full-btn delete">Odstranit</button>
+    <button id="btnClosePhoto" class="full-btn close">Zavřít</button>
+  </div>
   <img id="fullscreenImg" src="">
 </div>
 
@@ -234,18 +244,23 @@ h2 {
   const sections={before:[],id:[],problem:[],repair:[],after:[]};
   const fill=document.getElementById("progressFill");
   const text=document.getElementById("progressText");
+
   const full=document.getElementById("fullscreenView");
   const fullImg=document.getElementById("fullscreenImg");
-  const fullClose=document.getElementById("fullscreenClose");
+  const btnDelete=document.getElementById("btnDeletePhoto");
+  const btnClose=document.getElementById("btnClosePhoto");
 
   const data=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
   const orderNum=data.cislo||"";
+
+  let currentSection=null;
+  let currentIndex=null;
 
   // Klikací bloky
   document.querySelectorAll(".photo-block").forEach(block=>{
     block.addEventListener("click",()=>{
       input.dataset.section=block.dataset.section;
-      input.click();
+      setTimeout(()=>input.click(),80);
     });
   });
 
@@ -286,20 +301,33 @@ h2 {
       img.src=p.url;
       img.className="photo-thumb";
       img.title=p.name;
-      img.onclick=()=>openFullscreen(p.url);
+      img.onclick=()=>openFullscreen(section,i);
       cont.append(img);
     });
   }
 
   // Fullscreen náhled
-  function openFullscreen(src){
-    fullImg.src=src;
+  function openFullscreen(section,i){
+    currentSection=section;
+    currentIndex=i;
+    fullImg.src=sections[section][i].url;
     full.classList.add("active");
   }
-  fullClose.addEventListener("click",()=>full.classList.remove("active"));
+
+  // Zavřít fullscreen
+  btnClose.addEventListener("click",()=>full.classList.remove("active"));
   full.addEventListener("click",(e)=>{if(e.target===full)full.classList.remove("active");});
 
-  // Nahrávání všech
+  // Odstranit fotku
+  btnDelete.addEventListener("click",()=>{
+    if(currentSection!==null && currentIndex!==null){
+      sections[currentSection].splice(currentIndex,1);
+      render(currentSection);
+      full.classList.remove("active");
+    }
+  });
+
+  // Upload všech
   async function uploadAll(){
     const all=Object.values(sections).flat();
     if(!all.length)return alert("Není vybrána žádná fotografie / No photos selected.");
@@ -315,7 +343,8 @@ h2 {
   window.uploadAll=uploadAll;
 })();
 </script>
-<!-- 🟩 KONEC ČÁSTI 2/3 – KLIKACÍ BLOKY + NÁHLED -->
+<!-- 🟩 KONEC ČÁSTI 2/3 – KLIKACÍ BLOKY + NÁHLED + MAZÁNÍ + NOVÉ HLAVIČKY -->
+
 
 
 
