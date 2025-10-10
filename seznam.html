@@ -429,7 +429,7 @@ function updateDebug(count) {
 
 
 
-<!-- 🟩 C-1: DETAIL ZÁKAZNÍKA – HTML + layout dvousloupcových tlačítek -->
+<!-- 🟩 C-1: DETAIL ZÁKAZNÍKA – dvousloupcové tlačítka -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -446,12 +446,13 @@ function openDetail(index) {
         <!-- 🧭 LEVÝ PANEL -->
         <div class="left-panel">
           <div id="miniCalendar"></div>
+
           <div class="custom-time-picker">
             <select id="hours"></select><span>:</span><select id="minutes"></select>
           </div>
           <div class="term-info-box" id="termInfoBox">Vyberte datum a čas</div>
 
-          <!-- 🟩 TLAČÍTKA (vkládají se v C-4) -->
+          <!-- 🟩 BLOK TLAČÍTEK -->
           <div class="left-buttons">
             <button id="saveTermBtn" class="btn-action btn-green">Uložit / Změnit termín</button>
             <button id="waitBtn" class="btn-action btn-purple">Zákazník čeká na díly</button>
@@ -484,32 +485,200 @@ function openDetail(index) {
       </div>
     </div>`;
   document.body.appendChild(overlay);
-  setTimeout(()=>overlay.classList.add("active"),10);
+  setTimeout(() => overlay.classList.add("active"), 10);
 
-  initCalendarAndTime(overlay,item,index);
-  initMapForDetail(overlay,item);
-  initDetailButtons(overlay,item,index);
+  initCalendarAndTime(overlay, item, index);
+  initMapForDetail(overlay, item);
+  initDetailButtons(overlay, item, index);
 
-  overlay.querySelector("#customerBox").onclick = ()=>openCustomerDetail(item,overlay);
-  overlay.querySelector("#popisBox").onclick    = ()=>openPopisEditor(item,overlay);
+  overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
+  overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
 }
 </script>
 
 <style>
-.left-buttons{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-top:10px;
+/* 🟩 Layout tlačítek – dvousloupcový grid */
+.left-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
 }
-#contactBtn, #startVisitBtn{
-  grid-column:1 / span 2;
+#contactBtn, #startVisitBtn {
+  grid-column: 1 / span 2;
 }
-@media(max-width:700px){
-  .left-buttons{grid-template-columns:1fr;}
+@media(max-width: 700px) {
+  .left-buttons { grid-template-columns: 1fr; }
 }
 </style>
 <!-- 🟩 KONEC C-1 -->
+
+
+<!-- 🟩 C-4: LOGIKA TLAČÍTEK -->
+<script>
+function initDetailButtons(overlay, item, index) {
+  const id = item.cislo || `radek-${index}`;
+  const infoBox = overlay.querySelector("#termInfoBox");
+  const leftButtons = overlay.querySelector(".left-buttons");
+
+  // ☎️ Kontaktovat zákazníka – vloží se nahoře
+  const contactBtn = document.createElement("button");
+  contactBtn.id = "contactBtn";
+  contactBtn.className = "btn-action btn-gray";
+  contactBtn.textContent = "Kontaktovat zákazníka";
+  leftButtons.insertBefore(contactBtn, leftButtons.firstChild);
+  contactBtn.onclick = () => openContactModal(item, index, overlay);
+
+  // 💾 Uložit / Změnit termín → po uložení nabídne odeslat SMS
+  overlay.querySelector("#saveTermBtn").onclick = () => {
+    const datum = overlay.dataset.datum;
+    const cas = `${overlay.querySelector("#hours").value}:${overlay.querySelector("#minutes").value}`;
+    if (!datum || !cas) return alert("Vyberte datum a čas!");
+    ulozitTerminNaGitHub(item, id, datum, cas, overlay, overlay.querySelector("#saveTermBtn"), infoBox);
+  };
+
+  // 🟣 Zákazník čeká na díly
+  overlay.querySelector("#waitBtn").onclick = async () => {
+    try {
+      stavy[id] = "ceka"; item.stav = "ceka";
+      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update", record: item })
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      setNextToast("🟣 Zákazník čeká na díly", "warning");
+      overlay.remove(); renderTable(dataAll);
+    } catch (err) { alert("❌ Chyba: " + err.message); }
+  };
+
+  // 🧾 Vytvořit protokol
+  overlay.querySelector("#createProtocolBtn").onclick = () => {
+    localStorage.setItem("protokolData", JSON.stringify(item));
+    window.location.href = "protokol.html";
+  };
+
+  // 🟢 Zahájit návštěvu → photocustomer.html
+  const visitBtn = document.createElement("button");
+  visitBtn.id = "startVisitBtn";
+  visitBtn.className = "btn-action btn-lightgreen";
+  visitBtn.textContent = "ZAHÁJIT NÁVŠTĚVU U ZÁKAZNÍKA";
+  visitBtn.onclick = () => {
+    localStorage.setItem("currentCustomer", JSON.stringify(item));
+    window.location.href = "photocustomer.html";
+  };
+  leftButtons.appendChild(visitBtn);
+
+  // 🔙 Zpět
+  overlay.querySelector("#closeBtn").onclick = () => {
+    document.querySelectorAll(".small-modal").forEach(m => m.remove());
+    overlay.remove();
+  };
+}
+
+/* 🧩 Kontaktovat zákazníka – bez duplicit */
+function openContactModal(item, index, overlay) {
+  const exist = document.querySelector(".small-modal.contact-modal");
+  if (exist) exist.remove();
+  const modal = document.createElement("div");
+  modal.className = "small-modal contact-modal";
+  modal.innerHTML = `
+    <div class="small-inner">
+      <h3>Kontaktovat zákazníka</h3>
+      <div class="contact-buttons">
+        <button id="callBtn" class="btn-action btn-blue">Volat zákazníkovi</button>
+        <button id="smsBtn" class="btn-action btn-orange">Nezvedá – poslána SMS</button>
+        <button id="cancelCustBtn" class="btn-action btn-red">Zrušeno zákazníkem</button>
+        <button id="closeContactBtn" class="btn-action btn-gray">Zavřít</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  const tel = (item.telefon || "").replace(/\+?420|\s+/g, "");
+
+  modal.querySelector("#callBtn").onclick = () => {
+    if (!tel) return alert("Telefonní číslo není uvedeno.");
+    window.location.href = `tel:+420${tel}`; modal.remove();
+  };
+  modal.querySelector("#smsBtn").onclick = () => {
+    stavy[item.cislo] = "nezveda"; item.stav = "nezveda";
+    const sms = "Dobrý den, volali jsme ohledně Vaší reklamace. Prosím ozvěte se zpět. WGS";
+    window.location.href = `sms:+420${tel}?body=${encodeURIComponent(sms)}`;
+    setNextToast("📩 SMS připravena", "warning");
+    modal.remove(); overlay.remove(); renderTable(dataAll);
+  };
+  modal.querySelector("#cancelCustBtn").onclick = () => {
+    stavy[item.cislo] = "zruseno"; item.stav = "zruseno";
+    const sms = "Dobrý den, Váš termín servisu byl zrušen na základě Vašeho požadavku. WGS";
+    window.location.href = `sms:+420${tel}?body=${encodeURIComponent(sms)}`;
+    setNextToast("❌ Zrušeno zákazníkem", "error");
+    modal.remove(); overlay.remove(); renderTable(dataAll);
+  };
+  modal.querySelector("#closeContactBtn").onclick = () => modal.remove();
+}
+
+/* 🧩 Po uložení termínu – nabídka odeslat SMS */
+function openSmsConfirmModal(item, datum, cas, overlay) {
+  const modal = document.createElement("div");
+  modal.className = "small-modal";
+  const smsText = `Dobrý den, potvrzujeme domluvený servis dne ${datum} v ${cas}. White Glove Service`;
+  modal.innerHTML = `
+    <div class="small-inner">
+      <h3>Odeslat SMS zákazníkovi?</h3>
+      <p style="font-size:0.9em;color:#333;margin-bottom:10px;">${smsText}</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button id="sendSmsBtn" class="btn-action btn-green">Odeslat SMS potvrzení</button>
+        <button id="closeSmsBtn" class="btn-action btn-gray">Neodesílat</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  const tel = (item.telefon || "").replace(/\+?420|\s+/g, "");
+  const smsUrl = `sms:+420${tel}?body=${encodeURIComponent(smsText)}`;
+
+  modal.querySelector("#sendSmsBtn").onclick = () => {
+    if (!tel) return alert("Telefonní číslo není uvedeno.");
+    window.location.href = smsUrl;
+    modal.remove(); overlay.remove(); renderTable(dataAll);
+  };
+  modal.querySelector("#closeSmsBtn").onclick = () => {
+    modal.remove(); overlay.remove(); renderTable(dataAll);
+  };
+}
+</script>
+
+<style>
+.btn-action {
+  width: 100%; padding: 10px 0;
+  font-family: Inter, sans-serif;
+  font-size: 0.95em; font-weight: 600;
+  border: none; border-radius: 8px;
+  color: #fff; cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.btn-action:hover { opacity: 0.9; }
+.btn-green  { background: linear-gradient(135deg,#009c3b,#00b34d); }
+.btn-blue   { background: linear-gradient(135deg,#0077ff,#409fff); }
+.btn-purple { background: linear-gradient(135deg,#8e2de2,#c69aff); }
+.btn-gray   { background: linear-gradient(135deg,#6c757d,#a8b0b8); }
+.btn-orange { background: linear-gradient(135deg,#ff8c00,#ffa733); }
+.btn-red    { background: linear-gradient(135deg,#d63333,#f06a6a); }
+.btn-lightgreen { background: linear-gradient(135deg,#7ee48c,#b9f2c3); color:#003300; font-weight:700; }
+.small-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 10000;
+}
+.small-inner {
+  background: #fff; padding: 20px;
+  border-radius: 12px; box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+  width: 90%; max-width: 420px; text-align: center;
+}
+.small-inner h3 { margin-bottom: 12px; font-weight: 800; font-size: 1.2em; }
+.contact-buttons { display: flex; flex-direction: column; gap: 10px; }
+</style>
+<!-- 🟩 KONEC C-4 -->
+
 
 
 
