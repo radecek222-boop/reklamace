@@ -690,12 +690,8 @@ function renderMobileBlocks(arr) {
 
 
 
-<!-- 🟩 SEKCE C – DETAIL ZÁKAZNÍKA (OPRAVENÁ KOMPAKTNÍ VERZE) -->
+<!-- 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA – S ŽIVÝMI HODINAMI -->
 <script>
-// 🧩 Placeholder pro jistotu – předejde chybě, pokud se openDetail zavolá dřív
-function openDetail() {}
-
-// 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA – DLAŽDICE + INFO BOX POD HODINAMI
 function openDetail(index) {
   const item = dataAll[index];
   if (!item) return;
@@ -709,13 +705,14 @@ function openDetail(index) {
       <div class="grid-layout">
         <!-- 🧭 LEVÝ PANEL -->
         <div class="left-panel">
+
+          <!-- 🗓️ Kalendář vlevo + živé hodiny vpravo -->
           <div class="date-time-row">
             <div id="miniCalendar"></div>
+
             <div class="date-right-column">
-              <div class="custom-time-picker">
-                <select id="hours"></select><span>:</span><select id="minutes"></select>
-              </div>
-              <div class="term-info-box" id="termInfoBox">Není vybrán datum a čas</div>
+              <div class="clock-widget" id="liveClock" title="Aktuální čas"></div>
+              <div class="term-info-box" id="termInfoBox">Není vybrán datum</div>
             </div>
           </div>
 
@@ -760,181 +757,49 @@ function openDetail(index) {
   initCalendarAndTime(overlay, item, index);
   initMapForDetail(overlay, item);
   initDetailButtons(overlay, item, index);
-
   overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
   overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
+
+  // 🕒 Živé hodiny
+  startLiveClock(overlay.querySelector("#liveClock"));
 }
 
-// 🟩 C-2: TLAČÍTKA DETAILU
-function initDetailButtons(overlay, item, index) {
-  const id = item.cislo || `radek-${index}`;
-  const infoBox = overlay.querySelector("#termInfoBox");
-
-  overlay.querySelector("#saveTermBtn").onclick = () => {
-    const datum = overlay.dataset.datum;
-    const cas = `${overlay.querySelector("#hours").value}:${overlay.querySelector("#minutes").value}`;
-    if (!datum || !cas) return alert("Vyberte datum a čas!");
-    ulozitTerminNaGitHub(item, id, datum, cas, overlay, overlay.querySelector("#saveTermBtn"), infoBox);
-  };
-
-  overlay.querySelector("#waitBtn").onclick = async () => {
-    try {
-      stavy[id] = "ceka";
-      item.stav = "ceka";
-      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "update", record: item })
-      });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      setNextToast("🟣 Zákazník čeká na díly", "warning");
-      overlay.remove();
-      renderTable(dataAll);
-    } catch (err) {
-      alert("❌ Chyba při ukládání: " + err.message);
-    }
-  };
-
-  overlay.querySelector("#createProtocolBtn").onclick = () => {
-    localStorage.setItem("protokolData", JSON.stringify(item));
-    window.location.href = "protokol.html";
-  };
-
-  overlay.querySelector("#startVisitBtn").onclick = () => {
-    localStorage.setItem("currentCustomer", JSON.stringify(item));
-    window.location.href = "photocustomer.html";
-  };
-
-  overlay.querySelector("#contactBtn").onclick = () => openContactModal(item, index, overlay);
-  overlay.querySelector("#closeBtn").onclick = () => overlay.remove();
-}
-
-// 🟩 C-3: KALENDÁŘ A ČAS
-function initCalendarAndTime(overlay, item, index) {
-  const infoBox = overlay.querySelector("#termInfoBox");
-  const miniCal = new VanillaCalendar("#miniCalendar", {
-    settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
-    actions: { clickDay: e => {
-      const chosen = e.target.dataset.calendarDay;
-      if (chosen) {
-        overlay.dataset.datum = chosen;
-        updateTermInfoBox(infoBox, chosen, null);
-        flashBox(infoBox, "gray");
-      }
-    } }
-  });
-  miniCal.init();
-
-  const hSel = overlay.querySelector("#hours");
-  const mSel = overlay.querySelector("#minutes");
-  for (let h = 7; h < 20; h++) hSel.innerHTML += `<option>${String(h).padStart(2,"0")}</option>`;
-  for (let m = 0; m < 60; m += 5) mSel.innerHTML += `<option>${String(m).padStart(2,"0")}</option>`;
-}
-
-// 🟩 C-4: POMOCNÉ FUNKCE
-function updateTermInfoBox(b, d, c) {
-  const date = new Date(d);
-  const den = date.toLocaleDateString("cs-CZ", { weekday: "long", day: "numeric", month: "long" });
-  b.textContent = c ? `${den} – ${c}` : `${den}`;
-}
-function flashBox(b, color) {
-  b.classList.remove("flash-green");
-  void b.offsetWidth;
-  if (color === "green") b.classList.add("flash-green");
+// 🕒 Funkce pro živé hodiny
+function startLiveClock(el) {
+  function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, "0");
+    const m = String(now.getMinutes()).padStart(2, "0");
+    el.textContent = `${h}:${m}`;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
 }
 </script>
 
-<!-- 🎨 C-STYLE: STYL DETAILU -->
+<!-- 🎨 Styl živých hodin -->
 <style>
-.date-time-row {
-  display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-#miniCalendar {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  min-height: 280px;
-}
-.date-right-column {
-  display: grid;
-  grid-template-rows: 1fr auto;
-  gap: 12px;
-}
-.custom-time-picker {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  background: #f8f8f8;
-  border-radius: 10px;
-  padding: 10px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}
-.custom-time-picker select {
-  font-size: 1.05em;
-  font-weight: 600;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 5px 10px;
-}
-.term-info-box {
-  background: #f3f3f3;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 10px 12px;
-  text-align: center;
-  font-weight: 600;
-  color: #555;
-  height: 45px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}
-.flash-green {
-  animation: flashGreen 1.2s ease;
-}
-@keyframes flashGreen {
-  0% { background:#d5f8d5; color:#116d2b; }
-  50% { background:#e9ffe9; color:#116d2b; }
-  100% { background:#f3f3f3; color:#555; }
-}
-.tile-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 15px;
-}
-.tile-btn {
-  height: 85px;
-  border-radius: 12px;
-  font-weight: 600;
+.clock-widget {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #444, #666);
   color: #fff;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  font-size: 1.8em;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  user-select: none;
 }
-.tile-btn:hover { transform: scale(1.03); }
-.btn-grayContact { background: linear-gradient(135deg,#888,#aaa); }
-.btn-lightgray   { background: linear-gradient(135deg,#aaa,#ccc); }
-.btn-green       { background: linear-gradient(135deg,#4caf50,#6fdd72); }
-.btn-purple      { background: linear-gradient(135deg,#b993ff,#d4b5ff); }
-.btn-blue        { background: linear-gradient(135deg,#357aff,#6fa8ff); }
-@keyframes blinkRed {
-  0%,100% { background: linear-gradient(135deg,#ff4d4d,#ff8080); }
-  50%     { background: linear-gradient(135deg,#ff7373,#ffa0a0); }
+.clock-widget:hover {
+  transform: scale(1.03);
+  box-shadow: 0 5px 12px rgba(0,0,0,0.3);
+  transition: all 0.25s ease;
 }
-.btn-redBlink { animation: blinkRed 1.5s infinite; }
 </style>
-<!-- 🟩 KONEC SEKCE C -->
-
-
-
-
-
+<!-- 🟩 KONEC C-1 + C-4 -->
 
 
 
