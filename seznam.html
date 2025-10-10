@@ -1221,6 +1221,11 @@ function openCustomerDetail(item, overlay) {
       });
       if (!res.ok) throw new Error("HTTP " + res.status);
       setNextToast("✅ Údaje zákazníka byly uloženy", "success");
+      // 🔄 Načti nová data po uložení, aby se zobrazily i další změny
+setTimeout(() => {
+  loadData();
+}, 1000);
+
       modal.remove();
       overlay.remove();
       renderTable(dataAll);
@@ -1420,6 +1425,11 @@ async function ulozitTerminNaGitHub(item, id, datum, cas, overlay, btn, infoBox)
       localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
       flashBox(infoBox, "green");
       setNextToast("✅ Termín úspěšně uložen", "success");
+      item.stav = "domluveno";
+stavy[id] = "domluveno";
+localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+renderTable(dataAll);
+
 
       setTimeout(() => {
         overlay.remove();
