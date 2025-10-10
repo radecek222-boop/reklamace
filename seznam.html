@@ -429,7 +429,7 @@ function updateDebug(count) {
 
 
 
-<!-- 🟩 C-1: DETAIL ZÁKAZNÍKA – dvousloupcové tlačítka -->
+<!-- 🟩 C-1: DETAIL ZÁKAZNÍKA – upravené rozložení tlačítek -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -453,13 +453,9 @@ function openDetail(index) {
 
           <!-- 🟩 BLOK TLAČÍTEK -->
           <div class="left-buttons">
+            <!-- Nad tlačítky -->
+            <button id="contactBtn" class="btn-action btn-darkgray">Kontaktovat zákazníka</button>
 
-            <!-- 🟢 Horní tlačítko – šířka dvou sloupců -->
-            <button id="startVisitBtn" class="btn-action btn-lightgreen">
-              ZAHÁJIT NÁVŠTĚVU U ZÁKAZNÍKA
-            </button>
-
-            <!-- 🟦 Dva sloupce tlačítek -->
             <div class="btn-grid">
               <div class="btn-col">
                 <button id="saveTermBtn" class="btn-action btn-green">Uložit / Změnit termín</button>
@@ -471,38 +467,50 @@ function openDetail(index) {
               </div>
             </div>
 
-            <!-- 🟤 Spodní tlačítko -->
-            <button id="contactBtn" class="btn-action btn-darkgray">
-              Kontaktovat zákazníka
+            <!-- 🟢 Velké tlačítko dole -->
+            <button id="startVisitBtn" class="btn-action btn-reflex">
+              ZAHÁJIT NÁVŠTĚVU U ZÁKAZNÍKA
             </button>
           </div>
         </div>
 
         <!-- 🧾 PRAVÝ PANEL -->
         <div class="right-panel">
-          <div class="info-box">
-            <h3>${item.zakaznik || "–"}</h3>
-            <p>${adresaUpravena}</p>
-            <p>${item.telefon || "–"}</p>
-            <p>${item.email || "–"}</p>
-            <p>${item.produkt || "–"}</p>
+          <div class="info-box clickable" id="customerBox">
+            <div class="box-header"><strong>Zákazník</strong><span class="icon">✏️</span></div>
+            <div class="box-content">
+              <p><strong>Jméno:</strong> ${item.zakaznik || "–"}</p>
+              <p><strong>Adresa:</strong> ${adresaUpravena}</p>
+              <p><strong>Telefon:</strong> ${(item.telefon || "–")}</p>
+              <p><strong>Email:</strong> ${item.email || "–"}</p>
+              <p><strong>Produkt / model:</strong> ${item.produkt || "–"}</p>
+            </div>
           </div>
+
+          <div class="info-box clickable" id="popisBox">
+            <div class="box-header"><strong>Popis závady</strong><span class="icon">📝</span></div>
+            <div class="box-content" id="popisContent">${item.popis || "–"}</div>
+          </div>
+
+          <div class="distance-banner" id="mapDistance">📍 Počítám vzdálenost…</div>
           <div id="mapDetail"></div>
         </div>
-
       </div>
     </div>`;
+
   document.body.appendChild(overlay);
   setTimeout(() => overlay.classList.add("active"), 10);
 
   initCalendarAndTime(overlay, item, index);
   initMapForDetail(overlay, item);
   initDetailButtons(overlay, item, index);
+
+  overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
+  overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
 }
 </script>
 
 <style>
-/* 🟢 Dvousloupcové rozložení tlačítek */
 .left-buttons {
   display: flex;
   flex-direction: column;
@@ -582,7 +590,7 @@ function initCalendarAndTime(overlay, item, index) {
 
 
 
-<!-- 🟩 C-4: LOGIKA TLAČÍTEK (funkční odkazy a styl bez ikon) -->
+<!-- 🟩 C-4: LOGIKA TLAČÍTEK – bez ikon, jednotný vzhled -->
 <script>
 function initDetailButtons(overlay, item, index) {
   const id = item.cislo || `radek-${index}`;
@@ -621,7 +629,7 @@ function initDetailButtons(overlay, item, index) {
     window.location.href = "protokol.html";
   };
 
-  // 🟢 Zahájit návštěvu → photocustomer.html
+  // 🟢 Zahájit návštěvu
   overlay.querySelector("#startVisitBtn").onclick = () => {
     localStorage.setItem("currentCustomer", JSON.stringify(item));
     window.location.href = "photocustomer.html";
@@ -636,27 +644,28 @@ function initDetailButtons(overlay, item, index) {
 </script>
 
 <style>
-/* 🎨 Styl všech tlačítek – stejné rozměry, bez ikon */
 .btn-action {
   width: 100%;
   padding: 11px 0;
   font-family: Inter, sans-serif;
   font-size: 0.95em;
-  font-weight: 600;
+  font-weight: 500;
   border: none;
   border-radius: 8px;
-  color: #fff;
+  color: #000; /* černý text */
   cursor: pointer;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
-.btn-action:hover { opacity: 0.9; }
+.btn-action:hover { opacity: 0.85; transform: scale(1.02); }
 
-.btn-lightgreen { background: linear-gradient(135deg, #7ee48c, #b9f2c3); color: #003300; font-weight: 700; }
-.btn-green      { background: linear-gradient(135deg, #009c3b, #00b34d); }
-.btn-purple     { background: linear-gradient(135deg, #8e2de2, #c69aff); }
-.btn-blue       { background: linear-gradient(135deg, #0077ff, #409fff); }
-.btn-gray       { background: linear-gradient(135deg, #6c757d, #a8b0b8); }
-.btn-darkgray   { background: linear-gradient(135deg, #444, #777); }
+/* 🎨 Barvy */
+.btn-green   { background: linear-gradient(135deg, #7ad67f, #a6f3a9); }
+.btn-purple  { background: linear-gradient(135deg, #d3a4ff, #b87dfd); }
+.btn-blue    { background: linear-gradient(135deg, #a7c7ff, #84a9ff); }
+.btn-gray    { background: linear-gradient(135deg, #cccccc, #eeeeee); }
+.btn-darkgray{ background: linear-gradient(135deg, #b0b0b0, #d0d0d0); }
+.btn-reflex  { background: linear-gradient(135deg, #9dff00, #b8ff4d); }
 </style>
 <!-- 🟩 KONEC C-4 -->
 
