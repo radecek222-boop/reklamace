@@ -690,12 +690,12 @@ function renderMobileBlocks(arr) {
 
 
 
-
-<!-- 🟩 SEKCE C – DETAIL ZÁKAZNÍKA (rozdělená verze) -->
-<!-- ================================================= -->
-
-<!-- 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA – DLAŽDICE + INFO BOX POD HODINAMI -->
+<!-- 🟩 SEKCE C – DETAIL ZÁKAZNÍKA (OPRAVENÁ KOMPAKTNÍ VERZE) -->
 <script>
+// 🧩 Placeholder pro jistotu – předejde chybě, pokud se openDetail zavolá dřív
+function openDetail() {}
+
+// 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA – DLAŽDICE + INFO BOX POD HODINAMI
 function openDetail(index) {
   const item = dataAll[index];
   if (!item) return;
@@ -709,11 +709,8 @@ function openDetail(index) {
       <div class="grid-layout">
         <!-- 🧭 LEVÝ PANEL -->
         <div class="left-panel">
-
-          <!-- 🗓️ Kalendář vlevo + čas vpravo + info box pod hodinami -->
           <div class="date-time-row">
             <div id="miniCalendar"></div>
-
             <div class="date-right-column">
               <div class="custom-time-picker">
                 <select id="hours"></select><span>:</span><select id="minutes"></select>
@@ -726,10 +723,8 @@ function openDetail(index) {
           <div class="tile-grid">
             <button id="contactBtn" class="tile-btn btn-grayContact">Kontaktovat zákazníka</button>
             <button id="closeBtn" class="tile-btn btn-lightgray">Zpět</button>
-
             <button id="saveTermBtn" class="tile-btn btn-green">Uložit / Změnit termín</button>
             <button id="waitBtn" class="tile-btn btn-purple">Zákazník čeká na díly</button>
-
             <button id="startVisitBtn" class="tile-btn btn-redBlink">Zahájit návštěvu</button>
             <button id="createProtocolBtn" class="tile-btn btn-blue">Vytvořit protokol</button>
           </div>
@@ -769,9 +764,8 @@ function openDetail(index) {
   overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
   overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
 }
-</script>
 
-<script>
+// 🟩 C-2: TLAČÍTKA DETAILU
 function initDetailButtons(overlay, item, index) {
   const id = item.cislo || `radek-${index}`;
   const infoBox = overlay.querySelector("#termInfoBox");
@@ -814,15 +808,48 @@ function initDetailButtons(overlay, item, index) {
   overlay.querySelector("#contactBtn").onclick = () => openContactModal(item, index, overlay);
   overlay.querySelector("#closeBtn").onclick = () => overlay.remove();
 }
+
+// 🟩 C-3: KALENDÁŘ A ČAS
+function initCalendarAndTime(overlay, item, index) {
+  const infoBox = overlay.querySelector("#termInfoBox");
+  const miniCal = new VanillaCalendar("#miniCalendar", {
+    settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
+    actions: { clickDay: e => {
+      const chosen = e.target.dataset.calendarDay;
+      if (chosen) {
+        overlay.dataset.datum = chosen;
+        updateTermInfoBox(infoBox, chosen, null);
+        flashBox(infoBox, "gray");
+      }
+    } }
+  });
+  miniCal.init();
+
+  const hSel = overlay.querySelector("#hours");
+  const mSel = overlay.querySelector("#minutes");
+  for (let h = 7; h < 20; h++) hSel.innerHTML += `<option>${String(h).padStart(2,"0")}</option>`;
+  for (let m = 0; m < 60; m += 5) mSel.innerHTML += `<option>${String(m).padStart(2,"0")}</option>`;
+}
+
+// 🟩 C-4: POMOCNÉ FUNKCE
+function updateTermInfoBox(b, d, c) {
+  const date = new Date(d);
+  const den = date.toLocaleDateString("cs-CZ", { weekday: "long", day: "numeric", month: "long" });
+  b.textContent = c ? `${den} – ${c}` : `${den}`;
+}
+function flashBox(b, color) {
+  b.classList.remove("flash-green");
+  void b.offsetWidth;
+  if (color === "green") b.classList.add("flash-green");
+}
 </script>
 
+<!-- 🎨 C-STYLE: STYL DETAILU -->
 <style>
-/* 🗓️ + ⏰ rozložení */
 .date-time-row {
   display: grid;
   grid-template-columns: 1.15fr 0.85fr;
   gap: 12px;
-  align-items: stretch;
   margin-bottom: 10px;
 }
 #miniCalendar {
@@ -835,10 +862,7 @@ function initDetailButtons(overlay, item, index) {
   display: grid;
   grid-template-rows: 1fr auto;
   gap: 12px;
-  height: 100%;
 }
-
-/* ⏰ čas */
 .custom-time-picker {
   display: flex;
   justify-content: center;
@@ -856,15 +880,12 @@ function initDetailButtons(overlay, item, index) {
   border-radius: 8px;
   padding: 5px 10px;
 }
-
-/* 🔔 informační box */
 .term-info-box {
   background: #f3f3f3;
   border: 1px solid #ddd;
   border-radius: 10px;
   padding: 10px 12px;
   text-align: center;
-  font-family: "Inter", sans-serif;
   font-weight: 600;
   color: #555;
   height: 45px;
@@ -872,18 +893,15 @@ function initDetailButtons(overlay, item, index) {
   align-items: center;
   justify-content: center;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  transition: background 0.4s, color 0.4s;
 }
 .flash-green {
   animation: flashGreen 1.2s ease;
 }
 @keyframes flashGreen {
-  0%   { background:#d5f8d5; color:#116d2b; }
-  50%  { background:#e9ffe9; color:#116d2b; }
+  0% { background:#d5f8d5; color:#116d2b; }
+  50% { background:#e9ffe9; color:#116d2b; }
   100% { background:#f3f3f3; color:#555; }
 }
-
-/* 🟩 DLAŽDICE 2×3 */
 .tile-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -891,24 +909,15 @@ function initDetailButtons(overlay, item, index) {
   margin-top: 15px;
 }
 .tile-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
   height: 85px;
-  border: none;
   border-radius: 12px;
-  font-family: "Inter", sans-serif;
-  font-size: 0.95em;
   font-weight: 600;
   color: #fff;
   cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition: transform 0.2s ease;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
-.tile-btn:hover { transform: scale(1.03); opacity: 0.9; }
-
-/* barvy */
+.tile-btn:hover { transform: scale(1.03); }
 .btn-grayContact { background: linear-gradient(135deg,#888,#aaa); }
 .btn-lightgray   { background: linear-gradient(135deg,#aaa,#ccc); }
 .btn-green       { background: linear-gradient(135deg,#4caf50,#6fdd72); }
@@ -919,15 +928,9 @@ function initDetailButtons(overlay, item, index) {
   50%     { background: linear-gradient(135deg,#ff7373,#ffa0a0); }
 }
 .btn-redBlink { animation: blinkRed 1.5s infinite; }
-
-/* 📱 stejné rozložení i na mobilu */
-@media (max-width: 700px) {
-  .date-time-row { grid-template-columns: 1fr 0.9fr; }
-  .tile-grid { grid-template-columns: 1fr 1fr; }
-  .tile-btn { height: 75px; font-size: 0.9em; }
-}
 </style>
-<!-- 🟩 KONEC C-1 + C-4 -->
+<!-- 🟩 KONEC SEKCE C -->
+
 
 
 
