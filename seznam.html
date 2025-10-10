@@ -694,7 +694,7 @@ function renderMobileBlocks(arr) {
 <!-- 🟩 SEKCE C – DETAIL ZÁKAZNÍKA (rozdělená verze) -->
 <!-- ================================================= -->
 
-<!-- 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA – ŽIVÉ HODINY VEDLE KALENDÁŘE -->
+<!-- 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA – ŽIVÉ HODINY VEDLE KALENDÁŘE (OPRAVENO) -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -767,14 +767,16 @@ function openDetail(index) {
   document.body.appendChild(overlay);
   setTimeout(() => overlay.classList.add("active"), 10);
 
+  // Inicializace podpůrných částí
   initCalendarAndTime(overlay, item, index);
   initMapForDetail(overlay, item);
   initDetailButtons(overlay, item, index);
 
+  // Klikací boxy
   overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
   overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
 
-  // ⏰ Spuštění animace hodin
+  // Spuštění živých hodin
   startLiveClock(overlay.querySelector("#liveClock"));
 }
 
@@ -789,14 +791,16 @@ function startLiveClock(clockContainer) {
     const h = now.getHours() % 12;
     const m = now.getMinutes();
     const s = now.getSeconds();
+
     const hourDeg = (h + m / 60) * 30;
     const minuteDeg = (m + s / 60) * 6;
     const secondDeg = s * 6;
 
-    hourHand.style.transform = \`rotate(\${hourDeg}deg)\`;
-    minuteHand.style.transform = \`rotate(\${minuteDeg}deg)\`;
-    secondHand.style.transform = \`rotate(\${secondDeg}deg)\`;
+    hourHand.style.transform = `rotate(${hourDeg}deg)`;
+    minuteHand.style.transform = `rotate(${minuteDeg}deg)`;
+    secondHand.style.transform = `rotate(${secondDeg}deg)`;
   }
+
   updateClock();
   setInterval(updateClock, 1000);
 }
@@ -833,9 +837,20 @@ function startLiveClock(clockContainer) {
   transform: rotate(0deg);
   transition: transform 0.5s cubic-bezier(.4,2.3,.3,1);
 }
-.hand.hour { width: 30%; height: 3px; background: #222; }
-.hand.minute { width: 40%; background: #444; }
-.hand.second { width: 45%; background: #e53935; height: 1.5px; }
+.hand.hour {
+  width: 30%;
+  height: 3px;
+  background: #222;
+}
+.hand.minute {
+  width: 40%;
+  background: #444;
+}
+.hand.second {
+  width: 45%;
+  background: #e53935;
+  height: 1.5px;
+}
 
 .center-dot {
   position: absolute;
@@ -848,9 +863,7 @@ function startLiveClock(clockContainer) {
   transform: translate(-50%, -50%);
 }
 </style>
-<!-- 🟩 KONEC C-1 + C-4 (ŽIVÉ HODINY) -->
-
-
+<!-- 🟩 KONEC C-1 + C-4 (ŽIVÉ HODINY, OPRAVENO) -->
 
 
 
