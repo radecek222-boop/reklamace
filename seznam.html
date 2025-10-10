@@ -927,6 +927,130 @@ function initDetailButtons(overlay, item, index) {
   .tile-btn { height: 75px; font-size: 0.9em; }
 }
 </style>
+<script>
+function openDetail(index) {
+  const item = dataAll[index];
+  if (!item) return;
+
+  const overlay = document.createElement("div");
+  overlay.className = "detail-overlay";
+  const adresaUpravena = normalizePrahaAddress(item.adresa || "");
+
+  overlay.innerHTML = `
+    <div class="detail-modal">
+      <div class="grid-layout">
+        <!-- 🧭 LEVÝ PANEL -->
+        <div class="left-panel">
+          <div class="date-time-row">
+            <div id="miniCalendar"></div>
+
+            <div class="date-right-column">
+              <!-- ⏰ SVG hodiny (kliknutelné) -->
+              <div class="clock-wrapper" id="clockWrapper">
+                <svg id="clockIcon" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" fill="none" stroke="#333" stroke-width="1.8"/>
+                  <line x1="12" y1="12" x2="12" y2="6" stroke="#333" stroke-width="1.8" stroke-linecap="round"/>
+                  <line x1="12" y1="12" x2="16" y2="12" stroke="#333" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </div>
+
+              <!-- 🕓 Výběr času -->
+              <div class="custom-time-picker hidden" id="timePicker">
+                <select id="hours"></select><span>:</span><select id="minutes"></select>
+              </div>
+
+              <!-- ℹ️ Info box -->
+              <div class="term-info-box" id="termInfoBox">Není vybrán datum a čas</div>
+            </div>
+          </div>
+
+          <!-- 🟩 DLAŽDICE 3×2 -->
+          <div class="tile-grid">
+            <button id="contactBtn" class="tile-btn btn-grayContact">Kontaktovat zákazníka</button>
+            <button id="closeBtn" class="tile-btn btn-lightgray">Zpět</button>
+
+            <button id="saveTermBtn" class="tile-btn btn-green">Uložit / Změnit termín</button>
+            <button id="waitBtn" class="tile-btn btn-purple">Zákazník čeká na díly</button>
+
+            <button id="startVisitBtn" class="tile-btn btn-redBlink">Zahájit návštěvu</button>
+            <button id="createProtocolBtn" class="tile-btn btn-blue">Vytvořit protokol</button>
+          </div>
+        </div>
+
+        <!-- 🧾 PRAVÝ PANEL -->
+        <div class="right-panel">
+          <div class="info-box clickable" id="customerBox">
+            <div class="box-header"><strong>Zákazník</strong></div>
+            <div class="box-content">
+              <p><strong>Jméno:</strong> ${item.zakaznik || "–"}</p>
+              <p><strong>Adresa:</strong> ${adresaUpravena}</p>
+              <p><strong>Telefon:</strong> ${item.telefon || "–"}</p>
+              <p><strong>Email:</strong> ${item.email || "–"}</p>
+              <p><strong>Produkt / model:</strong> ${item.produkt || "–"}</p>
+            </div>
+          </div>
+
+          <div class="info-box clickable" id="popisBox">
+            <div class="box-header"><strong>Popis závady</strong></div>
+            <div class="box-content" id="popisContent">${item.popis || "–"}</div>
+          </div>
+
+          <div class="distance-banner" id="mapDistance">📍 Počítám vzdálenost…</div>
+          <div id="mapDetail"></div>
+        </div>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  setTimeout(() => overlay.classList.add("active"), 10);
+
+  initCalendarAndTime(overlay, item, index);
+  initMapForDetail(overlay, item);
+  initDetailButtons(overlay, item, index);
+
+  overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
+  overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
+
+  // 🕓 kliknutí na SVG hodiny – zobrazí nebo skryje výběr času
+  overlay.querySelector("#clockIcon").addEventListener("click", () => {
+    const picker = overlay.querySelector("#timePicker");
+    picker.classList.toggle("hidden");
+  });
+}
+</script>
+
+<style>
+.clock-wrapper {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#f8f8f8;
+  border-radius:10px;
+  padding:10px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+  cursor:pointer;
+  transition:transform .2s;
+}
+.clock-wrapper:hover { transform:scale(1.06); }
+.clock-wrapper svg {
+  width:42px;
+  height:42px;
+  stroke:#333;
+}
+.hidden { display:none; }
+
+/* Jemné pulzování SVG, dokud není čas vybrán */
+.pulse-clock {
+  animation:pulseClock 1.6s ease-in-out infinite;
+}
+@keyframes pulseClock {
+  0%,100% { transform:scale(1); opacity:1; }
+  50% { transform:scale(1.12); opacity:0.7; }
+}
+</style>
+
+<!-- 🟩 KONEC C-1 + C-4 -->
+
 <!-- 🟩 KONEC C-1 + C-4 -->
 
 
