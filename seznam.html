@@ -1047,11 +1047,45 @@ function openDetail(index) {
   0%,100% { transform:scale(1); opacity:1; }
   50% { transform:scale(1.12); opacity:0.7; }
 }
+  <script>
+// 🕓 Dodatečné propojení SVG hodin s výběrem času a info boxem
+document.addEventListener("click", e => {
+  const clock = e.target.closest("#clockIcon");
+  if (!clock) return;
+
+  const overlay = clock.closest(".detail-overlay");
+  if (!overlay) return;
+
+  const picker = overlay.querySelector("#timePicker");
+  const infoBox = overlay.querySelector("#termInfoBox");
+
+  picker.classList.toggle("hidden");
+
+  if (!picker.classList.contains("hidden")) {
+    clock.classList.add("pulse-clock");
+  } else {
+    clock.classList.remove("pulse-clock");
+  }
+
+  picker.querySelectorAll("select").forEach(sel => {
+    sel.addEventListener("change", () => {
+      const h = picker.querySelector("#hours").value;
+      const m = picker.querySelector("#minutes").value;
+      const date = overlay.dataset.datum || "–";
+      infoBox.textContent = `${date} ${h}:${m}`;
+      infoBox.classList.add("flash-green");
+      setTimeout(()=>infoBox.classList.remove("flash-green"),800);
+      clock.classList.remove("pulse-clock");
+    });
+  });
+});
+</script>
+
 </style>
 
 <!-- 🟩 KONEC C-1 + C-4 -->
 
-<!-- 🟩 KONEC C-1 + C-4 -->
+
 
 
 
