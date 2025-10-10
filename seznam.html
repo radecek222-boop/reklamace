@@ -1145,6 +1145,110 @@ function calcDistanceCoords(a, b, c, d) {
 </style>
 <!-- 🟩 KONEC C-STYLE -->
 
+<!-- 🟧 ZAČÁTEK D-1: ZMĚNA STAVU + ZÁPIS DO seznam.json (trvalý přes Worker) -->
+<script>
+/**
+ * 🧩 Funkce: changeStatus
+ * Slouží k okamžité změně stavu zákazníka (např. čeká na díly, domluveno, nezvedá, zrušeno, hotovo)
+ * a zapíše úpravu do seznam.json přes Worker API.
+ */
+async function changeStatus(cislo, novyStav) {
+  if (!cislo || !novyStav) return;
+
+  try {
+    // Najdi původní záznam v dataAll
+    const item = dataAll.find(z => z.cislo === cislo);
+    if (!item) throw new Error("Zákazník nebyl nalezen");
+
+    // Aktualizuj lokálně
+    item.stav = novyStav;
+    item.lastUpdate = new Date().toISOString();
+
+    // Okamžitý vizuální update (překreslení tabulky / bloků)
+    if (window.innerWidth < 700) {
+      renderMobileBlocks(dataAll);
+    } else {
+      renderTable(dataAll);
+    }
+
+    // 🔵 Odešli na Worker → seznam.json
+    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/seznam", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(item)
+    });
+
+    const json = await res.json();
+    if (!res.ok || !json.ok) throw new Error(json.message || "Zápis do seznam.json selhal");
+
+    console.log("✅ Stav uložen:", cislo, novyStav);
+
+    // 💾 Ulož i lokálně (pro případ offline)
+    const stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
+    stavy[cislo] = novyStav;
+    localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+
+  } catch (err) {
+    console.error("❌ Chyba při změně stavu:", err);
+    alert("Nepodařilo se uložit stav: " + err.message);
+  }
+}
+
+/**
+ * 🧩 Pomocná funkce pro zobrazení tlačítek ve detailu
+ * Každé tlačítko volá changeStatus() s jiným stavem
+ */
+function renderStatusButtons(overlay, item) {
+  const statuses = [
+    { key: "novy", label: "Nový", color: "#fff8cc" },
+    { key: "domluveno", label: "Domluveno", color: "#eaf1ff" },
+    { key: "ceka", label: "Čeká na díly", color: "#f1eaff" },
+    { key: "nezveda", label: "Nezvedá (SMS)", color: "#fff5e5" },
+    { key: "zruseno", label: "Zrušeno", color: "#ffe5e5" },
+    { key: "hotovo", label: "Hotovo", color: "#d9fbd9" }
+  ];
+
+  const btnContainer = document.createElement("div");
+  btnContainer.className = "status-buttons";
+
+  statuses.forEach(s => {
+    const btn = document.createElement("button");
+    btn.textContent = s.label;
+    btn.style.background = s.color;
+    btn.className = "status-btn";
+    btn.addEventListener("click", () => changeStatus(item.cislo, s.key));
+    btnContainer.appendChild(btn);
+  });
+
+  overlay.querySelector(".detail-body").appendChild(btnContainer);
+}
+</script>
+
+<style>
+/* 🎨 Styl pro tlačítka změny stavu */
+.status-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.status-btn {
+  flex: 1 1 45%;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #111;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.status-btn:hover {
+  transform: scale(1.03);
+}
+</style>
+<!-- 🟧 KONEC D-1: ZMĚNA STAVU + ZÁPIS DO seznam.json -->
+
+
 
 
 
