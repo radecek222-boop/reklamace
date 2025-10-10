@@ -694,8 +694,7 @@ function renderMobileBlocks(arr) {
 <!-- 🟩 SEKCE C – DETAIL ZÁKAZNÍKA (rozdělená verze) -->
 <!-- ================================================= -->
 
-
-<!-- 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA – DLAŽDICE + SROVNANÝ KALENDÁŘ/ČAS/TLAČÍTKO -->
+<!-- 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA – DLAŽDICE + KALENDÁŘ/ČAS/TLAČÍTKO (STEJNÉ ROZLOŽENÍ I NA MOBILU) -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -766,7 +765,7 @@ function openDetail(index) {
   document.body.appendChild(overlay);
   setTimeout(() => overlay.classList.add("active"), 10);
 
-  // kalendář + čas + mapy + tlačítka (funkce už máš v C-2 a C-3)
+  // kalendář + čas + mapy + tlačítka
   initCalendarAndTime(overlay, item, index);
   initMapForDetail(overlay, item);
   initDetailButtons(overlay, item, index);
@@ -775,15 +774,14 @@ function openDetail(index) {
   overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
   overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
 
-  // 🔵 FUNKCE TLAČÍTKA "Vyber datum a čas" – potvrdí výběr a zvýrazní info box
+  // tlačítko Vyber datum a čas
   const termBtn = overlay.querySelector("#termBtn");
   const infoBox = overlay.querySelector("#termInfoBox");
   termBtn.onclick = () => {
-    const d = overlay.dataset.datum; // nastavuje se při kliknutí na den v C-3
+    const d = overlay.dataset.datum;
     const h = overlay.querySelector("#hours")?.value || "";
     const m = overlay.querySelector("#minutes")?.value || "";
     if (!d) {
-      // jemné zvýraznění kalendáře, ať je jasné, co chybí
       const cal = overlay.querySelector("#miniCalendar");
       cal.classList.add("need-select");
       setTimeout(() => cal.classList.remove("need-select"), 600);
@@ -841,48 +839,49 @@ function initDetailButtons(overlay, item, index) {
 </script>
 
 <style>
-/* 🗓️+⏰ layout: dvě kolony s rovnou výškou */
-.date-time-row{
-  display:grid;
+/* 🗓️+⏰ layout – dvě kolony, i na mobilu */
+.date-time-row {
+  display: grid;
   grid-template-columns: 1.15fr 0.85fr;
-  gap:12px;
-  align-items:stretch;
-  margin-bottom:10px;
+  gap: 12px;
+  align-items: stretch;
+  margin-bottom: 10px;
 }
-#miniCalendar{
-  background:#fff;
-  border-radius:10px;
-  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+#miniCalendar {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  min-height: 280px; /* drží výšku na všech zařízeních */
 }
-.date-right-column{
-  display:grid;
-  grid-template-rows: 1fr 1fr; /* horní polovina čas, spodní polovina tlačítko */
-  gap:12px;
-  height:100%;
+.date-right-column {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 12px;
+  height: 100%;
 }
 
 /* ⏰ čas – horní polovina */
-.custom-time-picker{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:6px;
-  background:#f8f8f8;
-  border-radius:10px;
-  padding:10px;
-  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+.custom-time-picker {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  background: #f8f8f8;
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
-.custom-time-picker select{
-  font-size:1.05em;
-  font-weight:600;
-  border:1px solid #ccc;
-  border-radius:8px;
-  padding:5px 10px;
+.custom-time-picker select {
+  font-size: 1.05em;
+  font-weight: 600;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 5px 10px;
 }
 
-/* 🔵 tlačítko – spodní polovina, vyplní výšku */
-.btn-term-select{
-  background:linear-gradient(135deg,#0046ff,#357aff);
+/* 🔵 tlačítko – spodní polovina */
+.btn-term-select {
+  background: linear-gradient(135deg,#0046ff,#357aff);
   color:#fff;
   font-weight:600;
   border:none;
@@ -894,54 +893,58 @@ function initDetailButtons(overlay, item, index) {
   display:flex;
   align-items:center;
   justify-content:center;
-  transition:transform .2s ease, opacity .2s ease;
+  transition:transform .2s ease,opacity .2s ease;
 }
-.btn-term-select:hover{ transform:scale(1.03); opacity:.9; }
+.btn-term-select:hover { transform:scale(1.03); opacity:.9; }
 
-/* jemná vizuální výzva, když není zvolen den */
-#miniCalendar.need-select{ outline:2px solid #ff8080; outline-offset:2px; }
-
-/* 🟩 dlaždice 2×3 */
-.tile-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-  margin-top:15px;
+/* 🟩 DLAŽDICE 2×3 */
+.tile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 15px;
 }
-.tile-btn{
-  display:flex; align-items:center; justify-content:center;
-  text-align:center; height:85px;
-  border:none; border-radius:12px;
-  font-family:"Inter",sans-serif; font-size:.95em; font-weight:600; color:#fff;
-  cursor:pointer; transition:transform .2s ease, opacity .2s ease;
-  box-shadow:0 2px 6px rgba(0,0,0,0.15);
+.tile-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 85px;
+  border: none;
+  border-radius: 12px;
+  font-family: "Inter", sans-serif;
+  font-size: 0.95em;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
-.tile-btn:hover{ transform:scale(1.03); opacity:.9; }
+.tile-btn:hover { transform: scale(1.03); opacity: 0.9; }
 
-/* barvy držíme původní */
-.btn-grayContact{ background:linear-gradient(135deg,#888,#aaa); }
-.btn-lightgray  { background:linear-gradient(135deg,#aaa,#ccc); }
-.btn-green      { background:linear-gradient(135deg,#4caf50,#6fdd72); }
-.btn-purple     { background:linear-gradient(135deg,#b993ff,#d4b5ff); }
-.btn-blue       { background:linear-gradient(135deg,#357aff,#6fa8ff); }
+/* barvy */
+.btn-grayContact { background: linear-gradient(135deg,#888,#aaa); }
+.btn-lightgray   { background: linear-gradient(135deg,#aaa,#ccc); }
+.btn-green       { background: linear-gradient(135deg,#4caf50,#6fdd72); }
+.btn-purple      { background: linear-gradient(135deg,#b993ff,#d4b5ff); }
+.btn-blue        { background: linear-gradient(135deg,#357aff,#6fa8ff); }
 
-/* červené blikání pro návštěvu */
-@keyframes blinkRed{
-  0%,100%{ background:linear-gradient(135deg,#ff4d4d,#ff8080); }
-  50%    { background:linear-gradient(135deg,#ff7373,#ffa0a0); }
+/* červené blikání */
+@keyframes blinkRed {
+  0%,100% { background: linear-gradient(135deg,#ff4d4d,#ff8080); }
+  50%     { background: linear-gradient(135deg,#ff7373,#ffa0a0); }
 }
-.btn-redBlink{ animation:blinkRed 1.5s infinite; }
+.btn-redBlink { animation: blinkRed 1.5s infinite; }
 
-/* 📱 mobil */
-@media (max-width:700px){
-  .date-time-row{ grid-template-columns:1fr; }
-  .date-right-column{ grid-template-rows:auto auto; }
-  .btn-term-select{ height:auto; padding:10px 15px; }
-  .tile-grid{ grid-template-columns:1fr; }
-  .tile-btn{ height:70px; }
+/* ✅ stejné rozložení i na mobilu – žádné přeskupení */
+@media (max-width: 700px) {
+  .date-time-row { grid-template-columns: 1fr 0.9fr; }
+  .tile-grid { grid-template-columns: 1fr 1fr; }
+  .tile-btn { height: 75px; font-size: 0.9em; }
 }
 </style>
 <!-- 🟩 KONEC C-1 + C-4 -->
+
 
 
 
