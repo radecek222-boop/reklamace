@@ -1,4 +1,4 @@
-<!-- 🟩 ZAČÁTEK ČÁSTI 1/2 – SEKCE 1–5 (OPRAVENÁ VERZE) -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 1/3 – HLAVIČKA + ZÁKAZNÍK -->
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -6,8 +6,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Photo – White Glove Service</title>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
 
 <style>
@@ -69,6 +67,42 @@ h2 {
   display:block;
   margin-top:2px;
 }
+</style>
+</head>
+
+<body>
+<div class="wrapper">
+  <h1>WHITE GLOVE SERVICE</h1>
+  <h2>Photo documentation</h2>
+
+  <div id="customerHeader">
+    <h3>Načítám údaje zákazníka...</h3>
+  </div>
+
+  <script>
+  document.addEventListener("DOMContentLoaded",()=>{
+    const data=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
+    const h=document.getElementById("customerHeader");
+    if(data.zakaznik){
+      h.innerHTML=`<h3>${data.zakaznik}</h3>
+      <p>${data.adresa||""}</p>
+      ${data.cislo?`<p>Číslo zakázky / Order number: <strong>${data.cislo}</strong></p>`:""}`;
+    }else{
+      h.innerHTML="<h3>Zákazník nebyl nalezen / Customer not found</h3>";
+    }
+  });
+  </script>
+
+  <h4 style="margin-top:30px;">Photo</h4>
+<!-- 🟩 KONEC ČÁSTI 1/3 -->
+
+
+
+
+
+
+  <!-- 🟩 ZAČÁTEK ČÁSTI 2/3 – BLOKY FOTOGRAFIÍ -->
+<style>
 .photo-block {
   border:1px solid #ccc;
   border-radius:10px;
@@ -88,8 +122,13 @@ h2 {
   font-weight:700;
   color:#111;
 }
-.btn-photo {
-  flex:1;
+.photo-buttons{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.btn-photo{
+  flex:1 1 48%; /* poloviční šířka */
   background:linear-gradient(135deg,#e0e0e0,#f5f5f5);
   color:#333;
   -webkit-appearance:none;
@@ -98,8 +137,9 @@ h2 {
   font-weight:600;
   border:none;
   border-radius:8px;
-  padding:10px 16px;
+  padding:10px;
   cursor:pointer;
+  font-size:0.9em;
   box-shadow:0 2px 5px rgba(0,0,0,0.1);
   transition:transform .15s ease,opacity .2s;
 }
@@ -116,7 +156,6 @@ h2 {
   object-fit:cover;
   box-shadow:0 2px 5px rgba(0,0,0,0.15);
   position:relative;
-  cursor:pointer;
 }
 .photo-remove {
   position:absolute;
@@ -147,324 +186,79 @@ h2 {
 .progress-text{
   text-align:center;font-size:0.85em;color:#333;font-weight:600;margin-top:4px;
 }
-@media(max-width:700px){
-  .wrapper{padding:20px;}
-  .photo-thumb{width:80px;height:80px;}
-}
 </style>
-</head>
 
-<body>
-<div class="wrapper">
-  <h1>WHITE GLOVE SERVICE</h1>
-  <h2>Photo documentation</h2>
-
-  <div id="customerHeader">
-    <h3>Načítám údaje zákazníka...</h3>
+<!-- BLOK 1 -->
+<div class="photo-block">
+  <div class="photo-header">
+    <h4>Před opravou<br><span class="subtitle">Before repair</span></h4>
   </div>
-
-  <script>
-  document.addEventListener("DOMContentLoaded",()=>{
-    const data=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
-    const h=document.getElementById("customerHeader");
-    if(data.zakaznik){
-      h.innerHTML=`<h3>${data.zakaznik}</h3>
-      <p>${data.adresa||""}</p>
-      ${data.cislo?`<p>Číslo zakázky / Order number: <strong>${data.cislo}</strong></p>`:""}`;
-    }else{
-      h.innerHTML="<h3>Zákazník nebyl nalezen / Customer not found</h3>";
-    }
-  });
-  </script>
-
-  <h4 style="margin-top:30px;">Photo</h4>
-
-  <!-- BLOK 1 -->
-  <div class="photo-block">
-    <div class="photo-header">
-      <h4>Před opravou<br><span class="subtitle">Before repair</span></h4>
-      <button type="button" class="btn-photo" data-section="before">Přidat fotografie / Add photos</button>
-    </div>
-    <div class="photo-preview" id="preview-before"></div>
+  <div class="photo-buttons">
+    <button type="button" class="btn-photo" data-section="before">Přidat fotografie / Add photos</button>
   </div>
-
-  <!-- BLOK 2 -->
-  <div class="photo-block">
-    <div class="photo-header">
-      <h4>ID štítek<br><span class="subtitle">ID label</span></h4>
-      <button type="button" class="btn-photo" data-section="id">Přidat fotografie / Add photos</button>
-    </div>
-    <div class="photo-preview" id="preview-id"></div>
-  </div>
-
-  <!-- 🆕 BLOK 3 – DETAIL PROBLÉMU -->
-  <div class="photo-block">
-    <div class="photo-header">
-      <h4>Detail problému<br><span class="subtitle">Problem detail</span></h4>
-      <button type="button" class="btn-photo" data-section="problem">Přidat fotografie / Add photos</button>
-    </div>
-    <div class="photo-preview" id="preview-problem"></div>
-  </div>
-
-  <!-- BLOK 4 -->
-  <div class="photo-block">
-    <div class="photo-header">
-      <h4>Během opravy<br><span class="subtitle">During repair</span></h4>
-      <button type="button" class="btn-photo" data-section="repair">Přidat fotografie / Add photos</button>
-    </div>
-    <div class="photo-preview" id="preview-repair"></div>
-  </div>
-
-  <!-- BLOK 5 -->
-  <div class="photo-block">
-    <div class="photo-header">
-      <h4>Po opravě<br><span class="subtitle">After repair</span></h4>
-      <button type="button" class="btn-photo" data-section="after">Přidat fotografie / Add photos</button>
-    </div>
-    <div class="photo-preview" id="preview-after"></div>
-  </div>
-
-  <input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
-
-  <div class="progress-bar-container">
-    <div class="progress-bar-fill" id="progressFill"></div>
-  </div>
-  <div class="progress-text" id="progressText">0%</div>
-
-<script>
-(function(){
-  const input=document.getElementById("photoInput");
-  const photoSections={before:[],id:[],problem:[],repair:[],after:[]};
-  const fill=document.getElementById("progressFill");
-  const text=document.getElementById("progressText");
-
-  document.querySelectorAll(".btn-photo").forEach(btn=>{
-    btn.addEventListener("click",()=>{
-      input.dataset.section=btn.dataset.section;
-      input.click();
-    });
-  });
-
-  input.addEventListener("change",async()=>{
-    const section=input.dataset.section;
-    if(!section)return;
-    const files=Array.from(input.files).slice(0,10);
-    for(const f of files){
-      const blob=await compressImage(f);
-      const url=URL.createObjectURL(blob);
-      photoSections[section].push({blob,url});
-    }
-    renderPreviews(section);
-    input.value="";
-  });
-
-  async function compressImage(file,maxDim=180){
-    const img=await createImageBitmap(file);
-    const canvas=document.createElement("canvas");
-    let[w,h]=[img.width,img.height];
-    if(w>h&&w>maxDim){h=Math.round(h*(maxDim/w));w=maxDim;}
-    else if(h>w&&h>maxDim){w=Math.round(w*(maxDim/h));h=maxDim;}
-    canvas.width=w;canvas.height=h;
-    const ctx=canvas.getContext("2d");
-    ctx.drawImage(img,0,0,w,h);
-    return new Promise(r=>canvas.toBlob(r,"image/jpeg",0.85));
-  }
-
-  function renderPreviews(section){
-    const cont=document.getElementById("preview-"+section);
-    cont.innerHTML="";
-    photoSections[section].forEach((p,i)=>{
-      const wrap=document.createElement("div");
-      wrap.style.position="relative";
-      const img=document.createElement("img");
-      img.src=p.url;
-      img.className="photo-thumb";
-      const btn=document.createElement("button");
-      btn.className="photo-remove";
-      btn.textContent="×";
-      btn.onclick=()=>{
-        photoSections[section].splice(i,1);
-        renderPreviews(section);
-      };
-      wrap.append(img,btn);
-      cont.append(wrap);
-    });
-  }
-
-  async function uploadAll(){
-    const allPhotos=Object.values(photoSections).flat();
-    if(!allPhotos.length)return alert("Není vybrána žádná fotografie / No photos selected.");
-    let uploaded=0;
-    const total=allPhotos.length;
-    for(const p of allPhotos){
-      await fakeUpload(p);
-      uploaded++;
-      const pct=Math.round((uploaded/total)*100);
-      fill.style.width=pct+"%";
-      text.textContent=pct+"%";
-    }
-  }
-  async function fakeUpload(){return new Promise(r=>setTimeout(r,250));}
-  window.uploadAll=uploadAll;
-})();
-</script>
-<!-- 🟩 KONEC ČÁSTI 1/2 -->
-
-
-
-
-
-
-
-
-  <!-- 🟩 ZAČÁTEK ČÁSTI 2/2b – SEKCE 9–10 -->
-
-<!-- 🟨 SEKCE 9 – UPLOAD VŠECH FOTEK -->
-<div class="actions" style="text-align:center;margin-top:30px;">
-  <button type="button" id="btnUploadAll" class="btn-send">💚 Nahrát všechny fotografie / Upload all photos</button>
+  <div class="photo-preview" id="preview-before"></div>
 </div>
 
-<div class="wait-overlay" id="waitOverlay">
-  <div class="hourglass"></div>
-  <p>Probíhá nahrávání fotografií / Uploading photos…</p>
+<!-- BLOK 2 -->
+<div class="photo-block">
+  <div class="photo-header">
+    <h4>ID štítek<br><span class="subtitle">ID label</span></h4>
+  </div>
+  <div class="photo-buttons">
+    <button type="button" class="btn-photo" data-section="id">Přidat fotografie / Add photos</button>
+  </div>
+  <div class="photo-preview" id="preview-id"></div>
 </div>
 
-<style>
-.btn-send{
-  background:linear-gradient(135deg,#00b56a,#00da80);
-  color:#fff;font-weight:600;
-  border:none;border-radius:8px;
-  padding:14px 28px;cursor:pointer;
-  font-size:1em;
-  box-shadow:0 3px 8px rgba(0,0,0,0.15);
-  transition:transform .15s ease,opacity .2s;
-  width:100%;max-width:320px;
-}
-.btn-send:hover{transform:scale(1.05);opacity:.9;}
-.wait-overlay{
-  display:none;position:fixed;inset:0;
-  background:rgba(255,255,255,0.85);
-  backdrop-filter:blur(2px);
-  justify-content:center;align-items:center;
-  flex-direction:column;
-  font-weight:600;color:#333;
-  z-index:2000;
-}
-.wait-overlay.active{display:flex;}
-.hourglass{
-  border:4px solid #ccc;border-top:4px solid #00b56a;
-  border-radius:50%;width:40px;height:40px;
-  animation:spin 1s linear infinite;margin-bottom:10px;
-}
-@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
-</style>
-
-<script>
-const uploadBtn=document.getElementById("btnUploadAll");
-const wait=document.getElementById("waitOverlay");
-uploadBtn.addEventListener("click",async()=>{
-  wait.classList.add("active");
-  await fakeUpload();
-  wait.classList.remove("active");
-  showNotif("success","✅ Fotky byly nahrány / Photos uploaded successfully");
-});
-async function fakeUpload(){
-  return new Promise(r=>setTimeout(r,2000));
-}
-</script>
-
-<!-- 🟨 SEKCE 10 – NOTIFIKACE A LOCALSTORAGE KONTROLA -->
-<div id="notif" class="notif"></div>
-<style>
-.notif{
-  position:fixed;top:15px;left:50%;
-  transform:translateX(-50%);
-  min-width:260px;max-width:90%;
-  padding:12px 20px;border-radius:10px;
-  font-weight:600;font-size:0.9em;
-  color:#fff;text-align:center;
-  box-shadow:0 4px 10px rgba(0,0,0,0.15);
-  opacity:0;pointer-events:none;
-  z-index:9999;transition:opacity .3s,transform .3s;
-}
-.notif.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.notif.success{background:linear-gradient(135deg,#00b56a,#00da80);}
-.notif.warning{background:linear-gradient(135deg,#ffb200,#ffca40);color:#333;}
-.notif.error{background:linear-gradient(135deg,#e63946,#ff6b6b);}
-</style>
-
-<script>
-(function(){
-const n=document.getElementById("notif");
-let t=null;
-window.showNotif=function(type="success",text="Uloženo / Saved"){
-  n.className=`notif ${type}`;n.textContent=text;n.classList.add("show");
-  clearTimeout(t);t=setTimeout(()=>n.classList.remove("show"),2500);
-};
-})();
-</script>
-
-<!-- 🟨 KONTROLA LOCALSTORAGE PŘI NÁVRATU -->
-<script>
-window.addEventListener("beforeunload",function(e){
-  const data=JSON.parse(localStorage.getItem(storageKey)||"{}");
-  let count=0;for(const k in data){count+=data[k].length;}
-  if(count>0){
-    const message=`Uložené fotografie v paměti: ${count} ks. Chcete pokračovat nebo vymazat?`;
-    e.preventDefault();
-    e.returnValue=message;
-    return message;
-  }
-});
-</script>
-
-<!-- 🟨 SPODNÍ TLAČÍTKA -->
-<div class="actions" style="margin-top:40px;text-align:center;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
-  <a href="index.html" class="btn-back">↩️ Zpět na menu / Back to menu</a>
-  <button type="button" id="btnReloadData" class="btn-gray">🔄 Načíst uložené / Reload</button>
+<!-- 🆕 BLOK 3 – DETAIL PROBLÉMU -->
+<div class="photo-block">
+  <div class="photo-header">
+    <h4>Detail problému<br><span class="subtitle">Problem detail</span></h4>
+  </div>
+  <div class="photo-buttons">
+    <button type="button" class="btn-photo" data-section="problem">Přidat fotografie / Add photos</button>
+  </div>
+  <div class="photo-preview" id="preview-problem"></div>
 </div>
 
-<style>
-.btn-back,.btn-gray{
-  flex:1 1 45%;
-  max-width:320px;
-  padding:14px 28px;font-size:1em;
-  border:none;border-radius:8px;cursor:pointer;
-  font-weight:600;transition:transform .15s ease,opacity .2s;
-  box-shadow:0 3px 8px rgba(0,0,0,0.15);
-}
-.btn-back{
-  background:linear-gradient(135deg,#9b9b9b,#bfbfbf);
-  color:#fff;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
-}
-.btn-gray{
-  background:linear-gradient(135deg,#6c757d,#a0a4a7);
-  color:#fff;
-}
-.btn-back:hover,.btn-gray:hover{transform:scale(1.05);opacity:.9;}
-</style>
+<!-- BLOK 4 -->
+<div class="photo-block">
+  <div class="photo-header">
+    <h4>Během opravy<br><span class="subtitle">During repair</span></h4>
+  </div>
+  <div class="photo-buttons">
+    <button type="button" class="btn-photo" data-section="repair">Přidat fotografie / Add photos</button>
+  </div>
+  <div class="photo-preview" id="preview-repair"></div>
+</div>
 
-<script>
-document.getElementById("btnReloadData").addEventListener("click",()=>{
-  showNotif("warning","Obnovuji / Reloading…");
-  setTimeout(()=>location.reload(),800);
-});
-</script>
+<!-- BLOK 5 -->
+<div class="photo-block">
+  <div class="photo-header">
+    <h4>Po opravě<br><span class="subtitle">After repair</span></h4>
+  </div>
+  <div class="photo-buttons">
+    <button type="button" class="btn-photo" data-section="after">Přidat fotografie / Add photos</button>
+  </div>
+  <div class="photo-preview" id="preview-after"></div>
+</div>
 
-<footer style="text-align:center;margin:30px 0 20px;font-size:0.8em;color:#888;">
-  White Glove Service s.r.o. • © 2025
-</footer>
+<input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
 
-</div> <!-- wrapper -->
-</body>
-</html>
-<!-- 🟩 KONEC ČÁSTI 2/2b – FINAL -->
+<div class="progress-bar-container">
+  <div class="progress-bar-fill" id="progressFill"></div>
+</div>
+<div class="progress-text" id="progressText">0%</div>
+
+<!-- 🟩 KONEC ČÁSTI 2/3 -->
 
 
 
 
 
-<!-- 🟩 ZAČÁTEK ČÁSTI 2/2b – SEKCE 9–10 (OPRAVENÁ VERZE BEZ EMOJI) -->
+
+
+  <!-- 🟩 ZAČÁTEK ČÁSTI 3/3 – UPLOAD + SPODNÍ TLAČÍTKA + FOOTER -->
 
 <!-- 🟨 SEKCE 9 – UPLOAD VŠECH FOTEK -->
 <div class="actions" id="uploadSection">
@@ -485,29 +279,41 @@ document.getElementById("btnReloadData").addEventListener("click",()=>{
 }
 .btn-send{
   background:linear-gradient(135deg,#00b56a,#00da80);
-  color:#fff;font-weight:600;
-  border:none;border-radius:8px;
-  padding:14px 28px;cursor:pointer;
+  color:#fff;
+  font-weight:600;
+  border:none;
+  border-radius:8px;
+  padding:14px 28px;
+  cursor:pointer;
   font-size:1em;
   box-shadow:0 3px 8px rgba(0,0,0,0.15);
   transition:transform .15s ease,opacity .2s;
-  width:100%;max-width:320px;
+  width:100%;
+  max-width:320px;
 }
 .btn-send:hover{transform:scale(1.05);opacity:.9;}
 .wait-overlay{
-  display:none;position:fixed;inset:0;
+  display:none;
+  position:fixed;
+  inset:0;
   background:rgba(255,255,255,0.85);
   backdrop-filter:blur(2px);
-  justify-content:center;align-items:center;
+  justify-content:center;
+  align-items:center;
   flex-direction:column;
-  font-weight:600;color:#333;
+  font-weight:600;
+  color:#333;
   z-index:2000;
 }
 .wait-overlay.active{display:flex;}
 .hourglass{
-  border:4px solid #ccc;border-top:4px solid #00b56a;
-  border-radius:50%;width:40px;height:40px;
-  animation:spin 1s linear infinite;margin-bottom:10px;
+  border:4px solid #ccc;
+  border-top:4px solid #00b56a;
+  border-radius:50%;
+  width:40px;
+  height:40px;
+  animation:spin 1s linear infinite;
+  margin-bottom:10px;
 }
 @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
 </style>
@@ -526,19 +332,27 @@ async function fakeUpload(){
 }
 </script>
 
-<!-- 🟨 SEKCE 10 – NOTIFIKACE A LOCALSTORAGE KONTROLA -->
+<!-- 🟨 SEKCE 10 – NOTIFIKACE -->
 <div id="notif" class="notif"></div>
 <style>
 .notif{
-  position:fixed;top:15px;left:50%;
+  position:fixed;
+  top:15px;
+  left:50%;
   transform:translateX(-50%);
-  min-width:260px;max-width:90%;
-  padding:12px 20px;border-radius:10px;
-  font-weight:600;font-size:0.9em;
-  color:#fff;text-align:center;
+  min-width:260px;
+  max-width:90%;
+  padding:12px 20px;
+  border-radius:10px;
+  font-weight:600;
+  font-size:0.9em;
+  color:#fff;
+  text-align:center;
   box-shadow:0 4px 10px rgba(0,0,0,0.15);
-  opacity:0;pointer-events:none;
-  z-index:9999;transition:opacity .3s,transform .3s;
+  opacity:0;
+  pointer-events:none;
+  z-index:9999;
+  transition:opacity .3s,transform .3s;
 }
 .notif.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .notif.success{background:linear-gradient(135deg,#00b56a,#00da80);}
@@ -551,24 +365,13 @@ async function fakeUpload(){
 const n=document.getElementById("notif");
 let t=null;
 window.showNotif=function(type="success",text="Uloženo / Saved"){
-  n.className=`notif ${type}`;n.textContent=text;n.classList.add("show");
-  clearTimeout(t);t=setTimeout(()=>n.classList.remove("show"),2500);
+  n.className=`notif ${type}`;
+  n.textContent=text;
+  n.classList.add("show");
+  clearTimeout(t);
+  t=setTimeout(()=>n.classList.remove("show"),2500);
 };
 })();
-</script>
-
-<!-- 🟨 KONTROLA LOCALSTORAGE PŘI NÁVRATU -->
-<script>
-window.addEventListener("beforeunload",function(e){
-  const data=JSON.parse(localStorage.getItem(storageKey)||"{}");
-  let count=0;for(const k in data){count+=data[k].length;}
-  if(count>0){
-    const message=`Uložené fotografie v paměti: ${count} ks. Chcete pokračovat nebo vymazat?`;
-    e.preventDefault();
-    e.returnValue=message;
-    return message;
-  }
-});
 </script>
 
 <!-- 🟨 SPODNÍ TLAČÍTKA -->
@@ -589,21 +392,31 @@ window.addEventListener("beforeunload",function(e){
 .btn-back,.btn-gray{
   flex:1 1 45%;
   max-width:320px;
-  padding:14px 28px;font-size:1em;
-  border:none;border-radius:8px;cursor:pointer;
-  font-weight:600;transition:transform .15s ease,opacity .2s;
+  padding:14px 28px;
+  font-size:1em;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+  transition:transform .15s ease,opacity .2s;
   box-shadow:0 3px 8px rgba(0,0,0,0.15);
 }
 .btn-back{
   background:linear-gradient(135deg,#9b9b9b,#bfbfbf);
-  color:#fff;text-decoration:none;
-  display:inline-flex;align-items:center;justify-content:center;
+  color:#fff;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
 }
 .btn-gray{
   background:linear-gradient(135deg,#6c757d,#a0a4a7);
   color:#fff;
 }
-.btn-back:hover,.btn-gray:hover{transform:scale(1.05);opacity:.9;}
+.btn-back:hover,.btn-gray:hover{
+  transform:scale(1.05);
+  opacity:.9;
+}
 </style>
 
 <script>
@@ -620,4 +433,4 @@ document.getElementById("btnReloadData").addEventListener("click",()=>{
 </div> <!-- wrapper -->
 </body>
 </html>
-<!-- 🟩 KONEC ČÁSTI 2/2b – FINAL -->
+<!-- 🟩 KONEC ČÁSTI 3/3 -->
