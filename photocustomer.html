@@ -51,6 +51,28 @@
       color: #666;
       margin-bottom: 25px;
     }
+
+    /* 🔹 Hlavička zákazníka */
+    #customerHeader {
+      background: linear-gradient(135deg,#e7f5ee,#d3f0e2);
+      border: 1px solid #b6e3cc;
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    #customerHeader h3 {
+      margin: 0;
+      font-size: 1.3em;
+      font-weight: 700;
+      color: #0a5c34;
+    }
+    #customerHeader p {
+      margin: 6px 0 0;
+      color: #333;
+      font-weight: 500;
+    }
   </style>
 </head>
 
@@ -59,8 +81,36 @@
     <h1>WHITE GLOVE SERVICE</h1>
     <h2>Fotodokumentace zákazníka</h2>
 
+    <!-- 🧾 Automaticky načtený zákazník -->
+    <div id="customerHeader">
+      <h3>Načítám údaje zákazníka…</h3>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const data = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
+        const header = document.getElementById("customerHeader");
+        if (data.zakaznik) {
+          header.innerHTML = `
+            <h3>${data.zakaznik}</h3>
+            <p>${data.adresa || ""}</p>
+            ${data.cislo ? `<p style="color:#555;font-size:0.9em;">Číslo zakázky: <strong>${data.cislo}</strong></p>` : ""}
+          `;
+          // Předvyplnění formuláře, pokud existuje
+          if (document.getElementById("zakaznik")) {
+            document.getElementById("zakaznik").value = data.zakaznik || "";
+            document.getElementById("ulice").value = (data.adresa || "").split(",")[0] || "";
+            document.getElementById("cislo").value = data.cislo || "";
+          }
+        } else {
+          header.innerHTML = "<h3>Zákazník nebyl nalezen</h3><p>Stránka byla otevřena samostatně.</p>";
+        }
+      });
+    </script>
+
     <form id="photoCustomerForm" novalidate>
 <!-- 🟨 KONEC SEKCE 1/10 -->
+
 
 
 
