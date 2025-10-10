@@ -359,7 +359,119 @@ function renderTable(arr) {
 
 
 
- 
+ <!-- 🟩 B-3: MOBILNÍ BLOKY MÍSTO TABULKY -->
+<script>
+function renderMobileBlocks(arr) {
+  if (!Array.isArray(arr) || !arr.length) {
+    tableContainer.innerHTML = "<div style='padding:20px;text-align:center;color:#555;'>Žádné záznamy k zobrazení.</div>";
+    return;
+  }
+
+  const html = arr.map((r, i) => `
+    <div class="mob-block ${r.stav || ''}" onclick="openDetail(${i})">
+      <div class="mob-top">
+        <div class="mob-name">${r.zakaznik || '-'}</div>
+        <div class="mob-contract">${r.contract || ''}</div>
+      </div>
+      <div class="mob-mid">
+        <div>📍 ${r.adresa || '-'}</div>
+        <div>🛋️ ${r.produkt || '-'}</div>
+      </div>
+      <div class="mob-bottom">
+        <div class="mob-time">${r.datum || ''} ${r.cas || ''}</div>
+        <div class="mob-actions">
+          ${r.telefon ? `<a href="tel:${r.telefon.replace(/\s+/g,'')}" class="mob-btn">📞</a>` : ''}
+          ${r.adresa ? `<a href="https://waze.com/ul?q=${encodeURIComponent(r.adresa)}" target="_blank" class="mob-btn">📍</a>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  tableContainer.innerHTML = `<div class="mob-container">${html}</div>`;
+}
+
+/* 📱 Automaticky přepni podle zařízení */
+function renderTable(arr) {
+  if (window.innerWidth < 700) {
+    renderMobileBlocks(arr);
+  } else {
+    renderDesktopTable(arr);
+  }
+}
+
+/* 📋 Původní desktopová tabulka (přesunuta z B-2) */
+function renderDesktopTable(arr) {
+  if (!Array.isArray(arr) || !arr.length) {
+    tableContainer.innerHTML = "<div style='text-align:center;padding:20px;color:#555;'>Žádné záznamy k zobrazení.</div>";
+    return;
+  }
+  let html = `
+    <table>
+      <thead>
+        <tr><th>Typ</th><th>Číslo</th><th>Zákazník</th><th>Adresa</th><th>Telefon</th><th>Datum</th><th>Čas</th></tr>
+      </thead><tbody>`;
+  arr.forEach((r,i)=>{
+    html += `<tr class="${r.stav||''}" onclick="openDetail(${i})">
+      <td>${r.typ||'-'}</td>
+      <td>${r.cislo||'-'}</td>
+      <td>${r.zakaznik||'-'}</td>
+      <td>${r.adresa||'-'}</td>
+      <td>${r.telefon||'-'}</td>
+      <td>${r.datum||'-'}</td>
+      <td>${r.cas||'-'}</td>
+    </tr>`;
+  });
+  html += "</tbody></table>";
+  tableContainer.innerHTML = html;
+}
+</script>
+
+<style>
+/* 📱 Styl mobilních bloků */
+.mob-container { display:flex; flex-direction:column; gap:12px; }
+.mob-block {
+  background:#fff;
+  border-radius:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+  padding:10px 14px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  font-family:"Inter",sans-serif;
+  transition:transform .15s, box-shadow .2s;
+}
+.mob-block:hover { transform:scale(1.02); box-shadow:0 4px 10px rgba(0,0,0,0.15); }
+.mob-top { display:flex; justify-content:space-between; align-items:center; }
+.mob-name { font-weight:700; font-size:1.05em; color:#111; }
+.mob-contract { font-size:.85em; color:#666; }
+.mob-mid { font-size:.9em; color:#333; }
+.mob-bottom { display:flex; justify-content:space-between; align-items:center; font-size:.85em; }
+.mob-time { font-weight:600; color:#0046ff; }
+.mob-actions { display:flex; gap:8px; }
+.mob-btn {
+  display:inline-block;
+  background:#0046ff;
+  color:#fff;
+  text-decoration:none;
+  width:32px; height:32px;
+  border-radius:50%;
+  display:flex; justify-content:center; align-items:center;
+  font-size:1.1em;
+}
+.mob-btn:hover { opacity:.85; }
+
+/* 🌈 Barvy podle stavu */
+.mob-block.domluveno { border-left:5px solid #357aff; }
+.mob-block.hotovo    { border-left:5px solid #28a745; }
+.mob-block.zruseno   { border-left:5px solid #dc3545; }
+.mob-block.ceka      { border-left:5px solid #ff9800; }
+
+@media (min-width:700px){
+  .mob-container { display:none; } /* na PC skryj bloky */
+}
+</style>
+<!-- 🟩 KONEC B-3 -->
+
 
 
 
