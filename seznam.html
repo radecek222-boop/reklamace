@@ -694,7 +694,7 @@ function renderMobileBlocks(arr) {
 <!-- 🟩 SEKCE C – DETAIL ZÁKAZNÍKA (rozdělená verze) -->
 <!-- ================================================= -->
 
-<!-- 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA – DLAŽDICE + KALENDÁŘ/ČAS/TLAČÍTKO (STEJNÉ ROZLOŽENÍ I NA MOBILU) -->
+<!-- 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA – DLAŽDICE + INFO BOX POD HODINAMI -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -707,11 +707,10 @@ function openDetail(index) {
   overlay.innerHTML = `
     <div class="detail-modal">
       <div class="grid-layout">
-
         <!-- 🧭 LEVÝ PANEL -->
         <div class="left-panel">
 
-          <!-- 🗓️ Kalendář vlevo • ⏰ čas nahoře vpravo • 🔵 tlačítko dole vpravo -->
+          <!-- 🗓️ Kalendář vlevo + čas vpravo + info box pod hodinami -->
           <div class="date-time-row">
             <div id="miniCalendar"></div>
 
@@ -719,38 +718,9 @@ function openDetail(index) {
               <div class="custom-time-picker">
                 <select id="hours"></select><span>:</span><select id="minutes"></select>
               </div>
-              <button id="termBtn" class="btn-term-select">Vyber datum a čas</button>
+              <div class="term-info-box" id="termInfoBox">Není vybrán datum a čas</div>
             </div>
           </div>
-
-        <!-- 🟦 INFO BOX – zobrazení vybraného termínu -->
-<div class="term-info-box" id="termInfoBox">Není vybrán datum a čas</div>
-
-<style>
-.term-info-box {
-  background: #f3f3f3;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 10px 12px;
-  text-align: center;
-  font-family: "Inter", sans-serif;
-  font-weight: 600;
-  color: #444;
-  margin-top: 10px;
-  transition: background 0.4s, color 0.4s;
-}
-
-/* 💡 při výběru termínu se dočasně přebarví (zelené potvrzení) */
-.flash-green {
-  animation: flashGreen 1.2s ease;
-}
-@keyframes flashGreen {
-  0%   { background: #d5f8d5; color: #116d2b; }
-  50%  { background: #e9ffe9; color: #116d2b; }
-  100% { background: #f3f3f3; color: #444; }
-}
-</style>
-
 
           <!-- 🟩 DLAŽDICE 3×2 -->
           <div class="tile-grid">
@@ -792,33 +762,12 @@ function openDetail(index) {
   document.body.appendChild(overlay);
   setTimeout(() => overlay.classList.add("active"), 10);
 
-  // kalendář + čas + mapy + tlačítka
   initCalendarAndTime(overlay, item, index);
   initMapForDetail(overlay, item);
   initDetailButtons(overlay, item, index);
 
-  // klikací boxy vpravo
   overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
   overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
-
-  // tlačítko Vyber datum a čas
-  const termBtn = overlay.querySelector("#termBtn");
-  const infoBox = overlay.querySelector("#termInfoBox");
-  termBtn.onclick = () => {
-    const d = overlay.dataset.datum;
-    const h = overlay.querySelector("#hours")?.value || "";
-    const m = overlay.querySelector("#minutes")?.value || "";
-    if (!d) {
-      const cal = overlay.querySelector("#miniCalendar");
-      cal.classList.add("need-select");
-      setTimeout(() => cal.classList.remove("need-select"), 600);
-      flashBox(infoBox, "gray");
-      return;
-    }
-    const cas = `${h}:${m}`;
-    updateTermInfoBox(infoBox, d, cas);
-    flashBox(infoBox, "green");
-  };
 }
 </script>
 
@@ -830,7 +779,7 @@ function initDetailButtons(overlay, item, index) {
   overlay.querySelector("#saveTermBtn").onclick = () => {
     const datum = overlay.dataset.datum;
     const cas = `${overlay.querySelector("#hours").value}:${overlay.querySelector("#minutes").value}`;
-    if (!datum || !cas) return alert("Není byrán datum a čas!");
+    if (!datum || !cas) return alert("Vyberte datum a čas!");
     ulozitTerminNaGitHub(item, id, datum, cas, overlay, overlay.querySelector("#saveTermBtn"), infoBox);
   };
 
@@ -847,7 +796,9 @@ function initDetailButtons(overlay, item, index) {
       setNextToast("🟣 Zákazník čeká na díly", "warning");
       overlay.remove();
       renderTable(dataAll);
-    } catch (err) { alert("❌ Chyba při ukládání: " + err.message); }
+    } catch (err) {
+      alert("❌ Chyba při ukládání: " + err.message);
+    }
   };
 
   overlay.querySelector("#createProtocolBtn").onclick = () => {
@@ -866,7 +817,7 @@ function initDetailButtons(overlay, item, index) {
 </script>
 
 <style>
-/* 🗓️+⏰ layout – dvě kolony, i na mobilu */
+/* 🗓️ + ⏰ rozložení */
 .date-time-row {
   display: grid;
   grid-template-columns: 1.15fr 0.85fr;
@@ -878,16 +829,16 @@ function initDetailButtons(overlay, item, index) {
   background: #fff;
   border-radius: 10px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  min-height: 280px; /* drží výšku na všech zařízeních */
+  min-height: 280px;
 }
 .date-right-column {
   display: grid;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: 1fr auto;
   gap: 12px;
   height: 100%;
 }
 
-/* ⏰ čas – horní polovina */
+/* ⏰ čas */
 .custom-time-picker {
   display: flex;
   justify-content: center;
@@ -906,23 +857,31 @@ function initDetailButtons(overlay, item, index) {
   padding: 5px 10px;
 }
 
-/* 🔵 tlačítko – spodní polovina */
-.btn-term-select {
-  background: linear-gradient(135deg,#0046ff,#357aff);
-  color:#fff;
-  font-weight:600;
-  border:none;
-  border-radius:10px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.15);
-  cursor:pointer;
-  font-family:"Inter",sans-serif;
-  font-size:0.95em;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  transition:transform .2s ease,opacity .2s ease;
+/* 🔔 informační box */
+.term-info-box {
+  background: #f3f3f3;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: center;
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  color: #555;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  transition: background 0.4s, color 0.4s;
 }
-.btn-term-select:hover { transform:scale(1.03); opacity:.9; }
+.flash-green {
+  animation: flashGreen 1.2s ease;
+}
+@keyframes flashGreen {
+  0%   { background:#d5f8d5; color:#116d2b; }
+  50%  { background:#e9ffe9; color:#116d2b; }
+  100% { background:#f3f3f3; color:#555; }
+}
 
 /* 🟩 DLAŽDICE 2×3 */
 .tile-grid {
@@ -955,15 +914,13 @@ function initDetailButtons(overlay, item, index) {
 .btn-green       { background: linear-gradient(135deg,#4caf50,#6fdd72); }
 .btn-purple      { background: linear-gradient(135deg,#b993ff,#d4b5ff); }
 .btn-blue        { background: linear-gradient(135deg,#357aff,#6fa8ff); }
-
-/* červené blikání */
 @keyframes blinkRed {
   0%,100% { background: linear-gradient(135deg,#ff4d4d,#ff8080); }
   50%     { background: linear-gradient(135deg,#ff7373,#ffa0a0); }
 }
 .btn-redBlink { animation: blinkRed 1.5s infinite; }
 
-/* ✅ stejné rozložení i na mobilu – žádné přeskupení */
+/* 📱 stejné rozložení i na mobilu */
 @media (max-width: 700px) {
   .date-time-row { grid-template-columns: 1fr 0.9fr; }
   .tile-grid { grid-template-columns: 1fr 1fr; }
