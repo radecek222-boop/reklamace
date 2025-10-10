@@ -1,4 +1,4 @@
-<!-- 🟩 ZAČÁTEK ČÁSTI 1/2 – SEKCE 1–5 -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 1/2 – SEKCE 1–5 (OPRAVENÁ VERZE) -->
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -89,17 +89,21 @@ h2 {
   color:#111;
 }
 .btn-photo {
-  background:linear-gradient(135deg,#357aff,#6fa8ff);
-  color:#fff;
+  flex:1;
+  background:linear-gradient(135deg,#e0e0e0,#f5f5f5);
+  color:#333;
+  -webkit-appearance:none;
+  appearance:none;
+  background-clip:padding-box;
   font-weight:600;
   border:none;
   border-radius:8px;
   padding:10px 16px;
   cursor:pointer;
-  box-shadow:0 3px 8px rgba(0,0,0,0.15);
+  box-shadow:0 2px 5px rgba(0,0,0,0.1);
   transition:transform .15s ease,opacity .2s;
 }
-.btn-photo:hover{transform:scale(1.05);opacity:.9;}
+.btn-photo:hover{transform:scale(1.03);opacity:.9;}
 .photo-preview {
   display:flex;
   flex-wrap:wrap;
@@ -112,6 +116,7 @@ h2 {
   object-fit:cover;
   box-shadow:0 2px 5px rgba(0,0,0,0.15);
   position:relative;
+  cursor:pointer;
 }
 .photo-remove {
   position:absolute;
@@ -192,7 +197,16 @@ h2 {
     <div class="photo-preview" id="preview-id"></div>
   </div>
 
-  <!-- BLOK 3 -->
+  <!-- 🆕 BLOK 3 – DETAIL PROBLÉMU -->
+  <div class="photo-block">
+    <div class="photo-header">
+      <h4>Detail problému<br><span class="subtitle">Problem detail</span></h4>
+      <button type="button" class="btn-photo" data-section="problem">Přidat fotografie / Add photos</button>
+    </div>
+    <div class="photo-preview" id="preview-problem"></div>
+  </div>
+
+  <!-- BLOK 4 -->
   <div class="photo-block">
     <div class="photo-header">
       <h4>Během opravy<br><span class="subtitle">During repair</span></h4>
@@ -201,7 +215,7 @@ h2 {
     <div class="photo-preview" id="preview-repair"></div>
   </div>
 
-  <!-- BLOK 4 -->
+  <!-- BLOK 5 -->
   <div class="photo-block">
     <div class="photo-header">
       <h4>Po opravě<br><span class="subtitle">After repair</span></h4>
@@ -220,7 +234,7 @@ h2 {
 <script>
 (function(){
   const input=document.getElementById("photoInput");
-  const photoSections={before:[],id:[],repair:[],after:[]};
+  const photoSections={before:[],id:[],problem:[],repair:[],after:[]};
   const fill=document.getElementById("progressFill");
   const text=document.getElementById("progressText");
 
@@ -295,6 +309,7 @@ h2 {
 })();
 </script>
 <!-- 🟩 KONEC ČÁSTI 1/2 -->
+
 
 
 
