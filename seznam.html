@@ -695,7 +695,7 @@ function renderMobileBlocks(arr) {
 <!-- ================================================= -->
 
 
-<!-- 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA – NOVÉ DLAŽDICE A ROZLOŽENÍ -->
+<!-- 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA – DLAŽDICE + NOVÉ ROZLOŽENÍ DATUM/ČAS -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -714,10 +714,15 @@ function openDetail(index) {
           <!-- 🗓️ Datum a čas vedle sebe -->
           <div class="date-time-row">
             <div id="miniCalendar"></div>
-            <div class="custom-time-picker">
-              <select id="hours"></select><span>:</span><select id="minutes"></select>
+
+            <div class="date-right-column">
+              <div class="custom-time-picker">
+                <select id="hours"></select><span>:</span><select id="minutes"></select>
+              </div>
+              <button id="termSelectBtn" class="btn-term-select">Vyber datum a čas</button>
             </div>
           </div>
+
           <div class="term-info-box" id="termInfoBox">Vyberte datum a čas</div>
 
           <!-- 🟩 NOVÉ DLAŽDICE -->
@@ -736,7 +741,7 @@ function openDetail(index) {
         <!-- 🧾 PRAVÝ PANEL -->
         <div class="right-panel">
           <div class="info-box clickable" id="customerBox">
-            <div class="box-header"><strong>Zákazník</strong><span class="icon">✏️</span></div>
+            <div class="box-header"><strong>Zákazník</strong></div>
             <div class="box-content">
               <p><strong>Jméno:</strong> ${item.zakaznik || "–"}</p>
               <p><strong>Adresa:</strong> ${adresaUpravena}</p>
@@ -747,7 +752,7 @@ function openDetail(index) {
           </div>
 
           <div class="info-box clickable" id="popisBox">
-            <div class="box-header"><strong>Popis závady</strong><span class="icon">📝</span></div>
+            <div class="box-header"><strong>Popis závady</strong></div>
             <div class="box-content" id="popisContent">${item.popis || "–"}</div>
           </div>
 
@@ -780,6 +785,7 @@ function initDetailButtons(overlay, item, index) {
     if (!datum || !cas) return alert("Vyberte datum a čas!");
     ulozitTerminNaGitHub(item, id, datum, cas, overlay, overlay.querySelector("#saveTermBtn"), infoBox);
   };
+
   overlay.querySelector("#waitBtn").onclick = async () => {
     try {
       stavy[id] = "ceka";
@@ -795,21 +801,83 @@ function initDetailButtons(overlay, item, index) {
       renderTable(dataAll);
     } catch (err) { alert("❌ Chyba při ukládání: " + err.message); }
   };
+
   overlay.querySelector("#createProtocolBtn").onclick = () => {
     localStorage.setItem("protokolData", JSON.stringify(item));
     window.location.href = "protokol.html";
   };
+
   overlay.querySelector("#startVisitBtn").onclick = () => {
     localStorage.setItem("currentCustomer", JSON.stringify(item));
     window.location.href = "photocustomer.html";
   };
+
   overlay.querySelector("#contactBtn").onclick = () => openContactModal(item, index, overlay);
   overlay.querySelector("#closeBtn").onclick = () => overlay.remove();
 }
 </script>
 
 <style>
-/* 🟦 NOVÉ DLAŽDICE – rovnoměrné čtverce */
+/* 🕓 Datum + čas – nový layout */
+.date-time-row {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+#miniCalendar {
+  flex: 1.2;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.date-right-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 0.6;
+}
+
+/* ⏰ Výběr času */
+.custom-time-picker {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  background: #f8f8f8;
+  border-radius: 10px;
+  padding: 10px;
+  height: 45%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.custom-time-picker select {
+  font-size: 1.05em;
+  font-weight: 600;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 5px 10px;
+}
+
+/* 🟦 Tlačítko pod hodinami */
+.btn-term-select {
+  background: linear-gradient(135deg, #0046ff, #357aff);
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  height: 45%;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  cursor: pointer;
+  font-family: "Inter", sans-serif;
+  font-size: 0.95em;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.btn-term-select:hover {
+  transform: scale(1.03);
+  opacity: 0.9;
+}
+
+/* 🟩 Dlaždice – 2 × 3 */
 .tile-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -834,14 +902,14 @@ function initDetailButtons(overlay, item, index) {
 }
 .tile-btn:hover { transform: scale(1.03); opacity: 0.9; }
 
-/* 🩶 Barvy zachovány z původní verze */
+/* 🎨 Barvy zachovány */
 .btn-grayContact { background: linear-gradient(135deg, #888, #aaa); }
 .btn-lightgray   { background: linear-gradient(135deg, #aaa, #ccc); }
 .btn-green       { background: linear-gradient(135deg, #4caf50, #6fdd72); }
 .btn-purple      { background: linear-gradient(135deg, #b993ff, #d4b5ff); }
 .btn-blue        { background: linear-gradient(135deg, #357aff, #6fa8ff); }
 
-/* 🔴 Blikající červené pro návštěvu */
+/* 🔴 Blikající červené */
 @keyframes blinkRed {
   0%,100% { background: linear-gradient(135deg, #ff4d4d, #ff8080); }
   50%      { background: linear-gradient(135deg, #ff7373, #ffa0a0); }
@@ -850,27 +918,21 @@ function initDetailButtons(overlay, item, index) {
   animation: blinkRed 1.5s infinite;
 }
 
-/* 🕓 Datum + čas v jednom řádku */
-.date-time-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-#miniCalendar { flex: 1; }
-.custom-time-picker {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-.custom-time-picker select {
-  font-size: 1.05em;
-  font-weight: 600;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 5px 10px;
+/* 📱 Mobilní úprava */
+@media (max-width: 700px) {
+  .date-time-row { flex-direction: column; }
+  .date-right-column {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .btn-term-select { height: auto; padding: 10px 15px; }
+  .tile-grid { grid-template-columns: 1fr; }
+  .tile-btn { height: 70px; }
 }
 </style>
 <!-- 🟩 KONEC C-1 + C-4 -->
+
 
 
 
