@@ -313,6 +313,29 @@ searchInput.addEventListener("input",()=>{
 reloadBtn.addEventListener("click", loadData);
 window.addEventListener("DOMContentLoaded", loadData);
 </script>
+
+
+<script>
+/**
+ * Načte JSON z libovolné URL a odchytí HTML odpověď.
+ * Vrátí null, pokud data nejsou platný JSON.
+ */
+async function safeFetchJSON(url) {
+  try {
+    const res = await fetch(url);
+    const text = await res.text();
+    if (!text.trim().startsWith("{") && !text.trim().startsWith("[")) {
+      console.warn("⚠️ Server nevrátil JSON:", url, text.substring(0, 120));
+      return null;
+    }
+    return JSON.parse(text);
+  } catch (err) {
+    console.error("❌ Chyba safeFetchJSON:", url, err.message);
+    return null;
+  }
+}
+</script>
+
 <!-- 🟨 KONEC ČÁSTI 2/10 -->
 
 
