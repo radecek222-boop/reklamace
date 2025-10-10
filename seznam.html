@@ -230,6 +230,95 @@ tr.stav-hotovo:hover td {
 </html>
 <!-- 🟨 KONEC SEKCE A -->
 
+<!-- 🟩 ZAČÁTEK STYL – MOBILNÍ BLOKY -->
+<style>
+/* 📱 Kontejner pro mobilní bloky */
+.mob-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+/* 📦 Jeden mobilní záznam */
+.mob-block {
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  border-left: 5px solid transparent;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.mob-block:hover {
+  transform: scale(1.01);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+}
+
+/* 1. řádek – jméno a adresa */
+.mob-line1 {
+  font-weight: 600;
+  color: #111;
+  font-size: 1.05em;
+  display: flex;
+  flex-wrap: wrap;
+}
+.mob-addr {
+  color: #444;
+  font-weight: 400;
+}
+
+/* 2. řádek – datum, čas, Waze, telefon */
+.mob-line2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 0.92em;
+  color: #333;
+}
+.mob-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Tlačítko WAZE */
+.waze-btn {
+  display: inline-block;
+  border: 1px solid #0066ff;
+  border-radius: 6px;
+  padding: 2px 10px 3px;
+  font-size: 0.85em;
+  font-weight: 600;
+  color: #0066ff;
+  background: #eaf1ff;
+  text-decoration: none;
+}
+
+/* Telefonní tlačítko */
+.phone-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f4f4f4;
+  text-decoration: none;
+  font-size: 1.1em;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+/* 🟢 Barvy dle stavu */
+.mob-block.stav-novy { border-left-color: #ffea70; }
+.mob-block.stav-domluveno { border-left-color: #80aaff; }
+.mob-block.stav-nezveda { border-left-color: #ffa84d; }
+.mob-block.stav-zruseno { border-left-color: #ff5c5c; }
+.mob-block.stav-hotovo { border-left-color: #5cd65c; }
+</style>
+<!-- 🟩 KONEC STYL – MOBILNÍ BLOKY -->
+
+
 
 
 
@@ -418,6 +507,93 @@ function updateDebug(count) {
   <small>Aktualizace: <span id="debugTime">–</span></small>
 </div>
 <!-- 🟦 KONEC SEKCE B -->
+
+<!-- 🟦 ZAČÁTEK B-2: MOBILNÍ BLOKY (pro iPhone / mobilní zobrazení) -->
+<script>
+function renderMobileBlocks(arr) {
+  if (!arr || !arr.length) {
+    tableContainer.innerHTML = "<div>Žádné záznamy</div>";
+    return;
+  }
+
+  const html = arr.map((r, i) => {
+    const stav = r.stav || "novy";
+    const adresa = r.adresa || "–";
+    const datum = r.datum ? new Date(r.datum).toLocaleDateString("cs-CZ", { day:"2-digit", month:"2-digit", year:"numeric" }) : "";
+    const cas = r.cas || "";
+    const wazeUrl = r.adresa ? `https://waze.com/ul?q=${encodeURIComponent(r.adresa)}` : "";
+    const phoneUrl = r.telefon ? `tel:${r.telefon.replace(/\s+/g, '')}` : "";
+
+    return `
+      <div class="mob-block stav-${stav}" onclick="openDetail(${i})">
+        <div class="mob-line1">
+          <span class="mob-name">${r.zakaznik || "Neznámý"}</span>
+          <span class="mob-sep"> — </span>
+          <span class="mob-addr">${adresa}</span>
+        </div>
+        <div class="mob-line2">
+          <span class="mob-date">${datum}${cas ? " · " + cas : ""}</span>
+          <div class="mob-actions">
+            ${wazeUrl ? `<a href="${wazeUrl}" target="_blank" class="waze-btn">WAZE</a>` : ""}
+            ${phoneUrl ? `<a href="${phoneUrl}" class="phone-btn">📞</a>` : ""}
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+
+  tableContainer.innerHTML = `<div class="mob-container">${html}</div>`;
+}
+
+/* ✏️ Úprava do funkce renderTable() – přidat detekci šířky zařízení */
+function renderTable(arr) {
+  if (window.innerWidth < 700) {
+    renderMobileBlocks(arr);
+    return;
+  }
+
+  /* původní část renderTable() – zůstává beze změny */
+  let html = `
+  <table>
+    <thead>
+      <tr>
+        <th>Zákazník</th>
+        <th>Adresa</th>
+        <th>Telefon</th>
+        <th>Stav</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  arr.forEach((r, i) => {
+    const id = r.cislo || `radek-${i}`;
+    const stav = stavy[id] || r.stav || "novy";
+    const adresa = r.adresa ? `<a href="https://waze.com/ul?q=${encodeURIComponent(r.adresa)}"
+         target="_blank"
+         style="color:#000;font-weight:600;">${r.adresa}</a>` : "–";
+    const telefon = r.telefon
+      ? `<a href="tel:${r.telefon.replace('+420','').trim()}"
+           style="color:#000;font-weight:600;">${r.telefon.replace('+420','').trim()}</a>`
+      : "–";
+
+    html += `
+      <tr class="stav-${stav}" data-index="${i}">
+        <td>${r.zakaznik || "–"}</td>
+        <td>${adresa}</td>
+        <td>${telefon}</td>
+        <td>${r.stav || ""}</td>
+      </tr>`;
+  });
+
+  html += "</tbody></table>";
+  tableContainer.innerHTML = html;
+
+  document.querySelectorAll("tbody tr").forEach(row => {
+    row.addEventListener("click", () => openDetail(row.dataset.index));
+  });
+}
+</script>
+<!-- 🟦 KONEC B-2: MOBILNÍ BLOKY -->
+
 
  
 
