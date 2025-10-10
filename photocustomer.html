@@ -449,11 +449,11 @@ document.getElementById("btnReloadData").addEventListener("click",()=>{
 
 
 
-<!-- 🟩 ZAČÁTEK ČÁSTI 2/2b – SEKCE 9–10 -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 2/2b – SEKCE 9–10 (OPRAVENÁ VERZE BEZ EMOJI) -->
 
 <!-- 🟨 SEKCE 9 – UPLOAD VŠECH FOTEK -->
-<div class="actions" style="text-align:center;margin-top:30px;">
-  <button type="button" id="btnUploadAll" class="btn-send">💚 Nahrát všechny fotografie / Upload all photos</button>
+<div class="actions" id="uploadSection">
+  <button type="button" id="btnUploadAll" class="btn-send">Nahrát všechny fotografie / Upload all photos</button>
 </div>
 
 <div class="wait-overlay" id="waitOverlay">
@@ -462,6 +462,12 @@ document.getElementById("btnReloadData").addEventListener("click",()=>{
 </div>
 
 <style>
+#uploadSection{
+  text-align:center;
+  margin-top:30px;
+  display:flex;
+  justify-content:center;
+}
 .btn-send{
   background:linear-gradient(135deg,#00b56a,#00da80);
   color:#fff;font-weight:600;
@@ -498,7 +504,7 @@ uploadBtn.addEventListener("click",async()=>{
   wait.classList.add("active");
   await fakeUpload();
   wait.classList.remove("active");
-  showNotif("success","✅ Fotky byly nahrány / Photos uploaded successfully");
+  showNotif("success","Fotky byly nahrány / Photos uploaded successfully");
 });
 async function fakeUpload(){
   return new Promise(r=>setTimeout(r,2000));
@@ -551,12 +557,20 @@ window.addEventListener("beforeunload",function(e){
 </script>
 
 <!-- 🟨 SPODNÍ TLAČÍTKA -->
-<div class="actions" style="margin-top:40px;text-align:center;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
-  <a href="index.html" class="btn-back">↩️ Zpět na menu / Back to menu</a>
-  <button type="button" id="btnReloadData" class="btn-gray">🔄 Načíst uložené / Reload</button>
+<div class="actions bottom-actions">
+  <a href="index.html" class="btn-back">Zpět na menu / Back to menu</a>
+  <button type="button" id="btnReloadData" class="btn-gray">Načíst uložené / Reload</button>
 </div>
 
 <style>
+.bottom-actions{
+  margin-top:40px;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:10px;
+  text-align:center;
+}
 .btn-back,.btn-gray{
   flex:1 1 45%;
   max-width:320px;
@@ -567,7 +581,8 @@ window.addEventListener("beforeunload",function(e){
 }
 .btn-back{
   background:linear-gradient(135deg,#9b9b9b,#bfbfbf);
-  color:#fff;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
+  color:#fff;text-decoration:none;
+  display:inline-flex;align-items:center;justify-content:center;
 }
 .btn-gray{
   background:linear-gradient(135deg,#6c757d,#a0a4a7);
