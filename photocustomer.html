@@ -98,7 +98,7 @@ h2 {
 
 
 
-  <!-- 🟩 ZAČÁTEK ČÁSTI 2/3 – BLOKY FOTEK + FUNKCE -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 2/3 – BLOKY FOTEK + MODÁLNÍ NÁHLED -->
 <style>
 .photo-block {
   border:1px solid #ccc;
@@ -113,6 +113,7 @@ h2 {
   background:#f2f2f2;
   transform:scale(1.01);
 }
+
 .photo-title {
   font-size:0.75em;
   font-weight:700;
@@ -140,7 +141,6 @@ h2 {
   cursor:pointer;
   transition:transform .15s ease, box-shadow .2s ease;
 }
-
 .photo-thumb:hover {
   transform:scale(1.03);
   box-shadow:0 3px 10px rgba(0,0,0,0.25);
@@ -154,15 +154,13 @@ h2 {
   margin-top:12px;
   overflow:hidden;
 }
-
-}
-.progress-bar-fill{
+.progress-bar-fill {
   background:linear-gradient(135deg,#00b56a,#00da80);
   height:100%;
   width:0%;
   transition:width .3s ease;
 }
-.progress-text{
+.progress-text {
   text-align:center;
   font-size:0.85em;
   color:#333;
@@ -170,44 +168,72 @@ h2 {
   margin-top:4px;
 }
 
-/* fullscreen náhled */
-#fullscreenView {
+/* 🧭 MODÁLNÍ NÁHLED FOTKY */
+.photo-modal {
   display:none;
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,0.85);
+  background:rgba(0,0,0,0.75);
   justify-content:center;
   align-items:center;
-  flex-direction:column;
   z-index:9999;
+  transition:opacity .2s ease;
 }
-#fullscreenView.active { display:flex; }
-#fullscreenImg {
-  max-width:90%;
-  max-height:85%;
-  border-radius:10px;
-  box-shadow:0 0 20px rgba(0,0,0,0.5);
-}
-.fullscreen-buttons {
-  position:absolute;
-  top:20px;
-  right:25px;
+.photo-modal.active {
   display:flex;
-  gap:10px;
 }
-.full-btn {
+.photo-modal-content {
   background:#fff;
-  border:none;
-  font-size:1em;
-  font-weight:700;
-  border-radius:8px;
-  padding:8px 16px;
-  cursor:pointer;
-  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+  border-radius:12px;
+  padding:15px;
+  box-shadow:0 4px 18px rgba(0,0,0,0.4);
+  max-width:90vw;
+  max-height:85vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  animation:fadeIn .25s ease;
 }
-.full-btn:hover { opacity:0.9; }
-.full-btn.close { color:#111; }
-.full-btn.delete { background:#e63946; color:#fff; }
+@keyframes fadeIn {
+  from {opacity:0;transform:scale(0.97);}
+  to {opacity:1;transform:scale(1);}
+}
+#modalImg {
+  max-width:100%;
+  max-height:70vh;
+  border-radius:10px;
+  object-fit:contain;
+  box-shadow:0 2px 8px rgba(0,0,0,0.2);
+}
+.photo-modal-buttons {
+  display:flex;
+  gap:12px;
+  margin-top:12px;
+}
+.btn-delete,
+.btn-close {
+  font-weight:600;
+  font-size:0.95em;
+  border:none;
+  border-radius:8px;
+  padding:10px 22px;
+  cursor:pointer;
+  box-shadow:0 2px 6px rgba(0,0,0,0.2);
+  transition:transform .15s ease,opacity .2s ease;
+}
+.btn-delete {
+  background:linear-gradient(135deg,#e63946,#ff6b6b);
+  color:#fff;
+}
+.btn-close {
+  background:linear-gradient(135deg,#9b9b9b,#bfbfbf);
+  color:#fff;
+}
+.btn-delete:hover,
+.btn-close:hover {
+  transform:scale(1.05);
+  opacity:0.9;
+}
 </style>
 
 <!-- 🟨 BLOKY FOTEK -->
@@ -238,19 +264,20 @@ h2 {
 
 <!-- 🟨 VSTUP A PROGRESS -->
 <input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
-
 <div class="progress-bar-container">
   <div class="progress-bar-fill" id="progressFill"></div>
 </div>
 <div class="progress-text" id="progressText">0%</div>
 
-<!-- 🟨 FULLSCREEN NÁHLED -->
-<div id="fullscreenView">
-  <div class="fullscreen-buttons">
-    <button id="btnDeletePhoto" class="full-btn delete">Odstranit</button>
-    <button id="btnClosePhoto" class="full-btn close">Zavřít</button>
+<!-- 🟨 MODÁLNÍ OKNO -->
+<div id="photoModal" class="photo-modal">
+  <div class="photo-modal-content">
+    <img id="modalImg" src="">
+    <div class="photo-modal-buttons">
+      <button id="btnDeletePhoto" class="btn-delete">Odstranit</button>
+      <button id="btnClosePhoto" class="btn-close">Zavřít</button>
+    </div>
   </div>
-  <img id="fullscreenImg" src="">
 </div>
 
 <!-- 🟨 LOGIKA BLOKŮ -->
@@ -261,8 +288,8 @@ h2 {
   const fill=document.getElementById("progressFill");
   const text=document.getElementById("progressText");
 
-  const full=document.getElementById("fullscreenView");
-  const fullImg=document.getElementById("fullscreenImg");
+  const modal=document.getElementById("photoModal");
+  const modalImg=document.getElementById("modalImg");
   const btnDelete=document.getElementById("btnDeletePhoto");
   const btnClose=document.getElementById("btnClosePhoto");
 
@@ -317,29 +344,29 @@ h2 {
       img.src=p.url;
       img.className="photo-thumb";
       img.title=p.name;
-      img.onclick=()=>openFullscreen(section,i);
+      img.onclick=()=>openModal(section,i);
       cont.append(img);
     });
   }
 
-  // 🔹 Fullscreen náhled
-  function openFullscreen(section,i){
+  // 🔹 Otevření modálu
+  function openModal(section,i){
     currentSection=section;
     currentIndex=i;
-    fullImg.src=sections[section][i].url;
-    full.classList.add("active");
+    modalImg.src=sections[section][i].url;
+    modal.classList.add("active");
   }
 
-  // 🔹 Zavření náhledu
-  btnClose.addEventListener("click",()=>full.classList.remove("active"));
-  full.addEventListener("click",(e)=>{if(e.target===full)full.classList.remove("active");});
+  // 🔹 Zavření modálu
+  btnClose.addEventListener("click",()=>modal.classList.remove("active"));
+  modal.addEventListener("click",(e)=>{if(e.target===modal)modal.classList.remove("active");});
 
   // 🔹 Odstranění fotky
   btnDelete.addEventListener("click",()=>{
     if(currentSection!==null && currentIndex!==null){
       sections[currentSection].splice(currentIndex,1);
       render(currentSection);
-      full.classList.remove("active");
+      modal.classList.remove("active");
     }
   });
 
@@ -360,6 +387,7 @@ h2 {
 })();
 </script>
 <!-- 🟩 KONEC ČÁSTI 2/3 -->
+
 
 
 
