@@ -981,32 +981,44 @@ function initMapForDetail(overlay, item) {
 <!-- 🟩 KONEC C-2 -->
 
 
-<!-- 🟩 C-3: KALENDÁŘ A ČAS -->
+<!-- 🟩 C-3: KALENDÁŘ A ČAS (aktualizovaná verze pro moderní hodiny) -->
 <script>
 function initCalendarAndTime(overlay, item, index) {
   const infoBox = overlay.querySelector("#termInfoBox");
+
+  // 📅 Inicializace Vanilla Calendar
   const miniCal = new VanillaCalendar("#miniCalendar", {
-    settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
-    actions: { clickDay: e => {
-      const chosen = e.target.dataset.calendarDay;
-      if (chosen) {
-        overlay.dataset.datum = chosen;
-        updateTermInfoBox(infoBox, chosen, null);
-        flashBox(infoBox, "gray");
+    settings: {
+      lang: "cs",
+      selection: { day: "single" },
+      visibility: { theme: "light" }
+    },
+    actions: {
+      clickDay: (e) => {
+        const chosen = e.target.dataset.calendarDay;
+        if (chosen) {
+          // uloží vybrané datum do overlayu
+          overlay.dataset.datum = chosen;
+          updateTermInfoBox(infoBox, chosen, null);
+          flashBox(infoBox, "gray");
+        }
       }
-    } }
+    }
   });
+
+  // inicializace kalendáře
   miniCal.init();
 
-  // hodiny
-  const hSel = overlay.querySelector("#hours"), mSel = overlay.querySelector("#minutes");
-  for (let h = 7; h < 20; h++) hSel.innerHTML += `<option>${String(h).padStart(2,"0")}</option>`;
-  for (let m = 0; m < 60; m += 5) mSel.innerHTML += `<option>${String(m).padStart(2,"0")}</option>`;
-  hSel.addEventListener("change", () => updateTime(infoBox, overlay));
-  mSel.addEventListener("change", () => updateTime(infoBox, overlay));
+  // 🧠 pokud už má položka uložené datum a čas, zobraz je ihned po otevření
+  if (item.datum) {
+    overlay.dataset.datum = item.datum;
+    const cas = item.cas || null;
+    updateTermInfoBox(infoBox, item.datum, cas);
+  }
 }
 </script>
 <!-- 🟩 KONEC C-3 -->
+
 
 
 
