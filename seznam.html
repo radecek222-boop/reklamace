@@ -446,15 +446,19 @@ function openDetail(index) {
         <!-- 🧭 LEVÝ PANEL -->
         <div class="left-panel">
           <div id="miniCalendar"></div>
+
           <div class="custom-time-picker">
             <select id="hours"></select><span>:</span><select id="minutes"></select>
           </div>
+
           <div class="term-info-box" id="termInfoBox">Vyberte datum a čas</div>
 
           <!-- 🟩 BLOK TLAČÍTEK -->
           <div class="left-buttons">
-            <!-- Nad tlačítky -->
-            <button id="contactBtn" class="btn-action btn-darkgray">Kontaktovat zákazníka</button>
+            <!-- 🟥 Kontaktovat zákazníka -->
+            <button id="contactBtn" class="btn-action btn-redContact">
+              Kontaktovat zákazníka
+            </button>
 
             <div class="btn-grid">
               <div class="btn-col">
@@ -476,6 +480,7 @@ function openDetail(index) {
 
         <!-- 🧾 PRAVÝ PANEL -->
         <div class="right-panel">
+          <!-- 🧍‍♂️ Údaje zákazníka -->
           <div class="info-box clickable" id="customerBox">
             <div class="box-header"><strong>Zákazník</strong><span class="icon">✏️</span></div>
             <div class="box-content">
@@ -487,11 +492,13 @@ function openDetail(index) {
             </div>
           </div>
 
+          <!-- 🧰 Popis závady -->
           <div class="info-box clickable" id="popisBox">
             <div class="box-header"><strong>Popis závady</strong><span class="icon">📝</span></div>
             <div class="box-content" id="popisContent">${item.popis || "–"}</div>
           </div>
 
+          <!-- 🌍 Mapa -->
           <div class="distance-banner" id="mapDistance">📍 Počítám vzdálenost…</div>
           <div id="mapDetail"></div>
         </div>
@@ -526,6 +533,38 @@ function openDetail(index) {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* jednotný vzhled všech tlačítek */
+.btn-action {
+  width: 100%;
+  padding: 11px 0;
+  font-family: "Inter", sans-serif;
+  font-size: 0.95em;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  color: #000 !important;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+.btn-action:hover { opacity: 0.88; transform: scale(1.02); }
+
+/* barvy tlačítek */
+.btn-green   { background: linear-gradient(135deg, #8bf58b, #b6ffb6); }
+.btn-purple  { background: linear-gradient(135deg, #d4b5ff, #b993ff); }
+.btn-blue    { background: linear-gradient(135deg, #bcd5ff, #8fb7ff); }
+.btn-gray    { background: linear-gradient(135deg, #dadada, #eeeeee); }
+.btn-reflex  { background: linear-gradient(135deg, #aaff00, #c8ff4d); }
+
+/* kontaktovací tlačítko – dvojnásobná výška */
+.btn-redContact {
+  background: linear-gradient(135deg, #ff6666, #ff9999);
+  height: calc(2 * 42px);
+  font-size: 1.05em;
+  letter-spacing: 0.3px;
+  border-radius: 10px;
 }
 </style>
 <!-- 🟩 KONEC C-1 -->
@@ -690,7 +729,6 @@ function initDetailButtons(overlay, item, index) {
 }
 </style>
 <!-- 🟩 KONEC C-4 -->
-
 
 
 
