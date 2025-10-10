@@ -1011,7 +1011,7 @@ function initMapForDetail(overlay, item) {
 
 
 
-<!-- 🟩 C-3: KALENDÁŘ, ČAS A PŘEHLED DNE -->
+<!-- 🟩 C-3: KALENDÁŘ, ČAS A PŘEHLED DNE (opraveno) -->
 <script>
 function initCalendarAndTime(overlay, item, index) {
   const infoBox = overlay.querySelector("#termInfoBox");
@@ -1030,33 +1030,51 @@ function initCalendarAndTime(overlay, item, index) {
           overlay.dataset.datum = chosen;
           updateTermInfoBox(infoBox, chosen, null);
           flashBox(infoBox, "gray");
-          showDaySummary(chosen, overlay); // 🟢 přehled dne pod kalendářem
+          showDaySummary(chosen, overlay); // 🟢 zobraz přehled dne
         }
       }
     }
   });
   miniCal.init();
 
-  // ⏰ Hodiny (rolovací menu)
+  // ⏰ Naplnění hodin a minut
   const hSel = overlay.querySelector("#hours"),
         mSel = overlay.querySelector("#minutes");
+  hSel.innerHTML = "";
+  mSel.innerHTML = "";
   for (let h = 7; h < 20; h++)
     hSel.innerHTML += `<option>${String(h).padStart(2,"0")}</option>`;
   for (let m = 0; m < 60; m += 5)
     mSel.innerHTML += `<option>${String(m).padStart(2,"0")}</option>`;
 
+  // změna času → aktualizace infoBoxu
   hSel.addEventListener("change", () => updateTime(infoBox, overlay));
   mSel.addEventListener("change", () => updateTime(infoBox, overlay));
 }
 
-/* 🟢 NOVÁ FUNKCE: Přehled dne pod kalendářem */
+/* 🔄 aktualizace boxu s vybraným datem + časem */
+function updateTime(infoBox, overlay) {
+  const d = overlay.dataset.datum;
+  const h = overlay.querySelector("#hours").value;
+  const m = overlay.querySelector("#minutes").value;
+  if (d && h && m) {
+    infoBox.textContent = `${new Date(d).toLocaleDateString("cs-CZ")} ${h}:${m}`;
+    flashBox(infoBox, "green");
+  }
+}
+
+/* 💡 efekt bliknutí při změně */
+function flashBox(el, color = "green") {
+  el.classList.remove("flash-green", "flash-gray");
+  void el.offsetWidth;
+  el.classList.add(color === "gray" ? "flash-gray" : "flash-green");
+}
+
+/* 🟢 přehled dne pod kalendářem */
 function showDaySummary(dateStr, overlay) {
-  // vyber všechny záznamy pro dané datum
   const list = dataAll.filter(r => r.datum === dateStr && r.stav !== "zruseno");
   const containerId = "daySummaryBox";
   let box = overlay.querySelector(`#${containerId}`);
-
-  // vytvoř box pokud neexistuje
   if (!box) {
     box = document.createElement("div");
     box.id = containerId;
@@ -1064,22 +1082,16 @@ function showDaySummary(dateStr, overlay) {
     overlay.querySelector(".left-panel").appendChild(box);
   }
 
-  // když není nic naplánováno
   if (!list.length) {
     box.innerHTML = `<div class="day-summary-empty">Žádné zakázky pro tento den</div>`;
     return;
   }
 
-  // seřadíme podle času
   list.sort((a,b) => (a.cas||"").localeCompare(b.cas||""));
-
-  // vytvoříme přehled
   box.innerHTML = `
     <div class="day-summary-title">📅 Přehled dne (${new Date(dateStr).toLocaleDateString("cs-CZ")})</div>
     <table class="day-summary-table">
-      <thead>
-        <tr><th>Zákazník</th><th>Adresa</th><th>Čas</th></tr>
-      </thead>
+      <thead><tr><th>Zákazník</th><th>Adresa</th><th>Čas</th></tr></thead>
       <tbody>
         ${list.map(r=>`
           <tr>
@@ -1130,8 +1142,24 @@ function showDaySummary(dateStr, overlay) {
   color: #777;
   padding: 6px;
 }
+
+/* ✨ flash efekty */
+.flash-green { animation: flashGreen 1.2s ease; }
+.flash-gray  { animation: flashGray 1s ease; }
+
+@keyframes flashGreen {
+  0%   { background:#d5f8d5; color:#116d2b; }
+  50%  { background:#e9ffe9; color:#116d2b; }
+  100% { background:#f3f3f3; color:#555; }
+}
+@keyframes flashGray {
+  0%   { background:#eee; }
+  50%  { background:#f9f9f9; }
+  100% { background:#f3f3f3; }
+}
 </style>
 <!-- 🟩 KONEC C-3 -->
+
 
 
 
