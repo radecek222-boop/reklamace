@@ -1168,27 +1168,19 @@ function showDaySummary(dateStr, overlay) {
 
 <!-- 🟩 C-5: POMOCNÉ FUNKCE -->
 <script>
-function updateTermInfoBox(b, d, c) {
-  const date = new Date(d);
-  const den = date.toLocaleDateString("cs-CZ", { weekday: "long", day: "numeric", month: "long" });
-  b.textContent = c ? `${den} – ${c}` : `${den}`;
-}
-function updateTime(b, o) {
-  const d = o.dataset.datum; if (!d) return;
-  const c = `${o.querySelector("#hours").value}:${o.querySelector("#minutes").value}`;
-  updateTermInfoBox(b, d, c); flashBox(b, "green");
-}
-function flashBox(b, color) {
-  b.classList.remove("flash-gray", "flash-green"); void b.offsetWidth;
-  b.classList.add(color === "green" ? "flash-green" : "flash-gray");
-}
+// ⚙️ Zůstat má jen výpočet vzdálenosti
 function calcDistanceCoords(a, b, c, d) {
-  const R = 6371, dL = (c - a) * Math.PI / 180, dO = (d - b) * Math.PI / 180;
-  const x = Math.sin(dL/2)**2 + Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dO/2)**2;
+  const R = 6371;
+  const dL = (c - a) * Math.PI / 180;
+  const dO = (d - b) * Math.PI / 180;
+  const x = Math.sin(dL/2)**2 +
+            Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*
+            Math.sin(dO/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
 }
 </script>
 <!-- 🟩 KONEC C-5 -->
+
 
 
 <!-- 🟩 C-STYLE: CSS DETAILU -->
