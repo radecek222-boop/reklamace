@@ -723,7 +723,34 @@ function openDetail(index) {
             </div>
           </div>
 
-          <div class="term-info-box" id="termInfoBox">Vyberte datum a čas</div>
+        <!-- 🟦 INFO BOX – zobrazení vybraného termínu -->
+<div class="term-info-box" id="termInfoBox">Není vybrán datum a čas</div>
+
+<style>
+.term-info-box {
+  background: #f3f3f3;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: center;
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  color: #444;
+  margin-top: 10px;
+  transition: background 0.4s, color 0.4s;
+}
+
+/* 💡 při výběru termínu se dočasně přebarví (zelené potvrzení) */
+.flash-green {
+  animation: flashGreen 1.2s ease;
+}
+@keyframes flashGreen {
+  0%   { background: #d5f8d5; color: #116d2b; }
+  50%  { background: #e9ffe9; color: #116d2b; }
+  100% { background: #f3f3f3; color: #444; }
+}
+</style>
+
 
           <!-- 🟩 DLAŽDICE 3×2 -->
           <div class="tile-grid">
