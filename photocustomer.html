@@ -218,7 +218,11 @@ h2 {
 </script>
 <!-- 🟩 KONEC ČÁSTI 2/3 -->
 
-  <!-- 🟩 ZAČÁTEK ČÁSTI 3/3 – SJEDNOCENÁ TLAČÍTKA (AUTOMATICKÝ UPLOAD + ODESLÁNÍ) -->
+
+
+
+
+  <!-- 🟩 ZAČÁTEK OPRAVENÉ ČÁSTI 3/3 – EXPORT + ODESLÁNÍ + WORKER -->
 <div class="actions dual-actions" id="uploadSection">
   <button type="button" id="btnSendToDetail" class="btn-uniform blue">
     <span>ODESLAT DO DETAILU ZÁKAZNÍKA</span>
@@ -237,226 +241,123 @@ h2 {
 
 <style>
 .dual-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 30px;
+  display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:30px;
 }
-
 .btn-uniform {
-  flex: 1 1 45%;
-  max-width: 320px;
-  height: 56px;
-  font-size: 1em;
-  font-weight: 600;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  color: #000; /* 🔹 černý text */
-  text-align: center;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-  transition: transform .15s ease, opacity .2s ease;
-  box-sizing: border-box;
-  appearance: none;
-  -webkit-appearance: none;
-  line-height: 1;
-  padding: 0;
-  white-space: normal;
+  flex:1 1 45%;max-width:320px;height:56px;font-size:1em;font-weight:600;
+  border:none;border-radius:8px;cursor:pointer;color:#000;text-align:center;
+  text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 8px rgba(0,0,0,.15);transition:transform .15s ease,opacity .2s ease;
+  box-sizing:border-box;appearance:none;-webkit-appearance:none;line-height:1;
 }
-.btn-uniform span {
-  display: block;
-  padding: 0 14px;
-  text-align: center;
-}
-.btn-uniform:hover {
-  transform: scale(1.05);
-  opacity: .9;
-}
-.btn-uniform.blue {
-  background: linear-gradient(135deg, #0090d4, #33b6ff);
-}
-.btn-uniform.lightblue {
-  background: linear-gradient(135deg, #00aaff, #66ccff);
-}
-.btn-uniform.gray {
-  background: linear-gradient(135deg, #9b9b9b, #bfbfbf);
-}
+.btn-uniform span{display:block;padding:0 14px;text-align:center;}
+.btn-uniform:hover{transform:scale(1.05);opacity:.9;}
+.btn-uniform.blue{background:linear-gradient(135deg,#0090d4,#33b6ff);}
+.btn-uniform.lightblue{background:linear-gradient(135deg,#00aaff,#66ccff);}
+.btn-uniform.gray{background:linear-gradient(135deg,#9b9b9b,#bfbfbf);}
 .wait-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(255,255,255,0.85);
-  backdrop-filter: blur(2px);
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  font-weight: 600;
-  color: #333;
-  z-index: 2000;
+  display:none;position:fixed;inset:0;background:rgba(255,255,255,0.85);
+  backdrop-filter:blur(2px);justify-content:center;align-items:center;flex-direction:column;
+  font-weight:600;color:#333;z-index:2000;
 }
-.wait-overlay.active {
-  display: flex;
-}
+.wait-overlay.active{display:flex;}
 .hourglass {
-  border: 4px solid #ccc;
-  border-top: 4px solid #00b56a;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 10px;
+  border:4px solid #ccc;border-top:4px solid #00b56a;border-radius:50%;
+  width:40px;height:40px;animation:spin 1s linear infinite;margin-bottom:10px;
 }
-@keyframes spin {
-  0% { transform: rotate(0) }
-  100% { transform: rotate(360deg) }
-}
-
-/* 🔹 Na mobilu je odesílací tlačítko přes celou šířku */
-@media screen and (max-width: 768px) {
-  #btnSendToDetail {
-    flex: 1 1 100%;
-    max-width: 100%;
-  }
+@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+@media screen and (max-width:768px){
+  #btnSendToDetail{flex:1 1 100%;max-width:100%;}
 }
 </style>
 
-<!-- 🟩 NOTIFIKACE -->
 <div id="notif" class="notif"></div>
 <style>
-.notif {
-  position: fixed;
-  top: 15px;
-  left: 50%;
-  transform: translateX(-50%);
-  min-width: 260px;
-  max-width: 90%;
-  padding: 12px 20px;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 0.9em;
-  color: #fff;
-  text-align: center;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 9999;
-  transition: opacity .3s, transform .3s;
-}
-.notif.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-.notif.success {
-  background: linear-gradient(135deg,#00b56a,#00da80);
-}
-.notif.warning {
-  background: linear-gradient(135deg,#ffb200,#ffca40);
-  color: #333;
-}
-.notif.error {
-  background: linear-gradient(135deg,#e63946,#ff6b6b);
-}
+.notif{position:fixed;top:15px;left:50%;transform:translateX(-50%);
+min-width:260px;max-width:90%;padding:12px 20px;border-radius:10px;
+font-weight:600;font-size:.9em;color:#fff;text-align:center;
+box-shadow:0 4px 10px rgba(0,0,0,.15);opacity:0;pointer-events:none;
+z-index:9999;transition:opacity .3s,transform .3s;}
+.notif.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.notif.success{background:linear-gradient(135deg,#00b56a,#00da80);}
+.notif.warning{background:linear-gradient(135deg,#ffb200,#ffca40);color:#333;}
+.notif.error{background:linear-gradient(135deg,#e63946,#ff6b6b);}
 </style>
 
-<!-- 🟩 LOGIKA TLAČÍTEK + ODESLÁNÍ NA WORKER -->
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const sendBtn = document.getElementById("btnSendToDetail");
-  const exportBtn = document.getElementById("btnExportPdf");
-  const wait = document.getElementById("waitOverlay");
+document.addEventListener("DOMContentLoaded",()=>{
+  const sendBtn=document.getElementById("btnSendToDetail");
+  const exportBtn=document.getElementById("btnExportPdf");
+  const wait=document.getElementById("waitOverlay");
 
-  window.showNotif = function(type="success", text="Hotovo") {
-    const n = document.getElementById("notif");
-    if (!n) return;
-    n.className = `notif ${type}`;
-    n.textContent = text;
-    n.classList.add("show");
+  window.showNotif=function(type="success",text="Hotovo"){
+    const n=document.getElementById("notif");if(!n)return;
+    n.className=`notif ${type}`;n.textContent=text;n.classList.add("show");
     clearTimeout(window._notifTimer);
-    window._notifTimer = setTimeout(() => n.classList.remove("show"), 2500);
+    window._notifTimer=setTimeout(()=>n.classList.remove("show"),2500);
   };
 
-  // 🔹 Export PDF (s uložením do Worker)
-  exportBtn?.addEventListener("click", async () => {
-    try {
-      wait?.classList.add("active");
-      if (typeof window.generatePdf === "function") {
-        const blob = await window.generatePdf(true);
+  // 🔹 Export PDF (záloha do Workeru)
+  exportBtn?.addEventListener("click",async()=>{
+    try{
+      wait.classList.add("active");
+      if(typeof window.generatePdf==="function"){
+        const blob=await window.generatePdf(true);
         await savePhotoToWorker(blob);
-        showNotif("success", "PDF exportováno a zálohováno");
-      } else {
-        showNotif("warning", "Export PDF není dostupný");
-      }
-    } catch (e) {
-      console.error(e);
-      showNotif("error", "Chyba při exportu PDF");
-    } finally {
-      wait?.classList.remove("active");
-    }
+        showNotif("success","PDF exportováno a zálohováno");
+      }else showNotif("warning","Export PDF není dostupný");
+    }catch(e){
+      console.error(e);showNotif("error","Chyba při exportu PDF");
+    }finally{wait.classList.remove("active");}
   });
 
   // 🔹 Odeslat do detailu zákazníka
-  sendBtn?.addEventListener("click", async () => {
-    try {
-      wait?.classList.add("active");
-      if (typeof window.generatePdf === "function") {
-        const blob = await window.generatePdf(true);
+  sendBtn?.addEventListener("click",async()=>{
+    try{
+      wait.classList.add("active");
+      if(typeof window.generatePdf==="function"){
+        const blob=await window.generatePdf(true);
         await savePhotoToWorker(blob);
-        showNotif("success", "Odesílám do detailu...");
-        setTimeout(() => { window.location.href = "protokol.html"; }, 1200);
-      } else {
-        showNotif("warning", "Nelze vytvořit PDF");
-      }
-    } catch (e) {
-      console.error(e);
-      showNotif("error", "Chyba při odesílání");
-    } finally {
-      wait?.classList.remove("active");
-    }
+        showNotif("success","Odesláno do detailu");
+        setTimeout(()=>window.location.href="protokol.html",1000);
+      }else showNotif("warning","Nelze vytvořit PDF");
+    }catch(e){
+      console.error(e);showNotif("error","Chyba při odesílání");
+    }finally{wait.classList.remove("active");}
   });
 });
-</script>
 
-<!-- 🟩 DOPLNĚK – Uložení fotodokumentace do JSON přes Worker -->
-<script>
-async function savePhotoToWorker(pdfBlob) {
-  try {
-    const reader = new FileReader();
-    reader.onloadend = async function() {
-      const base64pdf = reader.result;
-      const customer = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
-      const payload = {
-        cislo: customer.cislo || "",
-        zakaznik: customer.zakaznik || "",
-        datum: new Date().toISOString(),
-        file: base64pdf
+/* 🧩 Opravené – ukládání do Workeru */
+async function savePhotoToWorker(pdfBlob){
+  try{
+    const reader=new FileReader();
+    reader.onloadend=async()=>{
+      const base64pdf=reader.result;
+      const customer=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
+      const record={
+        cislo:customer.cislo||"",
+        zakaznik:customer.zakaznik||"",
+        datum:new Date().toISOString(),
+        file:base64pdf
       };
-
-      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+      const res=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({record}) // ✅ Opraveno – Worker vyžaduje {record:{...}}
       });
-
-      if (res.ok) {
+      if(res.ok){
         console.log("📤 Fotodokumentace uložena do photocustomer.json");
-      } else {
-        console.warn("⚠️ Uložení na server selhalo:", res.status);
+        showNotif("success","Uloženo do detailu zákazníka");
+      }else{
+        console.warn("⚠️ Uložení selhalo:",res.status);
+        showNotif("warning","Nelze uložit na server");
       }
     };
     reader.readAsDataURL(pdfBlob);
-  } catch (err) {
-    console.error("❌ Chyba při ukládání fotodokumentace:", err);
+  }catch(err){
+    console.error("❌ Chyba ukládání fotodokumentace:",err);
+    showNotif("error","Chyba při ukládání");
   }
 }
 </script>
-
-<!-- 🟩 KONEC ČÁSTI 3/3 -->
-
-
-
-
+<!-- 🟩 KONEC OPRAVENÉ ČÁSTI 3/3 -->
