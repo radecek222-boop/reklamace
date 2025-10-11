@@ -94,159 +94,36 @@ h2 {
   </script>
 <!-- 🟩 KONEC ČÁSTI 1/3 -->
 
-
-
-
-<!-- 🟩 ZAČÁTEK ČÁSTI 2/3 – BLOKY FOTEK + MODÁLNÍ NÁHLED (FINÁLNÍ VERZE) -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 2/3 – BLOKY FOTEK + AUTO UPLOAD + 24H HLÍDÁNÍ -->
 <style>
-.photo-block {
-  border:1px solid #ccc;
-  border-radius:10px;
-  padding:14px 12px 10px;
-  margin-top:16px;
-  background:linear-gradient(180deg,#f8f8f8 0%,#ececec 100%);
-  transition:background .2s,transform .1s;
-  cursor:pointer;
-}
-.photo-block:hover {
-  background:#f2f2f2;
-  transform:scale(1.01);
-}
-.photo-title {
-  font-size:0.75em;
-  font-weight:700;
-  color:#333;
-  margin-bottom:8px;
-  text-transform:uppercase;
-  letter-spacing:0.8px;
-}
-.photo-preview {
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  justify-content:flex-start;
-  align-items:flex-start;
-}
-.photo-thumb {
-  width:90px;
-  height:60px;
-  border-radius:6px;
-  object-fit:cover;
-  border:1px solid #ccc;
-  box-shadow:0 2px 5px rgba(0,0,0,0.15);
-  cursor:pointer;
-  transition:transform .15s ease, box-shadow .2s ease;
-}
-.photo-thumb:hover {
-  transform:scale(1.05);
-  box-shadow:0 3px 10px rgba(0,0,0,0.25);
-}
-
-/* 🧭 MODÁLNÍ NÁHLED – pinch-zoom + posun */
-.photo-modal {
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.85);
-  justify-content:center;
-  align-items:center;
-  z-index:9999;
-  overflow:hidden;
-}
-.photo-modal.active { display:flex; }
-
-.photo-modal-content {
-  background:transparent;
-  border-radius:14px;
-  max-width:95vw;
-  max-height:95vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  overflow:hidden;
-  position:relative;
-}
-#modalImg {
-  width:auto;
-  height:auto;
-  max-width:90vw;
-  max-height:85vh;
-  border-radius:10px;
-  object-fit:contain;
-  transition:transform .2s ease;
-  cursor:grab;
-  touch-action:none;
-}
-#modalImg:active { cursor:grabbing; }
-
-.photo-modal-buttons {
-  display:flex;
-  gap:14px;
-  margin-top:14px;
-  position:absolute;
-  bottom:20px;
-  left:50%;
-  transform:translateX(-50%);
-}
-.btn-delete,
-.btn-close {
-  font-weight:600;
-  font-size:1em;
-  border:none;
-  border-radius:10px;
-  padding:12px 26px;
-  cursor:pointer;
-  box-shadow:0 3px 8px rgba(0,0,0,0.25);
-  transition:transform .15s ease,opacity .2s ease;
-}
-.btn-delete {
-  background:linear-gradient(135deg,#e63946,#ff6b6b);
-  color:#fff;
-}
-.btn-close {
-  background:linear-gradient(135deg,#9b9b9b,#bfbfbf);
-  color:#fff;
-}
-.btn-delete:hover,
-.btn-close:hover {
-  transform:scale(1.05);
-  opacity:0.9;
-}
+.photo-block{border:1px solid #ccc;border-radius:10px;padding:14px 12px 10px;margin-top:16px;background:linear-gradient(180deg,#f8f8f8 0%,#ececec 100%);transition:background .2s,transform .1s;cursor:pointer;}
+.photo-block:hover{background:#f2f2f2;transform:scale(1.01);}
+.photo-title{font-size:.75em;font-weight:700;color:#333;margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px;}
+.photo-preview{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-start;align-items:flex-start;}
+.photo-thumb{width:90px;height:60px;border-radius:6px;object-fit:cover;border:1px solid #ccc;box-shadow:0 2px 5px rgba(0,0,0,.15);cursor:pointer;transition:transform .15s ease,box-shadow .2s ease;}
+.photo-thumb:hover{transform:scale(1.05);box-shadow:0 3px 10px rgba(0,0,0,.25);}
+.photo-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);justify-content:center;align-items:center;z-index:9999;overflow:hidden;}
+.photo-modal.active{display:flex;}
+.photo-modal-content{background:transparent;border-radius:14px;max-width:95vw;max-height:95vh;display:flex;justify-content:center;align-items:center;overflow:hidden;position:relative;}
+#modalImg{width:auto;height:auto;max-width:90vw;max-height:85vh;border-radius:10px;object-fit:contain;transition:transform .2s ease;cursor:grab;touch-action:none;}
+#modalImg:active{cursor:grabbing;}
+.photo-modal-buttons{display:flex;gap:14px;margin-top:14px;position:absolute;bottom:20px;left:50%;transform:translateX(-50%);}
+.btn-delete,.btn-close{font-weight:600;font-size:1em;border:none;border-radius:10px;padding:12px 26px;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25);transition:transform .15s ease,opacity .2s ease;}
+.btn-delete{background:linear-gradient(135deg,#e63946,#ff6b6b);color:#fff;}
+.btn-close{background:linear-gradient(135deg,#9b9b9b,#bfbfbf);color:#fff;}
+.progress-bar-container{width:100%;background:#ddd;border-radius:8px;height:16px;margin-top:12px;overflow:hidden;}
+.progress-bar-fill{background:linear-gradient(135deg,#00b56a,#00da80);height:100%;width:0%;transition:width .3s ease;}
 </style>
 
-<!-- 🟨 BLOKY FOTEK -->
-<div class="photo-block" data-section="before">
-  <div class="photo-title">BEFORE</div>
-  <div class="photo-preview" id="preview-before"></div>
-</div>
+<div class="photo-block" data-section="before"><div class="photo-title">BEFORE</div><div class="photo-preview" id="preview-before"></div></div>
+<div class="photo-block" data-section="id"><div class="photo-title">ID</div><div class="photo-preview" id="preview-id"></div></div>
+<div class="photo-block" data-section="problem"><div class="photo-title">DETAIL BUG</div><div class="photo-preview" id="preview-problem"></div></div>
+<div class="photo-block" data-section="repair"><div class="photo-title">REPAIR</div><div class="photo-preview" id="preview-repair"></div></div>
+<div class="photo-block" data-section="after"><div class="photo-title">AFTER</div><div class="photo-preview" id="preview-after"></div></div>
 
-<div class="photo-block" data-section="id">
-  <div class="photo-title">ID</div>
-  <div class="photo-preview" id="preview-id"></div>
-</div>
-
-<div class="photo-block" data-section="problem">
-  <div class="photo-title">DETAIL BUG</div>
-  <div class="photo-preview" id="preview-problem"></div>
-</div>
-
-<div class="photo-block" data-section="repair">
-  <div class="photo-title">REPAIR</div>
-  <div class="photo-preview" id="preview-repair"></div>
-</div>
-
-<div class="photo-block" data-section="after">
-  <div class="photo-title">AFTER</div>
-  <div class="photo-preview" id="preview-after"></div>
-</div>
-
-<!-- 🟨 SKRYTÝ INPUT + PROGRESS -->
 <input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
-<div class="progress-bar-container">
-  <div class="progress-bar-fill" id="progressFill"></div>
-</div>
+<div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div>
 
-<!-- 🟨 MODÁLNÍ OKNO -->
 <div id="photoModal" class="photo-modal">
   <div class="photo-modal-content">
     <img id="modalImg" src="">
@@ -257,7 +134,6 @@ h2 {
   </div>
 </div>
 
-<!-- 🟨 LOGIKA BLOKŮ -->
 <script>
 (function(){
   const input=document.getElementById("photoInput");
@@ -267,366 +143,126 @@ h2 {
   const modalImg=document.getElementById("modalImg");
   const btnDelete=document.getElementById("btnDeletePhoto");
   const btnClose=document.getElementById("btnClosePhoto");
-  const data=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
-  const orderNum=data.cislo||"";
-  let uploadBtn=null;
 
-  let currentSection=null,currentIndex=null;
-
-  // 🔹 Klikací bloky
-  document.querySelectorAll(".photo-block").forEach(block=>{
-    block.addEventListener("click",()=>{
-      input.dataset.section=block.dataset.section;
-      input.click();
-    });
+  // 🕐 Kontrola 24 h
+  document.addEventListener("DOMContentLoaded",()=>{
+    const uploadedAt=Number(localStorage.getItem("photoUploadedAt")||0);
+    const sent=localStorage.getItem("photoSent")==="true";
+    if(uploadedAt && !sent && Date.now()-uploadedAt>24*60*60*1000){
+      localStorage.removeItem("photoPdfData");
+      localStorage.removeItem("photoUploadedAt");
+      localStorage.removeItem("photoSent");
+      ["before","id","problem","repair","after"].forEach(id=>{const el=document.getElementById("preview-"+id);if(el)el.innerHTML="";});
+      fill.style.width="0%";
+      alert("📁 Fotodokumentace byla automaticky odstraněna po 24 hodinách");
+    }
   });
 
-  // 🔹 Po výběru fotek
+  document.querySelectorAll(".photo-block").forEach(block=>{
+    block.addEventListener("click",()=>{input.dataset.section=block.dataset.section;input.click();});
+  });
+
   input.addEventListener("change",async()=>{
-    const section=input.dataset.section;
-    if(!section)return;
-    const files=Array.from(input.files).slice(0,10);
+    const section=input.dataset.section;if(!section)return;
+    const files=Array.from(input.files);
     for(const [i,f] of files.entries()){
       const blob=await compressImage(f,90);
       const url=URL.createObjectURL(blob);
       const originalURL=URL.createObjectURL(f);
-      const name=`${section}-${orderNum}-${i+1}`;
       const orientation=await getOrientation(f);
-      sections[section].push({blob,url,originalURL,name,orientation});
+      sections[section].push({blob,url,originalURL,orientation});
     }
     render(section);
     input.value="";
+    await autoUpload();
   });
 
   async function compressImage(file,maxDim=90){
     const img=await createImageBitmap(file);
     const canvas=document.createElement("canvas");
-    let[w,h]=[img.width,img.height];
-    const ratio=w/h;
+    let w=img.width,h=img.height,ratio=w/h;
     if(w>h&&w>maxDim){h=Math.round(maxDim/ratio);w=maxDim;}
-    else if(h>w&&h>maxDim){w=Math.round(maxDim*ratio);h=maxDim;}
-    canvas.width=w;canvas.height=h;
-    const ctx=canvas.getContext("2d");
+    else if(h>=w&&h>maxDim){w=Math.round(maxDim*ratio);h=maxDim;}
+    canvas.width=w;canvas.height=h;const ctx=canvas.getContext("2d");
     ctx.drawImage(img,0,0,w,h);
     return new Promise(r=>canvas.toBlob(r,"image/jpeg",0.85));
   }
-
-  async function getOrientation(file){
-    const img=await createImageBitmap(file);
-    return img.width>img.height?"landscape":"portrait";
-  }
-
-  // 🔹 Zobrazení miniatur
+  async function getOrientation(file){const img=await createImageBitmap(file);return img.width>img.height?"landscape":"portrait";}
   function render(section){
-    const cont=document.getElementById("preview-"+section);
-    cont.innerHTML="";
+    const c=document.getElementById("preview-"+section);
+    c.innerHTML="";
     sections[section].forEach((p,i)=>{
       const img=document.createElement("img");
-      img.src=p.url;
-      img.className="photo-thumb "+(p.orientation==="portrait"?"portrait":"landscape");
-      img.title=p.name;
+      img.src=p.url;img.className="photo-thumb "+(p.orientation==="portrait"?"portrait":"landscape");
       img.onclick=()=>openModal(section,i);
-      cont.append(img);
+      c.append(img);
     });
   }
 
-  // 🔹 Otevření modálu s velkým originálem
-  function openModal(section,i){
-    currentSection=section;
-    currentIndex=i;
-    const photo=sections[section][i];
-    modalImg.src=photo.originalURL||photo.url;
-    resetTransform();
-    modal.classList.add("active");
-  }
-
-  btnClose.addEventListener("click",()=>{modal.classList.remove("active");resetTransform();});
-  modal.addEventListener("click",e=>{if(e.target===modal){modal.classList.remove("active");resetTransform();}});
-
-  btnDelete.addEventListener("click",()=>{
-    if(currentSection!==null&&currentIndex!==null){
-      sections[currentSection].splice(currentIndex,1);
-      render(currentSection);
-      modal.classList.remove("active");
-      resetTransform();
-    }
-  });
-
-  // 🧭 Zoom & Pan (touch + trackpad)
-  let scale=1,startDist=0,moveX=0,moveY=0,startX=0,startY=0,dragging=false,lastX=0,lastY=0;
+  // Modal zoom
+  let scale=1,moveX=0,moveY=0,lastX=0,lastY=0,drag=false;
   function resetTransform(){scale=1;moveX=0;moveY=0;modalImg.style.transform="translate(0,0) scale(1)";}
+  function openModal(section,i){const p=sections[section][i];modalImg.src=p.originalURL||p.url;resetTransform();modal.classList.add("active");}
+  btnClose.onclick=()=>{modal.classList.remove("active");};
+  modal.onclick=e=>{if(e.target===modal){modal.classList.remove("active");}};
+  btnDelete.onclick=()=>{modal.classList.remove("active");};
+  modalImg.onwheel=e=>{e.preventDefault();const d=e.deltaY>0?-0.1:0.1;scale=Math.min(Math.max(1,scale+d),5);modalImg.style.transform=`translate(${moveX}px,${moveY}px) scale(${scale})`;};
 
-  modalImg.addEventListener("wheel",e=>{
-    e.preventDefault();
-    const delta=e.deltaY>0?-0.1:0.1;
-    scale=Math.min(Math.max(1,scale+delta),5);
-    modalImg.style.transform=`translate(${moveX}px,${moveY}px) scale(${scale})`;
-  });
-
-  modalImg.addEventListener("mousedown",e=>{
-    dragging=true;lastX=e.clientX;lastY=e.clientY;
-  });
-  modalImg.addEventListener("mousemove",e=>{
-    if(!dragging)return;
-    moveX+=e.clientX-lastX;moveY+=e.clientY-lastY;
-    lastX=e.clientX;lastY=e.clientY;
-    modalImg.style.transform=`translate(${moveX}px,${moveY}px) scale(${scale})`;
-  });
-  window.addEventListener("mouseup",()=>dragging=false);
-
-  modalImg.addEventListener("touchstart",e=>{
-    if(e.touches.length===2){
-      startDist=Math.hypot(
-        e.touches[0].clientX-e.touches[1].clientX,
-        e.touches[0].clientY-e.touches[1].clientY
-      );
-    }else if(e.touches.length===1){
-      startX=e.touches[0].clientX;startY=e.touches[0].clientY;
-    }
-  },{passive:false});
-
-  modalImg.addEventListener("touchmove",e=>{
-    if(e.touches.length===2){
-      e.preventDefault();
-      const newDist=Math.hypot(
-        e.touches[0].clientX-e.touches[1].clientX,
-        e.touches[0].clientY-e.touches[1].clientY
-      );
-      const delta=(newDist-startDist)/200;
-      scale=Math.min(Math.max(1,scale+delta),5);
-      startDist=newDist;
-      modalImg.style.transform=`translate(${moveX}px,${moveY}px) scale(${scale})`;
-    }else if(e.touches.length===1&&scale>1){
-      e.preventDefault();
-      const dx=e.touches[0].clientX-startX;
-      const dy=e.touches[0].clientY-startY;
-      moveX+=dx;moveY+=dy;
-      startX=e.touches[0].clientX;startY=e.touches[0].clientY;
-      modalImg.style.transform=`translate(${moveX}px,${moveY}px) scale(${scale})`;
-    }
-  },{passive:false});
-
-  // 🔹 Upload všech fotek – procenta v tlačítku
-  async function uploadAll(){
-    uploadBtn=document.getElementById("btnUploadAll");
-    const all=Object.values(sections).flat();
-    if(!all.length)return alert("Není vybrána žádná fotografie.");
+  async function autoUpload(){
+    const all=Object.values(sections).flat();if(!all.length)return;
     let uploaded=0;
-    uploadBtn.disabled=true;
-    for(const p of all){
-      await new Promise(r=>setTimeout(r,200));
-      uploaded++;
-      const pct=Math.round((uploaded/all.length)*100);
-      fill.style.width=pct+"%";
-      if(uploadBtn) uploadBtn.innerText=`NAHRÁVÁM – ${pct}%`;
-    }
-    if(uploadBtn){uploadBtn.innerText="NAHRÁT";uploadBtn.disabled=false;}
+    for(const p of all){await new Promise(r=>setTimeout(r,150));uploaded++;fill.style.width=Math.round((uploaded/all.length)*100)+"%";}
+    localStorage.setItem("photoUploadedAt",Date.now());localStorage.setItem("photoSent","false");
   }
-  window.uploadAll=uploadAll;
 })();
 </script>
-<!-- 🟩 KONEC ČÁSTI 2/3 – BLOKY FOTEK + MODÁLNÍ NÁHLED (FINÁLNÍ VERZE) -->
+<!-- 🟩 KONEC ČÁSTI 2/3 -->
 
 
-<!-- 🟩 ZAČÁTEK ČÁSTI 3/3 – SJEDNOCENÁ TLAČÍTKA (NA PIXEL STEJNÁ VERZE) -->
-<div class="actions dual-actions" id="uploadSection">
-  <button type="button" id="btnUploadAll" class="btn-uniform green"><span>NAHRÁT</span></button>
+
+<!-- 🟩 ZAČÁTEK ČÁSTI 3/3 – TLAČÍTKA (BEZ „NAHRÁT“) -->
+<div class="actions dual-actions">
   <button type="button" id="btnSendToDetail" class="btn-uniform blue"><span>ODESLAT DO DETAILU ZÁKAZNÍKA</span></button>
+  <a href="index.html" class="btn-uniform gray"><span>ZPĚT</span></a>
 </div>
 
 <div class="actions dual-actions" style="margin-top:10px;">
-  <a href="index.html" class="btn-uniform gray"><span>ZPĚT</span></a>
   <button type="button" id="btnExportPdf" class="btn-uniform lightblue"><span>EXPORT TO PDF</span></button>
 </div>
 
 <div class="wait-overlay" id="waitOverlay">
-  <div class="hourglass"></div>
-  <p>Nahrávám fotografie...</p>
+  <div class="hourglass"></div><p>Pracuji…</p>
 </div>
 
 <style>
-.dual-actions{
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-  gap:10px;
-  margin-top:30px;
-}
-
-/* 🟩 SJEDNOCENÝ STYL – STEJNÁ VELIKOST PRO VŠECHNA TLAČÍTKA */
-.btn-uniform{
-  flex:1 1 45%;
-  max-width:320px;
-  height:56px;                /* pevná výška */
-  font-size:1em;
-  font-weight:600;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-  color:#fff;
-  text-align:center;
-  text-decoration:none;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:0 3px 8px rgba(0,0,0,0.15);
-  transition:transform .15s ease,opacity .2s ease;
-  box-sizing:border-box;
-  appearance:none;
-  -webkit-appearance:none;
-  line-height:1;
-  padding:0;                  /* odstraní rozdíl mezi <button> a <a> */
-  white-space:normal;
-}
-.btn-uniform span{
-  display:block;
-  padding:0 14px;             /* vnitřní odsazení textu */
-  text-align:center;
-}
+.dual-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:30px;}
+.btn-uniform{flex:1 1 45%;max-width:320px;height:56px;font-size:1em;font-weight:600;border:none;border-radius:8px;cursor:pointer;color:#111;text-align:center;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.15);transition:transform .15s ease,opacity .2s ease;box-sizing:border-box;padding:0;line-height:1;}
+.btn-uniform span{display:block;padding:0 14px;}
 .btn-uniform:hover{transform:scale(1.05);opacity:.9;}
-.btn-uniform.green{background:linear-gradient(135deg,#00b56a,#00da80);}
-.btn-uniform.blue{background:linear-gradient(135deg,#0090d4,#33b6ff);}
-.btn-uniform.lightblue{background:linear-gradient(135deg,#00aaff,#66ccff);}
-.btn-uniform.gray{background:linear-gradient(135deg,#9b9b9b,#bfbfbf);}
-
-/* 🕓 Čekací overlay */
-.wait-overlay{
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(255,255,255,0.85);
-  backdrop-filter:blur(2px);
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
-  font-weight:600;
-  color:#333;
-  z-index:2000;
-}
+.btn-uniform.blue{background:linear-gradient(135deg,#fefefe,#e5e5e5);}
+.btn-uniform.lightblue{background:linear-gradient(135deg,#b0dfff,#e2f1ff);}
+.btn-uniform.gray{background:linear-gradient(135deg,#c0c0c0,#e0e0e0);}
+@media(max-width:768px){#btnSendToDetail{flex:1 1 100%;max-width:none;}}
+.wait-overlay{display:none;position:fixed;inset:0;background:rgba(255,255,255,.85);backdrop-filter:blur(2px);justify-content:center;align-items:center;flex-direction:column;font-weight:600;color:#333;z-index:2000;}
 .wait-overlay.active{display:flex;}
-.hourglass{
-  border:4px solid #ccc;
-  border-top:4px solid #00b56a;
-  border-radius:50%;
-  width:40px;
-  height:40px;
-  animation:spin 1s linear infinite;
-  margin-bottom:10px;
-}
+.hourglass{border:4px solid #ccc;border-top:4px solid #00b56a;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin-bottom:10px;}
 @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
 </style>
 
-<!-- 🟨 NOTIFIKACE -->
-<div id="notif" class="notif"></div>
-<style>
-.notif{
-  position:fixed;
-  top:15px;
-  left:50%;
-  transform:translateX(-50%);
-  min-width:260px;
-  max-width:90%;
-  padding:12px 20px;
-  border-radius:10px;
-  font-weight:600;
-  font-size:0.9em;
-  color:#fff;
-  text-align:center;
-  box-shadow:0 4px 10px rgba(0,0,0,0.15);
-  opacity:0;
-  pointer-events:none;
-  z-index:9999;
-  transition:opacity .3s,transform .3s;
-}
-.notif.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.notif.success{background:linear-gradient(135deg,#00b56a,#00da80);}
-.notif.warning{background:linear-gradient(135deg,#ffb200,#ffca40);color:#333;}
-.notif.error{background:linear-gradient(135deg,#e63946,#ff6b6b);}
-</style>
-
-<!-- 🟨 LOGIKA TLAČÍTEK -->
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const uploadBtn = document.getElementById("btnUploadAll");
-  const sendBtn = document.getElementById("btnSendToDetail");
-  const exportBtn = document.getElementById("btnExportPdf");
-  const wait = document.getElementById("waitOverlay");
-
-  window.showNotif = function(type="success", text="Hotovo") {
-    const n=document.getElementById("notif");
-    if(!n) return;
-    n.className=`notif ${type}`;
-    n.textContent=text;
-    n.classList.add("show");
-    clearTimeout(window._notifTimer);
-    window._notifTimer=setTimeout(()=>n.classList.remove("show"),2500);
-  };
-
-  // 🔹 Upload fotek
-  uploadBtn?.addEventListener("click", async () => {
-    try {
-      wait?.classList.add("active");
-      if (typeof window.uploadAll === "function") {
-        await window.uploadAll();
-        showNotif("success","Fotky byly nahrány");
-      } else {
-        showNotif("warning","Funkce uploadAll() není dostupná");
-      }
-    } catch(e) {
-      console.error(e);
-      showNotif("error","Chyba při nahrávání");
-    } finally {
-      wait?.classList.remove("active");
-    }
-  });
-
-  // 🔹 Export PDF
-  exportBtn?.addEventListener("click", async () => {
-    try {
-      if (typeof window.generatePdf === "function") {
-        await window.generatePdf();
-        showNotif("success","PDF vytvořeno");
-      } else {
-        showNotif("warning","Export PDF zatím není aktivní");
-      }
-    } catch(e) {
-      console.error(e);
-      showNotif("error","Chyba při exportu PDF");
-    }
-  });
-
-  // 🔹 Odeslat PDF do detailu zákazníka
-  sendBtn?.addEventListener("click", async () => {
-    try {
-      showNotif("success","Generuji PDF...");
-      if (typeof window.generatePdf === "function") {
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF("p","mm","a4");
-        const blob = pdf.output("blob");
-        const reader = new FileReader();
-        reader.onloadend = function() {
-          const base64 = reader.result;
-          localStorage.setItem("photoPdfData", base64);
-          showNotif("success","Odesílám do detailu...");
-          setTimeout(()=>{ window.location.href="protokol.html"; }, 1200);
-        };
-        await window.generatePdf();
-        reader.readAsDataURL(blob);
-      } else {
-        showNotif("warning","Nelze vytvořit PDF");
-      }
-    } catch(e) {
-      console.error(e);
-      showNotif("error","Chyba při odesílání PDF");
-    }
-  });
+document.addEventListener("DOMContentLoaded",()=>{
+  const send=document.getElementById("btnSendToDetail");
+  const exportBtn=document.getElementById("btnExportPdf");
+  send.onclick=()=>{localStorage.setItem("photoSent","true");alert("📤 Odesílám do detailu zákazníka…");window.location.href="protokol.html";};
+  exportBtn.onclick=async()=>{if(typeof window.generatePdf==="function"){await window.generatePdf();alert("✅ PDF vytvořeno");}else alert("⚠️ Export PDF zatím není aktivní");};
 });
 </script>
 
-<footer style="text-align:center;margin:30px 0 20px;font-size:0.8em;color:#888;">
+<footer style="text-align:center;margin:30px 0 20px;font-size:.8em;color:#888;">
   White Glove Service s.r.o. • © 2025
 </footer>
-<!-- 🟩 KONEC ČÁSTI 3/3 – SJEDNOCENÁ TLAČÍTKA (NA PIXEL STEJNÁ VERZE) -->
+<!-- 🟩 KONEC ČÁSTI 3/3 – TLAČÍTKA (BEZ „NAHRÁT“) -->
+
 
 
 
