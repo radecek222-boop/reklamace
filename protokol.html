@@ -507,7 +507,7 @@ async function exportPDF() {
 
     // 🟢 Označit jako hotovo po exportu
     try {
-      const data = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
+      const data = JSON.parse(localStorage.getItem("protokolData") || "{}");
       if (data.cislo) {
         data.stav = "hotovo";
         await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
@@ -530,6 +530,7 @@ async function exportPDF() {
 /* 🟨🟨🟨🟨🟨 KONEC BLOKU J-F – Export PDF + označení hotovo */
 
 
+
 /* 🟨🟨🟨🟨🟨 ZAČÁTEK BLOKU J-G – Odeslání zákazníkovi + označení hotovo */
 async function mailCustomer() {
   try {
@@ -541,7 +542,7 @@ async function mailCustomer() {
 
     // 🟢 Označit jako hotovo po odeslání
     try {
-      const data = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
+      const data = JSON.parse(localStorage.getItem("protokolData") || "{}");
       if (data.cislo) {
         data.stav = "hotovo";
         await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
@@ -566,6 +567,7 @@ async function mailCustomer() {
   }
 }
 /* 🟨🟨🟨🟨🟨 KONEC BLOKU J-G – Odeslání zákazníkovi + označení hotovo */
+
 
 </script>
 <!-- 🟩 KONEC SEKCE J -->
