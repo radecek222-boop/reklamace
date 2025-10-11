@@ -1170,6 +1170,203 @@ function calcDistanceCoords(a, b, c, d) {
 <!-- 🟩 KONEC C-STYLE -->
 
 
+<!-- 🟩 DETAIL MODAL – STABILNÍ VERZE (fixnuté zobrazení tlačítek a mapy) -->
+<style>
+/* 📦 HLAVNÍ OBAL */
+.detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+.detail-overlay.active {
+  opacity: 1;
+}
+
+/* 🪟 VLASTNÍ MODÁL */
+.detail-modal {
+  background: #fff;
+  border-radius: 14px;
+  padding: 18px;
+  width: 90vw;
+  max-width: 1150px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+  font-family: "Inter", sans-serif;
+}
+
+/* 🔳 ROZLOŽENÍ DVOUPANEL */
+.grid-layout {
+  display: grid;
+  grid-template-columns: 370px 1fr;
+  gap: 15px;
+  align-items: start;
+}
+
+/* 🧭 LEVÝ PANEL */
+.left-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 🗓️ + ⏰ – datum + čas */
+.date-time-row {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 10px;
+  align-items: start;
+  margin-bottom: 10px;
+}
+#miniCalendar {
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  min-height: 280px;
+  box-shadow: none;
+}
+.date-right-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+}
+.custom-time-picker {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+.custom-time-picker select {
+  font-size: 1em;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: #111;
+}
+.term-info-box {
+  background: #f3f3f3;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+  font-weight: 600;
+  color: #555;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 🔲 DLAŽDICE */
+.tile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 10px;
+  z-index: 5000;
+  position: relative;
+}
+.tile-btn {
+  height: 85px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.95em;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .2s ease, opacity .2s ease;
+}
+.tile-btn:hover { transform: scale(1.03); opacity: 0.9; }
+
+/* 🎨 BARVY TLAČÍTEK */
+.btn-grayContact { background: linear-gradient(135deg,#888,#aaa); }
+.btn-lightgray   { background: linear-gradient(135deg,#aaa,#ccc); }
+.btn-green       { background: linear-gradient(135deg,#4caf50,#6fdd72); }
+.btn-purple      { background: linear-gradient(135deg,#b993ff,#d4b5ff); }
+.btn-blue        { background: linear-gradient(135deg,#357aff,#6fa8ff); }
+
+@keyframes blinkRed {
+  0%,100% { background: linear-gradient(135deg,#ff4d4d,#ff8080); }
+  50%     { background: linear-gradient(135deg,#ff7373,#ffa0a0); }
+}
+.btn-redBlink { animation: blinkRed 1.5s infinite; }
+
+/* 🧾 PRAVÝ PANEL */
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.info-box {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fff;
+}
+.info-box .box-header {
+  font-weight: 700;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+  margin-bottom: 6px;
+}
+.info-box .box-content p {
+  margin: 2px 0;
+  font-size: 0.95em;
+}
+.distance-banner {
+  background: #f6f6f6;
+  border-radius: 8px;
+  padding: 6px 10px;
+  text-align: center;
+  font-size: 0.9em;
+  color: #333;
+}
+#mapDetail {
+  min-height: 280px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  overflow: hidden;
+  position: relative;
+  z-index: 100;
+}
+
+/* 🟢 ANIMACE A RESPONSIVITA */
+.flash-green { animation: flashGreen 1.2s ease; }
+@keyframes flashGreen {
+  0% { background:#d5f8d5; color:#116d2b; }
+  50% { background:#e9ffe9; color:#116d2b; }
+  100% { background:#f3f3f3; color:#555; }
+}
+
+@media (max-width: 900px) {
+  .grid-layout {
+    grid-template-columns: 1fr;
+  }
+  .tile-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .tile-btn {
+    height: 75px;
+    font-size: 0.9em;
+  }
+}
+</style>
+<!-- 🟩 KONEC DETAIL MODAL -->
+
+
+
 
 
 
