@@ -1,127 +1,3 @@
-<!DOCTYPE html>
-<html lang="cs">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Protokol – White Glove Service</title>
-
-<style>
-body {
-  font-family: Inter, sans-serif;
-  background:#f6f7fb;
-  margin:0;
-  padding:20px;
-  font-size:12px;
-  display:flex;
-  justify-content:center;
-}
-.wrapper {
-  width:100%;
-  max-width:900px;
-  background:white;
-  padding:20px;
-  box-shadow:0 0 10px rgba(0,0,0,0.1);
-  display:flex;
-  flex-direction:column;
-  align-items:flex-start;
-  box-sizing:border-box;
-}
-.header {
-  text-align:center;
-  margin-bottom:20px;
-  width:100%;
-}
-.header div:first-child {
-  font-size:28px;
-  font-weight:900;
-}
-.header div:last-child {
-  font-size:12px;
-  margin-top:4px;
-}
-table {
-  width:100%;
-  border-collapse:collapse;
-  margin:10px 0;
-}
-td { padding:6px; vertical-align:top; width:50%; }
-.label { font-weight:600; display:block; text-align:left; }
-.label .en-label { display:block; font-size:0.85em; color:#666; font-weight:normal; margin:0; }
-.section-title { font-weight:700; margin-top:20px; width:100%; text-align:left; }
-.section-title .en-label { font-size:0.9em; color:#666; font-weight:normal; margin-top:2px; }
-input, select, textarea {
-  width:100%; padding:6px 8px; border:1px solid #ccc; border-radius:4px;
-  font-size:1em; color:#111; background:#fff; box-sizing:border-box;
-}
-textarea { min-height:80px; resize:vertical; }
-.two-col-table { display:flex; gap:20px; width:100%; }
-.two-col-table .col { flex:1; min-width:320px; }
-.split-section { display:flex; gap:10px; width:100%; }
-textarea[readonly] { background:#f7f7f7; color:#444; }
-#signature-pad {
-  border:2px dashed #888; width:100%; height:200px;
-  background:white; touch-action:none; display:block;
-}
-.btns {
-  margin-top:20px;
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap:12px;
-  width:100%;
-}
-button {
-  height:44px; font-size:0.9em; border:none; border-radius:8px;
-  cursor:pointer; font-weight:600; color:white;
-  box-shadow:0 2px 5px rgba(0,0,0,0.2);
-  transition:transform 0.1s ease-in-out, opacity 0.2s;
-}
-button:hover { transform:scale(1.03); opacity:0.9; }
-@media screen and (max-width:768px){
-  .two-col-table { flex-direction:column; }
-  td { width:100%; display:block; }
-  .split-section { flex-direction:column; }
-  #signature-pad { height:180px; }
-}
-.notif{position:fixed;top:20px;left:50%;transform:translateX(-50%);
-background:linear-gradient(135deg,#00b56a,#00da80);color:#fff;
-padding:10px 20px;border-radius:8px;font-weight:600;font-size:0.9em;
-box-shadow:0 3px 10px rgba(0,0,0,0.2);opacity:0;transition:opacity .3s,transform .3s;
-z-index:3000;}
-.notif.show{opacity:1;transform:translate(-50%,10px);}
-.notif.error{background:linear-gradient(135deg,#e63946,#ff6b6b);}
-.notif.warning{background:linear-gradient(135deg,#ffb200,#ffca40);color:#222;}
-</style>
-</head>
-
-<body>
-
-<!-- 🟩 SEKCE A – AUTOMATICKÉ NAČTENÍ ÚDAJŮ ZÁKAZNÍKA -->
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  try {
-    const data = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
-    if (!data || Object.keys(data).length === 0) return;
-
-    const map = {
-      "order-number": data.cislo,
-      "claim-number": data.reklamace || "",
-      "customer": data.zakaznik,
-      "address": data.adresa,
-      "phone": data.telefon,
-      "email": data.email,
-      "brand": data.contract,
-      "model": data.model
-    };
-    Object.entries(map).forEach(([id, val]) => {
-      const el = document.getElementById(id);
-      if (el && val) el.value = val;
-    });
-  } catch (err) {
-    console.error("❌ Chyba při načítání zákazníka:", err);
-  }
-});
-</script>
-
 <div class="wrapper">
   <div class="header">
     <div>WHITE GLOVE SERVICE</div>
@@ -152,27 +28,15 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
   </div>
 
-
-
-
-    <!-- 🔹 POPISY -->
+  <!-- 🔹 POPISY -->
   <div class="section-title">Zákazník reklamuje<span class="en-label">Customer complaint</span></div>
-  <div class="split-section">
-    <textarea id="description-cz" placeholder="CZ"></textarea>
-    <textarea id="description-en" placeholder="EN" readonly></textarea>
-  </div>
+  <div class="split-section"><textarea id="description-cz" placeholder="CZ"></textarea><textarea id="description-en" placeholder="EN" readonly></textarea></div>
 
   <div class="section-title">Problém zjištěný technikem<span class="en-label">Detected problem</span></div>
-  <div class="split-section">
-    <textarea id="problem-cz" placeholder="CZ"></textarea>
-    <textarea id="problem-en" placeholder="EN" readonly></textarea>
-  </div>
+  <div class="split-section"><textarea id="problem-cz" placeholder="CZ"></textarea><textarea id="problem-en" placeholder="EN" readonly></textarea></div>
 
   <div class="section-title">Návrh opravy<span class="en-label">Repair proposal</span></div>
-  <div class="split-section">
-    <textarea id="repair-cz" placeholder="CZ"></textarea>
-    <textarea id="repair-en" placeholder="EN" readonly></textarea>
-  </div>
+  <div class="split-section"><textarea id="repair-cz" placeholder="CZ"></textarea><textarea id="repair-en" placeholder="EN" readonly></textarea></div>
 
   <!-- 🔹 CENY -->
   <div class="two-col-table">
@@ -197,21 +61,6 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
   </div>
 
-  <script>
-  function updateTotal(){
-    const w=parseFloat(priceWork.value)||0,
-          m=parseFloat(priceMaterial.value)||0,
-          s=parseFloat(priceSecond.value)||0,
-          t=parseFloat(priceTransport.value)||0;
-    priceTotal.value=(w+m+s+t).toFixed(2);
-  }
-  const priceWork=document.getElementById("price-work"),
-        priceMaterial=document.getElementById("price-material"),
-        priceSecond=document.getElementById("price-second"),
-        priceTransport=document.getElementById("price-transport"),
-        priceTotal=document.getElementById("price-total");
-  </script>
-
   <!-- 🔹 PODPIS -->
   <div class="section-title">Podpis zákazníka<span class="en-label">Customer signature</span></div>
   <canvas id="signature-pad"></canvas>
@@ -232,189 +81,196 @@ document.addEventListener("DOMContentLoaded", () => {
   </div>
 
   <div id="notif" class="notif"></div>
+</div> <!-- konec wrapperu -->
+<!-- 🧩 SCRIPTY JS – všechny mimo wrapper -->
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-  <!-- 🔹 EXTERNÍ KNIHOVNY -->
-  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-  <!-- 🔹 PŘEKLAD -->
-  <script>
-  async function translateCZtoEN(text){
-    if(!text.trim())return"";
-    try{
-      const res=await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=cs|en`);
-      const data=await res.json();
-      return data.responseData?.translatedText||"";
-    }catch{return"";}
-  }
-  function initTranslator(p){
-    const cz=document.getElementById(`${p}-cz`),en=document.getElementById(`${p}-en`);
-    if(!cz||!en)return;
-    let t;
-    cz.addEventListener("input",()=>{
-      clearTimeout(t);
-      if(!cz.value.trim()){en.value="";return;}
-      en.value="⏳ Překládám...";
-      t=setTimeout(async()=>en.value=await translateCZtoEN(cz.value),700);
-    });
-  }
-  window.addEventListener("load",()=>["description","problem","repair"].forEach(initTranslator));
-  </script>
-
-
-
-    <!-- 🔹 GENEROVÁNÍ + SPOJENÍ PDF -->
-  <script>
-  let signaturePad;
-
-  window.addEventListener("load",()=>{
-    const canvas=document.getElementById("signature-pad");
-    const resize=()=>{
-      const r=Math.max(window.devicePixelRatio||1,1);
-      canvas.width=canvas.offsetWidth*r;
-      canvas.height=canvas.offsetHeight*r;
-      canvas.getContext("2d").scale(r,r);
+<script>
+/* 🟩 AUTOMATICKÉ NAČTENÍ ÚDAJŮ */
+document.addEventListener("DOMContentLoaded",()=>{
+  try{
+    const data=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
+    if(!data||Object.keys(data).length===0)return;
+    const map={
+      "order-number":data.cislo,
+      "claim-number":data.reklamace||"",
+      "customer":data.zakaznik,
+      "address":data.adresa,
+      "phone":data.telefon,
+      "email":data.email,
+      "brand":data.contract,
+      "model":data.model
     };
-    window.addEventListener("resize",resize);
-    resize();
-    signaturePad=new SignaturePad(canvas,{minWidth:1,maxWidth:2,penColor:"black",backgroundColor:"white"});
-    const saved=localStorage.getItem("signatureImage");
-    if(saved){
-      const img=new Image();
-      img.onload=()=>signaturePad.fromDataURL(saved);
-      img.src=saved;
-    }
+    Object.entries(map).forEach(([id,val])=>{
+      const el=document.getElementById(id);
+      if(el&&val)el.value=val;
+    });
+  }catch(e){console.error("❌ Chyba při načítání zákazníka:",e);}
+});
+
+/* 🟦 CENY */
+function updateTotal(){
+  const w=parseFloat(priceWork.value)||0,
+        m=parseFloat(priceMaterial.value)||0,
+        s=parseFloat(priceSecond.value)||0,
+        t=parseFloat(priceTransport.value)||0;
+  priceTotal.value=(w+m+s+t).toFixed(2);
+}
+const priceWork=document.getElementById("price-work"),
+      priceMaterial=document.getElementById("price-material"),
+      priceSecond=document.getElementById("price-second"),
+      priceTransport=document.getElementById("price-transport"),
+      priceTotal=document.getElementById("price-total");
+
+// 🟨 Překladač – spouští se hned po načtení DOM
+document.addEventListener("DOMContentLoaded",()=>{
+  ["description","problem","repair"].forEach(initTranslator);
+});
+
+// 🟪 Podpis – spouští se po načtení všech zdrojů (canvas, fonty atd.)
+window.addEventListener("load",()=>{
+  const canvas=document.getElementById("signature-pad");
+  const resize=()=>{
+    const r=Math.max(window.devicePixelRatio||1,1);
+    canvas.width=canvas.offsetWidth*r;
+    canvas.height=canvas.offsetHeight*r;
+    canvas.getContext("2d").scale(r,r);
+  };
+  window.addEventListener("resize",resize);
+  resize();
+
+  signaturePad=new SignaturePad(canvas,{
+    minWidth:1,maxWidth:2,penColor:"black",backgroundColor:"white"
   });
 
-  window.addEventListener("beforeunload",()=>{
-    if(signaturePad&&!signaturePad.isEmpty()){
-      localStorage.setItem("signatureImage",signaturePad.toDataURL());
-    }
-  });
-
-  function showNotif(type="success",text="Hotovo"){
-    const n=document.getElementById("notif");
-    n.className=`notif ${type}`;
-    n.textContent=text;
-    n.classList.add("show");
-    clearTimeout(window._notifTimer);
-    window._notifTimer=setTimeout(()=>n.classList.remove("show"),2500);
+  const saved=localStorage.getItem("signatureImage");
+  if(saved){
+    const img=new Image();
+    img.onload=()=>signaturePad.fromDataURL(saved);
+    img.src=saved;
   }
+});
 
-  let attachedPhotos=null;
-  function attachPhotos(){
-    const d=localStorage.getItem("photoPdfData"),
-          p=document.getElementById("photoPreviewContainer"),
-          f=document.getElementById("photoPreviewFrame");
-    if(!d){
-      showNotif("warning","Žádné fotky nenalezeny");
-      p.style.display="none";
-      return;
-    }
-    attachedPhotos=d;
-    p.style.display="block";
-    f.src=d;
-    showNotif("success","Fotodokumentace připojena");
+/* 🟧 ULOŽENÍ PODPISU PŘED ODCHODEM ZE STRÁNKY */
+window.addEventListener("beforeunload",()=>{
+  if(signaturePad&&!signaturePad.isEmpty()){
+    localStorage.setItem("signatureImage",signaturePad.toDataURL());
   }
+});
 
-  /* 🧾 GENEROVÁNÍ PDF PROTOKOLU (300 DPI + podpis) */
-  async function generateProtocolPDF(){
-    const{jsPDF}=window.jspdf;
-    const w=document.querySelector(".wrapper");
-    const doc=new jsPDF("p","mm","a4");
-    const b=document.querySelector(".btns");
-    b.style.visibility="hidden";
-    const c=await html2canvas(w,{scale:3.125,backgroundColor:"#fff",useCORS:true});
-    b.style.visibility="visible";
-    doc.addImage(c.toDataURL("image/jpeg",0.98),"JPEG",0,0,210,297);
-    doc.addPage();
-    if(signaturePad&&!signaturePad.isEmpty()){
-      doc.text("Podpis zákazníka / Customer signature",20,30);
-      doc.addImage(signaturePad.toDataURL(),"PNG",20,40,120,60);
-    }else{
-      doc.text("Bez podpisu zákazníka / No customer signature",20,30);
+/* 🟨 NOTIFIKACE */
+function showNotif(type="success",text="Hotovo"){
+  const n=document.getElementById("notif");
+  n.className=`notif ${type}`;
+  n.textContent=text;
+  n.classList.add("show");
+  clearTimeout(window._notifTimer);
+  window._notifTimer=setTimeout(()=>n.classList.remove("show"),2500);
+}
+
+/* 📷 FOTKY + SPOJENÍ PDF */
+function attachPhotos(){
+  const d=localStorage.getItem("photoPdfData"),
+        p=document.getElementById("photoPreviewContainer"),
+        f=document.getElementById("photoPreviewFrame");
+  if(!d){
+    showNotif("warning","Žádné fotky nenalezeny");
+    p.style.display="none";
+    return;
+  }
+  attachedPhotos=d;
+  p.style.display="block";
+  f.src=d;
+  showNotif("success","Fotodokumentace připojena");
+}
+
+/* 🧾 GENEROVÁNÍ PDF PROTOKOLU (300 DPI + PODPIS) */
+async function generateProtocolPDF(){
+  const{jsPDF}=window.jspdf;
+  const w=document.querySelector(".wrapper");
+  const doc=new jsPDF("p","mm","a4");
+  const b=document.querySelector(".btns");
+
+  b.style.visibility="hidden";
+  const c=await html2canvas(w,{scale:3.125,backgroundColor:"#fff",useCORS:true});
+  b.style.visibility="visible";
+
+  doc.addImage(c.toDataURL("image/jpeg",0.98),"JPEG",0,0,210,297);
+  doc.addPage();
+
+  if(signaturePad&&!signaturePad.isEmpty()){
+    doc.text("Podpis zákazníka / Customer signature",20,30);
+    doc.addImage(signaturePad.toDataURL(),"PNG",20,40,120,60);
+  }else{
+    doc.text("Bez podpisu zákazníka / No customer signature",20,30);
+  }
+  return doc;
+}
+
+/* 🔗 SPOJENÍ PROTOKOLU S FOTODOKUMENTACÍ */
+async function mergeWithPhotos(doc){
+  try{
+    let data=attachedPhotos;
+    if(!data){
+      const localPhoto=localStorage.getItem("photoPdfData");
+      if(localPhoto)data=localPhoto;
     }
+    if(!data){
+      const cust=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
+      const res=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer?"+Date.now(),{cache:"no-store"});
+      const text=await res.text();
+      if(!text.startsWith("["))return doc;
+      const all=JSON.parse(text);
+      const rec=all.find(r=>r.cislo===cust.cislo);
+      if(rec?.file)data=rec.file;
+    }
+    if(!data)return doc;
+
+    if(!window.PDFLib){
+      await new Promise((resolve,reject)=>{
+        const s=document.createElement("script");
+        s.src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js";
+        s.onload=resolve;
+        s.onerror=reject;
+        document.head.appendChild(s);
+      });
+    }
+
+    const {PDFDocument}=window.PDFLib;
+    const base64=data.split(",")[1];
+    const bytes=Uint8Array.from(atob(base64),c=>c.charCodeAt(0));
+    const photosPdf=await PDFDocument.load(bytes);
+    const mainPdf=await PDFDocument.load(await doc.output("arraybuffer"));
+    const copied=await mainPdf.copyPages(photosPdf,photosPdf.getPageIndices());
+    copied.forEach(p=>mainPdf.addPage(p));
+    const merged=await mainPdf.save();
+    return new Blob([merged],{type:"application/pdf"});
+  }catch(e){
+    console.error("❌ Chyba při spojení PDF:",e);
+    showNotif("error","Nelze spojit PDF s fotkami");
     return doc;
   }
+}
 
-  /* 🔗 SPOJENÍ PROTOKOLU S FOTODOKUMENTACÍ */
-  async function mergeWithPhotos(doc){
-    try{
-      let data=attachedPhotos;
-      if(!data){
-        const localPhoto=localStorage.getItem("photoPdfData");
-        if(localPhoto){
-          console.log("📦 Načteno PDF z localStorage");
-          data=localPhoto;
-        }
-      }
-      if(!data){
-        const cust=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
-        const res=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer?"+Date.now(),{cache:"no-store"});
-        const text=await res.text();
-        if(!text.startsWith("[")){
-          console.warn("⚠️ Worker nevrátil JSON");
-          return doc;
-        }
-        const all=JSON.parse(text);
-        const rec=all.find(r=>r.cislo===cust.cislo);
-        if(rec?.file){
-          console.log("🌍 Načteno PDF z Workeru");
-          data=rec.file;
-        }
-      }
-      if(!data){
-        console.warn("⚠️ Žádná fotodokumentace");
-        return doc;
-      }
+/* 📤 EXPORT PDF */
+async function exportPDF(){
+  const doc=await generateProtocolPDF();
+  const merged=await mergeWithPhotos(doc);
+  const blob=merged instanceof Blob?merged:await doc.output("blob");
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="protokol.pdf";
+  a.click();
+  showNotif("success","PDF exportováno");
+}
 
-      if(!window.PDFLib){
-        await new Promise((resolve,reject)=>{
-          const s=document.createElement("script");
-          s.src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js";
-          s.onload=resolve;
-          s.onerror=reject;
-          document.head.appendChild(s);
-        });
-      }
-
-      const {PDFDocument}=window.PDFLib;
-      const base64=data.split(",")[1];
-      const bytes=Uint8Array.from(atob(base64),c=>c.charCodeAt(0));
-      const photosPdf=await PDFDocument.load(bytes);
-      const mainPdf=await PDFDocument.load(await doc.output("arraybuffer"));
-      const copied=await mainPdf.copyPages(photosPdf,photosPdf.getPageIndices());
-      copied.forEach(p=>mainPdf.addPage(p));
-      const merged=await mainPdf.save();
-      console.log("✅ PDF spojeno s fotodokumentací");
-      return new Blob([merged],{type:"application/pdf"});
-    }catch(e){
-      console.error("❌ Chyba při spojení PDF:",e);
-      showNotif("error","Nelze spojit PDF s fotkami");
-      return doc;
-    }
-  }
-
-  /* 📤 EXPORT PDF */
-  async function exportPDF(){
-    const doc=await generateProtocolPDF();
-    const merged=await mergeWithPhotos(doc);
-    const blob=merged instanceof Blob?merged:await doc.output("blob");
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement("a");
-    a.href=url;
-    a.download="protokol.pdf";
-    a.click();
-    showNotif("success","PDF exportováno");
-  }
-
-  /* ✉️ ODESLÁNÍ E-MAILEM */
-  function mailCustomer(){
-    showNotif("warning","Odeslání e-mailem zatím není aktivní");
-  }
-  </script>
-
-</div> <!-- konec wrapperu -->
+/* ✉️ ODESLÁNÍ E-MAILEM – zatím neaktivní */
+function mailCustomer(){
+  showNotif("warning","Odeslání e-mailem zatím není aktivní");
+}
+</script>
 </body>
 </html>
