@@ -1829,91 +1829,108 @@ function openPlanModal(){
 }
 </script>
 
-<!-- 🟦 E-2 – KALENDÁŘ (fix pro GitHub moduly + lokální import) -->
+<!-- 🟦 E-2 – KALENDÁŘ (fix race + správný selektor) -->
 <script>
-async function initPlanCalendar(overlay){
-  const el = overlay.querySelector("#planCalendar");
+if (!window.waitForVanillaCalendar) {
+  window.waitForVanillaCalendar = async function(timeout = 5000) {
+    const start = performance.now();
 
-  // 🧩 Pokud VanillaCalendar není v globalThis, načti ho ručně
-  if (typeof window.VanillaCalendar === "undefined") {
-    console.log("📦 Načítám VanillaCalendar z lokálního souboru...");
-    await new Promise(resolve => {
+    // 1) už je načteno → konec
+    if (typeof window.VanillaCalendar !== "undefined") return;
+
+    // 2) je už ve stránce <script> s vanilla-calendar.min.js? → jen čekej, NEpřidávej znovu
+    const hasScript = Array.from(document.scripts)
+      .some(s => /vanilla-calendar\.min\.js(\?|$)/.test(s.src));
+
+    if (!hasScript) {
+      // 3) přidej skript jednou (fallback z GitHub Pages)
       const s = document.createElement("script");
-      s.src = "vanilla-calendar.min.js";
-      s.onload = resolve;
+      s.src = "https://radecek222-boop.github.io/reklamace/vanilla-calendar.min.js";
+      s.defer = true;
       document.head.appendChild(s);
-    });
-    console.log("✅ VanillaCalendar načten dodatečně");
-  }
+    }
+
+    // 4) čekej max. timeout, až se objeví window.VanillaCalendar
+    while (typeof window.VanillaCalendar === "undefined" &&
+           performance.now() - start < timeout) {
+      await new Promise(r => setTimeout(r, 50));
+    }
+
+    if (typeof window.VanillaCalendar === "undefined") {
+      throw new Error("VanillaCalendar se nepodařilo načíst v limitu.");
+    }
+  };
+}
+
+async function initPlanCalendar(overlay){
+  const elSelector = "#planCalendar";
+
+  // ✅ místo vkládání skriptu jen trpělivě počkáme, až se knihovna objeví
+  await waitForVanillaCalendar();
 
   console.log("🗓️ Vytvářím instanci VanillaCalendar (Plán dne)");
-  const cal = new VanillaCalendar(el, {
+  const cal = new VanillaCalendar(elSelector, {
     settings: { lang: "cs", selection: { day: "single" } },
     actions: {
       clickDay: (event, self) => {
-        const date = self.selectedDates[0];
+        const date = self.selectedDates?.[0];
         if (date) loadPlanForDay(date, overlay);
       }
     }
   });
   cal.init();
 
-  // 🔵 zvýrazni dny s termínem
+  // 🔵 zvýraznění dnů s termíny
   const termDates = new Set(
     dataAll.filter(x => x.datum && x.stav !== "zruseno").map(x => x.datum)
   );
   setTimeout(() => {
-    el.querySelectorAll(".vanilla-calendar-day__btn").forEach(btn => {
-      if (termDates.has(btn.dataset.calendarDay))
-        btn.classList.add("highlight-day");
+    overlay.querySelectorAll(`${elSelector} .vanilla-calendar-day__btn`).forEach(btn => {
+      if (termDates.has(btn.dataset.calendarDay)) btn.classList.add("highlight-day");
     });
-  }, 600);
+  }, 300);
 }
 </script>
 
-<!-- 🟦 E-3 – NAČTENÍ A ZOBRAZENÍ DNE -->
+<!-- 🟩 C-3 – KALENDÁŘ A ČAS (bez duplicitního načítání) -->
 <script>
-async function loadPlanForDay(date,overlay){
-  const list=dataAll.filter(r=>r.datum===date&&r.stav!=="zruseno");
-  const planList=overlay.querySelector("#planList");
-  const planLegend=overlay.querySelector("#planLegend");
-  const mapBox=overlay.querySelector("#planMap");
-  planLegend.innerHTML=""; planList.innerHTML="";
+async function initCalendarAndTime(overlay, item, index) {
+  const infoBox = overlay.querySelector("#termInfoBox");
 
-  if(!list.length){
-    planList.innerHTML="<div class='empty'>❌ Není záznam pro dnešní den.</div>";
-    initEmptyMap(mapBox);
-    return;
-  }
+  // počkej na knihovnu, NEvkládej ji znovu
+  await waitForVanillaCalendar();
 
-  list.sort((a,b)=>(a.cas||"").localeCompare(b.cas||""));
-  let legendHTML="<table class='legendTable'><tr><th>#</th><th>Čas</th><th>Zákazník</th></tr>";
-  list.forEach((r,i)=>{
-    legendHTML+=`<tr><td>${i+1}</td><td>${r.cas||"-"}</td><td>${r.zakaznik}</td></tr>`;
+  // 🗓️ inicializace – POZOR: CSS selektor, ne element!
+  const miniCal = new VanillaCalendar("#miniCalendar", {
+    settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
+    actions: {
+      clickDay: e => {
+        const chosen = e.target?.dataset?.calendarDay;
+        if (chosen) {
+          overlay.dataset.datum = chosen;
+          updateTermInfoBox(infoBox, chosen, null);
+          flashBox(infoBox, "gray");
+        }
+      }
+    }
   });
-  legendHTML+="</table>";
-  planLegend.innerHTML=legendHTML;
+  miniCal.init();
+  console.log("📅 Mini kalendář úspěšně inicializován pro detail zákazníka.");
 
-  planList.innerHTML=list.map((r,i)=>`
-    <div class="planItem">
-      <div class="planNum">${i+1}</div>
-      <div class="planName">${r.zakaznik}</div>
-      <div class="planAddr">${r.adresa}</div>
-      <div class="planTime">${r.cas||""}</div>
-    </div>`).join("");
-
-  showPlanMap(list,mapBox);
-}
-
-/* 🗺 Základní mapa vždy viditelná */
-function initEmptyMap(container=document.getElementById("planMap")){
-  if(!window.L){console.error("❌ Leaflet nenačten");return;}
-  container.innerHTML="";
-  const map=L.map(container).setView([50.0803,14.5981],10);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    {attribution:"© OpenStreetMap"}).addTo(map);
+  // ⏰ naplnění času
+  const hSel = overlay.querySelector("#hours");
+  const mSel = overlay.querySelector("#minutes");
+  if (hSel && mSel) {
+    hSel.innerHTML = "";
+    mSel.innerHTML = "";
+    for (let h = 7; h < 20; h++) hSel.innerHTML += `<option>${String(h).padStart(2,"0")}</option>`;
+    for (let m = 0; m < 60; m += 5) mSel.innerHTML += `<option>${String(m).padStart(2,"0")}</option>`;
+    hSel.addEventListener("change", () => updateTime(infoBox, overlay));
+    mSel.addEventListener("change", () => updateTime(infoBox, overlay));
+  }
 }
 </script>
+
 
 <!-- 🟦 E-4 – MAPA S TRASOU -->
 <script>
