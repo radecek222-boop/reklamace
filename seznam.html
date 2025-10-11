@@ -695,7 +695,7 @@ function renderMobileBlocks(arr) {
 <!-- 🟩 SEKCE C – DETAIL ZÁKAZNÍKA (rozdělená verze) -->
 <!-- ================================================= -->
 
-<!-- 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA – DLAŽDICE + INFO BOX POD HODINAMI -->
+<!-- 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA + KONTAKTOVACÍ DIALOG -->
 <script>
 function openDetail(index) {
   const item = dataAll[index];
@@ -711,7 +711,7 @@ function openDetail(index) {
         <!-- 🧭 LEVÝ PANEL -->
         <div class="left-panel">
 
-          <!-- 🗓️ Kalendář vlevo + čas vpravo + info box pod hodinami -->
+          <!-- 🗓️ Kalendář vlevo + čas vpravo -->
           <div class="date-time-row">
             <div id="miniCalendar"></div>
 
@@ -770,9 +770,8 @@ function openDetail(index) {
   overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
   overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
 }
-</script>
 
-<script>
+/* 🟦 DETAIL – FUNKCE TLAČÍTEK */
 function initDetailButtons(overlay, item, index) {
   const id = item.cislo || `radek-${index}`;
   const infoBox = overlay.querySelector("#termInfoBox");
@@ -798,10 +797,7 @@ function initDetailButtons(overlay, item, index) {
 
       setNextToast("🟢 Termín uložen", "success");
       localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
-
-      // 🔄 Aktualizuj data po uložení (GitHub → Worker → frontend)
       setTimeout(() => loadData(), 1000);
-
       overlay.remove();
       renderTable(dataAll);
     } catch (err) {
@@ -809,12 +805,11 @@ function initDetailButtons(overlay, item, index) {
     }
   };
 
-  // 🟣 Zákazník čeká na díly
+  // 🟣 Čeká na díly
   overlay.querySelector("#waitBtn").onclick = async () => {
     try {
       item.stav = "ceka";
       stavy[id] = "ceka";
-
       const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -824,9 +819,7 @@ function initDetailButtons(overlay, item, index) {
 
       setNextToast("🟣 Zákazník čeká na díly", "warning");
       localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
-
       setTimeout(() => loadData(), 1000);
-
       overlay.remove();
       renderTable(dataAll);
     } catch (err) {
@@ -834,13 +827,13 @@ function initDetailButtons(overlay, item, index) {
     }
   };
 
-  // 📄 Vytvořit protokol
+  // 📄 Protokol
   overlay.querySelector("#createProtocolBtn").onclick = () => {
     localStorage.setItem("protokolData", JSON.stringify(item));
     window.location.href = "protokol.html";
   };
 
-  // 📸 Zahájit návštěvu (fotky)
+  // 📸 Zahájit návštěvu
   overlay.querySelector("#startVisitBtn").onclick = () => {
     localStorage.setItem("currentCustomer", JSON.stringify(item));
     window.location.href = "photocustomer.html";
@@ -852,122 +845,90 @@ function initDetailButtons(overlay, item, index) {
   // 🔙 Zpět
   overlay.querySelector("#closeBtn").onclick = () => overlay.remove();
 }
+
+/* 🟨 KONTAKTOVACÍ DIALOG */
+function openContactModal(item, index, parentOverlay) {
+  const contactOverlay = document.createElement("div");
+  contactOverlay.className = "contact-overlay";
+  const typ = (item.typ || "").toLowerCase();
+
+  // 📱 Připrav SMS text
+  let smsText = "";
+  if (typ.includes("reklama")) {
+    smsText = `Dobrý den, pokoušeli jsme se Vám dovolat ohledně reklamace, kterou jste si založil pod objednávkou č. ${item.cislo || "?"} – ${item.produkt || ""}. Prosíme o zpětné kontaktování nebo potvrzení termínu návštěvy. Děkujeme, White Glove Service.`;
+  } else if (typ.includes("pozáru")) {
+    smsText = `Dobrý den, pokoušeli jsme se Vám dovolat ohledně Vašeho požadavku na pozáruční servis – ${item.produkt || ""}. Prosíme o zpětné kontaktování nebo potvrzení termínu. Děkujeme, White Glove Service.`;
+  } else {
+    smsText = `Dobrý den, pokoušeli jsme se Vás kontaktovat ohledně Vaší zakázky ${item.produkt || ""}. Prosíme o zpětné kontaktování. Děkujeme, White Glove Service.`;
+  }
+
+  contactOverlay.innerHTML = `
+    <div class="contact-modal">
+      <h3>Kontaktovat zákazníka</h3>
+      <p><strong>${item.zakaznik}</strong><br>${item.telefon || "–"}</p>
+      <div class="contact-buttons">
+        <a href="tel:${item.telefon || ""}" class="btn-grayContact">📞 Zavolat</a>
+        <a href="sms:${item.telefon || ""}?body=${encodeURIComponent(smsText)}" class="btn-redContact">💬 SMS – nezvedá</a>
+        <button class="btn-lightgray" id="closeContactBtn">Zavřít</button>
+      </div>
+    </div>`;
+  document.body.appendChild(contactOverlay);
+
+  setTimeout(() => contactOverlay.classList.add("active"), 10);
+  contactOverlay.querySelector("#closeContactBtn").onclick = () => contactOverlay.remove();
+}
 </script>
 
 <style>
-/* 🗓️ + ⏰ rozložení */
-.date-time-row {
-  display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: 12px;
-  align-items: stretch;
-  margin-bottom: 10px;
+/* Kontaktovací dialog */
+.contact-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 99999; opacity: 0; transition: opacity .25s ease;
 }
-#miniCalendar {
+.contact-overlay.active { opacity: 1; }
+
+.contact-modal {
   background: #fff;
-  border-radius: 10px;
-  box-shadow: none;
-  min-height: 280px;
-}
-.date-right-column {
-  display: grid;
-  grid-template-rows: 1fr auto;
-  gap: 12px;
-  height: 100%;
-}
-
-/* ⏰ čas */
-.custom-time-picker {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  background: transparent;
-  box-shadow: none;
-  border-radius: 0;
-  padding: 0;
-}
-.custom-time-picker select {
-  font-size: 1em;
-  font-weight: 600;
-  border: none;
-  background: transparent;
-  outline: none;
-  color: #111;
-}
-
-/* 🔔 informační box */
-.term-info-box {
-  background: #f3f3f3;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 10px 12px;
+  border-radius: 12px;
+  padding: 20px 25px;
   text-align: center;
+  width: 300px;
   font-family: "Inter", sans-serif;
-  font-weight: 600;
-  color: #555;
-  height: 45px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.contact-modal h3 {
+  margin-top: 0; margin-bottom: 10px;
+  font-size: 1.2em;
+}
+.contact-buttons {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  transition: background 0.4s, color 0.4s;
-  transform: translateY(-115%);
-}
-.flash-green {
-  animation: flashGreen 1.2s ease;
-}
-@keyframes flashGreen {
-  0%   { background:#d5f8d5; color:#116d2b; }
-  50%  { background:#e9ffe9; color:#116d2b; }
-  100% { background:#f3f3f3; color:#555; }
-}
-
-/* 🟩 DLAŽDICE 2×3 */
-.tile-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  flex-direction: column;
+  gap: 10px;
   margin-top: 15px;
 }
-.tile-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  height: 85px;
-  border: none;
-  border-radius: 12px;
-  font-family: "Inter", sans-serif;
-  font-size: 0.95em;
-  font-weight: 600;
-  color: #fff;
-  cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+.btn-grayContact {
+  background: linear-gradient(135deg,#888,#aaa);
+  color: #fff; border: none;
+  border-radius: 8px; padding: 10px;
+  font-weight: 600; cursor: pointer; text-decoration: none;
 }
-.tile-btn:hover { transform: scale(1.03); opacity: 0.9; }
-
-/* barvy */
-.btn-grayContact { background: linear-gradient(135deg,#888,#aaa); }
-.btn-lightgray   { background: linear-gradient(135deg,#aaa,#ccc); }
-.btn-green       { background: linear-gradient(135deg,#4caf50,#6fdd72); }
-.btn-purple      { background: linear-gradient(135deg,#b993ff,#d4b5ff); }
-.btn-blue        { background: linear-gradient(135deg,#357aff,#6fa8ff); }
-@keyframes blinkRed {
-  0%,100% { background: linear-gradient(135deg,#ff4d4d,#ff8080); }
-  50%     { background: linear-gradient(135deg,#ff7373,#ffa0a0); }
+.btn-redContact {
+  background: linear-gradient(135deg,#c74a4a,#e37070);
+  color: #fff; border: none;
+  border-radius: 8px; padding: 10px;
+  font-weight: 600; cursor: pointer; text-decoration: none;
 }
-.btn-redBlink { animation: blinkRed 1.5s infinite; }
-
-/* 📱 stejné rozložení i na mobilu */
-@media (max-width: 700px) {
-  .date-time-row { grid-template-columns: 1fr 0.9fr; }
-  .tile-grid { grid-template-columns: 1fr 1fr; }
-  .tile-btn { height: 75px; font-size: 0.9em; }
+.btn-lightgray {
+  background: linear-gradient(135deg,#aaa,#ccc);
+  color: #fff; border: none;
+  border-radius: 8px; padding: 10px;
+  font-weight: 600; cursor: pointer;
 }
 </style>
 <!-- 🟩 KONEC C-1 + C-4 -->
+
 
 
 
