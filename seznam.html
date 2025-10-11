@@ -760,6 +760,42 @@ function openDetail(index) {
       </div>
     </div>`;
 
+  // 🧩 KONTROLA FOTODOKUMENTACE (napojení na photocustomer.json)
+async function checkPhotoDocumentation(item, overlay) {
+  try {
+    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer?" + Date.now(), {
+      cache: "no-store"
+    });
+    const data = await res.json();
+    if (!Array.isArray(data)) return;
+
+    const found = data.find(r => r.cislo === item.cislo);
+    if (found) {
+      const rightPanel = overlay.querySelector(".right-panel");
+      const box = document.createElement("div");
+      box.className = "info-box";
+      box.innerHTML = `
+        <div class="box-header"><strong>📎 Fotodokumentace</strong></div>
+        <div class="box-content">
+          <p>Fotodokumentace je přiložena k zakázce č. ${found.cislo}</p>
+          <button id="openPhotoDocBtn" class="btn-blue" style="margin-top:6px;">Otevřít PDF</button>
+        </div>`;
+      rightPanel.prepend(box);
+
+      const btn = box.querySelector("#openPhotoDocBtn");
+      btn.onclick = () => {
+        const link = document.createElement("a");
+        link.href = found.file;
+        link.download = `Fotodokumentace_${found.cislo}.pdf`;
+        link.click();
+      };
+    }
+  } catch (err) {
+    console.warn("⚠️ Nepodařilo se načíst photocustomer.json:", err);
+  }
+}
+
+
   document.body.appendChild(overlay);
   setTimeout(() => overlay.classList.add("active"), 10);
 
@@ -767,9 +803,13 @@ function openDetail(index) {
   initMapForDetail(overlay, item);
   initDetailButtons(overlay, item, index);
 
+  // 🔗 Zkontroluj, zda má zákazník fotodokumentaci
+  checkPhotoDocumentation(item, overlay);
+
   overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
   overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
 }
+
 
 /* 🟦 DETAIL – FUNKCE TLAČÍTEK */
 function initDetailButtons(overlay, item, index) {
