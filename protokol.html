@@ -442,12 +442,14 @@ async function mergeWithPhotos(doc) {
 
     if (!pdfData) {
       const data = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
-      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer", { cache: "no-store" });
-      if (res.ok) {
-        const all = await res.json();
-        const record = all.find(r => r.cislo === data.cislo);
-        if (record && record.file) pdfData = record.file;
-      }
+     const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer", { cache: "no-store" });
+if (res.ok) {
+  const all = await res.json();
+  const arr = Array.isArray(all) ? all : all.data || [];
+  const record = arr.find(r => r.cislo === data.cislo);
+  if (record && record.file) pdfData = record.file;
+}
+
     }
 
     if (!pdfData) {
