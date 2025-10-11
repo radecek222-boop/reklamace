@@ -97,8 +97,7 @@ h2 {
 
 
 
-
-<!-- 🟩 ZAČÁTEK ČÁSTI 2/3 – BLOKY FOTEK + MODÁLNÍ NÁHLED -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 2/3 – BLOKY FOTEK + MODÁLNÍ NÁHLED (FINÁLNÍ S PINCH-ZOOM) -->
 <style>
 .photo-block {
   border:1px solid #ccc;
@@ -113,7 +112,6 @@ h2 {
   background:#f2f2f2;
   transform:scale(1.01);
 }
-
 .photo-title {
   font-size:0.75em;
   font-weight:700;
@@ -122,7 +120,6 @@ h2 {
   text-transform:uppercase;
   letter-spacing:0.8px;
 }
-
 .photo-preview {
   display:flex;
   flex-wrap:wrap;
@@ -130,11 +127,10 @@ h2 {
   justify-content:flex-start;
   align-items:flex-start;
 }
-
 .photo-thumb {
-  width:180px;
-  height:120px;
-  border-radius:8px;
+  width:90px;
+  height:60px;
+  border-radius:6px;
   object-fit:cover;
   border:1px solid #ccc;
   box-shadow:0 2px 5px rgba(0,0,0,0.15);
@@ -146,72 +142,51 @@ h2 {
   box-shadow:0 3px 10px rgba(0,0,0,0.25);
 }
 
-.progress-bar-container {
-  width:100%;
-  background:#ddd;
-  border-radius:8px;
-  height:16px;
-  margin-top:12px;
-  overflow:hidden;
-}
-.progress-bar-fill {
-  background:linear-gradient(135deg,#00b56a,#00da80);
-  height:100%;
-  width:0%;
-  transition:width .3s ease;
-}
-.progress-text {
-  text-align:center;
-  font-size:0.85em;
-  color:#333;
-  font-weight:600;
-  margin-top:4px;
-}
-
-/* 🧭 MODÁLNÍ NÁHLED FOTKY – 10×15cm styl */
+/* 🧭 MODÁLNÍ NÁHLED – s pinch-to-zoom a posunem */
 .photo-modal {
   display:none;
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,0.8);
+  background:rgba(0,0,0,0.85);
   justify-content:center;
   align-items:center;
   z-index:9999;
-  transition:opacity .25s ease;
+  overflow:hidden;
 }
-.photo-modal.active {
-  display:flex;
-}
+.photo-modal.active { display:flex; }
+
 .photo-modal-content {
-  background:#fff;
+  background:transparent;
   border-radius:14px;
-  padding:20px;
-  box-shadow:0 4px 25px rgba(0,0,0,0.5);
   max-width:95vw;
   max-height:95vh;
   display:flex;
-  flex-direction:column;
-  align-items:center;
   justify-content:center;
-  animation:fadeIn .25s ease;
-}
-@keyframes fadeIn {
-  from {opacity:0;transform:scale(0.97);}
-  to {opacity:1;transform:scale(1);}
+  align-items:center;
+  overflow:hidden;
+  position:relative;
 }
 #modalImg {
   width:auto;
   height:auto;
-  max-width:150mm; /* přibližně 10x15 cm poměr */
-  max-height:100mm;
-  border-radius:12px;
+  max-width:90vw;
+  max-height:85vh;
+  border-radius:10px;
   object-fit:contain;
-  box-shadow:0 3px 12px rgba(0,0,0,0.3);
+  transition:transform .2s ease;
+  cursor:grab;
+  touch-action:none;
 }
+#modalImg:active { cursor:grabbing; }
+
 .photo-modal-buttons {
   display:flex;
   gap:14px;
-  margin-top:16px;
+  margin-top:14px;
+  position:absolute;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
 }
 .btn-delete,
 .btn-close {
@@ -265,7 +240,7 @@ h2 {
   <div class="photo-preview" id="preview-after"></div>
 </div>
 
-<!-- 🟨 VSTUP A PROGRESS -->
+<!-- 🟨 SKRYTÝ INPUT + PROGRESS -->
 <input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
 <div class="progress-bar-container">
   <div class="progress-bar-fill" id="progressFill"></div>
@@ -283,24 +258,21 @@ h2 {
   </div>
 </div>
 
-<!-- 🟨 LOGIKA BLOKŮ -->
+<!-- 🟨 LOGIKA BLOKŮ + ZOOM -->
 <script>
 (function(){
   const input=document.getElementById("photoInput");
   const sections={before:[],id:[],problem:[],repair:[],after:[]};
   const fill=document.getElementById("progressFill");
   const text=document.getElementById("progressText");
-
   const modal=document.getElementById("photoModal");
   const modalImg=document.getElementById("modalImg");
   const btnDelete=document.getElementById("btnDeletePhoto");
   const btnClose=document.getElementById("btnClosePhoto");
-
   const data=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
   const orderNum=data.cislo||"";
 
-  let currentSection=null;
-  let currentIndex=null;
+  let currentSection=null,currentIndex=null;
 
   // 🔹 Klikací bloky
   document.querySelectorAll(".photo-block").forEach(block=>{
@@ -316,26 +288,32 @@ h2 {
     if(!section)return;
     const files=Array.from(input.files).slice(0,10);
     for(const [i,f] of files.entries()){
-      const blob=await compressImage(f);
+      const blob=await compressImage(f,90);
       const url=URL.createObjectURL(blob);
+      const originalURL=URL.createObjectURL(f);
       const name=`${section}-${orderNum}-${i+1}`;
-      sections[section].push({blob,url,name});
+      const orientation=await getOrientation(f);
+      sections[section].push({blob,url,originalURL,name,orientation});
     }
     render(section);
     input.value="";
   });
 
-  // 🔹 Komprese obrázku
-  async function compressImage(file,maxDim=180){
+  async function compressImage(file,maxDim=90){
     const img=await createImageBitmap(file);
     const canvas=document.createElement("canvas");
     let[w,h]=[img.width,img.height];
-    if(w>h&&w>maxDim){h=Math.round(h*(maxDim/w));w=maxDim;}
-    else if(h>w&&h>maxDim){w=Math.round(w*(maxDim/h));h=maxDim;}
+    const ratio=w/h;
+    if(w>h&&w>maxDim){h=Math.round(maxDim/ratio);w=maxDim;}
+    else if(h>w&&h>maxDim){w=Math.round(maxDim*ratio);h=maxDim;}
     canvas.width=w;canvas.height=h;
     const ctx=canvas.getContext("2d");
     ctx.drawImage(img,0,0,w,h);
     return new Promise(r=>canvas.toBlob(r,"image/jpeg",0.85));
+  }
+  async function getOrientation(file){
+    const img=await createImageBitmap(file);
+    return img.width>img.height?"landscape":"portrait";
   }
 
   // 🔹 Zobrazení miniatur
@@ -345,35 +323,91 @@ h2 {
     sections[section].forEach((p,i)=>{
       const img=document.createElement("img");
       img.src=p.url;
-      img.className="photo-thumb";
+      img.className="photo-thumb "+(p.orientation==="portrait"?"portrait":"landscape");
       img.title=p.name;
       img.onclick=()=>openModal(section,i);
       cont.append(img);
     });
   }
 
-  // 🔹 Otevření modálu
+  // 🔹 Otevření modálu s velkým originálem
   function openModal(section,i){
     currentSection=section;
     currentIndex=i;
-    modalImg.src=sections[section][i].url;
+    const photo=sections[section][i];
+    modalImg.src=photo.originalURL||photo.url;
+    resetTransform();
     modal.classList.add("active");
   }
 
-  // 🔹 Zavření modálu
-  btnClose.addEventListener("click",()=>modal.classList.remove("active"));
-  modal.addEventListener("click",(e)=>{if(e.target===modal)modal.classList.remove("active");});
+  btnClose.addEventListener("click",()=>{modal.classList.remove("active");resetTransform();});
+  modal.addEventListener("click",e=>{if(e.target===modal){modal.classList.remove("active");resetTransform();}});
 
-  // 🔹 Odstranění fotky
   btnDelete.addEventListener("click",()=>{
-    if(currentSection!==null && currentIndex!==null){
+    if(currentSection!==null&&currentIndex!==null){
       sections[currentSection].splice(currentIndex,1);
       render(currentSection);
       modal.classList.remove("active");
+      resetTransform();
     }
   });
 
-  // 🔹 Upload všech (spouští tlačítko „NAHRÁT“)
+  // 🧭 Zoom & Pan (touch + trackpad)
+  let scale=1,startDist=0,moveX=0,moveY=0,startX=0,startY=0,dragging=false,lastX=0,lastY=0;
+
+  function resetTransform(){scale=1;moveX=0;moveY=0;modalImg.style.transform="translate(0,0) scale(1)";}
+
+  modalImg.addEventListener("wheel",e=>{
+    e.preventDefault();
+    const delta=e.deltaY>0?-0.1:0.1;
+    scale=Math.min(Math.max(1,scale+delta),5);
+    modalImg.style.transform=`translate(${moveX}px,${moveY}px) scale(${scale})`;
+  });
+
+  modalImg.addEventListener("mousedown",e=>{
+    dragging=true;lastX=e.clientX;lastY=e.clientY;
+  });
+  modalImg.addEventListener("mousemove",e=>{
+    if(!dragging)return;
+    moveX+=e.clientX-lastX;moveY+=e.clientY-lastY;
+    lastX=e.clientX;lastY=e.clientY;
+    modalImg.style.transform=`translate(${moveX}px,${moveY}px) scale(${scale})`;
+  });
+  window.addEventListener("mouseup",()=>dragging=false);
+
+  modalImg.addEventListener("touchstart",e=>{
+    if(e.touches.length===2){
+      startDist=Math.hypot(
+        e.touches[0].clientX-e.touches[1].clientX,
+        e.touches[0].clientY-e.touches[1].clientY
+      );
+    }else if(e.touches.length===1){
+      startX=e.touches[0].clientX;startY=e.touches[0].clientY;
+    }
+  },{passive:false});
+
+  modalImg.addEventListener("touchmove",e=>{
+    if(e.touches.length===2){
+      e.preventDefault();
+      const newDist=Math.hypot(
+        e.touches[0].clientX-e.touches[1].clientX,
+        e.touches[0].clientY-e.touches[1].clientY
+      );
+      const delta=(newDist-startDist)/200;
+      scale=Math.min(Math.max(1,scale+delta),5);
+      startDist=newDist;
+      modalImg.style.transform=`translate(${moveX}px,${moveY}px) scale(${scale})`;
+    }else if(e.touches.length===1&&scale>1){
+      e.preventDefault();
+      const dx=e.touches[0].clientX-startX;
+      const dy=e.touches[0].clientY-startY;
+      moveX+=dx;moveY+=dy;
+      startX=e.touches[0].clientX;startY=e.touches[0].clientY;
+      modalImg.style.transform=`translate(${moveX}px,${moveY}px) scale(${scale})`;
+    }
+  },{passive:false});
+
+  // 🔹 Simulovaný upload
   async function uploadAll(){
     const all=Object.values(sections).flat();
     if(!all.length)return alert("Není vybrána žádná fotografie.");
@@ -389,7 +423,9 @@ h2 {
   window.uploadAll=uploadAll;
 })();
 </script>
-<!-- 🟩 KONEC ČÁSTI 2/3 -->
+<!-- 🟩 KONEC ČÁSTI 2/3 – BLOKY FOTEK + MODÁLNÍ NÁHLED (FINÁLNÍ S PINCH-ZOOM) -->
+
+
 
 
 
@@ -587,7 +623,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-<!-- 🟩 ZAČÁTEK SEKCE 4/4 – EXPORT DO PDF -->
+<!-- 🟩 ZAČÁTEK SEKCE 4/4 – EXPORT DO PDF (AKTUALIZOVÁNO PRO SPRÁVNÉ POMĚRY) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -629,39 +665,56 @@ window.generatePdf = async function(){
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(13);
     pdf.text(sec.label, margin, y);
-    y += 5;
+    y += 6;
 
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(10);
 
-    // Shromáždíme všechny miniatury
+    // Obrázky v sekci
     const imgs = Array.from(el.querySelectorAll("img"));
-    const imgSize = 85;     // šířka obrázku v PDF (mm)
     const gap = 10;
+    const baseWidth = 85; // max. šířka obrázku v PDF (mm)
     let x = margin;
 
     for (let i = 0; i < imgs.length; i++) {
       const img = imgs[i];
-      const canvas = await html2canvas(img, { scale: 2 });
-      const imgData = canvas.toDataURL("image/jpeg", 0.9);
 
-      // nová řádka po dvou fotkách
+      // 📏 Určení skutečného poměru stran
+      const naturalWidth = img.naturalWidth || 180;
+      const naturalHeight = img.naturalHeight || 120;
+      const ratio = naturalWidth / naturalHeight;
+
+      // 🔄 Přepočet rozměrů podle poměru stran
+      let imgWidth = baseWidth;
+      let imgHeight = imgWidth / ratio;
+
+      // Při orientaci "na výšku" zarovnej výšku
+      if (ratio < 1) {
+        imgHeight = 85;
+        imgWidth = imgHeight * ratio;
+      }
+
+      // 📸 Převod obrázku na dataURL
+      const canvas = await html2canvas(img, { scale: 2 });
+      const imgData = canvas.toDataURL("image/jpeg", 0.85);
+
+      // 📄 Nový řádek po 2 fotkách
       if (i % 2 === 0 && i > 0) {
-        y += imgSize / 2 + 8;
+        y += imgHeight + 10;
         x = margin;
       }
 
-      // nová stránka, pokud se nevejde
-      if (y + imgSize / 2 + 25 > 285) {
+      // 📄 Nová stránka, pokud se nevejde
+      if (y + imgHeight + 25 > 285) {
         pdf.addPage();
         y = 25;
       }
 
-      pdf.addImage(imgData, "JPEG", x, y, imgSize, imgSize / 2);
-      x += imgSize + gap;
+      pdf.addImage(imgData, "JPEG", x, y, imgWidth, imgHeight);
+      x += imgWidth + gap;
     }
 
-    y += imgSize / 2 + 14;
+    y += 90; // odstup mezi sekcemi
   }
 
   // 📅 DATUM GENEROVÁNÍ
@@ -677,7 +730,8 @@ window.generatePdf = async function(){
   pdf.save(filename);
 };
 </script>
-<!-- 🟩 KONEC SEKCE 4/4 – EXPORT DO PDF -->
+<!-- 🟩 KONEC SEKCE 4/4 – EXPORT DO PDF (AKTUALIZOVÁNO PRO SPRÁVNÉ POMĚRY) -->
+
 
 
   
