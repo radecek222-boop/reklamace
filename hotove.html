@@ -171,56 +171,47 @@ function renderTable(hotove) {
 </script>
 <!-- 🟨 KONEC SEKCE E -->
 
-      html+=`
-        <tr>
-          <td>${i+1}</td>
-          <td>${r.cislo||""}</td>
-          <td>${r.zakaznik||""}</td>
-          <td>${r.adresa||""}</td>
-          <td><a href="tel:${r.telefon||""}">${r.telefon||""}</a></td>
-          <td>${r.contract||(r.jinaZadavatel?.jmeno||"")}</td>
-          <td>${r.typ||""}</td>
-          <td>${protoHtml}</td>
-        </tr>`;
-    });
-    html+=`</tbody></table>`;
-    tableContainer.innerHTML=html;
-  }
-
-  // 🟨 F – ZOBRAZENÍ PDF PROTOKOLU
-  function openProtocol(cislo){
-    try{
-      const dataAll=JSON.parse(localStorage.getItem("dataAll")||"[]");
-      const item=dataAll.find(r=>r.cislo===cislo);
-      if(!item || !item.protokol?.file){
-        alert("Protokol není uložen.");
-        return;
-      }
-      const pdfUrl=URL.createObjectURL(b64toBlob(item.protokol.file,"application/pdf"));
-      window.open(pdfUrl,"_blank");
-    }catch(e){console.error("❌ Chyba při otevírání protokolu:",e);}
-  }
-
-  // pomocná konverze Base64 → Blob
-  function b64toBlob(b64Data,contentType){
-    contentType = contentType || "";
-    const sliceSize = 512;
-    const byteCharacters = atob(b64Data);
-    const byteArrays = [];
-    for(let offset=0;offset<byteCharacters.length;offset+=sliceSize){
-      const slice=byteCharacters.slice(offset,offset+sliceSize);
-      const byteNumbers=new Array(slice.length);
-      for(let i=0;i<slice.length;i++){byteNumbers[i]=slice.charCodeAt(i);}
-      const byteArray=new Uint8Array(byteNumbers);
-      byteArrays.push(byteArray);
+<!-- 🟨 ZAČÁTEK SEKCE F – ZOBRAZENÍ PDF PROTOKOLU -->
+<script>
+function openProtocol(cislo){
+  try{
+    const dataAll = JSON.parse(localStorage.getItem("dataAll") || "[]");
+    const item = dataAll.find(r => r.cislo === cislo);
+    if(!item || !item.protokol?.file){
+      alert("Protokol není uložen.");
+      return;
     }
-    return new Blob(byteArrays,{type:contentType});
+    const pdfUrl = URL.createObjectURL(b64toBlob(item.protokol.file, "application/pdf"));
+    window.open(pdfUrl, "_blank");
+  }catch(e){
+    console.error("❌ Chyba při otevírání protokolu:", e);
   }
+}
 
-  // 🟨 G – INIT
-  document.getElementById("reloadBtn").addEventListener("click",loadDone);
-  window.addEventListener("DOMContentLoaded",loadDone);
-  </script>
+// pomocná konverze Base64 → Blob
+function b64toBlob(b64Data, contentType){
+  contentType = contentType || "";
+  const sliceSize = 512;
+  const byteCharacters = atob(b64Data);
+  const byteArrays = [];
+  for(let offset = 0; offset < byteCharacters.length; offset += sliceSize){
+    const slice = byteCharacters.slice(offset, offset + sliceSize);
+    const byteNumbers = new Array(slice.length);
+    for(let i = 0; i < slice.length; i++){
+      byteNumbers[i] = slice.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    byteArrays.push(byteArray);
+  }
+  return new Blob(byteArrays, { type: contentType });
+}
+
+// 🟨 G – INIT
+document.getElementById("reloadBtn").addEventListener("click", loadDone);
+window.addEventListener("DOMContentLoaded", loadDone);
+</script>
+<!-- 🟨 KONEC SEKCE F + G -->
+
 </div>
 </body>
 </html>
