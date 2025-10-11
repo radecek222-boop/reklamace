@@ -1016,56 +1016,66 @@ function initMapForDetail(overlay, item) {
 <!-- 🟩 KONEC C-2 -->
 
 
-<!-- 🟩 C-3: KALENDÁŘ A ČAS (v2.3 – neprůstřelné načítání) -->
+<!-- 🟩 C-3: KALENDÁŘ A ČAS (v2.4 – finální stabilní verze) -->
 <script>
 async function initCalendarAndTime(overlay, item, index) {
   const infoBox = overlay.querySelector("#termInfoBox");
-  const calContainer = overlay.querySelector("#miniCalendar");
+  const calendarSelector = "#miniCalendar";
 
-  // 🕓 Pokud VanillaCalendar není dostupný → načti ho dynamicky
+  // 🕓 Pokud VanillaCalendar není načtený, načti ho (jen pokud ještě neexistuje)
   if (typeof window.VanillaCalendar === "undefined") {
-    console.log("⏳ VanillaCalendar ještě nenačten... pokusím se načíst lokálně…");
+    console.log("📦 Načítám VanillaCalendar z lokálního souboru...");
     await new Promise(resolve => {
-      const script = document.createElement("script");
-      script.src = "vanilla-calendar.min.js"; // 🔹 lokální fallback (soubor ve stejném adresáři)
-      script.onload = () => { console.log("✅ VanillaCalendar načten (lokální)"); resolve(); };
-      script.onerror = () => {
-        console.warn("⚠️ Lokální VanillaCalendar nenalezen, zkouším GitHub fallback…");
-        const fallback = document.createElement("script");
-        fallback.src = "https://radecek222-boop.github.io/reklamace/vanilla-calendar.min.js";
-        fallback.onload = () => { console.log("✅ VanillaCalendar načten (GitHub fallback)"); resolve(); };
-        fallback.onerror = () => { console.error("❌ VanillaCalendar se nepodařilo načíst."); resolve(); };
-        document.head.appendChild(fallback);
+      const s = document.createElement("script");
+      s.src = "vanilla-calendar.min.js";
+      s.onload = () => {
+        console.log("✅ VanillaCalendar načten dodatečně");
+        resolve();
       };
-      document.head.appendChild(script);
+      s.onerror = () => {
+        console.warn("⚠️ Lokální VanillaCalendar nenalezen, zkouším GitHub fallback...");
+        const f = document.createElement("script");
+        f.src = "https://radecek222-boop.github.io/reklamace/vanilla-calendar.min.js";
+        f.onload = () => {
+          console.log("✅ VanillaCalendar načten (GitHub fallback)");
+          resolve();
+        };
+        f.onerror = () => {
+          console.error("❌ Nelze načíst VanillaCalendar – zkontroluj cestu!");
+          resolve();
+        };
+        document.head.appendChild(f);
+      };
+      document.head.appendChild(s);
     });
+  } else {
+    console.log("📅 VanillaCalendar už je načten, přeskočeno.");
   }
 
-  // 🗓️ Vykreslení kalendáře (bez ohledu na způsob načtení)
-  if (typeof window.VanillaCalendar !== "undefined") {
-    try {
-      const miniCal = new VanillaCalendar(calContainer, {
-        settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
-        actions: {
-          clickDay: e => {
-            const chosen = e.target.dataset.calendarDay;
-            if (chosen) {
-              overlay.dataset.datum = chosen;
-              updateTermInfoBox(infoBox, chosen, null);
-              flashBox(infoBox, "gray");
-            }
+  // 🗓️ Inicializace kalendáře
+  try {
+    const miniCal = new VanillaCalendar(calendarSelector, {
+      settings: {
+        lang: "cs",
+        selection: { day: "single" },
+        visibility: { theme: "light" }
+      },
+      actions: {
+        clickDay: e => {
+          const chosen = e.target.dataset.calendarDay;
+          if (chosen) {
+            overlay.dataset.datum = chosen;
+            updateTermInfoBox(infoBox, chosen, null);
+            flashBox(infoBox, "gray");
           }
         }
-      });
-      miniCal.init();
-      console.log("📅 Mini kalendář úspěšně zobrazen v detailu.");
-    } catch (err) {
-      console.error("❌ Chyba při inicializaci kalendáře:", err);
-      infoBox.textContent = "Kalendář se nepodařilo vykreslit.";
-    }
-  } else {
-    console.error("❌ VanillaCalendar stále nedostupný – zkontroluj soubory .js");
-    calContainer.innerHTML = "<div style='text-align:center;padding:20px;color:#666;'>Nelze načíst kalendář.</div>";
+      }
+    });
+    miniCal.init();
+    console.log("📅 Mini kalendář úspěšně inicializován pro detail zákazníka.");
+  } catch (err) {
+    console.error("❌ Chyba při inicializaci kalendáře:", err);
+    infoBox.textContent = "Kalendář se nepodařilo načíst.";
     return;
   }
 
@@ -1088,7 +1098,6 @@ async function initCalendarAndTime(overlay, item, index) {
 }
 </script>
 <!-- 🟩 KONEC C-3 -->
-
 
 
 
