@@ -1416,7 +1416,7 @@ function openPopisEditor(item, overlay) {
 
 
 
-<!-- 🟩 C-7: KONTAKTOVACÍ OKNO ZÁKAZNÍKA (v2.0 – SMS podle stavu) -->
+<!-- 🟩 C-7: KONTAKTOVACÍ OKNO ZÁKAZNÍKA (v2.2 – reklamace + pozáruční servis) -->
 <script>
 function openContactModal(item, index, overlay) {
   const modal = document.createElement("div");
@@ -1427,11 +1427,16 @@ function openContactModal(item, index, overlay) {
   const datum   = item.datum   || "";
   const cas     = item.cas     || "";
   const stav    = (item.stav || "").toLowerCase();
+  const typ     = (item.typ  || "").toLowerCase(); // "reklamace" nebo "pozáruční"
   const tel     = item.telefon ? item.telefon.replace(/\s+/g,'').replace('+420','') : "";
 
-  // 📩 Text zprávy podle stavu
+  // 🧩 Výběr textu SMS podle typu a stavu
   let smsText = "";
-  if (stav === "domluveno") {
+
+  if (typ === "pozáruční") {
+    smsText = `Dobrý den, pokoušeli jsme se Vám dovolat ohledně Vašeho požadavku na pozáruční servis k objednávce ${cislo} (model: ${produkt}). Prosíme o zpětné zavolání. White Glove Service.`;
+  } 
+  else if (stav === "domluveno") {
     smsText = `Dobrý den, potvrzujeme termín servisu dne ${datum} v ${cas}. Objednávka: ${cislo}, model: ${produkt}. White Glove Service.`;
   } 
   else if (stav === "nezveda") {
@@ -1454,7 +1459,7 @@ function openContactModal(item, index, overlay) {
 
       <div class="btn-row">
         ${telUrl ? `<a href="${telUrl}" id="callBtn" class="btn-green">Zavolat</a>` : ""}
-        ${smsUrl ? `<a href="${smsUrl}" class="btn-blue">SMS</a>` : ""}
+        ${smsUrl ? `<a href="${smsUrl}" class="btn-blue">SMS-nezvedá</a>` : ""}
         <button id="closeContactBtn" class="btn-gray">Zavřít</button>
       </div>
     </div>
@@ -1542,10 +1547,6 @@ function openContactModal(item, index, overlay) {
 .btn-gray   { background: linear-gradient(135deg,#999,#bbb); }
 </style>
 <!-- 🟩 KONEC C-7 -->
-
-
-
-
 
 
 
