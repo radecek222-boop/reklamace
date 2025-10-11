@@ -319,13 +319,16 @@ async function generateProtocolPDF(){
 async function exportPDF(){
   try{
     showNotif("success","Generuji PDF...");
-    const proto=await generateProtocolPDF();
-    const blob=new Blob([await proto.output("arraybuffer")],{type:"application/pdf"});
-    const url=URL.createObjectURL(blob);
+    const proto = await generateProtocolPDF();
+    const blob = new Blob([await proto.output("arraybuffer")], { type:"application/pdf" });
+    const url = URL.createObjectURL(blob);
     window.open(url,"_blank");
     showNotif("success","PDF vytvořeno");
-    await moveToHotove();
-  }catch(e){console.error(e);showNotif("error","Chyba exportu PDF");}
+    await moveToHotove(); // ✅ přesun po exportu
+  }catch(e){
+    console.error("❌ Chyba exportu PDF:", e);
+    showNotif("error","Chyba exportu PDF");
+  }
 }
 
 async function mailCustomer(){
@@ -337,23 +340,49 @@ async function mailCustomer(){
     const body="Dobrý den,\n\nv příloze zasíláme reklamační protokol.\n\nS pozdravem,\nWhite Glove Service s.r.o.";
     window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     showNotif("success","Otevírám poštovní aplikaci...");
-    await moveToHotove();
-  }catch(e){console.error(e);showNotif("error","Chyba při odesílání e-mailu");}
+    await moveToHotove(); // ✅ přesun po odeslání
+  }catch(e){
+    console.error("❌ Chyba při odesílání e-mailu:", e);
+    showNotif("error","Chyba při odesílání e-mailu");
+  }
 }
 
-/* 🔁 Automatický přesun hotové reklamace */
+/* 🔁 Automatický přesun hotové reklamace + přidání fotodokumentace */
 async function moveToHotove(){
   try{
-    const d=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
-    if(!d.cislo)return;
-    const record={...d,stav:"hotovo",moved:new Date().toISOString()};
-    await fetch("https://wgs-token.72nvwf4pb2.workers.dev/hotove",{
+    const d = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
+    if(!d.cislo){
+      console.warn("⚠️ Nelze přesunout do hotových – chybí číslo zakázky");
+      return;
+    }
+
+    // 🧩 Přidání PDF fotodokumentace z localStorage (pokud existuje)
+    const photoPdfData = localStorage.getItem("photoPdfData") || null;
+
+    const record = { 
+      ...d, 
+      stav:"hotovo", 
+      moved:new Date().toISOString(),
+      photoPdf: photoPdfData ? photoPdfData : null
+    };
+
+    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/hotove", {
       method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({record})
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({ record })
     });
-    console.log("✅ Reklamace přesunuta do hotove.json");
-  }catch(e){console.warn("⚠️ Nelze přesunout do hotových:",e);}
+
+    if(res.ok){
+      console.log(`✅ Reklamace ${d.cislo} přesunuta do hotove.json (včetně PDF)`);
+      showNotif("success","Reklamace přesunuta do hotových");
+    } else {
+      console.warn("⚠️ Worker vrátil chybu:", res.status);
+      showNotif("warning","Nelze uložit do hotových");
+    }
+  }catch(e){
+    console.warn("⚠️ Nelze přesunout do hotových:", e);
+    showNotif("error","Chyba při přesunu do hotových");
+  }
 }
 </script>
 
