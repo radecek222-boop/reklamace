@@ -271,7 +271,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 
 
 
-<!-- 🟩 ZAČÁTEK SEKCE 4/4 – EXPORT DO PDF (AKTUALIZOVÁNO PRO SPRÁVNÉ POMĚRY) -->
+<!-- 🟩 ZAČÁTEK SEKCE 4/4 – EXPORT DO PDF (OSTRÉ FOTO + MOBILNÍ ULOŽENÍ + UPOZORNĚNÍ) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -293,76 +293,57 @@ window.generatePdf = async function(){
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(11);
   if (data.zakaznik) { pdf.text(`Customer: ${data.zakaznik}`, margin, y); y += lineHeight; }
-  if (data.adresa) { pdf.text(`Address: ${data.adresa}`, margin, y); y += lineHeight; }
-  if (data.cislo) { pdf.text(`Order number: ${data.cislo}`, margin, y); y += 10; }
+  if (data.adresa)   { pdf.text(`Address: ${data.adresa}`, margin, y);   y += lineHeight; }
+  if (data.cislo)    { pdf.text(`Order number: ${data.cislo}`, margin, y); y += 10; }
 
   // 🖼 SEZNAM SEKČÍ
   const sections = [
-    { id:"before", label:"BEFORE" },
-    { id:"id", label:"ID" },
+    { id:"before",  label:"BEFORE"  },
+    { id:"id",      label:"ID"      },
     { id:"problem", label:"DETAIL BUG" },
-    { id:"repair", label:"REPAIR" },
-    { id:"after", label:"AFTER" }
+    { id:"repair",  label:"REPAIR"  },
+    { id:"after",   label:"AFTER"   }
   ];
 
   for (const sec of sections) {
     const el = document.getElementById("preview-" + sec.id);
     if (!el || !el.children.length) continue;
 
-    // Nadpis sekce
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(13);
     pdf.text(sec.label, margin, y);
     y += 6;
 
-    pdf.setFont("helvetica", "normal");
-    pdf.setFontSize(10);
-
-    // Obrázky v sekci
     const imgs = Array.from(el.querySelectorAll("img"));
     const gap = 10;
-    const baseWidth = 85; // max. šířka obrázku v PDF (mm)
+    const baseWidth = 85;
     let x = margin;
 
     for (let i = 0; i < imgs.length; i++) {
       const img = imgs[i];
-
-      // 📏 Určení skutečného poměru stran
-      const naturalWidth = img.naturalWidth || 180;
+      const naturalWidth  = img.naturalWidth  || 180;
       const naturalHeight = img.naturalHeight || 120;
       const ratio = naturalWidth / naturalHeight;
-
-      // 🔄 Přepočet rozměrů podle poměru stran
       let imgWidth = baseWidth;
       let imgHeight = imgWidth / ratio;
+      if (ratio < 1) { imgHeight = 85; imgWidth = imgHeight * ratio; }
 
-      // Při orientaci "na výšku" zarovnej výšku
-      if (ratio < 1) {
-        imgHeight = 85;
-        imgWidth = imgHeight * ratio;
-      }
+      // 🖼️ VYSOKÉ ROZLIŠENÍ
+      const canvas = await html2canvas(img, { 
+        scale: 4,           // 🔹 cca 300–350 DPI
+        useCORS: true,
+        logging: false
+      });
+      const imgData = canvas.toDataURL("image/jpeg", 0.98); // 🔹 téměř bezeztrátové
 
-      // 📸 Převod obrázku na dataURL
-      const canvas = await html2canvas(img, { scale: 2 });
-      const imgData = canvas.toDataURL("image/jpeg", 0.85);
-
-      // 📄 Nový řádek po 2 fotkách
-      if (i % 2 === 0 && i > 0) {
-        y += imgHeight + 10;
-        x = margin;
-      }
-
-      // 📄 Nová stránka, pokud se nevejde
-      if (y + imgHeight + 25 > 285) {
-        pdf.addPage();
-        y = 25;
-      }
+      if (i % 2 === 0 && i > 0) { y += imgHeight + 10; x = margin; }
+      if (y + imgHeight + 25 > 285) { pdf.addPage(); y = 25; }
 
       pdf.addImage(imgData, "JPEG", x, y, imgWidth, imgHeight);
       x += imgWidth + gap;
     }
 
-    y += 90; // odstup mezi sekcemi
+    y += 90;
   }
 
   // 📅 DATUM GENEROVÁNÍ
@@ -371,14 +352,37 @@ window.generatePdf = async function(){
   pdf.setFontSize(9);
   pdf.text(`Generated on ${today}`, margin, 290);
 
-  // 💾 ULOŽENÍ
-  const filename = data.cislo
-    ? `photo_${data.cislo}.pdf`
-    : "photo_report.pdf";
-  pdf.save(filename);
+  // 💾 VÝSTUP
+  const blob = pdf.output("blob");
+  const url = URL.createObjectURL(blob);
+  const filename = data.cislo ? `photo_${data.cislo}.pdf` : "photo_report.pdf";
+
+  // 🪄 ULOŽENÍ PRO NAPOJENÍ NA PROTOKOL
+  const reader = new FileReader();
+  reader.onloadend = function() {
+    const base64 = reader.result;
+    localStorage.setItem("photoPdfData", base64);
+  };
+  reader.readAsDataURL(blob);
+
+  // 📱 MOBILNÍ ULOŽENÍ / SDÍLENÍ
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+
+  // 🔔 Notifikace pro technika
+  alert("📄 Soubor PDF byl vytvořen. Vyberte, kam jej chcete uložit nebo odeslat.");
+
+  // iPhone / iPad → otevřít v novém okně (Share dialog)
+  if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    window.open(url, "_blank");
+  } else {
+    link.click();
+  }
 };
 </script>
-<!-- 🟩 KONEC SEKCE 4/4 – EXPORT DO PDF (AKTUALIZOVÁNO PRO SPRÁVNÉ POMĚRY) -->
+<!-- 🟩 KONEC SEKCE 4/4 – EXPORT DO PDF (OSTRÉ FOTO + MOBILNÍ ULOŽENÍ + UPOZORNĚNÍ) -->
+
 
 
 
