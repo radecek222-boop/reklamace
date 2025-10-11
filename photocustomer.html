@@ -428,15 +428,15 @@ h2 {
 <!-- 🟩 KONEC ČÁSTI 2/3 – BLOKY FOTEK + MODÁLNÍ NÁHLED (FINÁLNÍ VERZE) -->
 
 
-<!-- 🟩 ZAČÁTEK ČÁSTI 3/3 – SJEDNOCENÁ TLAČÍTKA (NA PIXEL STEJNÁ) -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 3/3 – SJEDNOCENÁ TLAČÍTKA (NA PIXEL STEJNÁ VERZE) -->
 <div class="actions dual-actions" id="uploadSection">
-  <button type="button" id="btnUploadAll" class="btn-uniform green">NAHRÁT</button>
-  <button type="button" id="btnSendToDetail" class="btn-uniform blue">ODESLAT DO DETAILU ZÁKAZNÍKA</button>
+  <button type="button" id="btnUploadAll" class="btn-uniform green"><span>NAHRÁT</span></button>
+  <button type="button" id="btnSendToDetail" class="btn-uniform blue"><span>ODESLAT DO DETAILU ZÁKAZNÍKA</span></button>
 </div>
 
 <div class="actions dual-actions" style="margin-top:10px;">
-  <a href="index.html" class="btn-uniform gray">ZPĚT</a>
-  <button type="button" id="btnExportPdf" class="btn-uniform lightblue">EXPORT TO PDF</button>
+  <a href="index.html" class="btn-uniform gray"><span>ZPĚT</span></a>
+  <button type="button" id="btnExportPdf" class="btn-uniform lightblue"><span>EXPORT TO PDF</span></button>
 </div>
 
 <div class="wait-overlay" id="waitOverlay">
@@ -452,11 +452,12 @@ h2 {
   gap:10px;
   margin-top:30px;
 }
+
+/* 🟩 SJEDNOCENÝ STYL – STEJNÁ VELIKOST PRO VŠECHNA TLAČÍTKA */
 .btn-uniform{
   flex:1 1 45%;
   max-width:320px;
-  padding:14px 28px;
-  min-height:56px;
+  height:56px;                /* pevná výška */
   font-size:1em;
   font-weight:600;
   border:none;
@@ -470,17 +471,25 @@ h2 {
   justify-content:center;
   box-shadow:0 3px 8px rgba(0,0,0,0.15);
   transition:transform .15s ease,opacity .2s ease;
-  white-space:normal;
-  line-height:1.2;
   box-sizing:border-box;
   appearance:none;
   -webkit-appearance:none;
+  line-height:1;
+  padding:0;                  /* odstraní rozdíl mezi <button> a <a> */
+  white-space:normal;
+}
+.btn-uniform span{
+  display:block;
+  padding:0 14px;             /* vnitřní odsazení textu */
+  text-align:center;
 }
 .btn-uniform:hover{transform:scale(1.05);opacity:.9;}
 .btn-uniform.green{background:linear-gradient(135deg,#00b56a,#00da80);}
 .btn-uniform.blue{background:linear-gradient(135deg,#0090d4,#33b6ff);}
 .btn-uniform.lightblue{background:linear-gradient(135deg,#00aaff,#66ccff);}
 .btn-uniform.gray{background:linear-gradient(135deg,#9b9b9b,#bfbfbf);}
+
+/* 🕓 Čekací overlay */
 .wait-overlay{
   display:none;
   position:fixed;
@@ -617,7 +626,8 @@ document.addEventListener("DOMContentLoaded", () => {
 <footer style="text-align:center;margin:30px 0 20px;font-size:0.8em;color:#888;">
   White Glove Service s.r.o. • © 2025
 </footer>
-<!-- 🟩 KONEC ČÁSTI 3/3 – SJEDNOCENÁ TLAČÍTKA (NA PIXEL STEJNÁ) -->
+<!-- 🟩 KONEC ČÁSTI 3/3 – SJEDNOCENÁ TLAČÍTKA (NA PIXEL STEJNÁ VERZE) -->
+
 
 
 
