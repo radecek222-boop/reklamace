@@ -242,11 +242,7 @@ button:hover { transform:scale(1.03); opacity:0.9; }
           style="width:100%;height:480px;border:1px solid #ccc;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1);"></iframe>
 </div>
 
-<!-- 🟨 Sekce G – Překryvné vrstvy + notifikace -->
-<div class="wait-overlay" id="waitOverlay">
-  <div class="hourglass"></div>
-  <p>Svým podpisem zákazník potvrzuje, že vše uvedené je pravdivé...</p>
-</div>
+<!-- 🟨 Sekce G – Notifikace -->
 <div id="notif" class="notif"></div>
 <style>
 .notif{position:fixed;top:20px;left:50%;transform:translateX(-50%);
@@ -289,6 +285,38 @@ window.addEventListener("DOMContentLoaded",()=>{
 </script>
 
 <!-- 🟨 Sekce J – Generování + náhled + sloučení PDF -->
+<style>
+.btns{
+  margin-top:20px;
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap:12px;
+  width:100%;
+}
+.btns button{
+  height:48px;
+  font-size:0.9em;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+  color:#111; /* ✅ černý text */
+  box-shadow:0 2px 5px rgba(0,0,0,0.2);
+  transition:transform 0.1s ease-in-out,opacity 0.2s;
+}
+.btns button:hover{transform:scale(1.03);opacity:0.9;}
+.btn-clear{background:linear-gradient(135deg,#e6e6e6,#cfcfcf);}
+.btn-back{background:linear-gradient(135deg,#bdbdbd,#e0e0e0);}
+.btn-photos{background:linear-gradient(135deg,#fefefe,#dddddd);}
+.btn-pdf{background:linear-gradient(135deg,#b0dfff,#e2f1ff);}
+.btn-email{background:linear-gradient(135deg,#ffd966,#fff4b3);}
+
+/* 🟦 Mobilní zobrazení – odeslat zákazníkovi plná šířka */
+@media screen and (max-width:768px){
+  .btn-email{grid-column:1 / -1;width:100%;font-size:1em;height:52px;}
+}
+</style>
+
 <script>
 let attachedPhotos=null;
 
@@ -394,4 +422,3 @@ async function mailCustomer(){
 </div><!-- ✅ konec wrapperu -->
 </body>
 </html>
-
