@@ -974,97 +974,33 @@ function initDetailButtons(overlay, item, index) {
 
 
 
-<!-- 🟩 C-2: MAPA A VZDÁLENOST (opravená verze 2025-10-11) -->
+
+<!-- 🟩 C-2: MAPA A VZDÁLENOST -->
 <script>
 function initMapForDetail(overlay, item) {
-  const mapDiv = overlay.querySelector("#mapDetail");
-  if (!mapDiv) {
-    console.warn("❌ Mapový prvek #mapDetail nebyl nalezen.");
-    return;
-  }
+  if (!item.adresa) return;
+  const wgs = [50.049, 14.523];
+  const map = L.map(overlay.querySelector("#mapDetail")).setView(wgs, 9);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    { attribution: "© OpenStreetMap" }).addTo(map);
+  const wgsM = L.marker(wgs, { title: "WGS" }).addTo(map);
 
-  // 💡 Výchozí poloha – sídlo WGS (Běchovice)
-  const wgs = [50.08031890414999, 14.59812450867171];
-  const map = L.map(mapDiv).setView(wgs, 9);
-
-  // 🗺️ Načti OpenStreetMap vrstvy
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "© OpenStreetMap",
-    maxZoom: 18
-  }).addTo(map);
-
-  // 📍 Značka pro sídlo WGS
-  const markerWGS = L.marker(wgs, { title: "White Glove Service s.r.o." })
-    .addTo(map)
-    .bindPopup("🏠 White Glove Service s.r.o.");
-
-  // 💬 Pokud zákazník nemá adresu
-  if (!item.adresa) {
-    overlay.querySelector("#mapDistance").innerHTML = "❌ Adresa zákazníka není zadána.";
-    setTimeout(() => map.invalidateSize(), 600);
-    return;
-  }
-
-  // 🌍 Najdi souřadnice zákazníka
   fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(item.adresa)}`)
     .then(r => r.json())
-    .then(data => {
-      if (!data || !data[0]) {
-        overlay.querySelector("#mapDistance").innerHTML = "⚠️ Adresu zákazníka se nepodařilo najít.";
-        setTimeout(() => map.invalidateSize(), 600);
-        return;
+    .then(d => {
+      if (d[0]) {
+        const c = [+d[0].lat, +d[0].lon];
+        const cust = L.marker(c, { title: "Zákazník" }).addTo(map);
+        L.polyline([wgs, c], { color: "#0046ff", weight: 3 }).addTo(map);
+        const dist = calcDistanceCoords(wgs[0], wgs[1], c[0], c[1]);
+        overlay.querySelector("#mapDistance").innerHTML =
+          `Vzdálenost od WGS: ${dist.toFixed(1)} km`;
+        map.fitBounds(L.featureGroup([wgsM, cust]).getBounds().pad(0.3));
       }
-
-      const custCoords = [+data[0].lat, +data[0].lon];
-      const markerCust = L.marker(custCoords, { title: item.zakaznik || "Zákazník" })
-        .addTo(map)
-        .bindPopup(`<b>${item.zakaznik || "Zákazník"}</b><br>${item.adresa}`);
-
-      // 🔵 Spoj čárou
-      L.polyline([wgs, custCoords], { color: "#0046ff", weight: 3 }).addTo(map);
-
-      // 📏 Výpočet vzdálenosti
-      const dist = calcDistanceCoords(wgs[0], wgs[1], custCoords[0], custCoords[1]);
-      overlay.querySelector("#mapDistance").innerHTML = `📍 Vzdálenost od WGS: ${dist.toFixed(1)} km`;
-
-      // 🎯 Zarámuj mapu tak, aby viděla oba body
-      const bounds = L.featureGroup([markerWGS, markerCust]).getBounds().pad(0.3);
-      map.fitBounds(bounds);
-      setTimeout(() => map.invalidateSize(), 600);
-    })
-    .catch(err => {
-      console.error("❌ Chyba při načítání adresy:", err);
-      overlay.querySelector("#mapDistance").innerHTML = "⚠️ Nelze načíst polohu zákazníka.";
-      setTimeout(() => map.invalidateSize(), 600);
     });
-
-  // 🧭 Rezervní přepočet po načtení
-  setTimeout(() => map.invalidateSize(), 1200);
 }
 </script>
-
-<style>
-#mapDetail {
-  height: 280px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  margin-top: 8px;
-  background: #f5f5f5; /* pro případ pomalého načítání */
-}
-.distance-banner {
-  background: #f6f6f6;
-  border-radius: 8px;
-  padding: 8px;
-  text-align: center;
-  font-weight: 600;
-  margin: 10px 0;
-  color: #333;
-}
-</style>
 <!-- 🟩 KONEC C-2 -->
-
-
-
 
 
 <!-- 🟩 C-3: KALENDÁŘ A ČAS -->
@@ -1706,69 +1642,6 @@ function initPlanCalendar(overlay){
   });
   cal.init();
 
-  <!-- 🟩 E-3b: MAPA V PLÁNU DNE (OPRAVENO) -->
-<script>
-async function initPlanMap() {
-  const planMapDiv = document.getElementById("planMap");
-  if (!planMapDiv) {
-    console.warn("❌ #planMap nebyl nalezen – modál Plánu dne není aktivní.");
-    return;
-  }
-
-  // Vyčištění staré mapy
-  if (planMapDiv._leaflet_id) {
-    planMapDiv._leaflet_id = null;
-    planMapDiv.innerHTML = "";
-  }
-
-  console.log("🗺️ Inicializuji mapu pro Plán dne...");
-  const map = L.map(planMapDiv, {
-    center: [50.0803, 14.5981], // 🏠 sídlo WGS
-    zoom: 8,
-    zoomControl: false
-  });
-
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution: "© OpenStreetMap"
-  }).addTo(map);
-
-  // 📍 Marker WGS (sídlo)
-  const wgs = [50.0803, 14.5981];
-  L.marker(wgs, { title: "White Glove Service" }).addTo(map);
-
-  // 📅 Zákazníci naplánovaní na dnešek
-  const dnes = new Date().toISOString().split("T")[0];
-  const list = (window.dataAll || []).filter(r => r.datum === dnes && r.lat && r.lng);
-
-  if (!list.length) {
-    console.log("ℹ️ Dnes nejsou žádné naplánované adresy.");
-  } else {
-    list.forEach((r, i) => {
-      const marker = L.marker([r.lat, r.lng]).addTo(map);
-      marker.bindPopup(`<b>${i + 1}. ${r.zakaznik}</b><br>${r.adresa}`);
-    });
-
-    // 🔗 Spoj markery čárou + zarovnej mapu
-    const body = list.map(r => [r.lat, r.lng]);
-    body.unshift(wgs);
-    const route = L.polyline(body, { color: "#357aff", weight: 3, opacity: 0.8 }).addTo(map);
-    map.fitBounds(route.getBounds(), { padding: [40, 40] });
-  }
-
-  // 💫 Přepočet velikosti po animaci modálu
-  setTimeout(() => map.invalidateSize(), 400);
-}
-
-// 🧩 Spuštění při otevření modálu
-document.getElementById("planModal").addEventListener("transitionend", e => {
-  if (e.target.id === "planModal" && e.target.classList.contains("active")) {
-    initPlanMap();
-  }
-});
-</script>
-
-
   // vyznačit dny s termínem modrým puntíkem
   const data = dataAll.filter(x=>x.datum);
   data.forEach(r=>{
@@ -1819,7 +1692,6 @@ async function loadPlanForDay(date,overlay){
 }
 </script>
 <!-- 🟦 KONEC E-3 -->
-
 
 
 <!-- 🟦 E-4: MAPA A TRASA -->
