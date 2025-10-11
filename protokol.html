@@ -443,5 +443,47 @@ async function mailCustomer(){
 </script>
 
 </div><!-- ✅ konec wrapperu -->
+  <!-- 🟨 Sekce K – Automatické načtení fotodokumentace z Worker -->
+<script>
+async function loadCustomerPhotosFromWorker(orderNumber) {
+  try {
+    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer", {
+      cache: "no-store"
+    });
+    if (!res.ok) {
+      console.warn("⚠️ Nelze načíst photocustomer.json");
+      return;
+    }
+    const all = await res.json();
+    const record = all.find(r => r.cislo === orderNumber);
+    if (!record || !record.file) return;
+
+    const container = document.getElementById("photoPreviewContainer");
+    const frame = document.getElementById("photoPreviewFrame");
+    container.style.display = "block";
+    frame.src = record.file;
+
+    showNotif("success", "Fotodokumentace načtena z Workeru");
+  } catch (err) {
+    console.error("❌ Chyba při načítání fotodokumentace:", err);
+    showNotif("error", "Nelze načíst fotodokumentaci");
+  }
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  // 1️⃣ Pokud už jsou data v localStorage, přečti číslo objednávky
+  const data = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
+  const orderNum =
+    document.getElementById("order-number")?.value ||
+    data.cislo ||
+    "";
+
+  // 2️⃣ Zkus načíst fotky podle čísla objednávky
+  if (orderNum) {
+    loadCustomerPhotosFromWorker(orderNum);
+  }
+});
+</script>
+
 </body>
 </html>
