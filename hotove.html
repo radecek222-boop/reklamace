@@ -119,7 +119,7 @@ async function loadDone(autoRetry = true) {
     return stavy[id] === "hotovo";
   });
 
-  // ⏳ Pokud zatím žádné hotové, zkus znovu po 5 s
+   // ⏳ Pokud zatím žádné hotové, zkus znovu po 5 s
   if (!hotove.length) {
     tableContainer.innerHTML = "<div class='loading'>Žádné hotové reklamace – kontroluji aktualizaci...</div>";
     if (autoRetry) setTimeout(() => loadDone(false), 5000);
@@ -130,23 +130,46 @@ async function loadDone(autoRetry = true) {
   renderTable(hotove);
 }
 </script>
+<!-- 🟨 KONEC SEKCE D -->
 
+<!-- 🟨 ZAČÁTEK SEKCE E – GENEROVÁNÍ TABULKY (s datem protokolu) -->
+<script>
+function renderTable(hotove) {
+  let html = `
+  <table>
+    <thead>
+      <tr>
+        <th>#</th><th>Číslo</th><th>Zákazník</th><th>Adresa</th>
+        <th>Telefon</th><th>Zadavatel</th><th>Typ</th><th>Protokol</th>
+      </tr>
+    </thead><tbody>`;
+  hotove.forEach((r, i) => {
+    const hasProto = r.protokol?.file;
+    const protoBtn = hasProto
+      ? `<a href="#" class="btn-pdf" onclick="openProtocol('${r.cislo}')">📎 Zobrazit PDF</a>`
+      : `<span style='color:#999;'>—</span>`;
+    const protoDate = r.protokol?.date
+      ? `<span class='protokol-date'>${r.protokol.date}</span>`
+      : "";
+    const protoHtml = `<div class='protokol-info'>${protoBtn}${protoDate}</div>`;
 
-  // 🟨 E – GENEROVÁNÍ TABULKY (s datem protokolu)
-  function renderTable(hotove){
-    let html=`
-    <table>
-      <thead>
-        <tr>
-          <th>#</th><th>Číslo</th><th>Zákazník</th><th>Adresa</th>
-          <th>Telefon</th><th>Zadavatel</th><th>Typ</th><th>Protokol</th>
-        </tr>
-      </thead><tbody>`;
-    hotove.forEach((r,i)=>{
-      const hasProto=r.protokol?.file;
-      const protoBtn=hasProto?`<a href="#" class="btn-pdf" onclick="openProtocol('${r.cislo}')">📎 Zobrazit PDF</a>`:`<span style='color:#999;'>—</span>`;
-      const protoDate=r.protokol?.date?`<span class='protokol-date'>${r.protokol.date}</span>`:"";
-      const protoHtml=`<div class='protokol-info'>${protoBtn}${protoDate}</div>`;
+    html += `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${r.cislo || ""}</td>
+        <td>${r.zakaznik || ""}</td>
+        <td>${r.adresa || ""}</td>
+        <td><a href="tel:${r.telefon || ""}">${r.telefon || ""}</a></td>
+        <td>${r.contract || (r.jinaZadavatel?.jmeno || "")}</td>
+        <td>${r.typ || ""}</td>
+        <td>${protoHtml}</td>
+      </tr>`;
+  });
+  html += `</tbody></table>`;
+  tableContainer.innerHTML = html;
+}
+</script>
+<!-- 🟨 KONEC SEKCE E -->
 
       html+=`
         <tr>
