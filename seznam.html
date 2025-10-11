@@ -1415,60 +1415,134 @@ function openPopisEditor(item, overlay) {
 
 
 
-<!-- 🟩 C-7: KONTAKTOVACÍ OKNO ZÁKAZNÍKA -->
+
+<!-- 🟩 C-7: KONTAKTOVACÍ OKNO ZÁKAZNÍKA (v2.0 – SMS podle stavu) -->
 <script>
 function openContactModal(item, index, overlay) {
   const modal = document.createElement("div");
   modal.className = "contact-modal";
+
+  const cislo   = item.cislo   || "bez čísla";
+  const produkt = item.produkt || "neuvedený model";
+  const datum   = item.datum   || "";
+  const cas     = item.cas     || "";
+  const stav    = (item.stav || "").toLowerCase();
+  const tel     = item.telefon ? item.telefon.replace(/\s+/g,'').replace('+420','') : "";
+
+  // 📩 Text zprávy podle stavu
+  let smsText = "";
+  if (stav === "domluveno") {
+    smsText = `Dobrý den, potvrzujeme termín servisu dne ${datum} v ${cas}. Objednávka: ${cislo}, model: ${produkt}. White Glove Service.`;
+  } 
+  else if (stav === "nezveda") {
+    smsText = `Dobrý den, pokoušeli jsme se Vám dovolat ohledně reklamace, kterou jste si založil pod objednávkou ${cislo} (model: ${produkt}). Prosíme o zpětné zavolání. White Glove Service.`;
+  } 
+  else if (stav === "zruseno") {
+    smsText = `Dobrý den, termín servisu reklamace ${cislo} (model: ${produkt}) byl dle domluvy zrušen. White Glove Service.`;
+  }
+
+  const encodedSMS = smsText ? encodeURIComponent(smsText) : "";
+  const smsUrl = tel ? `sms:${tel}${encodedSMS ? "?&body=" + encodedSMS : ""}` : "";
+  const telUrl = tel ? `tel:${tel}` : "";
+
+  // 💬 HTML modálu
   modal.innerHTML = `
     <div class="contact-window">
       <h3>📞 Kontaktovat zákazníka</h3>
       <p><strong>${item.zakaznik || "Neznámý zákazník"}</strong></p>
-      <p>${item.adresa || ""}</p>
+      <p style="font-size:0.9em;color:#555;margin-top:-4px;">${item.adresa || ""}</p>
+
       <div class="btn-row">
-        ${item.telefon ? `<a href="tel:${item.telefon.replace(/\s+/g,'')}" class="btn-green">Zavolat</a>` : ""}
-        ${item.telefon ? `<a href="sms:${item.telefon.replace(/\s+/g,'')}" class="btn-blue">SMS</a>` : ""}
-        ${item.email ? `<a href="mailto:${item.email}" class="btn-purple">E-mail</a>` : ""}
-        <button class="btn-gray" id="closeContactBtn">Zavřít</button>
+        ${telUrl ? `<a href="${telUrl}" id="callBtn" class="btn-green">Zavolat</a>` : ""}
+        ${smsUrl ? `<a href="${smsUrl}" class="btn-blue">SMS</a>` : ""}
+        <button id="closeContactBtn" class="btn-gray">Zavřít</button>
       </div>
-    </div>`;
+    </div>
+  `;
+
   document.body.appendChild(modal);
   setTimeout(() => modal.classList.add("active"), 10);
+
+  // 🔙 Zavřít ručně
   modal.querySelector("#closeContactBtn").onclick = () => modal.remove();
+
+  // 📞 Automatické zavření po kliknutí na „Zavolat“
+  const callBtn = modal.querySelector("#callBtn");
+  if (callBtn) {
+    callBtn.addEventListener("click", () => {
+      setTimeout(() => { if (modal.parentNode) modal.remove(); }, 400);
+    });
+  }
 }
 </script>
 
 <style>
 .contact-modal {
-  position: fixed; inset: 0;
+  position: fixed;
+  inset: 0;
   background: rgba(0,0,0,0.55);
-  display: flex; justify-content: center; align-items: center;
-  z-index: 10000; opacity: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  opacity: 0;
   transition: opacity .25s ease;
 }
 .contact-modal.active { opacity: 1; }
+
 .contact-window {
-  background: #fff; border-radius: 14px;
-  padding: 22px 26px; width: 90%; max-width: 380px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px 28px;
+  width: 90%;
+  max-width: 380px;
   box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-  font-family: "Inter", sans-serif; text-align: center;
+  font-family: "Inter", sans-serif;
+  text-align: center;
   animation: fadeIn .3s ease;
 }
-.contact-window h3 { margin-top:0;margin-bottom:14px;font-weight:700;color:#222; }
+@keyframes fadeIn { from{transform:scale(.95);opacity:.6;} to{transform:scale(1);opacity:1;} }
+
+.contact-window h3 {
+  margin-top: 0;
+  margin-bottom: 14px;
+  font-weight: 700;
+  color: #222;
+}
+
 .btn-row {
-  display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:15px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
 }
-.btn-green  {background:linear-gradient(135deg,#4caf50,#6fdd72);}
-.btn-blue   {background:linear-gradient(135deg,#357aff,#6fa8ff);}
-.btn-purple {background:linear-gradient(135deg,#b993ff,#d4b5ff);}
-.btn-gray   {background:linear-gradient(135deg,#999,#bbb);}
-.btn-row a, .btn-row button {
-  color:#fff;border:none;border-radius:8px;padding:8px 16px;
-  font-weight:600;cursor:pointer;text-decoration:none;
-  box-shadow:0 2px 6px rgba(0,0,0,0.15);
+
+.btn-row a,
+.btn-row button {
+  border: none;
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 0.95em;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: transform .2s, opacity .2s;
 }
+.btn-row a:hover,
+.btn-row button:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+.btn-green  { background: linear-gradient(135deg,#4caf50,#6fdd72); }
+.btn-blue   { background: linear-gradient(135deg,#357aff,#6fa8ff); }
+.btn-gray   { background: linear-gradient(135deg,#999,#bbb); }
 </style>
 <!-- 🟩 KONEC C-7 -->
+
 
 
 
