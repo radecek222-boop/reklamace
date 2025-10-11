@@ -246,104 +246,119 @@ function initTranslator(p){
 window.addEventListener("load",()=>["description","problem","repair"].forEach(initTranslator));
 </script>
 
-<!-- 🔹 GENEROVÁNÍ + SPOJENÍ PDF -->
 <script>
-let signaturePad;
-window.addEventListener("load",()=>{
-  const canvas=document.getElementById("signature-pad");
-  const resize=()=>{const r=Math.max(window.devicePixelRatio||1,1);
-    canvas.width=canvas.offsetWidth*r;canvas.height=canvas.offsetHeight*r;
-    canvas.getContext("2d").scale(r,r);};
-  window.addEventListener("resize",resize);resize();
-  signaturePad=new SignaturePad(canvas,{minWidth:1,maxWidth:2,penColor:"black",backgroundColor:"white"});
-  const saved=localStorage.getItem("signatureImage");
-  if(saved){const img=new Image();img.onload=()=>signaturePad.fromDataURL(saved);img.src=saved;}
-});
-window.addEventListener("beforeunload",()=>{if(signaturePad&&!signaturePad.isEmpty())localStorage.setItem("signatureImage",signaturePad.toDataURL());});
+/* 🧩 VYLEPŠENÉ GENEROVÁNÍ PDF – 300 DPI, DVOJICE FOTEK, BEZ ZTRÁTY KVALITY */
+window.generatePdf = async function (saveToLocal = true) {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("p", "mm", "a4");
+  const margin = 10;
+  const imgWidth = 90; // mm (2 fotky vedle sebe)
+  const imgHeight = 67; // mm ≈ 3:2 poměr, ideální pro 10×15 cm fotky
 
-function showNotif(type="success",text="Hotovo"){
-  const n=document.getElementById("notif");n.className=`notif ${type}`;n.textContent=text;
-  n.classList.add("show");clearTimeout(window._notifTimer);
-  window._notifTimer=setTimeout(()=>n.classList.remove("show"),2500);
-}
+  const titleFont = { size: 14, color: "#111" };
+  const sectionsList = ["before", "id", "problem", "repair", "after"];
+  let pageY = margin;
 
-let attachedPhotos=null;
-function attachPhotos(){
-  const d=localStorage.getItem("photoPdfData"),p=document.getElementById("photoPreviewContainer"),f=document.getElementById("photoPreviewFrame");
-  if(!d){showNotif("warning","Žádné fotky nenalezeny");p.style.display="none";return;}
-  attachedPhotos=d;p.style.display="block";f.src=d;showNotif("success","Fotodokumentace připojena");
-}
+  for (const section of sectionsList) {
+    const images = sections[section] || [];
+    if (!images.length) continue;
 
-async function generateProtocolPDF(){
-  const{jsPDF}=window.jspdf;const w=document.querySelector(".wrapper");const doc=new jsPDF("p","mm","a4");
-  const b=document.querySelector(".btns");b.style.visibility="hidden";
-  const c=await html2canvas(w,{scale:3,backgroundColor:"#fff"});b.style.visibility="visible";
-  doc.addImage(c.toDataURL("image/jpeg",0.98),"JPEG",0,0,210,297);
-  doc.addPage();
-  if(signaturePad&&!signaturePad.isEmpty()){doc.text("Podpis zákazníka / Customer signature",20,30);
-    doc.addImage(signaturePad.toDataURL(),"PNG",20,40,120,60);}
-  else doc.text("Bez podpisu zákazníka / No customer signature",20,30);
-  return doc;
-}
+    // 🔹 Nadpis sekce
+    pdf.setFontSize(titleFont.size);
+    pdf.setTextColor(titleFont.color);
+    pdf.text(section.toUpperCase(), margin, pageY);
+    pageY += 8;
 
-async function mergeWithPhotos(doc){
-  try{
-    let data=attachedPhotos;if(!data){
-      const cust=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
-      const res=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer",{cache:"no-store"});
-      if(res.ok){const all=await res.json();const rec=all.find(r=>r.cislo===cust.cislo);if(rec?.file)data=rec.file;}
+    for (let i = 0; i < images.length; i++) {
+      const imgObj = images[i];
+      const image = await blobToBase64(imgObj.blob || imgObj.originalBlob);
+      const posX = (i % 2 === 0) ? margin : margin + imgWidth + 10;
+      pdf.addImage(image, "JPEG", posX, pageY, imgWidth, imgHeight);
+
+      // každé dva obrázky na novou řádku
+      if (i % 2 === 1) pageY += imgHeight + 10;
+
+      // pokud dojde místo na stránce
+      if (pageY + imgHeight + 10 > 287 && i !== images.length - 1) {
+        pdf.addPage();
+        pageY = margin + 10;
+      }
     }
-    if(!data)return doc;
-    if(!window.PDFLib){await new Promise((res,rej)=>{const s=document.createElement("script");
-      s.src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js";s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
-    const{PDFDocument}=window.PDFLib;const base64=data.split(",")[1];
-    const bytes=Uint8Array.from(atob(base64),c=>c.charCodeAt(0));
-    const photos=await PDFDocument.load(bytes);const main=await PDFDocument.load(await doc.output("arraybuffer"));
-    const pages=await main.copyPages(photos,photos.getPageIndices());pages.forEach(p=>main.addPage(p));
-    const merged=await main.save();return new Blob([merged],{type:"application/pdf"});
-  }catch(e){console.error("❌ PDF merge:",e);showNotif("error","Nelze spojit PDF s fotkami");return doc;}
+
+    // po sekci přidáme mezeru a stránku, pokud není poslední
+    pageY += imgHeight + 15;
+    if (section !== "after") {
+      pdf.addPage();
+      pageY = margin + 10;
+    }
+  }
+
+  const blob = pdf.output("blob");
+  const base64 = await blobToBase64(blob);
+
+  if (saveToLocal) {
+    localStorage.setItem("photoPdfData", base64);
+    localStorage.setItem("photoUploadedAt", Date.now());
+    localStorage.setItem("photoSent", "false");
+    console.log("📦 Fotodokumentace uložena do localStorage (photoPdfData)");
+  }
+
+  return blob;
+};
+
+/* 🔹 Pomocná funkce pro konverzi Blob → Base64 */
+function blobToBase64(blob) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.readAsDataURL(blob);
+  });
 }
 
-async function exportPDF(){
-  try{showNotif("success","Generuji PDF...");
-    const proto=await generateProtocolPDF();const merged=await mergeWithPhotos(proto);
-    const blob=merged instanceof Blob?merged:new Blob([proto.output("arraybuffer")]);
-    const url=URL.createObjectURL(blob);if(/iPhone|iPad|Android/i.test(navigator.userAgent)){
-      const a=document.createElement("a");a.href=url;a.download="WGS_protokol.pdf";a.click();}
-    else window.open(url,"_blank");
-    showNotif("success","PDF vytvořeno");
-  }catch(e){console.error(e);showNotif("error","Chyba exportu PDF");}
-}
+/* 🧩 AUTOUPLOAD – po přidání fotek se uloží 300 DPI PDF */
+async function autoUpload() {
+  const allPhotos = Object.values(sections).flat();
+  if (!allPhotos.length) return;
+  const progress = document.getElementById("progressFill");
 
-async function mailCustomer(){
-  try{
-    const email=document.getElementById("email").value||"";if(!email)return showNotif("warning","Není uveden e-mail");
-    const proto=await generateProtocolPDF();await mergeWithPhotos(proto);
-    const subj="Reklamační protokol White Glove Service";
-    const body="Dobrý den,\n\nv příloze zasíláme reklamační protokol s fotodokumentací.\n\nS pozdravem,\nWHITE GLOVE SERVICE s.r.o.";
-    showNotif("success","Otevírám e-mail...");
-    window.location.href=`mailto:${email}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
-  }catch(e){console.error(e);showNotif("error","Chyba při odesílání e-mailu");}
-}
-</script>
+  // 📦 Generuj PDF
+  const blob = await window.generatePdf(true);
+  const base64pdf = await blobToBase64(blob);
 
-<!-- 🔹 AUTOMATICKÉ NAČTENÍ FOTODOKUMENTACE -->
-<script>
-async function loadCustomerPhotosFromWorker(orderNumber){
-  try{
-    const res=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer",{cache:"no-store"});
-    if(!res.ok)return;const all=await res.json();
-    const rec=all.find(r=>r.cislo===orderNumber);
-    if(!rec?.file)return;
-    const c=document.getElementById("photoPreviewContainer"),f=document.getElementById("photoPreviewFrame");
-    c.style.display="block";f.src=rec.file;showNotif("success","Fotodokumentace načtena");
-  }catch(e){console.error(e);showNotif("error","Nelze načíst fotodokumentaci");}
+  // 🔹 Ulož do localStorage (pro protokol.html)
+  localStorage.setItem("photoPdfData", base64pdf);
+  localStorage.setItem("photoUploadedAt", Date.now());
+  localStorage.setItem("photoSent", "false");
+
+  // 🔹 Ulož do Workeru
+  const customer = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
+  const record = {
+    cislo: customer.cislo || "",
+    zakaznik: customer.zakaznik || "",
+    datum: new Date().toISOString(),
+    file: base64pdf
+  };
+
+  try {
+    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ record })
+    });
+
+    if (res.ok) {
+      console.log("✅ Fotodokumentace odeslána na Worker (photocustomer.json)");
+      showNotif("success", "Fotky odeslány do detailu zákazníka");
+      progress.style.width = "100%";
+    } else {
+      console.warn("⚠️ Uložení selhalo:", res.status);
+      showNotif("warning", "Nelze uložit na server");
+    }
+  } catch (e) {
+    console.error("❌ Chyba při uploadu:", e);
+    showNotif("error", "Chyba při odesílání na server");
+  }
 }
-window.addEventListener("DOMContentLoaded",()=>{
-  const data=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
-  const orderNum=data.cislo||document.getElementById("order-number")?.value||"";
-  if(orderNum)loadCustomerPhotosFromWorker(orderNum);
-});
 </script>
 
 </body>
