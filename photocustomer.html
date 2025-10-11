@@ -97,7 +97,7 @@ h2 {
 
 
 
-<!-- 🟩 ZAČÁTEK ČÁSTI 2/3 – BLOKY FOTEK + MODÁLNÍ NÁHLED (FINÁLNÍ S PINCH-ZOOM) -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 2/3 – BLOKY FOTEK + MODÁLNÍ NÁHLED (FINÁLNÍ VERZE) -->
 <style>
 .photo-block {
   border:1px solid #ccc;
@@ -142,7 +142,7 @@ h2 {
   box-shadow:0 3px 10px rgba(0,0,0,0.25);
 }
 
-/* 🧭 MODÁLNÍ NÁHLED – s pinch-to-zoom a posunem */
+/* 🧭 MODÁLNÍ NÁHLED – pinch-zoom + posun */
 .photo-modal {
   display:none;
   position:fixed;
@@ -245,7 +245,6 @@ h2 {
 <div class="progress-bar-container">
   <div class="progress-bar-fill" id="progressFill"></div>
 </div>
-<div class="progress-text" id="progressText">0%</div>
 
 <!-- 🟨 MODÁLNÍ OKNO -->
 <div id="photoModal" class="photo-modal">
@@ -258,19 +257,19 @@ h2 {
   </div>
 </div>
 
-<!-- 🟨 LOGIKA BLOKŮ + ZOOM -->
+<!-- 🟨 LOGIKA BLOKŮ -->
 <script>
 (function(){
   const input=document.getElementById("photoInput");
   const sections={before:[],id:[],problem:[],repair:[],after:[]};
   const fill=document.getElementById("progressFill");
-  const text=document.getElementById("progressText");
   const modal=document.getElementById("photoModal");
   const modalImg=document.getElementById("modalImg");
   const btnDelete=document.getElementById("btnDeletePhoto");
   const btnClose=document.getElementById("btnClosePhoto");
   const data=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
   const orderNum=data.cislo||"";
+  let uploadBtn=null;
 
   let currentSection=null,currentIndex=null;
 
@@ -311,6 +310,7 @@ h2 {
     ctx.drawImage(img,0,0,w,h);
     return new Promise(r=>canvas.toBlob(r,"image/jpeg",0.85));
   }
+
   async function getOrientation(file){
     const img=await createImageBitmap(file);
     return img.width>img.height?"landscape":"portrait";
@@ -354,7 +354,6 @@ h2 {
 
   // 🧭 Zoom & Pan (touch + trackpad)
   let scale=1,startDist=0,moveX=0,moveY=0,startX=0,startY=0,dragging=false,lastX=0,lastY=0;
-
   function resetTransform(){scale=1;moveX=0;moveY=0;modalImg.style.transform="translate(0,0) scale(1)";}
 
   modalImg.addEventListener("wheel",e=>{
@@ -407,31 +406,26 @@ h2 {
     }
   },{passive:false});
 
-  // 🔹 Simulovaný upload
+  // 🔹 Upload všech fotek – procenta v tlačítku
   async function uploadAll(){
+    uploadBtn=document.getElementById("btnUploadAll");
     const all=Object.values(sections).flat();
     if(!all.length)return alert("Není vybrána žádná fotografie.");
     let uploaded=0;
+    uploadBtn.disabled=true;
     for(const p of all){
       await new Promise(r=>setTimeout(r,200));
       uploaded++;
       const pct=Math.round((uploaded/all.length)*100);
       fill.style.width=pct+"%";
-      text.textContent=pct+"%";
+      if(uploadBtn) uploadBtn.innerText=`NAHRÁVÁM – ${pct}%`;
     }
+    if(uploadBtn){uploadBtn.innerText="NAHRÁT";uploadBtn.disabled=false;}
   }
   window.uploadAll=uploadAll;
 })();
 </script>
-<!-- 🟩 KONEC ČÁSTI 2/3 – BLOKY FOTEK + MODÁLNÍ NÁHLED (FINÁLNÍ S PINCH-ZOOM) -->
-
-
-
-
-
-
-
-
+<!-- 🟩 KONEC ČÁSTI 2/3 – BLOKY FOTEK + MODÁLNÍ NÁHLED (FINÁLNÍ VERZE) -->
 
 
 
@@ -614,12 +608,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 </script>
+<!-- 🟩 KONEC ČÁSTI 3/3 – FUNKČNÍ TLAČÍTKA + NOTIFIKACE + OVERLAY -->
 
-<footer style="text-align:center;margin:30px 0 20px;font-size:0.8em;color:#888;">
-  White Glove Service s.r.o. • © 2025
-</footer>
-
-</div> <!-- wrapper -->
 
 
 
