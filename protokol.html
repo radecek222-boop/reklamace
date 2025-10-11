@@ -221,278 +221,202 @@ button:hover { transform:scale(1.03); opacity:0.9; }
   const priceTotal=document.getElementById("price-total");
   </script>
 
+ 
   <!-- 🟨 Sekce F – Podpis a tlačítka -->
-  <div class="section-title">Podpis zákazníka<span class="en-label">Customer signature</span></div>
-  <canvas id="signature-pad"></canvas>
-  <div class="signature-label">Podepište se prstem nebo myší</div>
+<div class="section-title">Podpis zákazníka<span class="en-label">Customer signature</span></div>
+<canvas id="signature-pad"></canvas>
+<div class="signature-label">Podepište se prstem nebo myší</div>
 
-  <div class="btns">
-    <button class="btn-clear" type="button" onclick="signaturePad.clear()">Vymazat podpis</button>
-    <button class="btn-back" type="button" onclick="window.location.href='index.html'">Zpět</button>
-    <button class="btn-pdf" type="button" onclick="exportPDF()">Exportovat PDF</button>
-    <button class="btn-email" type="button" onclick="mailCustomer()">Odeslat zákazníkovi</button>
-  </div>
+<div class="btns">
+  <button class="btn-clear" type="button" onclick="signaturePad.clear()">Vymazat podpis</button>
+  <button class="btn-back" type="button" onclick="window.location.href='index.html'">Zpět</button>
+  <button class="btn-photos" type="button" onclick="attachPhotos()">Přidat fotky</button>
+  <button class="btn-pdf" type="button" onclick="exportPDF()">Exportovat PDF</button>
+  <button class="btn-email" type="button" onclick="mailCustomer()">Odeslat zákazníkovi</button>
+</div>
 
-  <!-- 🟨 Sekce G – Překryvné vrstvy -->
-  <div class="wait-overlay" id="waitOverlay">
-    <div class="hourglass"></div><p>Svým podpisem zákazník potvrzuje, že vše uvedené je pravdivé, reklamace nebo servisní zásah byl řádně proveden a souhlasí s uchováním a zpracováním osobních údajů společností White Glove Service s.r.o. pro účely vyřízení reklamace, servisu a předání výrobci v souladu s platnou legislativou (GDPR)</p>
-  </div>
-  <div class="success-check" id="successCheck">
-    <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-      <defs>
-        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#00d084"/><stop offset="100%" style="stop-color:#00a86b"/>
-        </linearGradient>
-      </defs>
-      <circle cx="26" cy="26" r="25" fill="none"/>
-      <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
+<!-- 🟨 Sekce G – Překryvné vrstvy + notifikace -->
+<div class="wait-overlay" id="waitOverlay">
+  <div class="hourglass"></div>
+  <p>Svým podpisem zákazník potvrzuje, že vše uvedené je pravdivé, reklamace nebo servisní zásah byl řádně proveden a souhlasí s uchováním a zpracováním osobních údajů společností White Glove Service s.r.o. pro účely vyřízení reklamace, servisu a předání výrobci v souladu s platnou legislativou (GDPR)</p>
+</div>
+<div class="success-check" id="successCheck">
+  <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+    <defs>
+      <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#00d084"/><stop offset="100%" style="stop-color:#00a86b"/>
+      </linearGradient>
+    </defs>
+    <circle cx="26" cy="26" r="25" fill="none"/>
+    <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</div>
 
-  <!-- 🟨 Sekce H – Externí knihovny -->
-  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="wgs-sync.js"></script>
-  <!-- 🟨 Sekce I – Auto-předvyplnění dat z localStorage -->
-  <script>
-  window.addEventListener("DOMContentLoaded", () => {
-    try {
-      const saved = localStorage.getItem("protokolData");
-      if (!saved) return;
-      const data = JSON.parse(saved);
-      console.log("🧾 Načítám data z localStorage.protokolData:", data);
-
-      if (data.cislo) claimNumber.value = data.cislo;
-      if (data.contract) brand.value = data.contract;
-      if (data.zakaznik) customer.value = data.zakaznik;
-      if (data.adresa) address.value = data.adresa;
-      if (data.telefon) phone.value = data.telefon;
-      if (data.email) email.value = data.email;
-      if (data.produkt) model.value = data.produkt;
-      if (data.popis) {
-        descriptionCz.value = data.popis;
-        descriptionEn.value = data.popis;
-      }
-      if (data.datum_reklamace) claimDate.value = data.datum_reklamace;
-      if (data.datum) visitDate.value = data.datum;
-    } catch (err) {
-      console.error("❌ Chyba při načítání dat:", err);
-    }
-  });
-  </script>
-
-  <!-- 🟨 Sekce I.2 – Překladač CZ → EN (MyMemory API – bez klíče) -->
-  <script>
-  async function translateCZtoEN(text) {
-    if (!text.trim()) return "";
-    try {
-      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=cs|en`;
-      const res = await fetch(url);
-      const data = await res.json();
-      return data.responseData?.translatedText || "";
-    } catch(e) {
-      console.warn("⚠️ Překlad selhal:", e.message);
-      return "";
-    }
-  }
-
-  function initTranslator(prefix) {
-    const cz = document.getElementById(`${prefix}-cz`);
-    const en = document.getElementById(`${prefix}-en`);
-    if (!cz || !en) return;
-    let t;
-    cz.addEventListener("input", () => {
-      clearTimeout(t);
-      if (!cz.value.trim()) { en.value = ""; return; }
-      en.value = "⏳ Překládám...";
-      t = setTimeout(async () => {
-        en.value = await translateCZtoEN(cz.value);
-      }, 700);
-    });
-  }
-
-  window.addEventListener("DOMContentLoaded", async () => {
-    ["description", "problem", "repair"].forEach(initTranslator);
-    for (const f of ["description", "problem", "repair"]) {
-      const cz = document.getElementById(`${f}-cz`);
-      const en = document.getElementById(`${f}-en`);
-      if (cz && en && cz.value && !en.value.trim()) {
-        en.value = "⏳ Překládám...";
-        en.value = await translateCZtoEN(cz.value);
-      }
-    }
-  });
-  </script>
-
-  <!-- 🟨 Sekce I.3 – Načtení dat z orders.json podle URL -->
-  <script>
-  async function loadProtocolFromOrders() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const claim = urlParams.get("cislo");
-    if (!claim) return;
-    try {
-      console.log("📥 Načítám záznam z Workeru:", claim);
-      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders");
-      const all = await res.json();
-      const record = all.find(r => r.cislo === claim);
-      if (!record) return console.warn("⚠️ Reklamace s tímto číslem nebyla nalezena.");
-      localStorage.setItem("protokolData", JSON.stringify(record));
-
-      document.getElementById("claim-number").value = record.cislo || "";
-      document.getElementById("brand").value = record.contract || "";
-      document.getElementById("customer").value = record.zakaznik || "";
-      document.getElementById("address").value = record.adresa || "";
-      document.getElementById("phone").value = record.telefon || "";
-      document.getElementById("email").value = record.email || "";
-      document.getElementById("model").value = record.produkt || "";
-      document.getElementById("claim-date").value = record.datum_reklamace || "";
-      document.getElementById("visit-date").value = record.datum || "";
-      if (record.popis) {
-        document.getElementById("description-cz").value = record.popis;
-        document.getElementById("description-en").value = record.popis;
-      }
-      console.log("✅ Data z reklamace načtena:", record.cislo);
-    } catch (e) {
-      console.error("❌ Chyba při načítání z Workeru:", e);
-    }
-  }
-  window.addEventListener("DOMContentLoaded", loadProtocolFromOrders);
-  </script>
-
-  <!-- 🟨 Sekce J – PDF, e-mail, uložení, podpis fix -->
-  <script>
-  let signaturePad;
-
-  // 🖊️ Inicializace podpisu
-  window.addEventListener("DOMContentLoaded", () => {
-    const canvas = document.getElementById("signature-pad");
-    if (!canvas) return;
-    setTimeout(() => {
-      canvas.style.display = "block";
-      canvas.style.background = "#fff";
-      canvas.style.border = "2px dashed #888";
-      canvas.style.width = "100%";
-      canvas.style.height = "200px";
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-      signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
-    }, 50);
-
-    const today = new Date().toISOString().split("T")[0];
-    document.getElementById("visit-date").value ||= today;
-    document.getElementById("sign-date").value ||= today;
-  });
-
-  // 🧾 PDF export
-  async function generatePDF(){
-    const { jsPDF } = window.jspdf;
-    const wrapper=document.querySelector(".wrapper");
-    const doc=new jsPDF("p","mm","a4");
-    doc.setFont("helvetica","bold");
-    doc.setFontSize(48);
-    doc.setTextColor(220,220,220);
-    doc.text("WHITE GLOVE SERVICE",105,150,{align:"center",angle:45});
-
-    const btns=document.querySelector(".btns");
-    const originalVis=btns.style.visibility;
-    btns.style.visibility="hidden";
-
-    wrapper.classList.add("force-desktop");
-    const canvas=await html2canvas(wrapper,{scale:2,backgroundColor:"#fff"});
-    const imgData=canvas.toDataURL("image/jpeg",0.95);
-    wrapper.classList.remove("force-desktop");
-    btns.style.visibility=originalVis;
-
-    if(!signaturePad.isEmpty()){
-      const sig=signaturePad.toDataURL("image/png");
-      doc.addImage(sig,"PNG",30,250,60,20);
-    } else {
-      doc.setFontSize(10);
-      doc.setTextColor(150);
-      doc.text("✘ Bez podpisu zákazníka",30,260);
-    }
-
-    doc.addImage(imgData,"JPEG",0,0,210,297);
-    return doc;
-  }
-
-  async function exportPDF(){
-    const doc=await generatePDF();
-    const blob=doc.output("blob");
-    const url=URL.createObjectURL(blob);
-    window.open(url,"_blank");
-    saveProtocolToCustomer(blob);
-  }
-
-  async function mailCustomer(){
-    const doc=await generatePDF();
-    const blob=doc.output("blob");
-    saveProtocolToCustomer(blob);
-    const email=document.getElementById("email").value||"";
-    const subject="Reklamační protokol White Glove Service";
-    const body="Dobrý den,\n\nv příloze zasíláme reklamační protokol z návštěvy.\n\nS pozdravem,\nWHITE GLOVE SERVICE s.r.o.";
-    window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  }
-
-  async function saveProtocolToCustomer(pdfBlob){
-    try{
-      const reader=new FileReader();
-      reader.onloadend=async()=>{
-        const base64pdf=reader.result.split(",")[1];
-        const claim=claimNumber.value;
-        const customerName=customer.value;
-        const today=new Date().toISOString().split("T")[0];
-        const fileName=`Protokol_${customerName}_${claim}_${today}.pdf`;
-        const record={ cislo:claim, protokol:{name:fileName,date:today,file:base64pdf} };
-        if(typeof saveCustomerEdit==="function"){
-          saveCustomerEdit(record);
-          console.log("📎 Protokol uložen:",fileName);
-        } else console.warn("⚠️ Funkce saveCustomerEdit() není dostupná.");
-      };
-      reader.readAsDataURL(pdfBlob);
-    }catch(e){
-      console.error("❌ Chyba při ukládání:",e);
-    }
-  }
-async function exportPDF() {
-  const doc = await generatePDF();
-  const blob = doc.output("blob");
-  const url = URL.createObjectURL(blob);
-  window.open(url, "_blank");
-  saveProtocolToCustomer(blob);
-  markAsCompleted(); // ✅ označí hotovo
+<!-- 🔔 Notifikační zprávy -->
+<div id="notif" class="notif"></div>
+<style>
+.notif {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #00b56a, #00da80);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9em;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  opacity: 0;
+  transition: opacity .3s ease, transform .3s ease;
+  z-index: 3000;
 }
-
-async function mailCustomer() {
-  const doc = await generatePDF();
-  const blob = doc.output("blob");
-  saveProtocolToCustomer(blob);
-  markAsCompleted(); // ✅ označí hotovo
-  const email = document.getElementById("email").value || "";
-  const subject = "Reklamační protokol White Glove Service";
-  const body = "Dobrý den,\n\nv příloze zasíláme reklamační protokol z návštěvy.\n\nS pozdravem,\nWHITE GLOVE SERVICE s.r.o.";
-  window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+.notif.show {
+  opacity: 1;
+  transform: translate(-50%, 10px);
 }
+.notif.error { background: linear-gradient(135deg,#e63946,#ff6b6b); }
+.notif.warning { background: linear-gradient(135deg,#ffb200,#ffca40); color:#222; }
+</style>
 
-/* 🟢 Označení reklamace jako hotové */
-function markAsCompleted() {
-  const protokol = JSON.parse(localStorage.getItem("protokolData") || "{}");
-  if (!protokol.cislo) return;
-
-  // 🔄 uloží do localStorage
-  const stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
-  stavy[protokol.cislo] = "hotovo";
-  localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
-
-  // 🟩 volitelný toast (zobrazí po návratu do seznam.html)
-  sessionStorage.setItem("wgsToastMsg", `✅ Reklamace ${protokol.cislo} označena jako hotová`);
-  sessionStorage.setItem("wgsToastType", "success");
+<script>
+function showNotif(type="success", text="Hotovo") {
+  const n = document.getElementById("notif");
+  n.className = `notif ${type}`;
+  n.textContent = text;
+  n.classList.add("show");
+  clearTimeout(window._notifTimer);
+  window._notifTimer = setTimeout(() => n.classList.remove("show"), 2500);
 }
 </script>
 
-  </script>
+<!-- 🟨 Sekce H – Externí knihovny -->
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-</div> <!-- ✅ konec hlavního wrapperu -->
+<!-- 🟨 Sekce I – Inicializace podpisu -->
+<script>
+let signaturePad;
+window.addEventListener("DOMContentLoaded", () => {
+  const canvas = document.getElementById("signature-pad");
+  if (!canvas) return;
+  setTimeout(() => {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = 200;
+    signaturePad = new SignaturePad(canvas, { backgroundColor: "white" });
+  }, 50);
+});
+</script>
+
+<!-- 🟨 Sekce J – Generování a spojení PDF -->
+<script>
+let attachedPhotos = null; // uložené PDF fotek
+
+function attachPhotos() {
+  const photoPdfData = localStorage.getItem("photoPdfData");
+  if (!photoPdfData) {
+    showNotif("warning", "Žádné fotky nebyly nalezeny");
+    return;
+  }
+  attachedPhotos = photoPdfData;
+  showNotif("success", "Fotodokumentace připojena");
+}
+
+/* 🧾 GENEROVÁNÍ PDF PROTOKOLU */
+async function generateProtocolPDF() {
+  const { jsPDF } = window.jspdf;
+  const wrapper = document.querySelector(".wrapper");
+  const doc = new jsPDF("p","mm","a4");
+
+  const btns = document.querySelector(".btns");
+  const originalVis = btns.style.visibility;
+  btns.style.visibility = "hidden";
+
+  const canvas = await html2canvas(wrapper,{scale:2,backgroundColor:"#fff"});
+  const imgData = canvas.toDataURL("image/jpeg",0.95);
+  doc.addImage(imgData,"JPEG",0,0,210,297);
+  btns.style.visibility = originalVis;
+
+  if (!signaturePad.isEmpty()) {
+    const sig = signaturePad.toDataURL("image/png");
+    doc.addImage(sig,"PNG",30,260,60,20);
+  } else {
+    doc.setFontSize(10);
+    doc.setTextColor(150);
+    doc.text("✘ Bez podpisu zákazníka",30,270);
+  }
+
+  return doc;
+}
+
+/* 🧩 SPOJENÍ PDF PROTOKOLU + FOTEK */
+async function mergeWithPhotos(doc) {
+  if (!attachedPhotos) return doc; // nejsou fotky
+
+  try {
+    const pdfData = atob(attachedPhotos.split(",")[1]);
+    const byteArray = new Uint8Array(pdfData.length);
+    for (let i=0; i<pdfData.length; i++) byteArray[i] = pdfData.charCodeAt(i);
+    const blob = new Blob([byteArray], { type: "application/pdf" });
+
+    const pdfUrl = URL.createObjectURL(blob);
+    const existingPdf = await fetch(pdfUrl).then(r => r.arrayBuffer());
+    const pdfjsLib = await import("https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js");
+    const { PDFDocument } = pdfjsLib;
+    const mainPdf = await PDFDocument.load(doc.output("arraybuffer"));
+    const photoPdf = await PDFDocument.load(existingPdf);
+    const copiedPages = await mainPdf.copyPages(photoPdf, photoPdf.getPageIndices());
+    copiedPages.forEach(p => mainPdf.addPage(p));
+    const mergedBytes = await mainPdf.save();
+    const mergedDoc = new Blob([mergedBytes], { type: "application/pdf" });
+    return mergedDoc;
+  } catch (e) {
+    console.error("❌ Chyba při spojování PDF:", e);
+    showNotif("error","Chyba při spojení PDF");
+    return doc;
+  }
+}
+
+/* 🧾 EXPORT PDF */
+async function exportPDF() {
+  try {
+    showNotif("success","Generuji PDF...");
+    const protocolDoc = await generateProtocolPDF();
+    const merged = await mergeWithPhotos(protocolDoc);
+
+    if (merged instanceof Blob) {
+      const url = URL.createObjectURL(merged);
+      window.open(url, "_blank");
+    } else {
+      protocolDoc.save("Protokol.pdf");
+    }
+  } catch (e) {
+    console.error("❌ Chyba exportu PDF:", e);
+    showNotif("error","Chyba exportu PDF");
+  }
+}
+
+/* ✉️ ODESLÁNÍ E-MAILEM */
+async function mailCustomer() {
+  try {
+    const email = document.getElementById("email").value || "";
+    if (!email) return showNotif("warning","Není uveden e-mail");
+
+    const protocolDoc = await generateProtocolPDF();
+    const merged = await mergeWithPhotos(protocolDoc);
+
+    const subject = "Reklamační protokol White Glove Service";
+    const body = "Dobrý den,\n\nv příloze zasíláme reklamační protokol s fotodokumentací.\n\nS pozdravem,\nWHITE GLOVE SERVICE s.r.o.";
+    showNotif("success","Otevírám poštovní aplikaci...");
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  } catch (e) {
+    console.error("❌ Chyba odesílání e-mailu:", e);
+    showNotif("error","Chyba při odesílání");
+  }
+}
+</script>
+
+</div> <!-- ✅ konec wrapperu -->
 </body>
 </html>
