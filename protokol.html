@@ -653,7 +653,7 @@ async function loadCustomerPhotosFromWorker(orderNumber) {
       return;
     }
     const all = await res.json();
-    const record = all.find(r => r.cislo === orderNumber);
+    const record = all.find(r => r.cislo === orderNumber); 
     if (!record || !record.file) return;
 
     const container = document.getElementById("photoPreviewContainer");
