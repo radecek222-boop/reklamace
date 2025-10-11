@@ -100,26 +100,37 @@ tr:hover{background:#f1f6ff;}
   <!-- 🟨 C – KONTEJNER TABULKY -->
   <div id="tableContainer" class="loading">Načítám data...</div>
 
-  <!-- 🟨 D – NAČÍTÁNÍ DAT A FILTROVÁNÍ -->
-  <script>
-  async function loadDone(){
-    const stavy=JSON.parse(localStorage.getItem("stavyReklamaci")||"{}");
-    const dataAll=JSON.parse(localStorage.getItem("dataAll")||"[]");
+<!-- 🟨 D – NAČÍTÁNÍ DAT A FILTROVÁNÍ (s automatickým obnovením po 5 s) -->
+<script>
+async function loadDone(autoRetry = true) {
+  const stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
+  const dataAll = JSON.parse(localStorage.getItem("dataAll") || "[]");
 
-    if(!dataAll.length){
-      tableContainer.innerHTML="<div class='loading'>Žádné uložené záznamy</div>";
-      return;
-    }
-    const hotove=dataAll.filter(r=>{
-      const id=r.cislo||r.zakaznik;
-      return stavy[id]==="hotovo";
-    });
-    if(!hotove.length){
-      tableContainer.innerHTML="<div class='loading'>Žádné hotové reklamace</div>";
-      return;
-    }
-    renderTable(hotove);
+  // ⏳ Pokud nejsou data, zkus znovu za 5 s (čekáme, až GitHub uloží změny)
+  if (!dataAll.length) {
+    tableContainer.innerHTML = "<div class='loading'>Žádné uložené záznamy – čekám na synchronizaci...</div>";
+    if (autoRetry) setTimeout(() => loadDone(false), 5000);
+    return;
   }
+
+  // 🔍 Filtrování hotových reklamací
+  const hotove = dataAll.filter(r => {
+    const id = r.cislo || r.zakaznik;
+    return stavy[id] === "hotovo";
+  });
+
+  // ⏳ Pokud zatím žádné hotové, zkus znovu po 5 s
+  if (!hotove.length) {
+    tableContainer.innerHTML = "<div class='loading'>Žádné hotové reklamace – kontroluji aktualizaci...</div>";
+    if (autoRetry) setTimeout(() => loadDone(false), 5000);
+    return;
+  }
+
+  // ✅ Hotové reklamace vykreslit
+  renderTable(hotove);
+}
+</script>
+
 
   // 🟨 E – GENEROVÁNÍ TABULKY (s datem protokolu)
   function renderTable(hotove){
