@@ -1415,6 +1415,60 @@ function openPopisEditor(item, overlay) {
 
 
 
+<!-- 🟩 C-7: KONTAKTOVACÍ OKNO ZÁKAZNÍKA -->
+<script>
+function openContactModal(item, index, overlay) {
+  const modal = document.createElement("div");
+  modal.className = "contact-modal";
+  modal.innerHTML = `
+    <div class="contact-window">
+      <h3>📞 Kontaktovat zákazníka</h3>
+      <p><strong>${item.zakaznik || "Neznámý zákazník"}</strong></p>
+      <p>${item.adresa || ""}</p>
+      <div class="btn-row">
+        ${item.telefon ? `<a href="tel:${item.telefon.replace(/\s+/g,'')}" class="btn-green">Zavolat</a>` : ""}
+        ${item.telefon ? `<a href="sms:${item.telefon.replace(/\s+/g,'')}" class="btn-blue">SMS</a>` : ""}
+        ${item.email ? `<a href="mailto:${item.email}" class="btn-purple">E-mail</a>` : ""}
+        <button class="btn-gray" id="closeContactBtn">Zavřít</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  setTimeout(() => modal.classList.add("active"), 10);
+  modal.querySelector("#closeContactBtn").onclick = () => modal.remove();
+}
+</script>
+
+<style>
+.contact-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 10000; opacity: 0;
+  transition: opacity .25s ease;
+}
+.contact-modal.active { opacity: 1; }
+.contact-window {
+  background: #fff; border-radius: 14px;
+  padding: 22px 26px; width: 90%; max-width: 380px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  font-family: "Inter", sans-serif; text-align: center;
+  animation: fadeIn .3s ease;
+}
+.contact-window h3 { margin-top:0;margin-bottom:14px;font-weight:700;color:#222; }
+.btn-row {
+  display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:15px;
+}
+.btn-green  {background:linear-gradient(135deg,#4caf50,#6fdd72);}
+.btn-blue   {background:linear-gradient(135deg,#357aff,#6fa8ff);}
+.btn-purple {background:linear-gradient(135deg,#b993ff,#d4b5ff);}
+.btn-gray   {background:linear-gradient(135deg,#999,#bbb);}
+.btn-row a, .btn-row button {
+  color:#fff;border:none;border-radius:8px;padding:8px 16px;
+  font-weight:600;cursor:pointer;text-decoration:none;
+  box-shadow:0 2px 6px rgba(0,0,0,0.15);
+}
+</style>
+<!-- 🟩 KONEC C-7 -->
 
 
 
