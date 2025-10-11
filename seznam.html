@@ -1736,11 +1736,10 @@ function showSuccessOverlay(title, text) {
 
 
 <!-- 🟦 SEKCE E – PLÁN DNE (kalendář + mapa + legenda) -->
-<!-- ================================================== -->
+<!-- =============================================== -->
 
-<!-- 📚 LOKÁLNÍ KNIHOVNY -->
+<!-- 📚 KNIHOVNY (pouze 1× v celém projektu – VanillaCalendar už máš v <head>) -->
 <link rel="stylesheet" href="vanilla-calendar.min.css">
-<script src="vanilla-calendar.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -1764,10 +1763,9 @@ function openPlanModal(){
     </div>`;
   document.body.appendChild(overlay);
 
-  // 🕒 Inicializace po vložení do DOM
   requestAnimationFrame(()=>{
     initPlanCalendar(overlay);
-    initEmptyMap(); // vždy viditelná základní mapa
+    initEmptyMap(); // mapa viditelná vždy
   });
 
   overlay.querySelector("#planList").innerHTML=
@@ -1776,21 +1774,22 @@ function openPlanModal(){
 }
 </script>
 
-<!-- 🟦 E-2 – KALENDÁŘ (LOKÁLNÍ VERZE) -->
+<!-- 🟦 E-2 – KALENDÁŘ (lokální verze, bez duplikátu skriptu) -->
 <script>
 function initPlanCalendar(overlay){
   const el=overlay.querySelector("#planCalendar");
-  const ensureCalendar=()=>{
-    if(typeof window.VanillaCalendar==="undefined"){
-      console.warn("⏳ VanillaCalendar nenačten – zkouším znovu…");
-      return setTimeout(ensureCalendar,200);
+
+  const waitForCalendar=()=>{
+    if(typeof window.VanillaCalendar==="undefined"||!el){
+      console.log("⏳ VanillaCalendar ještě nenačten...");
+      return setTimeout(waitForCalendar,300);
     }
-    console.log("✅ VanillaCalendar připraven");
+    console.log("✅ VanillaCalendar nalezen – vytvářím kalendář");
 
     const cal=new VanillaCalendar(el,{
       settings:{lang:"cs",selection:{day:"single"}},
       actions:{
-        clickDay:(e,self)=>{
+        clickDay:(event,self)=>{
           const d=self.selectedDates[0];
           if(d)loadPlanForDay(d,overlay);
         }
@@ -1798,7 +1797,7 @@ function initPlanCalendar(overlay){
     });
     cal.init();
 
-    // 🔵 zvýrazni dny s termínem
+    // 🔵 zvýraznit dny s termínem
     const termDates=new Set(
       dataAll.filter(x=>x.datum&&x.stav!=="zruseno").map(x=>x.datum)
     );
@@ -1809,11 +1808,11 @@ function initPlanCalendar(overlay){
       });
     },600);
   };
-  ensureCalendar();
+  waitForCalendar();
 }
 </script>
 
-<!-- 🟦 E-3 – NAČTENÍ A ZOBRAZENÍ DNĚ -->
+<!-- 🟦 E-3 – NAČTENÍ A ZOBRAZENÍ DNE -->
 <script>
 async function loadPlanForDay(date,overlay){
   const list=dataAll.filter(r=>r.datum===date&&r.stav!=="zruseno");
@@ -1847,7 +1846,7 @@ async function loadPlanForDay(date,overlay){
   showPlanMap(list,mapBox);
 }
 
-/* 🗺 Prázdná mapa (vždy viditelná) */
+/* 🗺 Základní mapa vždy viditelná */
 function initEmptyMap(container=document.getElementById("planMap")){
   if(!window.L){console.error("❌ Leaflet nenačten");return;}
   container.innerHTML="";
