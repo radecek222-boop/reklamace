@@ -1,83 +1,43 @@
-<!-- 💎 WHITE GLOVE SERVICE – PHOTOCUSTOMER -->
 <!DOCTYPE html>
 <html lang="cs">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Photo – White Glove Service</title>
-
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
-
 <style>
-body {
-  font-family:"Inter",sans-serif;
-  background:#f6f7fb;
-  margin:0;
-  padding:0;
-  display:flex;
-  justify-content:center;
-  align-items:flex-start;
-  min-height:100vh;
-}
-.wrapper {
-  background:#fff;
-  margin:40px 15px;
-  padding:30px;
-  border-radius:12px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.1);
-  width:100%;
-  max-width:750px;
-}
-h1 {
-  text-align:center;
-  font-size:2.4em;
-  font-weight:900;
-  color:#111;
-  margin:0 0 5px;
-}
-h2 {
-  text-align:center;
-  font-size:1.1em;
-  font-weight:500;
-  color:#666;
-  margin:0 0 25px;
-}
-#customerHeader {
-  background:#f1f1f1;
-  border:1px solid #ccc;
-  border-radius:10px;
-  padding:18px;
-  text-align:center;
-  margin-bottom:25px;
-}
-#customerHeader h3 {
-  margin:0 0 4px;
-  font-size:1.3em;
-  font-weight:700;
-  color:#111;
-}
-#customerHeader p {
-  margin:3px 0;
-  color:#333;
-  font-size:0.95em;
-}
-.subtitle {
-  font-size:0.8em;
-  color:#666;
-  display:block;
-  margin-top:2px;
-}
+body{font-family:"Inter",sans-serif;background:#f6f7fb;margin:0;padding:0;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;}
+.wrapper{background:#fff;margin:40px 15px;padding:30px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);width:100%;max-width:750px;}
+h1{text-align:center;font-size:2.4em;font-weight:900;color:#111;margin:0 0 5px;}
+h2{text-align:center;font-size:1.1em;font-weight:500;color:#666;margin:0 0 25px;}
+#customerHeader{background:#f1f1f1;border:1px solid #ccc;border-radius:10px;padding:18px;text-align:center;margin-bottom:25px;}
+#customerHeader h3{margin:0 0 4px;font-size:1.3em;font-weight:700;color:#111;}
+#customerHeader p{margin:3px 0;color:#333;font-size:0.95em;}
+.photo-block{border:1px solid #ccc;border-radius:10px;padding:14px;margin-top:16px;background:linear-gradient(180deg,#f8f8f8 0%,#ececec 100%);cursor:pointer;}
+.photo-title{font-size:.75em;font-weight:700;color:#333;margin-bottom:8px;text-transform:uppercase;}
+.photo-preview{display:flex;flex-wrap:wrap;gap:10px;}
+.photo-thumb{width:90px;height:60px;border-radius:6px;object-fit:cover;border:1px solid #ccc;box-shadow:0 2px 5px rgba(0,0,0,.15);}
+.progress-bar-container{width:100%;background:#ddd;border-radius:8px;height:16px;margin-top:12px;overflow:hidden;}
+.progress-bar-fill{background:linear-gradient(135deg,#00b56a,#00da80);height:100%;width:0%;transition:width .3s;}
+.btn-uniform{flex:1 1 45%;max-width:320px;height:56px;font-size:1em;font-weight:600;border:none;border-radius:8px;cursor:pointer;color:#000;text-align:center;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.15);}
+.btn-uniform.blue{background:linear-gradient(135deg,#0090d4,#33b6ff);}
+.btn-uniform.lightblue{background:linear-gradient(135deg,#00aaff,#66ccff);}
+.btn-uniform.gray{background:linear-gradient(135deg,#9b9b9b,#bfbfbf);}
+.wait-overlay{display:none;position:fixed;inset:0;background:rgba(255,255,255,0.85);backdrop-filter:blur(2px);justify-content:center;align-items:center;flex-direction:column;font-weight:600;color:#333;z-index:2000;}
+.wait-overlay.active{display:flex;}
+.notif{position:fixed;top:15px;left:50%;transform:translateX(-50%);min-width:260px;max-width:90%;padding:12px 20px;border-radius:10px;font-weight:600;font-size:.9em;color:#fff;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,.15);opacity:0;pointer-events:none;z-index:9999;transition:opacity .3s,transform .3s;}
+.notif.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.notif.success{background:linear-gradient(135deg,#00b56a,#00da80);}
+.notif.warning{background:linear-gradient(135deg,#ffb200,#ffca40);color:#333;}
+.notif.error{background:linear-gradient(135deg,#e63946,#ff6b6b);}
 </style>
 </head>
-
 <body>
+
 <div class="wrapper">
   <h1>WHITE GLOVE SERVICE</h1>
   <h2>Photo documentation</h2>
-
-  <div id="customerHeader">
-    <h3>Načítám údaje zákazníka...</h3>
-  </div>
+  <div id="customerHeader"><h3>Načítám údaje zákazníka...</h3></div>
 
   <script>
   document.addEventListener("DOMContentLoaded",()=>{
@@ -93,40 +53,36 @@ h2 {
   });
   </script>
 
-<!-- 🟩 SEKCE 2/3 – FOTKY -->
-<style>
-.photo-block{border:1px solid #ccc;border-radius:10px;padding:14px 12px 10px;margin-top:16px;background:linear-gradient(180deg,#f8f8f8 0%,#ececec 100%);cursor:pointer;}
-.photo-title{font-size:.75em;font-weight:700;color:#333;margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px;}
-.photo-preview{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-start;align-items:flex-start;}
-.photo-thumb{width:90px;height:60px;border-radius:6px;object-fit:cover;border:1px solid #ccc;box-shadow:0 2px 5px rgba(0,0,0,.15);cursor:pointer;transition:transform .15s ease;}
-.photo-thumb:hover{transform:scale(1.05);}
-.photo-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);justify-content:center;align-items:center;z-index:9999;}
-.photo-modal.active{display:flex;}
-.photo-modal-content{background:transparent;border-radius:14px;max-width:95vw;max-height:95vh;display:flex;justify-content:center;align-items:center;overflow:hidden;position:relative;}
-#modalImg{max-width:90vw;max-height:85vh;border-radius:10px;object-fit:contain;}
-.progress-bar-container{width:100%;background:#ddd;border-radius:8px;height:16px;margin-top:12px;overflow:hidden;}
-.progress-bar-fill{background:linear-gradient(135deg,#00b56a,#00da80);height:100%;width:0%;transition:width .3s;}
-</style>
+  <!-- 📷 Sekce fotek -->
+  <div class="photo-block" data-section="before"><div class="photo-title">BEFORE</div><div class="photo-preview" id="preview-before"></div></div>
+  <div class="photo-block" data-section="id"><div class="photo-title">ID</div><div class="photo-preview" id="preview-id"></div></div>
+  <div class="photo-block" data-section="problem"><div class="photo-title">DETAIL BUG</div><div class="photo-preview" id="preview-problem"></div></div>
+  <div class="photo-block" data-section="repair"><div class="photo-title">REPAIR</div><div class="photo-preview" id="preview-repair"></div></div>
+  <div class="photo-block" data-section="after"><div class="photo-title">AFTER</div><div class="photo-preview" id="preview-after"></div></div>
 
-<div class="photo-block" data-section="before"><div class="photo-title">BEFORE</div><div class="photo-preview" id="preview-before"></div></div>
-<div class="photo-block" data-section="id"><div class="photo-title">ID</div><div class="photo-preview" id="preview-id"></div></div>
-<div class="photo-block" data-section="problem"><div class="photo-title">DETAIL BUG</div><div class="photo-preview" id="preview-problem"></div></div>
-<div class="photo-block" data-section="repair"><div class="photo-title">REPAIR</div><div class="photo-preview" id="preview-repair"></div></div>
-<div class="photo-block" data-section="after"><div class="photo-title">AFTER</div><div class="photo-preview" id="preview-after"></div></div>
+  <input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
+  <div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div>
+</div>
 
-<input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
-<div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div>
+<div class="actions dual-actions" id="uploadSection" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:30px;">
+  <button type="button" id="btnSendToDetail" class="btn-uniform blue"><span>ODESLAT DO DETAILU ZÁKAZNÍKA</span></button>
+</div>
+<div class="actions dual-actions" style="margin-top:10px;display:flex;flex-wrap:wrap;justify-content:center;gap:10px;">
+  <a href="index.html" class="btn-uniform gray"><span>ZPĚT</span></a>
+  <button type="button" id="btnExportPdf" class="btn-uniform lightblue"><span>EXPORT TO PDF</span></button>
+</div>
+
+<div class="wait-overlay" id="waitOverlay"><div class="hourglass"></div><p>Zpracovávám fotodokumentaci...</p></div>
+<div id="notif" class="notif"></div>
 
 <script>
 (function(){
   const input=document.getElementById("photoInput");
   const sections={before:[],id:[],problem:[],repair:[],after:[]};
   const fill=document.getElementById("progressFill");
-
   document.querySelectorAll(".photo-block").forEach(block=>{
     block.addEventListener("click",()=>{input.dataset.section=block.dataset.section;input.click();});
   });
-
   input.addEventListener("change",async()=>{
     const section=input.dataset.section;if(!section)return;
     const files=Array.from(input.files);
@@ -136,159 +92,21 @@ h2 {
       const orientation=await getOrientation(f);
       sections[section].push({blob,url,orientation});
     }
-    render(section);
-    input.value="";
-    await autoUpload();
+    render(section);input.value="";await autoUpload();
   });
-
   async function compressImage(file,maxDim=90){
-    const img=await createImageBitmap(file);
-    const canvas=document.createElement("canvas");
+    const img=await createImageBitmap(file);const canvas=document.createElement("canvas");
     let w=img.width,h=img.height,ratio=w/h;
-    if(w>h&&w>maxDim){h=Math.round(maxDim/ratio);w=maxDim;}
-    else if(h>=w&&h>maxDim){w=Math.round(maxDim*ratio);h=maxDim;}
-    canvas.width=w;canvas.height=h;
-    const ctx=canvas.getContext("2d");
-    ctx.drawImage(img,0,0,w,h);
+    if(w>h&&w>maxDim){h=Math.round(maxDim/ratio);w=maxDim;}else if(h>=w&&h>maxDim){w=Math.round(maxDim*ratio);h=maxDim;}
+    canvas.width=w;canvas.height=h;const ctx=canvas.getContext("2d");ctx.drawImage(img,0,0,w,h);
     return new Promise(r=>canvas.toBlob(r,"image/jpeg",0.85));
   }
-
   async function getOrientation(file){const img=await createImageBitmap(file);return img.width>img.height?"landscape":"portrait";}
-  function render(section){
-    const c=document.getElementById("preview-"+section);
-    c.innerHTML="";
-    sections[section].forEach(p=>{
-      const img=document.createElement("img");
-      img.src=p.url;img.className="photo-thumb";
-      c.append(img);
-    });
-  }
-
-  async function autoUpload(){
-    const all=Object.values(sections).flat();if(!all.length)return;
-    let uploaded=0;
-    for(const p of all){await new Promise(r=>setTimeout(r,150));uploaded++;fill.style.width=Math.round((uploaded/all.length)*100)+"%";}
-    localStorage.setItem("photoUploadedAt",Date.now());
-    localStorage.setItem("photoSent","false");
-  }
+  function render(section){const c=document.getElementById("preview-"+section);c.innerHTML="";sections[section].forEach(p=>{const img=document.createElement("img");img.src=p.url;img.className="photo-thumb";c.append(img);});}
+  async function autoUpload(){const all=Object.values(sections).flat();if(!all.length)return;let uploaded=0;for(const p of all){await new Promise(r=>setTimeout(r,150));uploaded++;fill.style.width=Math.round((uploaded/all.length)*100)+"%";}localStorage.setItem("photoUploadedAt",Date.now());localStorage.setItem("photoSent","false");}
 })();
 </script>
 
-<!-- 🟩 SEKCE 3/3 – EXPORT, WORKER, LOCALSTORAGE -->
-<div class="actions dual-actions" id="uploadSection">
-  <button type="button" id="btnSendToDetail" class="btn-uniform blue"><span>ODESLAT DO DETAILU ZÁKAZNÍKA</span></button>
-</div>
-
-<div class="actions dual-actions" style="margin-top:10px;">
-  <a href="index.html" class="btn-uniform gray"><span>ZPĚT</span></a>
-  <button type="button" id="btnExportPdf" class="btn-uniform lightblue"><span>EXPORT TO PDF</span></button>
-</div>
-
-<div class="wait-overlay" id="waitOverlay">
-  <div class="hourglass"></div>
-  <p>Zpracovávám fotodokumentaci...</p>
-</div>
-
-<style>
-.dual-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:30px;}
-.btn-uniform{flex:1 1 45%;max-width:320px;height:56px;font-size:1em;font-weight:600;border:none;border-radius:8px;cursor:pointer;color:#000;text-align:center;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.15);transition:transform .15s ease,opacity .2s ease;}
-.btn-uniform:hover{transform:scale(1.05);opacity:.9;}
-.btn-uniform.blue{background:linear-gradient(135deg,#0090d4,#33b6ff);}
-.btn-uniform.lightblue{background:linear-gradient(135deg,#00aaff,#66ccff);}
-.btn-uniform.gray{background:linear-gradient(135deg,#9b9b9b,#bfbfbf);}
-.wait-overlay{display:none;position:fixed;inset:0;background:rgba(255,255,255,0.85);backdrop-filter:blur(2px);justify-content:center;align-items:center;flex-direction:column;font-weight:600;color:#333;z-index:2000;}
-.wait-overlay.active{display:flex;}
-.hourglass{border:4px solid #ccc;border-top:4px solid #00b56a;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin-bottom:10px;}
-@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
-</style>
-
-<div id="notif" class="notif"></div>
-<style>
-.notif{position:fixed;top:15px;left:50%;transform:translateX(-50%);min-width:260px;max-width:90%;padding:12px 20px;border-radius:10px;font-weight:600;font-size:.9em;color:#fff;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,.15);opacity:0;pointer-events:none;z-index:9999;transition:opacity .3s,transform .3s;}
-.notif.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.notif.success{background:linear-gradient(135deg,#00b56a,#00da80);}
-.notif.warning{background:linear-gradient(135deg,#ffb200,#ffca40);color:#333;}
-.notif.error{background:linear-gradient(135deg,#e63946,#ff6b6b);}
-</style>
-
-<script>
-document.addEventListener("DOMContentLoaded",()=>{
-  const sendBtn=document.getElementById("btnSendToDetail");
-  const exportBtn=document.getElementById("btnExportPdf");
-  const wait=document.getElementById("waitOverlay");
-
-  window.showNotif=function(type="success",text="Hotovo"){
-    const n=document.getElementById("notif");
-    n.className=`notif ${type}`;n.textContent=text;n.classList.add("show");
-    clearTimeout(window._notifTimer);
-    window._notifTimer=setTimeout(()=>n.classList.remove("show"),2500);
-  };
-
-  exportBtn?.addEventListener("click",async()=>{
-    try{
-      wait.classList.add("active");
-      const blob=await window.generatePdf(true);
-      await savePhotoToWorker(blob);
-      showNotif("success","PDF exportováno a zálohováno");
-    }catch(e){console.error(e);showNotif("error","Chyba při exportu PDF");}
-    finally{wait.classList.remove("active");}
-  });
-
-  sendBtn?.addEventListener("click",async()=>{
-    try{
-      wait.classList.add("active");
-      const blob=await window.generatePdf(true);
-      await savePhotoToWorker(blob);
-      showNotif("success","Odesláno do detailu");
-      setTimeout(()=>window.location.href="protokol.html",1000);
-    }catch(e){console.error(e);showNotif("error","Chyba při odesílání");}
-    finally{wait.classList.remove("active");}
-  });
-});
-
-/* 💾 Ukládání do Workeru + LocalStorage */
-async function savePhotoToWorker(pdfBlob){
-  try{
-    const reader=new FileReader();
-    reader.onloadend=async()=>{
-      const base64pdf=reader.result;
-      const customer=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
-
-      // ✅ Uložíme i lokálně (pro protokol)
-      localStorage.setItem("photoPdfData", base64pdf);
-      localStorage.setItem("photoUploadedAt", Date.now());
-      localStorage.setItem("photoSent", "false");
-
-      const record={
-        cislo:customer.cislo||"",
-        zakaznik:customer.zakaznik||"",
-        datum:new Date().toISOString(),
-        file:base64pdf
-      };
-
-      const res=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({record})
-      });
-
-      if(res.ok){
-        console.log("📤 Fotodokumentace uložena do photocustomer.json i localStorage");
-        showNotif("success","Uloženo do detailu zákazníka");
-      }else{
-        console.warn("⚠️ Uložení selhalo:",res.status);
-        showNotif("warning","Nelze uložit na server");
-      }
-    };
-    reader.readAsDataURL(pdfBlob);
-  }catch(err){
-    console.error("❌ Chyba ukládání fotodokumentace:",err);
-    showNotif("error","Chyba při ukládání");
-  }
-}
-</script>
-
-<!-- 📄 GENEROVÁNÍ PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
@@ -296,13 +114,46 @@ window.generatePdf = async function() {
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF("p", "pt", "a4");
   const element = document.querySelector(".wrapper");
-  const canvas = await html2canvas(element, { scale: 2 });
-  const imgData = canvas.toDataURL("image/png");
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = (canvas.height * pageWidth) / canvas.width;
-  pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pageHeight);
+  try {
+    const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+    const imgData = canvas.toDataURL("image/png");
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = (canvas.height * pageWidth) / canvas.width;
+    pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pageHeight);
+  } catch (e) {
+    console.warn("⚠️ html2canvas selhal:", e);
+    pdf.text("⚠️ Nelze vykreslit fotodokumentaci – chyba HTML2Canvas.", 20, 50);
+  }
   return pdf.output("blob");
 };
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+  const sendBtn=document.getElementById("btnSendToDetail");
+  const exportBtn=document.getElementById("btnExportPdf");
+  const wait=document.getElementById("waitOverlay");
+  window.showNotif=function(type="success",text="Hotovo"){const n=document.getElementById("notif");n.className=`notif ${type}`;n.textContent=text;n.classList.add("show");clearTimeout(window._notifTimer);window._notifTimer=setTimeout(()=>n.classList.remove("show"),2500);};
+  exportBtn?.addEventListener("click",async()=>{try{wait.classList.add("active");const blob=await window.generatePdf(true);await savePhotoToWorker(blob);showNotif("success","PDF exportováno a zálohováno");}catch(e){console.error(e);showNotif("error","Chyba při exportu PDF");}finally{wait.classList.remove("active");}});
+  sendBtn?.addEventListener("click",async()=>{try{wait.classList.add("active");const blob=await window.generatePdf(true);await savePhotoToWorker(blob);showNotif("success","Odesláno do detailu");setTimeout(()=>window.location.href="protokol.html",1000);}catch(e){console.error(e);showNotif("error","Chyba při odesílání");}finally{wait.classList.remove("active");}});
+});
+async function savePhotoToWorker(pdfBlob){
+  try{
+    const reader=new FileReader();
+    reader.onloadend=async()=>{
+      const base64pdf=reader.result;
+      const customer=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
+      localStorage.setItem("photoPdfData", base64pdf);
+      localStorage.setItem("photoUploadedAt", Date.now());
+      localStorage.setItem("photoSent", "false");
+      const record={cislo:customer.cislo||"",zakaznik:customer.zakaznik||"",datum:new Date().toISOString(),file:base64pdf};
+      const res=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({record})});
+      if(res.ok){console.log("📤 Fotodokumentace uložena do photocustomer.json i localStorage");showNotif("success","Uloženo do detailu zákazníka");}
+      else{console.warn("⚠️ Uložení selhalo:",res.status);showNotif("warning","Nelze uložit na server");}
+    };
+    reader.readAsDataURL(pdfBlob);
+  }catch(err){console.error("❌ Chyba ukládání fotodokumentace:",err);showNotif("error","Chyba při ukládání");}
+}
 </script>
 
 </body>
