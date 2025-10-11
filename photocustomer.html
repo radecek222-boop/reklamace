@@ -53,28 +53,31 @@ h2{text-align:center;font-size:1.1em;font-weight:500;color:#666;margin:0 0 25px;
   });
   </script>
 
-  <!-- 📷 Sekce fotek -->
-  <div class="photo-block" data-section="before"><div class="photo-title">BEFORE</div><div class="photo-preview" id="preview-before"></div></div>
-  <div class="photo-block" data-section="id"><div class="photo-title">ID</div><div class="photo-preview" id="preview-id"></div></div>
-  <div class="photo-block" data-section="problem"><div class="photo-title">DETAIL BUG</div><div class="photo-preview" id="preview-problem"></div></div>
-  <div class="photo-block" data-section="repair"><div class="photo-title">REPAIR</div><div class="photo-preview" id="preview-repair"></div></div>
-  <div class="photo-block" data-section="after"><div class="photo-title">AFTER</div><div class="photo-preview" id="preview-after"></div></div>
+<!-- 📷 Sekce fotek -->
+<div class="photo-block" data-section="before"><div class="photo-title">BEFORE</div><div class="photo-preview" id="preview-before"></div></div>
+<div class="photo-block" data-section="id"><div class="photo-title">ID</div><div class="photo-preview" id="preview-id"></div></div>
+<div class="photo-block" data-section="problem"><div class="photo-title">DETAIL BUG</div><div class="photo-preview" id="preview-problem"></div></div>
+<div class="photo-block" data-section="repair"><div class="photo-title">REPAIR</div><div class="photo-preview" id="preview-repair"></div></div>
+<div class="photo-block" data-section="after"><div class="photo-title">AFTER</div><div class="photo-preview" id="preview-after"></div></div>
 
-  <input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
-  <div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div>
-</div>
+<input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
+<div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div>
 
+<!-- ✅ TLAČÍTKA JSOU NYNÍ UVNITŘ WRAPPERU -->
 <div class="actions dual-actions" id="uploadSection" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:30px;">
   <button type="button" id="btnSendToDetail" class="btn-uniform blue"><span>ODESLAT DO DETAILU ZÁKAZNÍKA</span></button>
 </div>
+
 <div class="actions dual-actions" style="margin-top:10px;display:flex;flex-wrap:wrap;justify-content:center;gap:10px;">
   <a href="index.html" class="btn-uniform gray"><span>ZPĚT</span></a>
   <button type="button" id="btnExportPdf" class="btn-uniform lightblue"><span>EXPORT TO PDF</span></button>
-
+</div>
 
 <div class="wait-overlay" id="waitOverlay"><div class="hourglass"></div><p>Zpracovávám fotodokumentaci...</p></div>
 <div id="notif" class="notif"></div>
-</div>
+
+</div> <!-- ✅ wrapper uzavřen až tady -->
+
 <script>
 (function(){
   const input=document.getElementById("photoInput");
