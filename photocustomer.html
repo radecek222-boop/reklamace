@@ -361,3 +361,26 @@ async function savePhotoToWorker(pdfBlob){
 }
 </script>
 <!-- 🟩 KONEC OPRAVENÉ ČÁSTI 3/3 -->
+
+  <!-- 🟩 KONEC OPRAVENÉ ČÁSTI 3/3 -->
+
+<!-- 🟦 DOPLNĚNO: GENEROVÁNÍ PDF (jsPDF + html2canvas) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+window.generatePdf = async function(includePhotos = true) {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("p", "pt", "a4");
+  const element = document.querySelector(".wrapper");
+  const canvas = await html2canvas(element, { scale: 2 });
+  const imgData = canvas.toDataURL("image/png");
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = (canvas.height * pageWidth) / canvas.width;
+  pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pageHeight);
+  return pdf.output("blob");
+};
+</script>
+
+</body>
+</html>
+
