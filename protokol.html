@@ -340,64 +340,49 @@ async function mergeWithPhotos(doc) {
       });
     }
 
-    // 🔹 5️⃣ Spojení PDF – protokol + fotodokumentace
-    const { PDFDocument } = window.PDFLib;
-    const base64 = data.split(",")[1];
-    const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-    const photosPdf = await PDFDocument.load(bytes);
-    const mainPdf = await PDFDocument.load(await doc.output("arraybuffer"));
+// 🔗 SPOJENÍ PROTOKOLU S FOTODOKUMENTACÍ – opravené
+async function mergeWithPhotos(doc){
+  try{
+    let data = attachedPhotos;
+    if(!data){
+      const localPhoto = localStorage.getItem("photoPdfData");
+      if(localPhoto){console.log("📦 Načteno PDF z localStorage");data = localPhoto;}
+    }
+    if(!data){
+      const cust = JSON.parse(localStorage.getItem("currentCustomer")||"{}");
+      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer?"+Date.now(), {cache:"no-store"});
+      const text = await res.text();
+      if(!text.startsWith("[")){console.warn("⚠️ Worker nevrátil JSON");return doc;}
+      const all = JSON.parse(text);
+      const rec = all.find(r=>r.cislo===cust.cislo);
+      if(rec?.file){console.log("🌍 Načteno PDF z Workeru");data=rec.file;}
+    }
+    if(!data){console.warn("⚠️ Žádná fotodokumentace");return doc;}
 
-    const copiedPages = await mainPdf.copyPages(photosPdf, photosPdf.getPageIndices());
-    copiedPages.forEach(p => mainPdf.addPage(p));
-
-    const mergedBytes = await mainPdf.save();
+    if(!window.PDFLib){
+      await new Promise((resolve,reject)=>{
+        const s=document.createElement("script");
+        s.src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js";
+        s.onload=resolve;s.onerror=reject;document.head.appendChild(s);
+      });
+    }
+    const {PDFDocument}=window.PDFLib;
+    const base64=data.split(",")[1];
+    const bytes=Uint8Array.from(atob(base64),c=>c.charCodeAt(0));
+    const photosPdf=await PDFDocument.load(bytes);
+    const mainPdf=await PDFDocument.load(await doc.output("arraybuffer"));
+    const copied=await mainPdf.copyPages(photosPdf,photosPdf.getPageIndices());
+    copied.forEach(p=>mainPdf.addPage(p));
+    const merged=await mainPdf.save();
     console.log("✅ PDF spojeno s fotodokumentací");
-    return new Blob([mergedBytes], { type: "application/pdf" });
-
-  } catch (e) {
-    console.error("❌ Chyba při spojení PDF:", e);
-    showNotif("error", "Nelze spojit PDF s fotkami");
+    return new Blob([merged],{type:"application/pdf"});
+  }catch(e){
+    console.error("❌ Chyba při spojení PDF:",e);
+    showNotif("error","Nelze spojit PDF s fotkami");
     return doc;
   }
 }
 
-/* 💾 EXPORT PDF */
-async function exportPDF(){
-  try{
-    showNotif("success","Generuji PDF...");
-    const proto=await generateProtocolPDF();
-    const merged=await mergeWithPhotos(proto);
-    const blob=merged instanceof Blob?merged:new Blob([proto.output("arraybuffer")]);
-    const url=URL.createObjectURL(blob);
-    if(/iPhone|iPad|Android/i.test(navigator.userAgent)){
-      const a=document.createElement("a");
-      a.href=url;a.download="WGS_protokol.pdf";a.click();
-    }else{
-      window.open(url,"_blank");
-    }
-    showNotif("success","PDF vytvořeno");
-  }catch(e){
-    console.error(e);
-    showNotif("error","Chyba exportu PDF");
-  }
-}
-
-/* 📧 ODESLÁNÍ E-MAILEM */
-async function mailCustomer(){
-  try{
-    const email=document.getElementById("email").value||"";
-    if(!email)return showNotif("warning","Není uveden e-mail");
-    const proto=await generateProtocolPDF();
-    await mergeWithPhotos(proto);
-    const subj="Reklamační protokol White Glove Service";
-    const body="Dobrý den,\n\nv příloze zasíláme reklamační protokol s fotodokumentací.\n\nS pozdravem,\nWHITE GLOVE SERVICE s.r.o.";
-    showNotif("success","Otevírám e-mail...");
-    window.location.href=`mailto:${email}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
-  }catch(e){
-    console.error(e);
-    showNotif("error","Chyba při odesílání e-mailu");
-  }
-}
 </script>
 
   
