@@ -144,8 +144,44 @@ button:hover { transform:scale(1.03); opacity:0.9; }
 }
 </style>
 </head>
-
+  
 <body>
+
+  <!-- 🟩 SEKCE A – AUTOMATICKÉ NAČTENÍ ÚDAJŮ ZÁKAZNÍKA (Z LOCALSTORAGE) -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  try {
+    const data = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
+    if (!data || Object.keys(data).length === 0) {
+      console.warn("⚠️ Nebyla nalezena data zákazníka v localStorage");
+      return;
+    }
+
+    // 🔹 Propis základních údajů do protokolu
+    const map = {
+      "order-number": data.cislo,
+      "claim-number": data.reklamace || "",
+      "customer": data.zakaznik,
+      "address": data.adresa,
+      "phone": data.telefon,
+      "email": data.email,
+      "brand": data.contract,
+      "model": data.model
+    };
+
+    Object.entries(map).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el && val) el.value = val;
+    });
+
+    console.log("✅ Údaje zákazníka načteny do protokolu:", data);
+  } catch (err) {
+    console.error("❌ Chyba při načítání dat zákazníka:", err);
+  }
+});
+</script>
+<!-- 🟩 KONEC SEKCE A -->
+
 <div class="wrapper">
   <div class="header">
     <div>WHITE GLOVE SERVICE</div>
