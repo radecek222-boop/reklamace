@@ -428,12 +428,15 @@ h2 {
 <!-- 🟩 KONEC ČÁSTI 2/3 – BLOKY FOTEK + MODÁLNÍ NÁHLED (FINÁLNÍ VERZE) -->
 
 
+<!-- 🟩 ZAČÁTEK ČÁSTI 3/3 – SJEDNOCENÁ TLAČÍTKA (NA PIXEL STEJNÁ) -->
+<div class="actions dual-actions" id="uploadSection">
+  <button type="button" id="btnUploadAll" class="btn-uniform green">NAHRÁT</button>
+  <button type="button" id="btnSendToDetail" class="btn-uniform blue">ODESLAT DO DETAILU ZÁKAZNÍKA</button>
+</div>
 
-
-
-<!-- 🟩 ZAČÁTEK ČÁSTI 3/3 – FUNKČNÍ TLAČÍTKA + NOTIFIKACE + OVERLAY -->
-<div class="actions" id="uploadSection">
-  <button type="button" id="btnUploadAll" class="btn-send">NAHRÁT</button>
+<div class="actions dual-actions" style="margin-top:10px;">
+  <a href="index.html" class="btn-uniform gray">ZPĚT</a>
+  <button type="button" id="btnExportPdf" class="btn-uniform lightblue">EXPORT TO PDF</button>
 </div>
 
 <div class="wait-overlay" id="waitOverlay">
@@ -442,27 +445,42 @@ h2 {
 </div>
 
 <style>
-#uploadSection{
-  text-align:center;
-  margin-top:30px;
+.dual-actions{
   display:flex;
+  flex-wrap:wrap;
   justify-content:center;
+  gap:10px;
+  margin-top:30px;
 }
-.btn-send{
-  background:linear-gradient(135deg,#00b56a,#00da80);
-  color:#fff;
+.btn-uniform{
+  flex:1 1 45%;
+  max-width:320px;
+  padding:14px 28px;
+  min-height:56px;
+  font-size:1em;
   font-weight:600;
   border:none;
   border-radius:8px;
-  padding:14px 28px;
   cursor:pointer;
-  font-size:1em;
+  color:#fff;
+  text-align:center;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
   box-shadow:0 3px 8px rgba(0,0,0,0.15);
-  transition:transform .15s ease,opacity .2s;
-  width:100%;
-  max-width:320px;
+  transition:transform .15s ease,opacity .2s ease;
+  white-space:normal;
+  line-height:1.2;
+  box-sizing:border-box;
+  appearance:none;
+  -webkit-appearance:none;
 }
-.btn-send:hover{transform:scale(1.05);opacity:.9;}
+.btn-uniform:hover{transform:scale(1.05);opacity:.9;}
+.btn-uniform.green{background:linear-gradient(135deg,#00b56a,#00da80);}
+.btn-uniform.blue{background:linear-gradient(135deg,#0090d4,#33b6ff);}
+.btn-uniform.lightblue{background:linear-gradient(135deg,#00aaff,#66ccff);}
+.btn-uniform.gray{background:linear-gradient(135deg,#9b9b9b,#bfbfbf);}
 .wait-overlay{
   display:none;
   position:fixed;
@@ -517,52 +535,11 @@ h2 {
 .notif.error{background:linear-gradient(135deg,#e63946,#ff6b6b);}
 </style>
 
-<!-- 🟨 SPODNÍ TLAČÍTKA -->
-<div class="actions bottom-actions">
-  <a href="index.html" class="btn-back">ZPĚT</a>
-  <button type="button" id="btnExportPdf" class="btn-gray">EXPORT TO PDF</button>
-</div>
-
-<style>
-.bottom-actions{
-  margin-top:40px;
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-  gap:10px;
-  text-align:center;
-}
-.btn-back,.btn-gray{
-  flex:1 1 45%;
-  max-width:320px;
-  padding:14px 28px;
-  font-size:1em;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:600;
-  transition:transform .15s ease,opacity .2s;
-  box-shadow:0 3px 8px rgba(0,0,0,0.15);
-}
-.btn-back{
-  background:linear-gradient(135deg,#9b9b9b,#bfbfbf);
-  color:#fff;
-  text-decoration:none;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-}
-.btn-gray{
-  background:linear-gradient(135deg,#6c757d,#a0a4a7);
-  color:#fff;
-}
-.btn-back:hover,.btn-gray:hover{transform:scale(1.05);opacity:.9;}
-</style>
-
-<!-- 🟨 JS FUNKCE PRO TLAČÍTKA -->
+<!-- 🟨 LOGIKA TLAČÍTEK -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const uploadBtn = document.getElementById("btnUploadAll");
+  const sendBtn = document.getElementById("btnSendToDetail");
   const exportBtn = document.getElementById("btnExportPdf");
   const wait = document.getElementById("waitOverlay");
 
@@ -576,11 +553,12 @@ document.addEventListener("DOMContentLoaded", () => {
     window._notifTimer=setTimeout(()=>n.classList.remove("show"),2500);
   };
 
+  // 🔹 Upload fotek
   uploadBtn?.addEventListener("click", async () => {
     try {
       wait?.classList.add("active");
       if (typeof window.uploadAll === "function") {
-        await window.uploadAll();  // přímé volání z části 2/3
+        await window.uploadAll();
         showNotif("success","Fotky byly nahrány");
       } else {
         showNotif("warning","Funkce uploadAll() není dostupná");
@@ -593,10 +571,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // 🔹 Export PDF
   exportBtn?.addEventListener("click", async () => {
     try {
       if (typeof window.generatePdf === "function") {
-        await window.generatePdf(); // volání funkce z protokolu
+        await window.generatePdf();
         showNotif("success","PDF vytvořeno");
       } else {
         showNotif("warning","Export PDF zatím není aktivní");
@@ -606,9 +585,42 @@ document.addEventListener("DOMContentLoaded", () => {
       showNotif("error","Chyba při exportu PDF");
     }
   });
+
+  // 🔹 Odeslat PDF do detailu zákazníka
+  sendBtn?.addEventListener("click", async () => {
+    try {
+      showNotif("success","Generuji PDF...");
+      if (typeof window.generatePdf === "function") {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF("p","mm","a4");
+        const blob = pdf.output("blob");
+        const reader = new FileReader();
+        reader.onloadend = function() {
+          const base64 = reader.result;
+          localStorage.setItem("photoPdfData", base64);
+          showNotif("success","Odesílám do detailu...");
+          setTimeout(()=>{ window.location.href="protokol.html"; }, 1200);
+        };
+        await window.generatePdf();
+        reader.readAsDataURL(blob);
+      } else {
+        showNotif("warning","Nelze vytvořit PDF");
+      }
+    } catch(e) {
+      console.error(e);
+      showNotif("error","Chyba při odesílání PDF");
+    }
+  });
 });
 </script>
-<!-- 🟩 KONEC ČÁSTI 3/3 – FUNKČNÍ TLAČÍTKA + NOTIFIKACE + OVERLAY -->
+
+<footer style="text-align:center;margin:30px 0 20px;font-size:0.8em;color:#888;">
+  White Glove Service s.r.o. • © 2025
+</footer>
+<!-- 🟩 KONEC ČÁSTI 3/3 – SJEDNOCENÁ TLAČÍTKA (NA PIXEL STEJNÁ) -->
+
+
+
 
 
 
