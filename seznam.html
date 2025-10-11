@@ -799,11 +799,23 @@ function initDetailButtons(overlay, item, index) {
       setNextToast("🟢 Termín uložen", "success");
       localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
 
+      // 💬 Po úspěšném uložení → otevře SMS s potvrzením termínu
+      if (item.telefon) {
+        const cislo   = item.cislo   || "bez čísla";
+        const produkt = item.produkt || "neuvedený model";
+        const tel     = item.telefon.replace(/\s+/g, '').replace('+420', '');
+        const text    = `Dobrý den, potvrzujeme termín servisu dne ${datum} v ${cas}. Objednávka: ${cislo}, model: ${produkt}. White Glove Service.`;
+        const encoded = encodeURIComponent(text);
+        const smsUrl  = `sms:${tel}?&body=${encoded}`;
+        window.location.href = smsUrl;
+      }
+
       // 🔄 Aktualizuj data po uložení (GitHub → Worker → frontend)
       setTimeout(() => loadData(), 1000);
 
       overlay.remove();
       renderTable(dataAll);
+
     } catch (err) {
       alert("❌ Chyba při ukládání: " + err.message);
     }
@@ -968,6 +980,7 @@ function initDetailButtons(overlay, item, index) {
 }
 </style>
 <!-- 🟩 KONEC C-1 + C-4 -->
+
 
 
 
