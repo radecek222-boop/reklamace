@@ -270,19 +270,42 @@ function showNotif(type="success",text="Hotovo"){
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-<!-- 🟨 Sekce I – Inicializace podpisu -->
+<!-- 🟨 Sekce I – Překladač CZ → EN (obnovená funkčnost) -->
 <script>
-let signaturePad;
-window.addEventListener("DOMContentLoaded",()=>{
- const canvas=document.getElementById("signature-pad");
- if(!canvas)return;
- setTimeout(()=>{
-   canvas.width=canvas.offsetWidth;
-   canvas.height=200;
-   signaturePad=new SignaturePad(canvas,{backgroundColor:"white"});
- },50);
+async function translateCZtoEN(text) {
+  if (!text.trim()) return "";
+  try {
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=cs|en`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return data.responseData?.translatedText || "";
+  } catch (e) {
+    console.warn("⚠️ Překlad selhal:", e.message);
+    return "";
+  }
+}
+
+function initTranslator(prefix) {
+  const cz = document.getElementById(`${prefix}-cz`);
+  const en = document.getElementById(`${prefix}-en`);
+  if (!cz || !en) return;
+  let t;
+  cz.addEventListener("input", () => {
+    clearTimeout(t);
+    if (!cz.value.trim()) { en.value = ""; return; }
+    en.value = "⏳ Překládám...";
+    t = setTimeout(async () => {
+      en.value = await translateCZtoEN(cz.value);
+    }, 700);
+  });
+}
+
+/* 🟩 Inicializace překladače po načtení stránky */
+window.addEventListener("load", () => {
+  ["description", "problem", "repair"].forEach(initTranslator);
 });
 </script>
+
 
 <!-- 🟨 Sekce J – Generování + náhled + sloučení PDF -->
 <style>
