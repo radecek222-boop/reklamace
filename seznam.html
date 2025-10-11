@@ -322,7 +322,7 @@ tr.stav-hotovo:hover td {
 
 
 
-<!-- 🟦 SEKCE B – NAČÍTÁNÍ DAT + TABULKA + DEBUG (opravená verze) -->
+<!-- 🟦 SEKCE B – NAČÍTÁNÍ DAT + TABULKA + DEBUG (opravená verze s HOTOVO) -->
 <script>
 /* ============================= */
 /* ⚙️ KONSTANTY A PROMĚNNÉ       */
@@ -348,7 +348,6 @@ async function loadData() {
   tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
 
   try {
-    // ⚡️ Přidán timestamp pro obejití cache
     const res = await fetch(`${API_URL}?t=${Date.now()}`, { mode: "cors", cache: "no-store" });
     if (!res.ok) throw new Error(`Chyba HTTP ${res.status}`);
     let data = await res.json();
@@ -367,7 +366,6 @@ async function loadData() {
       return;
     }
 
-    // 💾 doplnění uložených termínů
     const ulozene = JSON.parse(localStorage.getItem("stavyReklamaciData") || "[]");
     data.forEach(z => {
       const u = ulozene.find(x => x.cislo === z.cislo);
@@ -394,14 +392,12 @@ function renderTable(arr) {
     return;
   }
 
-  // 📱 Mobilní zobrazení
   if (window.innerWidth < 700) {
     console.log("📱 Mobilní režim – vykresluji bloky");
     renderMobileBlocks(arr);
     return;
   }
 
-  // 💻 Desktop tabulka
   let html = `
   <table>
     <thead>
@@ -425,7 +421,6 @@ function renderTable(arr) {
       ? `<a href="tel:${r.telefon.replace('+420','').trim()}"
          style="color:#000;font-weight:600;">${r.telefon.replace('+420','').trim()}</a>` : "–";
 
-    // 🎨 Stav + barva + text
     let barva = "";
     let stavText = stav;
     if (stav === "domluveno" && r.datum && r.cas) {
@@ -441,6 +436,13 @@ function renderTable(arr) {
     } else if (stav === "zruseno") {
       stavText = "Zrušeno";
       barva = "background:#ffcccc;color:#a30000;font-weight:700;";
+
+    /* 🟨🟨🟨🟨🟨 ZAČÁTEK BLOKU B-HOTOVO – zvýraznění dokončených reklamací */
+    } else if (stav === "hotovo") {
+      stavText = "Hotovo";
+      barva = "background:#b6f2c0;color:#116d2b;font-weight:700;";
+    /* 🟨🟨🟨🟨🟨 KONEC BLOKU B-HOTOVO */
+      
     } else if (stav === "novy") {
       stavText = "Nová";
       barva = "background:#fff9b1;color:#000;font-weight:700;animation:blinkRow 1.2s infinite;";
@@ -510,6 +512,7 @@ function updateDebug(count) {
   <small>Aktualizace: <span id="debugTime">–</span></small>
 </div>
 <!-- 🟦 KONEC SEKCE B -->
+
 
 
 <!-- 🟦 ZAČÁTEK B-2 – MOBILNÍ BLOKY (FINÁLNÍ ZAROVNÁNÍ A BARVY) -->
