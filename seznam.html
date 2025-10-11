@@ -1649,22 +1649,24 @@ async function ulozitTerminNaGitHub(item, id, datum, cas, overlay, btn, infoBox)
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "update", record: item })
     });
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     // ✅ Potvrzení
     setTimeout(() => {
       loader.remove();
-      showSuccessOverlay("✅ Termín úspěšně uložen",
-        "Data byla odeslána a potvrzena v GitHub repozitáři.");
+      showSuccessOverlay(
+        "✅ Termín úspěšně uložen",
+        "Data byla odeslána a potvrzena v GitHub repozitáři."
+      );
       ulozTermin(item);
       localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
       flashBox(infoBox, "green");
       setNextToast("✅ Termín úspěšně uložen", "success");
       item.stav = "domluveno";
-stavy[id] = "domluveno";
-localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
-renderTable(dataAll);
-
+      stavy[id] = "domluveno";
+      localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+      renderTable(dataAll);
 
       setTimeout(() => {
         overlay.remove();
@@ -1731,6 +1733,7 @@ function showSuccessOverlay(title, text) {
   }, 1800);
 }
 </script>
+<!-- 🟧 KONEC SEKCE D -->
 
 <!-- 🟧 D-STYLE: LOADER + TOAST + SUCCESS OVERLAY -->
 <style>
