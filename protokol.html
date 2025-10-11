@@ -566,12 +566,77 @@ async function mailCustomer() {
     showNotif("error", "Chyba při odesílání e-mailu");
   }
 }
-/* 🟨🟨🟨🟨🟨 KONEC BLOKU J-G – Odeslání zákazníkovi + označení hotovo */
+/* 🟨🟨🟨🟨🟨 KONEC BLOKU J-G <!-- 🟨🟨🟨🟨🟨 ZAČÁTEK BLOKU WAIT-DIALOG -->
+<style>
+#waitOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+}
+#waitBox {
+  background: white;
+  padding: 30px 40px;
+  border-radius: 12px;
+  text-align: center;
+  font-family: "Inter", sans-serif;
+  font-size: 1.1em;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+.wait-spinner {
+  border: 4px solid #eee;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  margin: 0 auto 15px;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
+
+<div id="waitOverlay">
+  <div id="waitBox">
+    <div class="wait-spinner"></div>
+    <div id="waitText">Čekejte na odpověď ze serveru...</div>
+  </div>
+</div>
+
+<script>
+function showWait(text="Čekejte na odpověď ze serveru...") {
+  const overlay = document.getElementById("waitOverlay");
+  const t = document.getElementById("waitText");
+  t.innerText = text;
+  overlay.style.display = "flex";
+}
+function hideWait(success=true) {
+  const overlay = document.getElementById("waitOverlay");
+  const box = document.getElementById("waitBox");
+  const t = document.getElementById("waitText");
+
+  // ✅ zelená fajfka nebo ❌ červený kříž
+  box.innerHTML = success
+    ? "<div style='font-size:50px;color:#28a745;'>✅</div><div>Hotovo</div>"
+    : "<div style='font-size:50px;color:#e63946;'>❌</div><div>Chyba při ukládání</div>";
+
+  setTimeout(() => {
+    overlay.style.display = "none";
+    box.innerHTML = `<div class="wait-spinner"></div><div id="waitText">Čekejte na odpověď ze serveru...</div>`;
+  }, 2500);
+}
+</script>
+<!-- 🟨🟨🟨🟨🟨 KONEC BLOKU WAIT-DIALOG -->
+– Odeslání zákazníkovi + označení hotovo */
 
 
 </script>
 <!-- 🟩 KONEC SEKCE J -->
 
+
+  
 
 
   <!-- 🟨 Sekce K – Automatické načtení fotodokumentace z Worker -->
