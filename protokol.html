@@ -1,276 +1,47 @@
-<div class="wrapper">
-  <div class="header">
-    <div>WHITE GLOVE SERVICE</div>
-    <div>Do Dubče 364, Běchovice 190 11 · +420 725 965 826 · reklamace-wgs@email.cz · IČO 09769684</div>
-  </div>
+When your code is rendered as a preview on CodePen, it is ultimately in an HTML template like this:
 
-  <!-- 🔹 ZÁKLADNÍ ÚDAJE -->
-  <div class="two-col-table">
-    <div class="col">
-      <table>
-        <tr><td class="label">Číslo objednávky<span class="en-label">Order number</span></td><td><input id="order-number"></td></tr>
-        <tr><td class="label">Číslo reklamace<span class="en-label">Claim number</span></td><td><input id="claim-number"></td></tr>
-        <tr><td class="label">Zákazník<span class="en-label">Customer</span></td><td><input id="customer"></td></tr>
-        <tr><td class="label">Adresa<span class="en-label">Address</span></td><td><input id="address"></td></tr>
-        <tr><td class="label">Telefon<span class="en-label">Phone</span></td><td><input id="phone"></td></tr>
-        <tr><td class="label">Email<span class="en-label">Email</span></td><td><input id="email"></td></tr>
-      </table>
-    </div>
-    <div class="col">
-      <table>
-        <tr><td class="label">Technik<span class="en-label">Technician</span></td><td><select id="technician"><option>Milan Kolín</option><option>Radek Zikmund</option><option>Kolín/Zikmund</option></select></td></tr>
-        <tr><td class="label">Datum návštěvy<span class="en-label">Visit date</span></td><td><input id="visit-date" type="date"></td></tr>
-        <tr><td class="label">Datum doručení<span class="en-label">Delivery date</span></td><td><input id="delivery-date" type="date"></td></tr>
-        <tr><td class="label">Datum podání<span class="en-label">Complaint date</span></td><td><input id="claim-date" type="date"></td></tr>
-        <tr><td class="label">Značka / Contract<span class="en-label">Brand / Contract</span></td><td><input id="brand"></td></tr>
-        <tr><td class="label">Model<span class="en-label">Model</span></td><td><input id="model"></td></tr>
-      </table>
-    </div>
-  </div>
+<!DOCTYPE html>
+<html lang="en" {IF CLASSES}class="classes"{/IF}>
 
-  <!-- 🔹 POPISY -->
-  <div class="section-title">Zákazník reklamuje<span class="en-label">Customer complaint</span></div>
-  <div class="split-section"><textarea id="description-cz" placeholder="CZ"></textarea><textarea id="description-en" placeholder="EN" readonly></textarea></div>
+<head>
 
-  <div class="section-title">Problém zjištěný technikem<span class="en-label">Detected problem</span></div>
-  <div class="split-section"><textarea id="problem-cz" placeholder="CZ"></textarea><textarea id="problem-en" placeholder="EN" readonly></textarea></div>
+  <meta charset="UTF-8">
 
-  <div class="section-title">Návrh opravy<span class="en-label">Repair proposal</span></div>
-  <div class="split-section"><textarea id="repair-cz" placeholder="CZ"></textarea><textarea id="repair-en" placeholder="EN" readonly></textarea></div>
+  {IF PRIVATE}
+  <meta name="robots" content="noindex">
+  {ELSE}
+  <!-- MIT License -->
+  {/IF}
 
-  <!-- 🔹 CENY -->
-  <div class="two-col-table">
-    <div class="col">
-      <table>
-        <tr><td class="label">Počet dílů<span class="en-label">Parts</span></td><td><input id="parts" type="number" min="0"></td></tr>
-        <tr><td class="label">Práce<span class="en-label">Work</span></td><td><input id="price-work" type="number" step="0.01" oninput="updateTotal()"></td></tr>
-        <tr><td class="label">Materiál<span class="en-label">Material</span></td><td><input id="price-material" type="number" step="0.01" oninput="updateTotal()"></td></tr>
-        <tr><td class="label">2. technik<span class="en-label">Second tech</span></td><td><input id="price-second" type="number" step="0.01" oninput="updateTotal()"></td></tr>
-        <tr><td class="label">Doprava<span class="en-label">Transport</span></td><td><input id="price-transport" type="number" step="0.01" oninput="updateTotal()"></td></tr>
-        <tr><td class="label">Celkem<span class="en-label">Total</span></td><td><input id="price-total" readonly></td></tr>
-      </table>
-    </div>
-    <div class="col">
-      <table>
-        <tr><td class="label">Vyřešeno?<span class="en-label">Solved?</span></td><td><select id="solved"><option>ANO</option><option>NE</option></select></td></tr>
-        <tr><td class="label">Čeká se na prodejce?<span class="en-label">Waiting?</span></td><td><select id="dealer"><option>NE</option><option>ANO</option></select></td></tr>
-        <tr><td class="label">Poškození technikem?<span class="en-label">Damage?</span></td><td><select id="damage"><option>NE</option><option>ANO</option></select></td></tr>
-        <tr><td class="label">Platí zákazník?<span class="en-label">Customer pays?</span></td><td><select id="payment"><option>NE</option><option>ANO</option></select></td></tr>
-        <tr><td class="label">Datum podpisu<span class="en-label">Sign date</span></td><td><input id="sign-date" type="date"></td></tr>
-      </table>
-    </div>
-  </div>
+  <title>{TITLE}</title>
 
-  <!-- 🔹 PODPIS -->
-  <div class="section-title">Podpis zákazníka<span class="en-label">Customer signature</span></div>
-  <canvas id="signature-pad"></canvas>
-  <div class="signature-label">Podepište se prstem nebo myší</div>
+  {STUFF FOR <HEAD>}
 
-  <div class="btns">
-    <button onclick="signaturePad.clear()">Vymazat podpis</button>
-    <button onclick="window.location.href='index.html'">Zpět</button>
-    <button onclick="attachPhotos()">Přidat fotky</button>
-    <button onclick="exportPDF()">Exportovat PDF</button>
-    <button onclick="mailCustomer()">Odeslat e-mailem</button>
-  </div>
+  <link rel="stylesheet" href="{CSS RESET CHOICE}">
+  {EXTERNAL CSS}
+  <style>
+  {EDITOR CSS}
+  </style>
 
-  <!-- 🔹 NÁHLED FOTEK -->
-  <div id="photoPreviewContainer" style="display:none;margin-top:20px;width:100%;">
-    <h3 style="font-size:1em;font-weight:700;margin-bottom:10px;">📷 Připojená fotodokumentace</h3>
-    <iframe id="photoPreviewFrame" style="width:100%;height:480px;border:1px solid #ccc;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1);"></iframe>
-  </div>
+  {PREFIX FREE (if enabled)}
+  {MODERNIZR (if enabled)}
 
-  <div id="notif" class="notif"></div>
-</div> <!-- konec wrapperu -->
-<!-- 🧩 SCRIPTY JS – všechny mimo wrapper -->
-<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
 
-<script>
-/* 🟩 AUTOMATICKÉ NAČTENÍ ÚDAJŮ */
-document.addEventListener("DOMContentLoaded",()=>{
-  try{
-    const data=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
-    if(!data||Object.keys(data).length===0)return;
-    const map={
-      "order-number":data.cislo,
-      "claim-number":data.reklamace||"",
-      "customer":data.zakaznik,
-      "address":data.adresa,
-      "phone":data.telefon,
-      "email":data.email,
-      "brand":data.contract,
-      "model":data.model
-    };
-    Object.entries(map).forEach(([id,val])=>{
-      const el=document.getElementById(id);
-      if(el&&val)el.value=val;
-    });
-  }catch(e){console.error("❌ Chyba při načítání zákazníka:",e);}
-});
+<body>
 
-/* 🟦 CENY */
-function updateTotal(){
-  const w=parseFloat(priceWork.value)||0,
-        m=parseFloat(priceMaterial.value)||0,
-        s=parseFloat(priceSecond.value)||0,
-        t=parseFloat(priceTransport.value)||0;
-  priceTotal.value=(w+m+s+t).toFixed(2);
-}
-const priceWork=document.getElementById("price-work"),
-      priceMaterial=document.getElementById("price-material"),
-      priceSecond=document.getElementById("price-second"),
-      priceTransport=document.getElementById("price-transport"),
-      priceTotal=document.getElementById("price-total");
+  {EDITOR HTML}
 
-// 🟨 Překladač – spouští se hned po načtení DOM
-document.addEventListener("DOMContentLoaded",()=>{
-  ["description","problem","repair"].forEach(initTranslator);
-});
+  {JS Library (if chosen)}
+  {EXTERNAL JS}
 
-// 🟪 Podpis – spouští se po načtení všech zdrojů (canvas, fonty atd.)
-window.addEventListener("load",()=>{
-  const canvas=document.getElementById("signature-pad");
-  const resize=()=>{
-    const r=Math.max(window.devicePixelRatio||1,1);
-    canvas.width=canvas.offsetWidth*r;
-    canvas.height=canvas.offsetHeight*r;
-    canvas.getContext("2d").scale(r,r);
-  };
-  window.addEventListener("resize",resize);
-  resize();
+  <script>
+    {EDITOR JS}
+    //# sourceURL=pen.js
+  </script>
 
-  signaturePad=new SignaturePad(canvas,{
-    minWidth:1,maxWidth:2,penColor:"black",backgroundColor:"white"
-  });
-
-  const saved=localStorage.getItem("signatureImage");
-  if(saved){
-    const img=new Image();
-    img.onload=()=>signaturePad.fromDataURL(saved);
-    img.src=saved;
-  }
-});
-
-/* 🟧 ULOŽENÍ PODPISU PŘED ODCHODEM ZE STRÁNKY */
-window.addEventListener("beforeunload",()=>{
-  if(signaturePad&&!signaturePad.isEmpty()){
-    localStorage.setItem("signatureImage",signaturePad.toDataURL());
-  }
-});
-
-/* 🟨 NOTIFIKACE */
-function showNotif(type="success",text="Hotovo"){
-  const n=document.getElementById("notif");
-  n.className=`notif ${type}`;
-  n.textContent=text;
-  n.classList.add("show");
-  clearTimeout(window._notifTimer);
-  window._notifTimer=setTimeout(()=>n.classList.remove("show"),2500);
-}
-
-/* 📷 FOTKY + SPOJENÍ PDF */
-function attachPhotos(){
-  const d=localStorage.getItem("photoPdfData"),
-        p=document.getElementById("photoPreviewContainer"),
-        f=document.getElementById("photoPreviewFrame");
-  if(!d){
-    showNotif("warning","Žádné fotky nenalezeny");
-    p.style.display="none";
-    return;
-  }
-  attachedPhotos=d;
-  p.style.display="block";
-  f.src=d;
-  showNotif("success","Fotodokumentace připojena");
-}
-
-/* 🧾 GENEROVÁNÍ PDF PROTOKOLU (300 DPI + PODPIS) */
-async function generateProtocolPDF(){
-  const{jsPDF}=window.jspdf;
-  const w=document.querySelector(".wrapper");
-  const doc=new jsPDF("p","mm","a4");
-  const b=document.querySelector(".btns");
-
-  b.style.visibility="hidden";
-  const c=await html2canvas(w,{scale:3.125,backgroundColor:"#fff",useCORS:true});
-  b.style.visibility="visible";
-
-  doc.addImage(c.toDataURL("image/jpeg",0.98),"JPEG",0,0,210,297);
-  doc.addPage();
-
-  if(signaturePad&&!signaturePad.isEmpty()){
-    doc.text("Podpis zákazníka / Customer signature",20,30);
-    doc.addImage(signaturePad.toDataURL(),"PNG",20,40,120,60);
-  }else{
-    doc.text("Bez podpisu zákazníka / No customer signature",20,30);
-  }
-  return doc;
-}
-
-/* 🔗 SPOJENÍ PROTOKOLU S FOTODOKUMENTACÍ */
-async function mergeWithPhotos(doc){
-  try{
-    let data=attachedPhotos;
-    if(!data){
-      const localPhoto=localStorage.getItem("photoPdfData");
-      if(localPhoto)data=localPhoto;
-    }
-    if(!data){
-      const cust=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
-      const res=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer?"+Date.now(),{cache:"no-store"});
-      const text=await res.text();
-      if(!text.startsWith("["))return doc;
-      const all=JSON.parse(text);
-      const rec=all.find(r=>r.cislo===cust.cislo);
-      if(rec?.file)data=rec.file;
-    }
-    if(!data)return doc;
-
-    if(!window.PDFLib){
-      await new Promise((resolve,reject)=>{
-        const s=document.createElement("script");
-        s.src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js";
-        s.onload=resolve;
-        s.onerror=reject;
-        document.head.appendChild(s);
-      });
-    }
-
-    const {PDFDocument}=window.PDFLib;
-    const base64=data.split(",")[1];
-    const bytes=Uint8Array.from(atob(base64),c=>c.charCodeAt(0));
-    const photosPdf=await PDFDocument.load(bytes);
-    const mainPdf=await PDFDocument.load(await doc.output("arraybuffer"));
-    const copied=await mainPdf.copyPages(photosPdf,photosPdf.getPageIndices());
-    copied.forEach(p=>mainPdf.addPage(p));
-    const merged=await mainPdf.save();
-    return new Blob([merged],{type:"application/pdf"});
-  }catch(e){
-    console.error("❌ Chyba při spojení PDF:",e);
-    showNotif("error","Nelze spojit PDF s fotkami");
-    return doc;
-  }
-}
-
-/* 📤 EXPORT PDF */
-async function exportPDF(){
-  const doc=await generateProtocolPDF();
-  const merged=await mergeWithPhotos(doc);
-  const blob=merged instanceof Blob?merged:await doc.output("blob");
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download="protokol.pdf";
-  a.click();
-  showNotif("success","PDF exportováno");
-}
-
-/* ✉️ ODESLÁNÍ E-MAILEM – zatím neaktivní */
-function mailCustomer(){
-  showNotif("warning","Odeslání e-mailem zatím není aktivní");
-}
-</script>
 </body>
+
 </html>
+Was this article helpful?
+YesNo
