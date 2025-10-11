@@ -1016,29 +1016,75 @@ function initMapForDetail(overlay, item) {
 <!-- 🟩 KONEC C-2 -->
 
 
-<!-- 🟩 C-3: KALENDÁŘ A ČAS -->
+<!-- 🟩 C-3: KALENDÁŘ A ČAS (v2.3 – neprůstřelné načítání) -->
 <script>
-function initCalendarAndTime(overlay, item, index) {
+async function initCalendarAndTime(overlay, item, index) {
   const infoBox = overlay.querySelector("#termInfoBox");
-  const miniCal = new VanillaCalendar("#miniCalendar", {
-    settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
-    actions: { clickDay: e => {
-      const chosen = e.target.dataset.calendarDay;
-      if (chosen) {
-        overlay.dataset.datum = chosen;
-        updateTermInfoBox(infoBox, chosen, null);
-        flashBox(infoBox, "gray");
-      }
-    } }
-  });
-  miniCal.init();
+  const calContainer = overlay.querySelector("#miniCalendar");
 
-  // hodiny
-  const hSel = overlay.querySelector("#hours"), mSel = overlay.querySelector("#minutes");
-  for (let h = 7; h < 20; h++) hSel.innerHTML += `<option>${String(h).padStart(2,"0")}</option>`;
-  for (let m = 0; m < 60; m += 5) mSel.innerHTML += `<option>${String(m).padStart(2,"0")}</option>`;
-  hSel.addEventListener("change", () => updateTime(infoBox, overlay));
-  mSel.addEventListener("change", () => updateTime(infoBox, overlay));
+  // 🕓 Pokud VanillaCalendar není dostupný → načti ho dynamicky
+  if (typeof window.VanillaCalendar === "undefined") {
+    console.log("⏳ VanillaCalendar ještě nenačten... pokusím se načíst lokálně…");
+    await new Promise(resolve => {
+      const script = document.createElement("script");
+      script.src = "vanilla-calendar.min.js"; // 🔹 lokální fallback (soubor ve stejném adresáři)
+      script.onload = () => { console.log("✅ VanillaCalendar načten (lokální)"); resolve(); };
+      script.onerror = () => {
+        console.warn("⚠️ Lokální VanillaCalendar nenalezen, zkouším GitHub fallback…");
+        const fallback = document.createElement("script");
+        fallback.src = "https://radecek222-boop.github.io/reklamace/vanilla-calendar.min.js";
+        fallback.onload = () => { console.log("✅ VanillaCalendar načten (GitHub fallback)"); resolve(); };
+        fallback.onerror = () => { console.error("❌ VanillaCalendar se nepodařilo načíst."); resolve(); };
+        document.head.appendChild(fallback);
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  // 🗓️ Vykreslení kalendáře (bez ohledu na způsob načtení)
+  if (typeof window.VanillaCalendar !== "undefined") {
+    try {
+      const miniCal = new VanillaCalendar(calContainer, {
+        settings: { lang: "cs", selection: { day: "single" }, visibility: { theme: "light" } },
+        actions: {
+          clickDay: e => {
+            const chosen = e.target.dataset.calendarDay;
+            if (chosen) {
+              overlay.dataset.datum = chosen;
+              updateTermInfoBox(infoBox, chosen, null);
+              flashBox(infoBox, "gray");
+            }
+          }
+        }
+      });
+      miniCal.init();
+      console.log("📅 Mini kalendář úspěšně zobrazen v detailu.");
+    } catch (err) {
+      console.error("❌ Chyba při inicializaci kalendáře:", err);
+      infoBox.textContent = "Kalendář se nepodařilo vykreslit.";
+    }
+  } else {
+    console.error("❌ VanillaCalendar stále nedostupný – zkontroluj soubory .js");
+    calContainer.innerHTML = "<div style='text-align:center;padding:20px;color:#666;'>Nelze načíst kalendář.</div>";
+    return;
+  }
+
+  // ⏰ Naplnění hodin a minut
+  const hSel = overlay.querySelector("#hours");
+  const mSel = overlay.querySelector("#minutes");
+  if (hSel && mSel) {
+    hSel.innerHTML = "";
+    mSel.innerHTML = "";
+    for (let h = 7; h < 20; h++) {
+      hSel.innerHTML += `<option>${String(h).padStart(2, "0")}</option>`;
+    }
+    for (let m = 0; m < 60; m += 5) {
+      mSel.innerHTML += `<option>${String(m).padStart(2, "0")}</option>`;
+    }
+
+    hSel.addEventListener("change", () => updateTime(infoBox, overlay));
+    mSel.addEventListener("change", () => updateTime(infoBox, overlay));
+  }
 }
 </script>
 <!-- 🟩 KONEC C-3 -->
@@ -1774,41 +1820,45 @@ function openPlanModal(){
 }
 </script>
 
-<!-- 🟦 E-2 – KALENDÁŘ (lokální verze, bez duplikátu skriptu) -->
+<!-- 🟦 E-2 – KALENDÁŘ (fix pro GitHub moduly + lokální import) -->
 <script>
-function initPlanCalendar(overlay){
-  const el=overlay.querySelector("#planCalendar");
+async function initPlanCalendar(overlay){
+  const el = overlay.querySelector("#planCalendar");
 
-  const waitForCalendar=()=>{
-    if(typeof window.VanillaCalendar==="undefined"||!el){
-      console.log("⏳ VanillaCalendar ještě nenačten...");
-      return setTimeout(waitForCalendar,300);
-    }
-    console.log("✅ VanillaCalendar nalezen – vytvářím kalendář");
-
-    const cal=new VanillaCalendar(el,{
-      settings:{lang:"cs",selection:{day:"single"}},
-      actions:{
-        clickDay:(event,self)=>{
-          const d=self.selectedDates[0];
-          if(d)loadPlanForDay(d,overlay);
-        }
-      }
+  // 🧩 Pokud VanillaCalendar není v globalThis, načti ho ručně
+  if (typeof window.VanillaCalendar === "undefined") {
+    console.log("📦 Načítám VanillaCalendar z lokálního souboru...");
+    await new Promise(resolve => {
+      const s = document.createElement("script");
+      s.src = "vanilla-calendar.min.js";
+      s.onload = resolve;
+      document.head.appendChild(s);
     });
-    cal.init();
+    console.log("✅ VanillaCalendar načten dodatečně");
+  }
 
-    // 🔵 zvýraznit dny s termínem
-    const termDates=new Set(
-      dataAll.filter(x=>x.datum&&x.stav!=="zruseno").map(x=>x.datum)
-    );
-    setTimeout(()=>{
-      el.querySelectorAll(".vanilla-calendar-day__btn").forEach(btn=>{
-        if(termDates.has(btn.dataset.calendarDay))
-          btn.classList.add("highlight-day");
-      });
-    },600);
-  };
-  waitForCalendar();
+  console.log("🗓️ Vytvářím instanci VanillaCalendar (Plán dne)");
+  const cal = new VanillaCalendar(el, {
+    settings: { lang: "cs", selection: { day: "single" } },
+    actions: {
+      clickDay: (event, self) => {
+        const date = self.selectedDates[0];
+        if (date) loadPlanForDay(date, overlay);
+      }
+    }
+  });
+  cal.init();
+
+  // 🔵 zvýrazni dny s termínem
+  const termDates = new Set(
+    dataAll.filter(x => x.datum && x.stav !== "zruseno").map(x => x.datum)
+  );
+  setTimeout(() => {
+    el.querySelectorAll(".vanilla-calendar-day__btn").forEach(btn => {
+      if (termDates.has(btn.dataset.calendarDay))
+        btn.classList.add("highlight-day");
+    });
+  }, 600);
 }
 </script>
 
