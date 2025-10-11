@@ -801,52 +801,58 @@ document.getElementById("selectFiles").addEventListener("click",()=>{
 </div>
 
 <script>
-document.getElementById("reklamaceForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("reklamaceForm");
+  if (!form) return;
 
-  const wait = document.getElementById("waitOverlay");
-  const success = document.getElementById("successCheck");
-  wait.classList.add("active");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  const f = e.target;
-  const predvolba = document.getElementById("predvolba");
+    const wait = document.getElementById("waitOverlay");
+    const success = document.getElementById("successCheck");
+    wait.classList.add("active");
 
-  // 🟢 Odesíláme správné názvy polí (datum_prodeje, datum_reklamace)
-  const dataObj = {
-    typ: "reklamace",
-    contract: f.zpracoval.value,
-    cislo: f.cislo.value.trim().toUpperCase(),
-    zakaznik: f.zakaznik.value,
-    adresa: `${f.ulice.value}, ${f.mesto.value}, ${f.psc.value}`,
-    telefon: `${predvolba.value} ${f.telefon.value}`,
-    email: f.email.value,
-    produkt: f.produkt.value,
-    datum_prodeje: f.datum_prodeje.value || "",
-    datum_reklamace: f.datum_reklamace.value || "",
-    popis: f.popis.value,
-    fotky: (window.uploadedPhotos || []).map(p => p.filename || "")
-  };
+    const f = e.target;
+    const predvolba = document.getElementById("predvolba");
 
-  try {
-    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ record: dataObj })
-    });
-    const json = await res.json();
-    console.log("📤 Odpověď workeru:", json);
+    // 🟢 Odesíláme správné názvy polí (datum_prodeje, datum_reklamace)
+    const dataObj = {
+      typ: "reklamace",
+      contract: f.zpracoval.value,
+      cislo: f.cislo.value.trim().toUpperCase(),
+      zakaznik: f.zakaznik.value,
+      adresa: `${f.ulice.value}, ${f.mesto.value}, ${f.psc.value}`,
+      telefon: `${predvolba.value} ${f.telefon.value}`,
+      email: f.email.value,
+      produkt: f.produkt.value,
+      datum_prodeje: f.datum_prodeje.value || "",
+      datum_reklamace: f.datum_reklamace.value || "",
+      popis: f.popis.value,
+      fotky: (window.uploadedPhotos || []).map(p => p.filename || "")
+    };
 
-    wait.classList.remove("active");
-    success.classList.add("active");
-    setTimeout(() => window.location.href = "index.html", 2500);
-  } catch (err) {
-    wait.classList.remove("active");
-    alert("Chyba při odesílání: " + err.message);
-  }
+    try {
+      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ record: dataObj })
+      });
+      const json = await res.json();
+      console.log("📤 Odpověď workeru:", json);
+
+      wait.classList.remove("active");
+      success.classList.add("active");
+      setTimeout(() => window.location.href = "index.html", 2500);
+    } catch (err) {
+      wait.classList.remove("active");
+      alert("Chyba při odesílání: " + err.message);
+    }
+  });
 });
 </script>
 
 <!-- 🟨 KONEC ČÁSTI 7/10 – ODESLÁNÍ FORMULÁŘE -->
+
 
 
 
