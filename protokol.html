@@ -277,6 +277,34 @@ function attachPhotos(){
   attachedPhotos=d;p.style.display="block";f.src=d;showNotif("success","Fotodokumentace připojena");
 }
 
+<!-- 🔹 GENEROVÁNÍ + SPOJENÍ PDF -->
+<script>
+let signaturePad;
+window.addEventListener("load",()=>{
+  const canvas=document.getElementById("signature-pad");
+  const resize=()=>{const r=Math.max(window.devicePixelRatio||1,1);
+    canvas.width=canvas.offsetWidth*r;canvas.height=canvas.offsetHeight*r;
+    canvas.getContext("2d").scale(r,r);};
+  window.addEventListener("resize",resize);resize();
+  signaturePad=new SignaturePad(canvas,{minWidth:1,maxWidth:2,penColor:"black",backgroundColor:"white"});
+  const saved=localStorage.getItem("signatureImage");
+  if(saved){const img=new Image();img.onload=()=>signaturePad.fromDataURL(saved);img.src=saved;}
+});
+window.addEventListener("beforeunload",()=>{if(signaturePad&&!signaturePad.isEmpty())localStorage.setItem("signatureImage",signaturePad.toDataURL());});
+
+function showNotif(type="success",text="Hotovo"){
+  const n=document.getElementById("notif");n.className=`notif ${type}`;n.textContent=text;
+  n.classList.add("show");clearTimeout(window._notifTimer);
+  window._notifTimer=setTimeout(()=>n.classList.remove("show"),2500);
+}
+
+let attachedPhotos=null;
+function attachPhotos(){
+  const d=localStorage.getItem("photoPdfData"),p=document.getElementById("photoPreviewContainer"),f=document.getElementById("photoPreviewFrame");
+  if(!d){showNotif("warning","Žádné fotky nenalezeny");p.style.display="none";return;}
+  attachedPhotos=d;p.style.display="block";f.src=d;showNotif("success","Fotodokumentace připojena");
+}
+
 /* 🧾 GENEROVÁNÍ PDF PROTOKOLU (300 DPI + podpis) */
 async function generateProtocolPDF(){
   const{jsPDF}=window.jspdf;const w=document.querySelector(".wrapper");
@@ -295,52 +323,7 @@ async function generateProtocolPDF(){
   return doc;
 }
 
-/* 🔗 SPOJENÍ PROTOKOLU S FOTODOKUMENTACÍ – vylepšené (včetně localStorage fallback) */
-async function mergeWithPhotos(doc) {
-  try {
-    let data = attachedPhotos;
-
-    // 🔹 1️⃣ Nejprve zkus localStorage (pokud jsi právě přišel z photocustomer.html)
-    if (!data) {
-      const localPhoto = localStorage.getItem("photoPdfData");
-      if (localPhoto) {
-        console.log("📦 Načteno PDF z localStorage (photoPdfData)");
-        data = localPhoto;
-      }
-    }
-
-    // 🔹 2️⃣ Pokud není ani v localStorage, zkus načíst z Workera
-    if (!data) {
-      const cust = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
-      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer", { cache: "no-store" });
-      if (res.ok) {
-        const all = await res.json();
-        const rec = all.find(r => r.cislo === cust.cislo);
-        if (rec?.file) {
-          console.log("🌍 Načteno PDF z Workeru (photocustomer.json)");
-          data = rec.file;
-        }
-      }
-    }
-
-    // 🔹 3️⃣ Pokud pořád není co připojit, vrať původní dokument
-    if (!data) {
-      console.warn("⚠️ Žádná fotodokumentace k připojení");
-      return doc;
-    }
-
-    // 🔹 4️⃣ Načtení knihovny PDF-Lib (jen pokud ještě není načtená)
-    if (!window.PDFLib) {
-      await new Promise((resolve, reject) => {
-        const s = document.createElement("script");
-        s.src = "https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js";
-        s.onload = resolve;
-        s.onerror = reject;
-        document.head.appendChild(s);
-      });
-    }
-
-// 🔗 SPOJENÍ PROTOKOLU S FOTODOKUMENTACÍ – opravené
+/* 🔗 SPOJENÍ PROTOKOLU S FOTODOKUMENTACÍ – opravené */
 async function mergeWithPhotos(doc){
   try{
     let data = attachedPhotos;
@@ -382,8 +365,9 @@ async function mergeWithPhotos(doc){
     return doc;
   }
 }
-
 </script>
+
+
 
   
 
