@@ -349,7 +349,7 @@ document.getElementById("btnExportPdf")?.addEventListener("click", async () => {
 <!-- 🟨 KONEC SEKCE D/10 – PDF EXPORT A ODESLÁNÍ (v2.0) -->
 
 
-<!-- 🟨 ZAČÁTEK SEKCE E/10 – SKUTEČNÉ PDF Z FOTEK (v2) -->
+<!-- 🟨 ZAČÁTEK SEKCE E/10 – SKUTEČNÉ PDF Z FOTEK (v3 – plná A4 + větší náhled) -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const sendBtn = document.getElementById("btnSendToDetail");
@@ -445,7 +445,7 @@ document.addEventListener("DOMContentLoaded", () => {
         canvas.height = scale * (img.height / img.width);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
         pdf.addImage(dataUrl, "JPEG", x, y, imgW, imgH);
 
         col++;
@@ -510,7 +510,23 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 </script>
-<!-- 🟨 KONEC SEKCE E/10 – SKUTEČNÉ PDF Z FOTEK (v2) -->
+
+<style>
+/* 🟩 PDF náhled v protokolu – skutečná A4 velikost */
+#photoPreviewContainer {
+  margin-top: 25px;
+  width: 100%;
+}
+#photoPreviewFrame {
+  width: 100%;
+  aspect-ratio: 210 / 297; /* poměr stran A4 */
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+</style>
+<!-- 🟨 KONEC SEKCE E/10 – SKUTEČNÉ PDF Z FOTEK (v3) -->
+
 
 
 
