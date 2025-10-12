@@ -1,2 +1,226 @@
-<button class="btn-blue" onclick="window.location.href='plan.html'">Plán dne</button>
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plán dne – White Glove Service</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+body {
+  font-family: Inter, sans-serif;
+  margin:0;
+  padding:0;
+  background:#f6f7fb;
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+}
+header {
+  text-align:center;
+  padding:16px;
+  font-weight:900;
+  font-size:22px;
+  background:white;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+.main {
+  flex:1;
+  display:grid;
+  grid-template-columns:340px 1fr;
+  gap:12px;
+  padding:12px;
+  box-sizing:border-box;
+}
+#calendar {
+  background:white;
+  border-radius:10px;
+  padding:16px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+  overflow:auto;
+}
+#map {
+  width:100%;
+  height:100%;
+  border-radius:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+.btns {
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  padding:12px;
+  background:white;
+  box-shadow:0 -2px 6px rgba(0,0,0,0.1);
+}
+button {
+  background:linear-gradient(135deg,#0090d4,#33b6ff);
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  padding:10px 20px;
+  font-weight:600;
+  cursor:pointer;
+  transition:transform .1s ease,opacity .2s;
+}
+button:hover { transform:scale(1.03); opacity:.9; }
+table.calendar-table {
+  border-collapse:collapse;
+  width:100%;
+  text-align:center;
+  font-size:14px;
+}
+table.calendar-table th {
+  background:#f2f2f2;
+  padding:6px;
+  font-weight:700;
+}
+table.calendar-table td {
+  padding:8px;
+  border:1px solid #eee;
+  cursor:pointer;
+  position:relative;
+}
+table.calendar-table td:hover {
+  background:#e7f1ff;
+}
+.today {
+  background:#d0ebff !important;
+  font-weight:700;
+}
+.dot {
+  width:6px;
+  height:6px;
+  background:#0090d4;
+  border-radius:50%;
+  position:absolute;
+  bottom:4px;
+  left:50%;
+  transform:translateX(-50%);
+}
+</style>
+</head>
+<body>
 
+<header>📅 Plán dne – White Glove Service</header>
+
+<div class="main">
+  <!-- 🟨 Kalendář -->
+  <div id="calendar">
+    <h3 style="text-align:center;margin:0 0 8px;">Říjen 2025</h3>
+    <table class="calendar-table">
+      <thead>
+        <tr><th>Po</th><th>Út</th><th>St</th><th>Čt</th><th>Pá</th><th>So</th><th>Ne</th></tr>
+      </thead>
+      <tbody id="calendarBody"></tbody>
+    </table>
+  </div>
+
+  <!-- 🟨 Mapa -->
+  <div id="map"></div>
+</div>
+
+<div class="btns">
+  <button onclick="window.location.href='seznam.html'">Zpět na seznam</button>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const WGS_CENTER = [50.08031890414999, 14.59812450867171];
+let map, markers = [];
+let dataAll = [];
+
+/* === 🗓️ KALENDÁŘ === */
+function buildCalendar(plannedDates = []) {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  const first = new Date(year, month, 1);
+  const last = new Date(year, month + 1, 0);
+  const startDay = (first.getDay() + 6) % 7; // Po=0
+  const totalDays = last.getDate();
+  const body = document.getElementById("calendarBody");
+  body.innerHTML = "";
+
+  let row = document.createElement("tr");
+  for (let i = 0; i < startDay; i++) row.appendChild(document.createElement("td"));
+
+  for (let d = 1; d <= totalDays; d++) {
+    if (row.children.length === 7) { body.appendChild(row); row = document.createElement("tr"); }
+    const td = document.createElement("td");
+    td.textContent = d;
+
+    const dateStr = `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    if (plannedDates.includes(dateStr)) {
+      const dot = document.createElement("div");
+      dot.className = "dot";
+      td.appendChild(dot);
+    }
+
+    if (d === today.getDate()) td.classList.add("today");
+    td.addEventListener("click", () => showDayOnMap(dateStr));
+    row.appendChild(td);
+  }
+  while (row.children.length < 7) row.appendChild(document.createElement("td"));
+  body.appendChild(row);
+}
+
+/* === 🗺️ MAPA === */
+function initMap() {
+  map = L.map("map").setView(WGS_CENTER, 10);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution:'© OpenStreetMap'
+  }).addTo(map);
+  L.marker(WGS_CENTER).addTo(map).bindPopup("<b>White Glove Service s.r.o.</b><br>Do Dubče 364, Běchovice").openPopup();
+}
+
+/* === 📅 ZOBRAZENÍ DNĚ NA MAPĚ === */
+function showDayOnMap(dateStr) {
+  if (!dataAll.length) return;
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+
+  const dayOrders = dataAll.filter(o => o.datum === dateStr);
+  if (!dayOrders.length) {
+    map.setView(WGS_CENTER, 10);
+    return;
+  }
+
+  dayOrders.forEach(o => {
+    if (!o.adresa) return;
+    fetch(`https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(o.adresa)}&apiKey=cd5c4b6f36f84e66b3b2f5adf3d19fd8`)
+      .then(r => r.json())
+      .then(j => {
+        const loc = j.features?.[0]?.geometry?.coordinates;
+        if (!loc) return;
+        const marker = L.marker([loc[1], loc[0]]).addTo(map);
+        marker.bindPopup(`<b>${o.zakaznik || "Zákazník"}</b><br>${o.adresa}<br><small>${o.cas || ""}</small>`);
+        markers.push(marker);
+      });
+  });
+  map.setView(WGS_CENTER, 9);
+}
+
+/* === 📥 NAČTENÍ DAT Z WORKERU === */
+async function loadTemporaryFiles() {
+  try {
+    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles?"+Date.now(), {cache:"no-store"});
+    const json = await res.json();
+    const data = Array.isArray(json) ? json.map(r => r.data || r) : (json.data || []);
+    dataAll = data.filter(d => d.datum);
+    const dates = [...new Set(dataAll.map(d => d.datum))];
+    buildCalendar(dates);
+  } catch (e) {
+    console.error("❌ Nelze načíst temporaryfiles:", e);
+    buildCalendar();
+  }
+}
+
+/* === 🔧 INIT === */
+document.addEventListener("DOMContentLoaded", () => {
+  initMap();
+  loadTemporaryFiles();
+});
+</script>
+
+</body>
+</html>
