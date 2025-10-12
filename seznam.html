@@ -704,26 +704,15 @@ function renderMobileBlocks(arr) {
 
 <!-- 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA + KONTAKTOVACÍ DIALOG -->
 <script>
-
-/* 🟩🟩🟩🟩🟩 PODSEKCE 1 – HLAVNÍ FUNKCE openDetail() */
 function openDetail(index) {
-  if (typeof dataAll === "undefined") {
-    console.error("❌ dataAll není definováno – openDetail nelze spustit");
-    return;
-  }
-
   const item = dataAll[index];
   if (!item) return;
 
   const overlay = document.createElement("div");
-  const tpl = String.raw`
-  ...
-</div>`;
   overlay.className = "detail-overlay";
   const adresaUpravena = normalizePrahaAddress(item.adresa || "");
 
-  // použijeme String.raw + následné bezpečné nahrazení </script>
-
+  overlay.innerHTML = `
     <div class="detail-modal">
       <div class="grid-layout">
         <!-- 🧭 LEVÝ PANEL -->
@@ -776,99 +765,114 @@ function openDetail(index) {
           <div id="mapDetail"></div>
         </div>
       </div>
+    </div>`;
 
-   <!-- 🧾 PRAVÝ PANEL -->
-  <div    
-  document.body.appendChild(overlay);
-  setTimeout(() => overlay.classList.add("active"), 10); 
-  </div>
-
-  // 🧭 Inicializace detailu
- 
-    <div     initCalendarAndTime(overlay, item, index);
-  initMapForDetail(overlay, item);
-  initDetailButtons(overlay, item, index);
-
-  // 🔗 Reakce na kliknutí do boxů
-  
-   <div      overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
-  overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);</div>
-       </div>
-       
-      
-}
-
-
-/* 🟩🟩🟩🟩🟩 PODSEKCE 2 – KONTROLA FOTODOKUMENTACE */
-      
-<div async function checkPhotoDocumentation(item, overlay) {
+  // 🧩 KONTROLA FOTODOKUMENTACE (napojení na photocustomer.json)
+async function checkPhotoDocumentation(item, overlay) {
   try {
-    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles?" + Date.now(), { cache: "no-store" });
-    const all = await res.json();
-    const arr = Array.isArray(all) ? all : (all.data || all.records || []);
-    if (!Array.isArray(arr)) return;</div>
+    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles?" + Date.now(), {
+      cache: "no-store"
+    });
+    const data = await res.json();
+    if (!Array.isArray(data)) return;
 
-    const found = arr.find(r => (r.data?.cislo || r.cislo) === item.cislo);
-    if (found && (found.data?.file || found.file)) {
+    const found = data.find(r => r.cislo === item.cislo);
+    if (found) {
       const rightPanel = overlay.querySelector(".right-panel");
       const box = document.createElement("div");
       box.className = "info-box";
       box.innerHTML = `
         <div class="box-header"><strong>📎 Fotodokumentace</strong></div>
         <div class="box-content">
-          <p>Fotodokumentace je přiložena k zakázce č. ${found.data?.cislo || found.cislo}</p>
+          <p>Fotodokumentace je přiložena k zakázce č. ${found.cislo}</p>
           <button id="openPhotoDocBtn" class="btn-blue" style="margin-top:6px;">Otevřít PDF</button>
         </div>`;
       rightPanel.prepend(box);
 
       const btn = box.querySelector("#openPhotoDocBtn");
       btn.onclick = () => {
-        const fileUrl = found.data?.file || found.file;
-        const orderNum = found.data?.cislo || found.cislo;
         const link = document.createElement("a");
-        link.href = fileUrl;
-        link.download = `Fotodokumentace_${orderNum}.pdf`;
+        link.href = found.file;
+        link.download = `Fotodokumentace_${found.cislo}.pdf`;
         link.click();
       };
     }
   } catch (err) {
-    console.warn("⚠️ Nepodařilo se načíst temporaryfiles:", err);
+    console.warn("⚠️ Nepodařilo se načíst photocustomer.json:", err);
   }
 }
 
 
-/* 🟩🟩🟩🟩🟩 PODSEKCE 3 – SPOUŠTĚCÍ INICIALIZACE DETAILU */
+  document.body.appendChild(overlay);
+  setTimeout(() => overlay.classList.add("active"), 10);
+
+  initCalendarAndTime(overlay, item, index);
+  initMapForDetail(overlay, item);
+  initDetailButtons(overlay, item, index);
+
+  // 🔗 Zkontroluj, zda má zákazník fotodokumentaci
+  checkPhotoDocumentation(item, overlay);
+
+  overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
+  overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
+}
 
 
-
-/* 🟩🟩🟩🟩🟩 PODSEKCE 4 – FUNKCE TLAČÍTEK DETAILU */
-
+/* 🟦 DETAIL – FUNKCE TLAČÍTEK */
 function initDetailButtons(overlay, item, index) {
   const id = item.cislo || `radek-${index}`;
   const infoBox = overlay.querySelector("#termInfoBox");
 
   // 🟢 Uložit / změnit termín
   overlay.querySelector("#saveTermBtn").onclick = async () => {
+    const datum = overlay.dataset.datum;
+    const cas = `${overlay.querySelector("#hours").value}:${overlay.querySelector("#minutes").value}`;
+    if (!datum || !cas) return alert("Vyberte datum a čas!");
+
     try {
-      console.log("💾 Ukládám / měním termín…");
-      // zde se případně doplní logika pro uložení
-    } catch (e) {
-      console.error("❌ Chyba při ukládání termínu:", e);
+      item.datum = datum;
+      item.cas = cas;
+      item.stav = "domluveno";
+      stavy[id] = "domluveno";
+
+      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update", record: item })
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+
+      setNextToast("🟢 Termín uložen", "success");
+      localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+      setTimeout(() => loadData(), 1000);
+      overlay.remove();
+      renderTable(dataAll);
+    } catch (err) {
+      alert("❌ Chyba při ukládání: " + err.message);
     }
   };
 
- // 🟣 Čeká na díly
-const waitBtn = overlay.querySelector("#waitBtn");
-if (waitBtn) {
-  waitBtn.onclick = async () => {
+  // 🟣 Čeká na díly
+  overlay.querySelector("#waitBtn").onclick = async () => {
     try {
-      console.log("🟣 Nastavuji stav: čeká na díly");
-      // zde se případně doplní logika pro označení stavu
-    } catch (e) {
-      console.error("❌ Chyba při označení čekání na díly:", e);
+      item.stav = "ceka";
+      stavy[id] = "ceka";
+      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update", record: item })
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+
+      setNextToast("🟣 Zákazník čeká na díly", "warning");
+      localStorage.setItem("stavyReklamaci", JSON.stringify(stavy));
+      setTimeout(() => loadData(), 1000);
+      overlay.remove();
+      renderTable(dataAll);
+    } catch (err) {
+      alert("❌ Chyba při ukládání: " + err.message);
     }
   };
-}
 
   // 📄 Protokol
   overlay.querySelector("#createProtocolBtn").onclick = () => {
@@ -877,14 +881,10 @@ if (waitBtn) {
   };
 
   // 📸 Zahájit návštěvu
-  const startVisitBtn = overlay.querySelector("#startVisitBtn");
-  if (startVisitBtn) {
-    startVisitBtn.addEventListener("click", () => {
-      console.log("▶️ Zahájení návštěvy – přesměrování na photocustomer.html");
-      localStorage.setItem("currentCustomer", JSON.stringify(item));
-      window.location.href = "photocustomer.html";
-    });
-  }
+  overlay.querySelector("#startVisitBtn").onclick = () => {
+    localStorage.setItem("currentCustomer", JSON.stringify(item));
+    window.location.href = "photocustomer.html";
+  };
 
   // ☎️ Kontaktovat zákazníka
   overlay.querySelector("#contactBtn").onclick = () => openContactModal(item, index, overlay);
@@ -893,8 +893,89 @@ if (waitBtn) {
   overlay.querySelector("#closeBtn").onclick = () => overlay.remove();
 }
 
+/* 🟨 KONTAKTOVACÍ DIALOG */
+function openContactModal(item, index, parentOverlay) {
+  const contactOverlay = document.createElement("div");
+  contactOverlay.className = "contact-overlay";
+  const typ = (item.typ || "").toLowerCase();
+
+  // 📱 Připrav SMS text
+  let smsText = "";
+  if (typ.includes("reklama")) {
+    smsText = `Dobrý den, pokoušeli jsme se Vám dovolat ohledně reklamace, kterou jste si založil pod objednávkou č. ${item.cislo || "?"} – ${item.produkt || ""}. Prosíme o zpětné kontaktování nebo potvrzení termínu návštěvy. Děkujeme, White Glove Service.`;
+  } else if (typ.includes("pozáru")) {
+    smsText = `Dobrý den, pokoušeli jsme se Vám dovolat ohledně Vašeho požadavku na pozáruční servis – ${item.produkt || ""}. Prosíme o zpětné kontaktování nebo potvrzení termínu. Děkujeme, White Glove Service.`;
+  } else {
+    smsText = `Dobrý den, pokoušeli jsme se Vás kontaktovat ohledně Vaší zakázky ${item.produkt || ""}. Prosíme o zpětné kontaktování. Děkujeme, White Glove Service.`;
+  }
+
+  contactOverlay.innerHTML = `
+    <div class="contact-modal">
+      <h3>Kontaktovat zákazníka</h3>
+      <p><strong>${item.zakaznik}</strong><br>${item.telefon || "–"}</p>
+      <div class="contact-buttons">
+        <a href="tel:${item.telefon || ""}" class="btn-grayContact">📞 Zavolat</a>
+        <a href="sms:${item.telefon || ""}?body=${encodeURIComponent(smsText)}" class="btn-redContact">💬 SMS – nezvedá</a>
+        <button class="btn-lightgray" id="closeContactBtn">Zavřít</button>
+      </div>
+    </div>`;
+  document.body.appendChild(contactOverlay);
+
+  setTimeout(() => contactOverlay.classList.add("active"), 10);
+  contactOverlay.querySelector("#closeContactBtn").onclick = () => contactOverlay.remove();
+}
 </script>
+
+<style>
+/* Kontaktovací dialog */
+.contact-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 99999; opacity: 0; transition: opacity .25s ease;
+}
+.contact-overlay.active { opacity: 1; }
+
+.contact-modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 25px;
+  text-align: center;
+  width: 300px;
+  font-family: "Inter", sans-serif;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.contact-modal h3 {
+  margin-top: 0; margin-bottom: 10px;
+  font-size: 1.2em;
+}
+.contact-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
+.btn-grayContact {
+  background: linear-gradient(135deg,#888,#aaa);
+  color: #fff; border: none;
+  border-radius: 8px; padding: 10px;
+  font-weight: 600; cursor: pointer; text-decoration: none;
+}
+.btn-redContact {
+  background: linear-gradient(135deg,#c74a4a,#e37070);
+  color: #fff; border: none;
+  border-radius: 8px; padding: 10px;
+  font-weight: 600; cursor: pointer; text-decoration: none;
+}
+.btn-lightgray {
+  background: linear-gradient(135deg,#aaa,#ccc);
+  color: #fff; border: none;
+  border-radius: 8px; padding: 10px;
+  font-weight: 600; cursor: pointer;
+}
+</style>
 <!-- 🟩 KONEC C-1 + C-4 -->
+
 
 
 
