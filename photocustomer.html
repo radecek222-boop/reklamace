@@ -22,33 +22,148 @@ Popis:
 <title>Photo – White Glove Service</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
-body{font-family:"Inter",sans-serif;background:#f6f7fb;margin:0;padding:0;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;}
-.wrapper{background:#fff;margin:40px 15px;padding:30px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);width:100%;max-width:750px;}
+body{
+  font-family:"Inter",sans-serif;
+  background:#f6f7fb;
+  margin:0;
+  padding:0;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  min-height:100vh;
+}
+.wrapper{
+  background:#fff;
+  margin:40px 15px;
+  padding:30px;
+  border-radius:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.1);
+  width:100%;
+  max-width:750px;
+}
 h1{text-align:center;font-size:2.4em;font-weight:900;color:#111;margin:0 0 5px;}
 h2{text-align:center;font-size:1.1em;font-weight:500;color:#666;margin:0 0 25px;}
-#customerHeader{background:#f1f1f1;border:1px solid #ccc;border-radius:10px;padding:18px;text-align:center;margin-bottom:25px;}
+#customerHeader{
+  background:#f1f1f1;
+  border:1px solid #ccc;
+  border-radius:10px;
+  padding:18px;
+  text-align:center;
+  margin-bottom:25px;
+}
 #customerHeader h3{margin:0 0 4px;font-size:1.3em;font-weight:700;color:#111;}
 #customerHeader p{margin:3px 0;color:#333;font-size:0.95em;}
-.photo-block{border:1px solid #ccc;border-radius:10px;padding:14px;margin-top:16px;background:linear-gradient(180deg,#f8f8f8 0%,#ececec 100%);cursor:pointer;}
+.photo-block{
+  border:1px solid #ccc;
+  border-radius:10px;
+  padding:14px;
+  margin-top:16px;
+  background:linear-gradient(180deg,#f8f8f8 0%,#ececec 100%);
+  cursor:pointer;
+}
 .photo-title{font-size:.75em;font-weight:700;color:#333;margin-bottom:8px;text-transform:uppercase;}
 .photo-preview{display:flex;flex-wrap:wrap;gap:10px;}
-.photo-thumb{width:90px;height:60px;border-radius:6px;object-fit:cover;border:1px solid #ccc;box-shadow:0 2px 5px rgba(0,0,0,.15);}
-.progress-bar-container{width:100%;background:#ddd;border-radius:8px;height:16px;margin-top:12px;overflow:hidden;}
-.progress-bar-fill{background:linear-gradient(135deg,#00b56a,#00da80);height:100%;width:0%;transition:width .3s;}
-.btn-uniform{flex:1 1 45%;max-width:320px;height:56px;font-size:1em;font-weight:600;border:none;border-radius:8px;cursor:pointer;color:#000;text-align:center;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.15);}
-.btn-uniform.blue{background:linear-gradient(135deg,#0090d4,#33b6ff);}
-.btn-uniform.lightblue{background:linear-gradient(135deg,#00aaff,#66ccff);}
-.btn-uniform.gray{background:linear-gradient(135deg,#9b9b9b,#bfbfbf);}
-.wait-overlay{display:none;position:fixed;inset:0;background:rgba(255,255,255,0.85);backdrop-filter:blur(2px);justify-content:center;align-items:center;flex-direction:column;font-weight:600;color:#333;z-index:2000;}
+.photo-thumb{
+  width:90px;
+  height:60px;
+  border-radius:6px;
+  object-fit:cover;
+  border:1px solid #ccc;
+  box-shadow:0 2px 5px rgba(0,0,0,.15);
+}
+.progress-bar-container{
+  width:100%;
+  background:#ddd;
+  border-radius:8px;
+  height:16px;
+  margin-top:12px;
+  overflow:hidden;
+}
+.progress-bar-fill{
+  background:linear-gradient(135deg,#00b56a,#00da80);
+  height:100%;
+  width:0%;
+  transition:width .3s;
+}
+
+/* 🎨 Styl tlačítek – tři vedle sebe */
+.btn-uniform{
+  flex:1 1 30%;
+  max-width:250px;
+  height:56px;
+  font-size:1em;
+  font-weight:600;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  color:#000;
+  text-align:center;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 3px 8px rgba(0,0,0,.15);
+}
+
+/* 🟩 Zelené – Odeslat do protokolu */
+.btn-uniform.green{
+  background:linear-gradient(135deg,#00b56a,#00da80);
+  color:#fff;
+}
+
+/* 🟦 Modré – Exportovat do PDF */
+.btn-uniform.blue{
+  background:linear-gradient(135deg,#0090d4,#33b6ff);
+  color:#fff;
+}
+
+/* ⬜️ Šedé – Zpět */
+.btn-uniform.gray{
+  background:linear-gradient(135deg,#9b9b9b,#bfbfbf);
+  color:#000;
+}
+
+.wait-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(255,255,255,0.85);
+  backdrop-filter:blur(2px);
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  font-weight:600;
+  color:#333;
+  z-index:2000;
+}
 .wait-overlay.active{display:flex;}
-.notif{position:fixed;top:15px;left:50%;transform:translateX(-50%);min-width:260px;max-width:90%;padding:12px 20px;border-radius:10px;font-weight:600;font-size:.9em;color:#fff;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,.15);opacity:0;pointer-events:none;z-index:9999;transition:opacity .3s,transform .3s;}
+.notif{
+  position:fixed;
+  top:15px;
+  left:50%;
+  transform:translateX(-50%);
+  min-width:260px;
+  max-width:90%;
+  padding:12px 20px;
+  border-radius:10px;
+  font-weight:600;
+  font-size:.9em;
+  color:#fff;
+  text-align:center;
+  box-shadow:0 4px 10px rgba(0,0,0,.15);
+  opacity:0;
+  pointer-events:none;
+  z-index:9999;
+  transition:opacity .3s,transform .3s;
+}
 .notif.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .notif.success{background:linear-gradient(135deg,#00b56a,#00da80);}
 .notif.warning{background:linear-gradient(135deg,#ffb200,#ffca40);color:#333;}
 .notif.error{background:linear-gradient(135deg,#e63946,#ff6b6b);}
 </style>
 </head>
-<!-- 🟨 KONEC SEKCE A/10 -->
+<!-- 🟨 KONEC SEKCE A/10 – ZÁKLAD A STYL -->
+
 
 <body>
 <div class="wrapper">
@@ -114,17 +229,63 @@ document.addEventListener("DOMContentLoaded",()=>{
 window.generatePdf=async function(){const{jsPDF}=window.jspdf;const pdf=new jsPDF("p","pt","a4");const el=document.querySelector(".wrapper");try{const c=await html2canvas(el,{scale:2,useCORS:true});const img=c.toDataURL("image/png");const w=pdf.internal.pageSize.getWidth();const h=(c.height*w)/c.width;pdf.addImage(img,"PNG",0,0,w,h);}catch(e){pdf.text("⚠️ Nelze vykreslit fotodokumentaci",20,50);}return pdf.output("blob");};
 </script>
 <!-- 🟨 KONEC SEKCE D/10 -->
-
-<!-- 🟨 ZAČÁTEK SEKCE E/10 – ULOŽENÍ NA WORKER -->
+<!-- 🟨 ZAČÁTEK SEKCE E/10 – ULOŽENÍ NA TEMPORARYFILES -->
 <script>
 document.addEventListener("DOMContentLoaded",()=>{
   const sendBtn=document.getElementById("btnSendToDetail");
   const exportBtn=document.getElementById("btnExportPdf");
   const wait=document.getElementById("waitOverlay");
-  window.showNotif=function(t="success",x="Hotovo"){const n=document.getElementById("notif");n.className=`notif ${t}`;n.textContent=x;n.classList.add("show");clearTimeout(window._notifTimer);window._notifTimer=setTimeout(()=>n.classList.remove("show"),2500);};
-  exportBtn?.addEventListener("click",async()=>{try{showWait("Exportuji PDF...");const b=await window.generatePdf(true);await savePhotoToWorker(b);hideWait(true);showNotif("success","PDF uloženo");}catch(e){hideWait(false);showNotif("error","Chyba PDF");}});
-  sendBtn?.addEventListener("click",async()=>{try{showWait("Odesílám fotky...");const b=await window.generatePdf(true);await savePhotoToWorker(b);hideWait(true);showNotif("success","Odesláno do detailu");setTimeout(()=>window.location.href="protokol.html",1000);}catch(e){hideWait(false);showNotif("error","Chyba odeslání");}});
+
+  window.showNotif=function(t="success",x="Hotovo"){
+    const n=document.getElementById("notif");
+    n.className=`notif ${t}`;
+    n.textContent=x;
+    n.classList.add("show");
+    clearTimeout(window._notifTimer);
+    window._notifTimer=setTimeout(()=>n.classList.remove("show"),2500);
+  };
+
+  // 💾 EXPORT TO PDF – nabídka stažení + uložení na TEMPORARYFILES
+  exportBtn?.addEventListener("click",async()=>{
+    try{
+      showWait("Exportuji PDF...");
+      const b=await window.generatePdf(true);
+
+      // 🟢 Nabídka uložení PDF uživateli
+      const url=URL.createObjectURL(b);
+      const a=document.createElement("a");
+      a.href=url;
+      a.download="WGS_photodocumentation.pdf";
+      a.click();
+      URL.revokeObjectURL(url);
+
+      // ☁️ Současné uložení na TEMPORARYFILES
+      await savePhotoToWorker(b);
+
+      hideWait(true);
+      showNotif("success","PDF uloženo");
+    }catch(e){
+      hideWait(false);
+      showNotif("error","Chyba PDF");
+    }
+  });
+
+  // 📤 Odeslání do detailu zákazníka
+  sendBtn?.addEventListener("click",async()=>{
+    try{
+      showWait("Odesílám fotky...");
+      const b=await window.generatePdf(true);
+      await savePhotoToWorker(b);
+      hideWait(true);
+      showNotif("success","Odesláno do detailu");
+      setTimeout(()=>window.location.href="protokol.html",1000);
+    }catch(e){
+      hideWait(false);
+      showNotif("error","Chyba odeslání");
+    }
+  });
 });
+
 async function savePhotoToWorker(pdfBlob){
   try{
     const r=new FileReader();
@@ -132,17 +293,35 @@ async function savePhotoToWorker(pdfBlob){
       const base64=r.result;
       const c=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
       localStorage.setItem("photoPdfData",base64);
-      const rec={cislo:c.cislo||"",zakaznik:c.zakaznik||"",datum:new Date().toISOString(),file:base64};
-      const res=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({record:rec})});
+      const rec={
+        cislo:c.cislo||"",
+        zakaznik:c.zakaznik||"",
+        datum:new Date().toISOString(),
+        file:base64
+      };
+      const res=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({record:rec})
+      });
       const result=await res.json().catch(()=>({ok:false}));
-      if(result.ok){hideWait(true);showNotif("success","Fotky uloženy ✅");}
-      else{hideWait(false);showNotif("error","Chyba při ukládání");}
+      if(result.ok){
+        hideWait(true);
+        showNotif("success","Fotky uloženy ✅");
+      }else{
+        hideWait(false);
+        showNotif("error","Chyba při ukládání");
+      }
     };
     r.readAsDataURL(pdfBlob);
-  }catch(e){hideWait(false);showNotif("error","Chyba uložení");}
+  }catch(e){
+    hideWait(false);
+    showNotif("error","Chyba uložení");
+  }
 }
 </script>
-<!-- 🟨 KONEC SEKCE E/10 -->
+<!-- 🟨 KONEC SEKCE E/10 – ULOŽENÍ NA TEMPORARYFILES -->
+
 
 <!-- 🟨 ZAČÁTEK SEKCE F/10 – DIALOG ČEKÁNÍ -->
 <style>
