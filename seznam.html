@@ -352,10 +352,13 @@ async function loadData() {
     if (!res.ok) throw new Error(`Chyba HTTP ${res.status}`);
     let data = await res.json();
 
+    // 🟩 OPRAVA: správné zpracování odpovědi z Workeru
     if (!Array.isArray(data)) {
-      if (typeof data === "object" && Object.keys(data).length > 0) {
-        data = Object.values(data);
-      } else throw new Error("Worker nevrací platné záznamy");
+      if (typeof data === "object" && Array.isArray(data.data)) {
+        data = data.data;
+      } else {
+        data = [];
+      }
     }
 
     console.log("📦 Worker data:", data);
@@ -382,6 +385,7 @@ async function loadData() {
     updateDebug(0);
   }
 }
+
 
 /* ============================= */
 /* 📋 VYKRESLENÍ TABULKY / BLOKŮ */
