@@ -110,28 +110,29 @@
   </audio>
 
   <script>
-    const STATUS_URL = "https://wgs-token.72nvwf4pb2.workers.dev/status";
+    const STATUS_URL = "https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles";
     const statusDiv = document.getElementById("status");
     const indicator = document.getElementById("indicator");
     const alertSound = document.getElementById("alertSound");
 
-    let lastState = true; // pro detekci přechodu z OK → ERROR
+    let lastState = true;
 
     async function loadStatus() {
       try {
-        const res = await fetch(STATUS_URL, { cache: "no-store" });
+        const res = await fetch(STATUS_URL + "?" + Date.now(), { cache: "no-store" });
         if (!res.ok) throw new Error("Chybná odpověď (" + res.status + ")");
         const data = await res.json();
 
+        const count = Array.isArray(data.data) ? data.data.length : 0;
+
         const html = `
-          <div><b>Verze:</b> ${data.version || "?"}</div>
-          <div><b>GitHub:</b> <span class="${data.github === "connected" ? "ok" : "error"}">${data.github || "neznámý"}</span></div>
-          <div><b>Počet záznamů:</b> ${data.count ?? "?"}</div>
-          <div><b>Poslední kontrola:</b> ${new Date(data.timestamp).toLocaleString("cs-CZ")}</div>
+          <div><b>Soubor:</b> temporaryfiles.json</div>
+          <div><b>Počet záznamů:</b> ${count}</div>
+          <div><b>Stav spojení:</b> <span class="ok">OK</span></div>
+          <div><b>Poslední kontrola:</b> ${new Date().toLocaleString("cs-CZ")}</div>
         `;
         statusDiv.innerHTML = html;
 
-        // ✅ zelená – vše OK
         indicator.classList.remove("error");
         indicator.classList.add("ok");
         lastState = true;
@@ -140,7 +141,6 @@
         indicator.classList.remove("ok");
         indicator.classList.add("error");
 
-        // 🔔 zvuk jen při přechodu z OK na ERROR
         if (lastState) {
           try { alertSound.play(); } catch (e) {}
           lastState = false;
