@@ -887,18 +887,32 @@ function renderMainPreview(){
     <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>
 </div>
-
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("reklamaceForm");
-  if (!form) return;
+  const uploadBtn = document.getElementById("uploadBtn");
+
+  if (!form) {
+    console.warn("⚠️ Formulář #reklamaceForm nebyl nalezen.");
+    return;
+  }
+
+  if (uploadBtn) {
+    uploadBtn.addEventListener("click", () => {
+      console.log("📸 Klik na tlačítko nahrát fotografie");
+      // sem patří původní akce nahrávání, zůstává beze změny
+    });
+  } else {
+    console.warn("⚠️ Element #uploadBtn nebyl nalezen.");
+  }
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const wait = document.getElementById("waitOverlay");
     const success = document.getElementById("successCheck");
-    wait.classList.add("active");
+    if (wait) wait.classList.add("active");
+
 
     const f = e.target;
     const predvolba = document.getElementById("predvolba");
