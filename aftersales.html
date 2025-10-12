@@ -332,7 +332,7 @@ document.getElementById("selectFiles").addEventListener("click",()=>{
 
 
 
-      <!-- 🟨 ZAČÁTEK ČÁSTI 4/10 – LOGIKA PRO FOTKY (KOMPRESSE, NAHRÁNÍ, DUPLIKACE, MAZÁNÍ) -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 4/10 – LOGIKA PRO FOTKY (KOMPRESSE, NAHRÁNÍ, DUPLIKACE, MAZÁNÍ) -->
 
 <script>
 (function(){
@@ -341,18 +341,16 @@ document.getElementById("selectFiles").addEventListener("click",()=>{
   const closePhotoModal = document.getElementById("closePhotoModal");
   const photoInput = document.getElementById("photoInput");
   const photoPreview = document.getElementById("photoPreview");
-  const uploadBtn = document.getElementById("uploadPhotos");
   const photoPreviewMain = document.getElementById("photoPreviewMain");
 
-  let photoFiles = [];          // vybrané soubory
-  let compressedPhotos = [];    // komprimované blob verze
-  window.uploadedPhotos = [];   // uložené fotky po nahrání
+  let photoFiles = [];
+  window.uploadedPhotos = [];
 
-  // otevření a zavření modalu
+  // otevření modalu – ihned otevřít výběr souborů
   openPhotoModal.addEventListener("click", ()=>{
-    renderSelected();
-    photoModal.classList.add("active");
+    photoInput.click();
   });
+
   closePhotoModal.addEventListener("click", ()=>photoModal.classList.remove("active"));
 
   // 🧩 Komprese obrázku
@@ -374,24 +372,15 @@ document.getElementById("selectFiles").addEventListener("click",()=>{
     return blob;
   }
 
-  // 🧠 Kontrola duplikátů podle názvu a velikosti
-  function isDuplicate(file, list){
-    return list.some(f => f.name===file.name && f.size===file.size);
-  }
-
-  // 📂 Výběr nových fotek
+  // 📂 Po výběru nových fotek → automaticky nahrát + zavřít okno
   photoInput.addEventListener("change", async ()=>{
     const newFiles = Array.from(photoInput.files);
-    const uniqueNewFiles = newFiles.filter(f=>!isDuplicate(f, photoFiles));
-    photoFiles = [...photoFiles, ...uniqueNewFiles].slice(0,5);
-    await renderSelected();
-  });
+    if (!newFiles.length) return;
 
-  // 🖼️ Zobrazení vybraných fotek
-  async function renderSelected(){
+    photoModal.classList.add("active");
     photoPreview.innerHTML = "";
-    compressedPhotos = [];
-    for(const file of photoFiles){
+
+    for (const file of newFiles.slice(0,5)) {
       const item = document.createElement("div");
       item.className = "photo-item processing";
 
@@ -399,70 +388,44 @@ document.getElementById("selectFiles").addEventListener("click",()=>{
       const bar = document.createElement("div");
       bar.className = "progress-bar";
 
-      const removeBtn = document.createElement("button");
-      removeBtn.className = "photo-remove";
-      removeBtn.textContent = "×";
-      removeBtn.onclick = ()=>{
-        photoFiles = photoFiles.filter(f=>f!==file);
-        renderSelected();
-      };
-
-      const check = document.createElement("div");
-      check.className = "photo-check";
-      check.textContent = "✓";
-
-      item.append(img,bar,removeBtn,check);
+      item.append(img, bar);
       photoPreview.append(item);
 
       const reader = new FileReader();
       reader.onload = e => (img.src = e.target.result);
       reader.readAsDataURL(file);
 
-      let p = 0;
-      const prog = setInterval(()=>{
-        p+=10; if(p>90)p=90; bar.style.width=p+"%";
-      },150);
-
       const blob = await compressImage(file);
-      clearInterval(prog);
-      bar.style.width="100%";
-      setTimeout(()=>item.classList.remove("processing"),200);
+      await uploadAndPreview(blob, file, item, img);
+    }
 
-      compressedPhotos.push({file, blob, preview: img.src, item});
+    photoModal.classList.remove("active");
+    renderMainPreview();
+  });
+
+  // ☁️ Upload jedné fotky
+  async function uploadAndPreview(blob, file, item, img){
+    const formData = new FormData();
+    formData.append("file", blob, file.name);
+    try {
+      const r = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload", {
+        method:"POST",
+        body:formData
+      });
+      const res = await r.json();
+      item.classList.remove("processing");
+      item.querySelector(".progress-bar").style.width="100%";
+      window.uploadedPhotos.push({
+        filename:res.filename,
+        name:file.name,
+        preview:img.src
+      });
+    } catch (err) {
+      console.error("❌ Upload selhal:", err);
     }
   }
 
-  // ☁️ Upload s kontrolou duplikátů nahrání
-  uploadBtn.addEventListener("click", async ()=>{
-    if(!compressedPhotos.length) return;
-    uploadBtn.disabled = true;
-
-    for(const p of compressedPhotos){
-      const alreadyUploaded = window.uploadedPhotos.some(u=>u.name===p.file.name);
-      if(alreadyUploaded) continue;
-
-      try{
-        const formData = new FormData();
-        formData.append("file", p.blob, p.file.name);
-        const r = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload", {
-          method:"POST", body:formData
-        });
-        const res = await r.json();
-        p.item.classList.add("uploaded");
-        window.uploadedPhotos.push({
-          filename:res.filename,
-          name:p.file.name,
-          preview:p.preview
-        });
-      }catch(e){console.error(e);}
-    }
-
-    renderMainPreview();
-    photoModal.classList.remove("active");
-    uploadBtn.disabled = false;
-  });
-
-  // 📋 Náhledy po nahrání (s možností odstranit)
+  // 🖼️ Náhledy po nahrání (s možností odstranit)
   function renderMainPreview(){
     photoPreviewMain.innerHTML = "";
     window.uploadedPhotos.forEach((p,index)=>{
@@ -480,7 +443,6 @@ document.getElementById("selectFiles").addEventListener("click",()=>{
       const removeBtn = document.createElement("button");
       removeBtn.className = "photo-remove";
       removeBtn.textContent = "×";
-      removeBtn.title = "Odstranit tuto fotku";
       removeBtn.onclick = ()=>{
         window.uploadedPhotos.splice(index,1);
         renderMainPreview();
@@ -494,6 +456,7 @@ document.getElementById("selectFiles").addEventListener("click",()=>{
 </script>
 
 <!-- 🟨 KONEC ČÁSTI 4/10 – LOGIKA PRO FOTKY (KOMPRESSE, NAHRÁNÍ, DUPLIKACE, MAZÁNÍ) -->
+
 
 
 
