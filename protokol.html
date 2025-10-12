@@ -147,11 +147,13 @@ button:hover { transform:scale(1.03); opacity:0.9; }
   
 <body>
 
-  <!-- 🟩 SEKCE A – AUTOMATICKÉ NAČTENÍ ÚDAJŮ ZÁKAZNÍKA (Z LOCALSTORAGE) -->
+<!-- 🟩 SEKCE A – AUTOMATICKÉ NAČTENÍ ÚDAJŮ ZÁKAZNÍKA (Z LOCALSTORAGE) -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   try {
-    const data = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
+    const raw = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
+    const data = raw.data || raw; // 🟢 podpora obou formátů (temporaryfiles.json i původní)
+
     if (!data || Object.keys(data).length === 0) {
       console.warn("⚠️ Nebyla nalezena data zákazníka v localStorage");
       return;
@@ -159,14 +161,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 🔹 Propis základních údajů do protokolu
     const map = {
-      "order-number": data.cislo,
+      "order-number": data.cislo || "",
       "claim-number": data.reklamace || "",
-      "customer": data.zakaznik,
-      "address": data.adresa,
-      "phone": data.telefon,
-      "email": data.email,
-      "brand": data.contract,
-      "model": data.model
+      "customer": data.zakaznik || "",
+      "address": data.adresa || "",
+      "phone": data.telefon || "",
+      "email": data.email || "",
+      "brand": data.contract || "",
+      "model": data.model || "",
+      "visit-date": data.datum || "",
+      "delivery-date": data.datum_doruceni || "",
+      "claim-date": data.datum_reklamace || ""
     };
 
     Object.entries(map).forEach(([id, val]) => {
@@ -181,6 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 <!-- 🟩 KONEC SEKCE A -->
+
 
 <div class="wrapper">
   <div class="header">
