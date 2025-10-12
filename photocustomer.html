@@ -259,7 +259,7 @@ document.addEventListener("DOMContentLoaded",()=>{
       a.click();
       URL.revokeObjectURL(url);
 
-      // ☁️ Současné uložení na TEMPORARYFILES
+      // ☁️ Uložení na TEMPORARYFILES (záloha)
       await savePhotoToWorker(b);
 
       hideWait(true);
@@ -275,10 +275,19 @@ document.addEventListener("DOMContentLoaded",()=>{
     try{
       showWait("Odesílám fotky...");
       const b=await window.generatePdf(true);
+
+      // 🟢 Uložení PDF do localStorage pro protokol.html
+      const reader=new FileReader();
+      reader.onloadend=()=>{
+        localStorage.setItem("photoPdfData",reader.result);
+        hideWait(true);
+        showNotif("success","Odesláno do detailu");
+        setTimeout(()=>window.location.href="protokol.html",1000);
+      };
+      reader.readAsDataURL(b);
+
+      // ☁️ Záložní uložení do Worker
       await savePhotoToWorker(b);
-      hideWait(true);
-      showNotif("success","Odesláno do detailu");
-      setTimeout(()=>window.location.href="protokol.html",1000);
     }catch(e){
       hideWait(false);
       showNotif("error","Chyba odeslání");
@@ -292,31 +301,21 @@ async function savePhotoToWorker(pdfBlob){
     r.onloadend=async()=>{
       const base64=r.result;
       const c=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
-      localStorage.setItem("photoPdfData",base64);
       const rec={
         cislo:c.cislo||"",
         zakaznik:c.zakaznik||"",
         datum:new Date().toISOString(),
         file:base64
       };
-      const res=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles",{
+      await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({record:rec})
       });
-      const result=await res.json().catch(()=>({ok:false}));
-      if(result.ok){
-        hideWait(true);
-        showNotif("success","Fotky uloženy ✅");
-      }else{
-        hideWait(false);
-        showNotif("error","Chyba při ukládání");
-      }
     };
     r.readAsDataURL(pdfBlob);
   }catch(e){
-    hideWait(false);
-    showNotif("error","Chyba uložení");
+    console.warn("⚠️ Chyba při ukládání do Worker:",e);
   }
 }
 </script>
