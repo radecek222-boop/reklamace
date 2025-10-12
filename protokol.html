@@ -647,21 +647,23 @@ async function createLocalPhotoPdf(base64Arr) {
 
 
 
-/* 🟨🟨🟨🟨🟨 ZAČÁTEK BLOKU J-D – Generování PDF protokolu (A4, bez iframu) */
+/* 🟨🟨🟨🟨🟨 ZAČÁTEK BLOKU J-D – Generování PDF protokolu (A4, bez iframu a notif) */
 async function generateProtocolPDF() {
   const { jsPDF } = window.jspdf;
   const wrapper = document.querySelector(".wrapper");
   const doc = new jsPDF("p", "mm", "a4");
 
-  // 🟡 Skryjeme iframe s fotkami během exportu
+  // 🟡 Skryjeme iframe s fotkami, tlačítka i notifikaci
   const photoPreview = document.getElementById("photoPreviewContainer");
-  const wasVisible = photoPreview && photoPreview.style.display !== "none";
-  if (photoPreview) photoPreview.style.display = "none";
-
-  // 🟡 Skryjeme tlačítka, aby nebyla v PDF
+  const notif = document.getElementById("notif");
   const btns = document.querySelector(".btns");
-  const vis = btns.style.visibility;
-  btns.style.visibility = "hidden";
+
+  const wasVisibleFrame = photoPreview && photoPreview.style.display !== "none";
+  const wasVisibleNotif = notif && notif.classList.contains("show");
+
+  if (photoPreview) photoPreview.style.display = "none";
+  if (notif) notif.classList.remove("show");
+  if (btns) btns.style.visibility = "hidden";
 
   // 🟢 Vytvoření plátna v měřítku 3× pro ostrý text
   const canvas = await html2canvas(wrapper, {
@@ -674,21 +676,21 @@ async function generateProtocolPDF() {
   const pageW = 210;
   const pageH = 297;
 
-  // 🟢 Vypočet poměru pro přesné vyplnění A4
+  // 🟢 Přesné přepočítání poměru na A4
   const imgW = pageW;
   const imgH = (canvas.height * pageW) / canvas.width;
+  doc.addImage(imgData, "JPEG", 0, 0, imgW, Math.min(imgH, pageH));
 
-  // 🟢 Vložení jako A4 strana
-  doc.addImage(imgData, "JPEG", 0, 0, imgW, imgH > pageH ? pageH : imgH);
+  // 🟢 Vrácení viditelnosti tlačítek, iframu a notif
+  if (btns) btns.style.visibility = "visible";
+  if (photoPreview && wasVisibleFrame) photoPreview.style.display = "block";
+  if (notif && wasVisibleNotif) notif.classList.add("show");
 
-  // 🟢 Vrátíme viditelnost tlačítek a iframu
-  btns.style.visibility = vis;
-  if (photoPreview && wasVisible) photoPreview.style.display = "block";
-
-  console.log("✅ Exportováno jako přesná A4 bez náhledu iframu");
+  console.log("✅ Exportováno jako A4 bez náhledu a notifikace");
   return doc;
 }
-/* 🟨🟨🟨🟨🟨 KONEC BLOKU J-D – Generování PDF protokolu (A4, bez iframu) */
+/* 🟨🟨🟨🟨🟨 KONEC BLOKU J-D – Generování PDF protokolu (A4, bez iframu a notif) */
+
 
 
 
