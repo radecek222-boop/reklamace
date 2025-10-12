@@ -349,111 +349,169 @@ document.getElementById("btnExportPdf")?.addEventListener("click", async () => {
 <!-- 🟨 KONEC SEKCE D/10 – PDF EXPORT A ODESLÁNÍ (v2.0) -->
 
 
- <!-- 🟨 ZAČÁTEK SEKCE E/10 – ULOŽENÍ NA TEMPORARYFILES S KOMPRESE (v2.0 s Worker zálohou) -->
+<!-- 🟨 ZAČÁTEK SEKCE E/10 – SKUTEČNÉ PDF Z FOTEK (v2) -->
 <script>
-document.addEventListener("DOMContentLoaded",()=>{
-  const sendBtn=document.getElementById("btnSendToDetail");
-  const exportBtn=document.getElementById("btnExportPdf");
+document.addEventListener("DOMContentLoaded", () => {
+  const sendBtn = document.getElementById("btnSendToDetail");
 
-  // 🔧 Funkce pro kompresi PDF pod 1 MB
-  async function compressPdfTo1MB(pdfBlob){
-    const arrayBuffer = await pdfBlob.arrayBuffer();
-    const pdfData = new Uint8Array(arrayBuffer);
-    const { jsPDF } = window.jspdf;
-    const tmpCanvas = document.createElement("canvas");
-    const ctx = tmpCanvas.getContext("2d");
-
-    // 🟢 Převedeme PDF na obrázek pomocí pdf.js (light verze)
-    const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
-    const page = await pdf.getPage(1);
-    const viewport = page.getViewport({ scale: 1 });
-    tmpCanvas.width = viewport.width;
-    tmpCanvas.height = viewport.height;
-    await page.render({ canvasContext: ctx, viewport }).promise;
-    const imgData = tmpCanvas.toDataURL("image/jpeg", 0.6);
-
-    // 🟡 Nový PDF s menší kompresí
-    const newPdf = new jsPDF("p", "pt", "a4");
-    const pageWidth = newPdf.internal.pageSize.getWidth();
-    const pageHeight = (tmpCanvas.height * pageWidth) / tmpCanvas.width;
-    newPdf.addImage(imgData, "JPEG", 0, 0, pageWidth, pageHeight);
-    const newBlob = newPdf.output("blob");
-
-    // 🔻 Pokud je větší než 1 MB, sniž kvalitu
-    if (newBlob.size > 1000000) {
-      const scale = Math.max(0.3, 1 - newBlob.size / 5000000);
-      const smallerImg = tmpCanvas.toDataURL("image/jpeg", scale);
-      const smallPdf = new jsPDF("p", "pt", "a4");
-      smallPdf.addImage(smallerImg, "JPEG", 0, 0, pageWidth, pageHeight);
-      return smallPdf.output("blob");
-    }
-    return newBlob;
-  }
-
-  // 💾 Funkce pro zálohování PDF fotodokumentace na Cloudflare Worker
-  async function savePhotoToWorker(pdfBlob) {
+  sendBtn?.addEventListener("click", async () => {
     try {
-      console.log("📤 Ukládám PDF na Worker /photocustomer...");
-      const base64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(pdfBlob);
-      });
+      showWait("Vytvářím PDF z fotek...");
+      const pdfBlob = await generatePhotoPdf();
 
-      const record = {
-        type: "photocustomer",
-        timestamp: new Date().toISOString(),
-        customer: JSON.parse(localStorage.getItem("currentCustomer") || "{}"),
-        pdf: base64
-      };
-
-      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ record })
-      });
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      console.log("✅ Worker odpověď:", json);
-      showNotif("success","Záloha PDF na Worker uložena");
-      return true;
-    } catch (err) {
-      console.error("❌ Chyba při záloze PDF na Worker:", err);
-      showNotif("error","Záloha na Worker se nezdařila");
-      return false;
-    }
-  }
-
-  // 🟩 Odeslání do protokolu
-  sendBtn?.addEventListener("click",async()=>{
-    try{
-      showWait("Komprimuji fotky...");
-      let pdfBlob = await window.generatePdf(true);
-      pdfBlob = await compressPdfTo1MB(pdfBlob);
-
+      // 🔹 uložit do localStorage pro protokol
       const reader = new FileReader();
-      reader.onloadend = ()=>{
-        localStorage.setItem("photoPdfData",reader.result);
+      reader.onloadend = () => {
+        localStorage.setItem("photoPdfData", reader.result);
         hideWait(true);
-        showNotif("success","Odesláno do detailu");
-        setTimeout(()=>window.location.href="protokol.html",1000);
+        showNotif("success", "Odesláno do detailu");
+        setTimeout(() => (window.location.href = "protokol.html"), 1200);
       };
       reader.readAsDataURL(pdfBlob);
 
-      // 💾 záloha na Worker
+      // 🔹 volitelně uložit i do Workeru (záloha)
       await savePhotoToWorker(pdfBlob);
-
-    }catch(e){
+    } catch (e) {
       hideWait(false);
-      showNotif("error","Chyba odeslání");
-      console.error(e);
+      console.error("❌ Chyba při vytváření PDF:", e);
+      showNotif("error", "Chyba při vytváření PDF");
     }
   });
+
+  async function generatePhotoPdf() {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+
+    const data = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
+    const sections = {
+      before: "BEFORE",
+      id: "ID",
+      problem: "DETAIL BUG",
+      repair: "REPAIR",
+      after: "AFTER"
+    };
+
+    // 🟩 Hlavička
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(20);
+    pdf.text("WHITE GLOVE SERVICE", pageW / 2, 20, { align: "center" });
+    pdf.setFontSize(12);
+    pdf.text("Photo documentation", pageW / 2, 28, { align: "center" });
+    pdf.setLineWidth(0.3);
+    pdf.line(20, 32, pageW - 20, 32);
+
+    // 🟦 Box s údaji zákazníka
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "normal");
+    pdf.text(`Customer: ${data.zakaznik || "-"}`, 20, 40);
+    pdf.text(`Address: ${data.adresa || "-"}`, 20, 46);
+    pdf.text(`Order number: ${data.cislo || "-"}`, 20, 52);
+    pdf.line(20, 56, pageW - 20, 56);
+
+    let y = 65;
+
+    for (const [key, title] of Object.entries(sections)) {
+      const block = document.getElementById("preview-" + key);
+      if (!block || !block.children.length) continue;
+
+      if (y > pageH - 40) {
+        pdf.addPage();
+        y = 25;
+      }
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(12);
+      pdf.text(title, 20, y);
+      y += 6;
+
+      const photos = Array.from(block.children).map(img => img.src);
+      let col = 0;
+      for (let i = 0; i < photos.length; i++) {
+        if (y > pageH - 60) {
+          pdf.addPage();
+          y = 25;
+        }
+        const imgW = (pageW - 60) / 2;
+        const imgH = imgW * 0.75;
+        const x = 20 + (col % 2) * (imgW + 20);
+
+        const img = await loadImage(photos[i]);
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        const scale = Math.min(imgW * 3, img.width);
+        canvas.width = scale;
+        canvas.height = scale * (img.height / img.width);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        pdf.addImage(dataUrl, "JPEG", x, y, imgW, imgH);
+
+        col++;
+        if (col % 2 === 0) y += imgH + 10;
+      }
+
+      y += 15;
+    }
+
+    // 🟨 Komprese PDF pod 2 MB
+    let blob = pdf.output("blob");
+    if (blob.size > 2_000_000) {
+      const reduceQ = Math.max(0.5, 2_000_000 / blob.size);
+      const pdf2 = new jsPDF("p", "mm", "a4");
+      const arr = await pdf.output("arraybuffer");
+      const url = URL.createObjectURL(new Blob([arr]));
+      const img = await loadImage(url);
+      const w = pdf2.internal.pageSize.getWidth();
+      const h = (img.height * w) / img.width;
+      pdf2.addImage(img, "JPEG", 0, 0, w, h, "", "FAST");
+      blob = pdf2.output("blob");
+    }
+
+    console.log(`✅ PDF vytvořeno (${(blob.size / 1024 / 1024).toFixed(2)} MB)`);
+    return blob;
+  }
+
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  }
+
+  async function savePhotoToWorker(pdfBlob) {
+    try {
+      const customer = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
+      await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "save",
+          cislo: customer.cislo || "UNKNOWN",
+          file: await blobToBase64(pdfBlob)
+        })
+      });
+      console.log("📤 Fotodokumentace zálohována na Worker");
+    } catch (e) {
+      console.warn("⚠️ Nelze uložit PDF na Worker:", e);
+    }
+  }
+
+  function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
 });
 </script>
-<!-- 🟨 KONEC SEKCE E/10 – ULOŽENÍ NA TEMPORARYFILES S KOMPRESE (v2.0) -->
+<!-- 🟨 KONEC SEKCE E/10 – SKUTEČNÉ PDF Z FOTEK (v2) -->
+
 
 
 
