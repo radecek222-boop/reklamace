@@ -930,6 +930,9 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     try {
+      // 🧩 Zabraň opakovanému odeslání při F5
+if (sessionStorage.getItem("formSent") === "1") return;
+sessionStorage.setItem("formSent", "1");
       const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
