@@ -159,42 +159,49 @@ th {
 td.adresa,
 td.telefon { font-weight: 600; }
 tr:hover { background: #f1f6ff; cursor: pointer; }
+
+/* ============================= */
+/* 🟢 STAVY REKLAMACÍ            */
+/* ============================= */
+.stav-novy      { background: #fff9b1 !important; }
+.stav-domluveno { background: #99b3ff !important; }
+.stav-zruseno   { background: #ff6666 !important; }
+.stav-nezveda   { background: #ffad33 !important; }
+
+/* ============================= */
+/* 📱 MOBILNÍ ZOBRAZENÍ          */
+/* ============================= */
+@media (max-width:700px){
+  table { display:none; }
+  .btn {
+    width:100%;
+    min-width:unset;
+    text-align:center;
+  }
+}
 </style>
+</head>
 
-<!-- 🧭 OVLÁDACÍ TLAČÍTKA -->
-<div class="actions">
-  <a href="index.html" class="btn btn-back">Zpět</a>
-  <button id="reloadBtn" class="btn btn-refresh">Načíst znovu</button>
-  <a href="hotove.html" class="btn btn-green">Hotové reklamace</a>
-  <button id="planBtn" class="btn btn-plan">Plán dne</button>
-</div>
+<body>
+  <div class="wrapper">
+    <!-- 🧾 HLAVIČKA STRÁNKY -->
+    <h1>WHITE GLOVE SERVICE</h1>
+    <h2>Seznam reklamací a servisních požadavků</h2>
 
-<!-- 🔍 VYHLEDÁVÁNÍ -->
-<input type="text" id="search" placeholder="🔍 Hledat podle jména, adresy nebo zadavatele...">
+    <!-- 🧭 OVLÁDACÍ TLAČÍTKA -->
+    <div class="actions">
+      <a href="index.html" class="btn btn-back">Zpět</a>
+      <button id="reloadBtn" class="btn btn-refresh">Načíst znovu</button>
+      <a href="hotove.html" class="btn btn-green">Hotové reklamace</a>
+      <button id="planBtn" class="btn btn-plan">Plán dne</button>
+    </div>
+
+    <!-- 🔍 VYHLEDÁVÁNÍ -->
+    <input type="text" id="search" placeholder="🔍 Hledat podle jména, adresy nebo zadavatele...">
 
 <!-- 📦 MÍSTO PRO TABULKU -->
 <div id="tableContainer" class="loading">Načítám data...</div>
 </div>
-
-<!-- 🟦 JAVASCRIPT BLOK PRO STAV "DOMLUVENO" -->
-<script>
-if (stav === "domluveno") {
-  if (z.datum && z.cas) {
-    try {
-      const d = new Date(z.datum + "T" + z.cas);
-      const days = ["Neděle","Pondělí","Úterý","Středa","Čtvrtek","Pátek","Sobota"];
-      const den = days[d.getDay()];
-      const denMesic = `${d.getDate()}. ${d.toLocaleString("cs-CZ", { month: "long" })}`;
-      const cas = z.cas.slice(0,5);
-      statusCell.innerHTML = `<span class='status blue'>${den} ${denMesic} • ${cas}</span>`;
-    } catch {
-      statusCell.innerHTML = "<span class='status blue'>Domluveno</span>";
-    }
-  } else {
-    statusCell.innerHTML = "<span class='status blue'>Domluveno</span>";
-  }
-}
-</script>
 
 <!-- 🔝 Automatický posun při otevření kalendáře -->
 <script>
@@ -222,7 +229,6 @@ tr.stav-hotovo:hover td {
 </body>
 </html>
 <!-- 🟨 KONEC SEKCE A -->
-
 
 <!-- 🟩 ZAČÁTEK STYL – MOBILNÍ BLOKY -->
 <style>
@@ -321,7 +327,7 @@ tr.stav-hotovo:hover td {
 /* ============================= */
 /* ⚙️ KONSTANTY A PROMĚNNÉ       */
 /* ============================= */
-const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles";
+const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
 const tableContainer = document.getElementById("tableContainer");
 const searchInput = document.getElementById("search");
 const reloadBtn = document.getElementById("reloadBtn");
@@ -346,13 +352,10 @@ async function loadData() {
     if (!res.ok) throw new Error(`Chyba HTTP ${res.status}`);
     let data = await res.json();
 
-    // 🟩 OPRAVA: extrahuj vnitřní data z temporaryfiles.json (nový formát Workeru)
-    if (data && data.data && Array.isArray(data.data)) {
-      data = data.data.map(x => x.data);
-    } else if (Array.isArray(data)) {
-      data = data.map(x => x.data || x);
-    } else {
-      data = [];
+    if (!Array.isArray(data)) {
+      if (typeof data === "object" && Object.keys(data).length > 0) {
+        data = Object.values(data);
+      } else throw new Error("Worker nevrací platné záznamy");
     }
 
     console.log("📦 Worker data:", data);
