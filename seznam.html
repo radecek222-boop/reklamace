@@ -347,16 +347,20 @@ async function loadData() {
   console.log("📥 Načítám data z Workeru…");
   tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
 
-  try {
-    const res = await fetch(`${API_URL}?t=${Date.now()}`, { mode: "cors", cache: "no-store" });
-    if (!res.ok) throw new Error(`Chyba HTTP ${res.status}`);
-    let data = await res.json();
+ try {
+  const res = await fetch(`${API_URL}?t=${Date.now()}`, { mode: "cors", cache: "no-store" });
+  if (!res.ok) throw new Error(`Chyba HTTP ${res.status}`);
 
-    if (!Array.isArray(data)) {
-      if (typeof data === "object" && Object.keys(data).length > 0) {
-        data = Object.values(data);
-      } else throw new Error("Worker nevrací platné záznamy");
-    }
+  const json = await res.json();   // ✅ načti jen jednou
+  let data = [];
+
+  if (Array.isArray(json)) {
+    data = json;
+  } else if (json && Array.isArray(json.data)) {
+    data = json.data; // ✅ objekt {ok, count, data: []}
+  } else {
+    throw new Error("Worker nevrací platné záznamy");
+}
 
     console.log("📦 Worker data:", data);
     updateDebug(data.length);
