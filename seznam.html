@@ -719,7 +719,8 @@ function openDetail(index) {
   overlay.className = "detail-overlay";
   const adresaUpravena = normalizePrahaAddress(item.adresa || "");
 
-  overlay.innerHTML = `
+  // použijeme String.raw + následné bezpečné nahrazení </script>
+  const tpl = String.raw`
     <div class="detail-modal">
       <div class="grid-layout">
         <!-- 🧭 LEVÝ PANEL -->
