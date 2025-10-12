@@ -477,5 +477,43 @@ function hideWait(s=true){
 <!-- 🟨 KONEC SEKCE F/10 -->
 
 </div>
+
+<!-- 🟩 Univerzální notifikace -->
+<div id="notif" class="notif"></div>
+<style>
+.notif {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #00b56a, #00da80);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9em;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  opacity: 0;
+  transition: opacity .3s, transform .3s;
+  z-index: 3000;
+}
+.notif.show { opacity: 1; transform: translate(-50%, 10px); }
+.notif.error { background: linear-gradient(135deg,#e63946,#ff6b6b); }
+.notif.warning { background: linear-gradient(135deg,#ffb200,#ffca40); color:#222; }
+</style>
+
+<script>
+function showNotif(type = "success", text = "Hotovo") {
+  const n = document.getElementById("notif");
+  if (!n) return;
+  n.className = `notif ${type}`;
+  n.textContent = text;
+  n.classList.add("show");
+  clearTimeout(window._notifTimer);
+  window._notifTimer = setTimeout(() => n.classList.remove("show"), 2500);
+}
+</script>
+
+  
 </body>
 </html>
