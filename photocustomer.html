@@ -182,7 +182,6 @@ document.addEventListener("DOMContentLoaded",()=>{
 });
 </script>
 <!-- 🟨 KONEC SEKCE B/10 -->
-
 <!-- 🟨 ZAČÁTEK SEKCE C/10 – FOTKY A UPLOAD -->
 <div class="photo-block" data-section="before"><div class="photo-title">BEFORE</div><div class="photo-preview" id="preview-before"></div></div>
 <div class="photo-block" data-section="id"><div class="photo-title">ID</div><div class="photo-preview" id="preview-id"></div></div>
@@ -193,6 +192,11 @@ document.addEventListener("DOMContentLoaded",()=>{
 <input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
 <div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div>
 
+<!-- 🔹 NOVÝ INFORMAČNÍ BOX O KOMPRESI -->
+<div id="compressionInfo" style="margin-top:15px;text-align:center;color:#555;font-size:0.9em;">
+  📷 Zatím žádné fotky nenahrány.
+</div>
+
 <div class="actions dual-actions" id="uploadSection" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:30px;">
   <button type="button" id="btnSendToDetail" class="btn-uniform blue"><span>ODESLAT DO DETAILU ZÁKAZNÍKA</span></button>
 </div>
@@ -202,33 +206,113 @@ document.addEventListener("DOMContentLoaded",()=>{
 </div>
 <div class="wait-overlay" id="waitOverlay"><p>Zpracovávám fotodokumentaci...</p></div>
 <div id="notif" class="notif"></div>
+
 <script>
 (function(){
   const input=document.getElementById("photoInput");
   const sections={before:[],id:[],problem:[],repair:[],after:[]};
   const fill=document.getElementById("progressFill");
+  const info=document.getElementById("compressionInfo");
+
   document.querySelectorAll(".photo-block").forEach(b=>b.addEventListener("click",()=>{input.dataset.section=b.dataset.section;input.click();}));
+
   input.addEventListener("change",async()=>{
     const s=input.dataset.section;if(!s)return;
     const files=Array.from(input.files);
-    for(const f of files){const blob=await compressImage(f,90);const url=URL.createObjectURL(blob);const o=await getOrientation(f);sections[s].push({blob,url,orientation:o});}
+    let originalSize=0, compressedSize=0;
+    for(const f of files){
+      originalSize += f.size;
+      const blob=await compressImage(f,90);
+      compressedSize += blob.size;
+      const url=URL.createObjectURL(blob);
+      const o=await getOrientation(f);
+      sections[s].push({blob,url,orientation:o});
+    }
     render(s);input.value="";await autoUpload();
+
+    // 💡 Aktualizuj info text po nahrání
+    const ratio = (compressedSize/originalSize*100).toFixed(1);
+    info.innerHTML = `📦 Komprese dokončena – zmenšeno na ${ratio}% původní velikosti.<br>
+      Odhadovaná velikost výsledného PDF: <strong>${(compressedSize/1024/1024).toFixed(2)} MB</strong>`;
   });
-  async function compressImage(f,m=90){const i=await createImageBitmap(f);const c=document.createElement("canvas");let w=i.width,h=i.height,r=w/h;if(w>h&&w>m){h=Math.round(m/r);w=m;}else if(h>=w&&h>m){w=Math.round(m*r);h=m;}c.width=w;c.height=h;c.getContext("2d").drawImage(i,0,0,w,h);return new Promise(r=>c.toBlob(r,"image/jpeg",0.85));}
-  async function getOrientation(f){const i=await createImageBitmap(f);return i.width>i.height?"landscape":"portrait";}
-  function render(s){const c=document.getElementById("preview-"+s);c.innerHTML="";sections[s].forEach(p=>{const img=document.createElement("img");img.src=p.url;img.className="photo-thumb";c.append(img);});}
-  async function autoUpload(){const all=Object.values(sections).flat();if(!all.length)return;let u=0;for(const p of all){await new Promise(r=>setTimeout(r,150));u++;fill.style.width=Math.round((u/all.length)*100)+"%";}localStorage.setItem("photoUploadedAt",Date.now());}
+
+  async function compressImage(f,m=90){
+    const i=await createImageBitmap(f);
+    const c=document.createElement("canvas");
+    let w=i.width,h=i.height,r=w/h;
+    if(w>h&&w>m){h=Math.round(m/r);w=m;}
+    else if(h>=w&&h>m){w=Math.round(m*r);h=m;}
+    c.width=w;c.height=h;
+    c.getContext("2d").drawImage(i,0,0,w,h);
+    return new Promise(r=>c.toBlob(r,"image/jpeg",0.85));
+  }
+
+  async function getOrientation(f){
+    const i=await createImageBitmap(f);
+    return i.width>i.height?"landscape":"portrait";
+  }
+
+  function render(s){
+    const c=document.getElementById("preview-"+s);
+    c.innerHTML="";
+    sections[s].forEach(p=>{
+      const img=document.createElement("img");
+      img.src=p.url;
+      img.className="photo-thumb";
+      c.append(img);
+    });
+  }
+
+  async function autoUpload(){
+    const all=Object.values(sections).flat();
+    if(!all.length)return;
+    let u=0;
+    for(const p of all){await new Promise(r=>setTimeout(r,150));u++;fill.style.width=Math.round((u/all.length)*100)+"%";}
+    localStorage.setItem("photoUploadedAt",Date.now());
+  }
 })();
 </script>
 <!-- 🟨 KONEC SEKCE C/10 -->
+
 
 <!-- 🟨 ZAČÁTEK SEKCE D/10 – PDF EXPORT A ODESLÁNÍ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-window.generatePdf=async function(){const{jsPDF}=window.jspdf;const pdf=new jsPDF("p","pt","a4");const el=document.querySelector(".wrapper");try{const c=await html2canvas(el,{scale:2,useCORS:true});const img=c.toDataURL("image/png");const w=pdf.internal.pageSize.getWidth();const h=(c.height*w)/c.width;pdf.addImage(img,"PNG",0,0,w,h);}catch(e){pdf.text("⚠️ Nelze vykreslit fotodokumentaci",20,50);}return pdf.output("blob");};
+window.generatePdf = async function () {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("p", "pt", "a4");
+  const el = document.querySelector(".wrapper");
+  try {
+    const c = await html2canvas(el, { scale: 2, useCORS: true });
+    const img = c.toDataURL("image/png");
+    const w = pdf.internal.pageSize.getWidth();
+    const h = (c.height * w) / c.width;
+    pdf.addImage(img, "PNG", 0, 0, w, h);
+  } catch (e) {
+    pdf.text("⚠️ Nelze vykreslit fotodokumentaci", 20, 50);
+  }
+  return pdf.output("blob");
+};
+
+// 🟢 Po exportu PDF spočítej velikost a aktualizuj informační text
+document.getElementById("btnExportPdf")?.addEventListener("click", async () => {
+  const info = document.getElementById("compressionInfo");
+  if (!info) return;
+
+  info.innerHTML = "📄 Vytvářím PDF, čekejte...";
+  try {
+    const blob = await window.generatePdf(true);
+    const sizeMB = (blob.size / 1024 / 1024).toFixed(2);
+    info.innerHTML = `✅ PDF vytvořeno – velikost souboru: <strong>${sizeMB} MB</strong>`;
+  } catch (e) {
+    info.innerHTML = "❌ Chyba při vytváření PDF";
+    console.error(e);
+  }
+});
 </script>
 <!-- 🟨 KONEC SEKCE D/10 -->
+
 
   <!-- 🟨 ZAČÁTEK SEKCE E/10 – ULOŽENÍ NA TEMPORARYFILES S KOMPRESE -->
 <script>
