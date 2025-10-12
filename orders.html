@@ -735,46 +735,55 @@ function renderMainPreview(){
     }
   }
 
-  // ☁️ Upload s kontrolou duplikátů nahrání
-  uploadBtn.addEventListener("click", async ()=>{
-    if(!compressedPhotos.length) return;
+// ☁️ Upload s kontrolou duplikátů nahrání
+const uploadBtn = document.getElementById("uploadBtn");
+if (uploadBtn) {
+  uploadBtn.addEventListener("click", async () => {
+    if (!compressedPhotos.length) return;
     uploadBtn.disabled = true;
 
-    for(const p of compressedPhotos){
-      const alreadyUploaded = window.uploadedPhotos.some(u=>u.name===p.file.name);
-      if(alreadyUploaded) continue;
+    for (const p of compressedPhotos) {
+      const alreadyUploaded = window.uploadedPhotos.some(u => u.name === p.file.name);
+      if (alreadyUploaded) continue;
 
-      try{
+      try {
         const formData = new FormData();
         formData.append("file", p.blob, p.file.name);
         const r = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload", {
-          method:"POST", body:formData
+          method: "POST",
+          body: formData
         });
         const res = await r.json();
         p.item.classList.add("uploaded");
         window.uploadedPhotos.push({
-          filename:res.filename,
-          name:p.file.name,
-          preview:p.preview
+          filename: res.filename,
+          name: p.file.name,
+          preview: p.preview
         });
-      }catch(e){console.error(e);}
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     renderMainPreview();
     photoModal.classList.remove("active");
     uploadBtn.disabled = false;
   });
+} else {
+  console.warn("⚠️ Element #uploadBtn nebyl nalezen – sekce nahrávání přeskočena.");
+}
 
-  // 📋 Náhledy po nahrání (s možností odstranit)
-  function renderMainPreview(){
-    photoPreviewMain.innerHTML = "";
-    window.uploadedPhotos.forEach((p,index)=>{
-      const row = document.createElement("div");
-      row.className = "photo-item-main";
+// 📋 Náhledy po nahrání (s možností odstranit)
+function renderMainPreview() {
+  photoPreviewMain.innerHTML = "";
+  window.uploadedPhotos.forEach((p, index) => {
+    const row = document.createElement("div");
+    row.className = "photo-item-main";
 
-      const img = document.createElement("img");
-      img.className = "photo-thumb";
-      img.src = p.preview;
+    const img = document.createElement("img");
+    img.className = "photo-thumb";
+    img.src = p.preview;
+
 
       const name = document.createElement("div");
       name.className = "photo-name";
