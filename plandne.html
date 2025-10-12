@@ -4,10 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Plán dne – White Glove Service</title>
+
+<!-- 🟩 ZAČÁTEK SEKCE 1/10 – ZÁKLADNÍ STYL A STRUKTURA -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
 <style>
 body {
-  font-family: Inter, sans-serif;
+  font-family: "Inter", system-ui, sans-serif;
   margin:0;
   padding:0;
   background:#f6f7fb;
@@ -63,6 +66,8 @@ button {
   transition:transform .1s ease,opacity .2s;
 }
 button:hover { transform:scale(1.03); opacity:.9; }
+
+/* 🗓️ Kalendář */
 table.calendar-table {
   border-collapse:collapse;
   width:100%;
@@ -79,30 +84,49 @@ table.calendar-table td {
   border:1px solid #eee;
   cursor:pointer;
   position:relative;
+  height:42px;
+  vertical-align:middle;
 }
 table.calendar-table td:hover {
   background:#e7f1ff;
 }
 .today {
-  background:#d0ebff !important;
+  border:2px solid #aaa !important;
+  border-radius:4px;
   font-weight:700;
 }
-.dot {
-  width:6px;
-  height:6px;
-  background:#0090d4;
-  border-radius:50%;
+.square {
+  width:8px;
+  height:8px;
+  background:#d62828;
+  border-radius:2px;
   position:absolute;
-  bottom:4px;
+  bottom:5px;
   left:50%;
   transform:translateX(-50%);
 }
+.empty-day { color:#aaa; }
+
+/* 🧾 Zpráva pod kalendářem */
+#noDataMsg {
+  text-align:center;
+  font-size:14px;
+  color:#666;
+  margin-top:10px;
+  font-weight:500;
+}
 </style>
+<!-- 🟩 KONEC SEKCE 1/10 – ZÁKLADNÍ STYL A STRUKTURA -->
 </head>
+
 <body>
 
+<!-- 🟩 ZAČÁTEK SEKCE 2/10 – HLAVIČKA -->
 <header>📅 Plán dne – White Glove Service</header>
+<!-- 🟩 KONEC SEKCE 2/10 – HLAVIČKA -->
 
+
+<!-- 🟩 ZAČÁTEK SEKCE 3/10 – HLAVNÍ OBSAH -->
 <div class="main">
   <!-- 🟨 Kalendář -->
   <div id="calendar">
@@ -113,23 +137,43 @@ table.calendar-table td:hover {
       </thead>
       <tbody id="calendarBody"></tbody>
     </table>
+    <div id="noDataMsg">Vyberte datum v kalendáři.</div>
   </div>
 
   <!-- 🟨 Mapa -->
   <div id="map"></div>
 </div>
+<!-- 🟩 KONEC SEKCE 3/10 – HLAVNÍ OBSAH -->
 
+
+<!-- 🟩 ZAČÁTEK SEKCE 4/10 – TLAČÍTKA -->
 <div class="btns">
-  <button onclick="window.location.href='seznam.html'">Zpět na seznam</button>
+  <button onclick="window.location.href='seznam.html'">⬅️ Zpět na seznam</button>
 </div>
+<!-- 🟩 KONEC SEKCE 4/10 – TLAČÍTKA -->
 
+
+<!-- 🟩 ZAČÁTEK SEKCE 5/10 – LEAFLET MAPA -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const WGS_CENTER = [50.08031890414999, 14.59812450867171];
 let map, markers = [];
 let dataAll = [];
 
-/* === 🗓️ KALENDÁŘ === */
+function initMap() {
+  map = L.map("map").setView(WGS_CENTER, 10);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution:'© OpenStreetMap'
+  }).addTo(map);
+  L.marker(WGS_CENTER)
+    .addTo(map)
+    .bindPopup("<b>White Glove Service s.r.o.</b><br>Do Dubče 364, Běchovice")
+    .openPopup();
+}
+</script>
+<!-- 🟩 KONEC SEKCE 5/10 – LEAFLET MAPA -->
+<!-- 🟩 ZAČÁTEK SEKCE 6/10 – KALENDÁŘ -->
+<script>
 function buildCalendar(plannedDates = []) {
   const today = new Date();
   const year = today.getFullYear();
@@ -145,65 +189,163 @@ function buildCalendar(plannedDates = []) {
   for (let i = 0; i < startDay; i++) row.appendChild(document.createElement("td"));
 
   for (let d = 1; d <= totalDays; d++) {
-    if (row.children.length === 7) { body.appendChild(row); row = document.createElement("tr"); }
+    if (row.children.length === 7) {
+      body.appendChild(row);
+      row = document.createElement("tr");
+    }
     const td = document.createElement("td");
     td.textContent = d;
 
-    const dateStr = `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const dateStr = `${year}-${String(month + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
     if (plannedDates.includes(dateStr)) {
-      const dot = document.createElement("div");
-      dot.className = "dot";
-      td.appendChild(dot);
+      const square = document.createElement("div");
+      square.className = "square";
+      td.appendChild(square);
     }
 
     if (d === today.getDate()) td.classList.add("today");
     td.addEventListener("click", () => showDayOnMap(dateStr));
     row.appendChild(td);
   }
+
   while (row.children.length < 7) row.appendChild(document.createElement("td"));
   body.appendChild(row);
 }
+</script>
+<!-- 🟩 KONEC SEKCE 6/10 – KALENDÁŘ -->
 
-/* === 🗺️ MAPA === */
-function initMap() {
-  map = L.map("map").setView(WGS_CENTER, 10);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution:'© OpenStreetMap'
-  }).addTo(map);
-  L.marker(WGS_CENTER).addTo(map).bindPopup("<b>White Glove Service s.r.o.</b><br>Do Dubče 364, Běchovice").openPopup();
-}
 
-/* === 📅 ZOBRAZENÍ DNĚ NA MAPĚ === */
-function showDayOnMap(dateStr) {
-  if (!dataAll.length) return;
+<!-- 🟩 ZAČÁTEK SEKCE 7/10 – MAPA A ZOBRAZENÍ DNĚ (v2 s výpočtem vzdáleností) -->
+<script>
+async function showDayOnMap(dateStr) {
+  const infoBox = document.getElementById("noDataMsg");
+  const listContainer = document.getElementById("dayList");
+
+  if (!dataAll.length) {
+    infoBox.textContent = "Žádné záznamy pro tento den.";
+    return;
+  }
+
+  // 🔹 Vyčisti mapu a seznam
   markers.forEach(m => map.removeLayer(m));
   markers = [];
+  listContainer.innerHTML = "";
 
   const dayOrders = dataAll.filter(o => o.datum === dateStr);
   if (!dayOrders.length) {
+    infoBox.textContent = "Žádné záznamy pro tento den.";
     map.setView(WGS_CENTER, 10);
     return;
   }
 
-  dayOrders.forEach(o => {
-    if (!o.adresa) return;
-    fetch(`https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(o.adresa)}&apiKey=cd5c4b6f36f84e66b3b2f5adf3d19fd8`)
-      .then(r => r.json())
-      .then(j => {
-        const loc = j.features?.[0]?.geometry?.coordinates;
-        if (!loc) return;
-        const marker = L.marker([loc[1], loc[0]]).addTo(map);
-        marker.bindPopup(`<b>${o.zakaznik || "Zákazník"}</b><br>${o.adresa}<br><small>${o.cas || ""}</small>`);
-        markers.push(marker);
-      });
-  });
-  map.setView(WGS_CENTER, 9);
+  infoBox.textContent = ""; // skryj hlášku
+
+  // 🔹 Načtení souřadnic všech adres (včetně WGS jako start)
+  const coords = [{ lat: WGS_CENTER[0], lon: WGS_CENTER[1], name: "WGS" }];
+  for (const o of dayOrders) {
+    if (!o.adresa) continue;
+    try {
+      const r = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(o.adresa)}&apiKey=cd5c4b6f36f84e66b3b2f5adf3d19fd8`);
+      const j = await r.json();
+      const loc = j.features?.[0]?.geometry?.coordinates;
+      if (loc) coords.push({ lat: loc[1], lon: loc[0], adresa: o.adresa, zakaznik: o.zakaznik, cas: o.cas });
+    } catch (e) {
+      console.warn("⚠️ Nelze geokódovat:", o.adresa);
+    }
+  }
+
+  // 🔹 Zobraz markery a spočítej vzdálenosti
+  let counter = 0;
+  for (let i = 1; i < coords.length; i++) {
+    const cur = coords[i];
+    const prev = coords[i - 1];
+    const distKm = getDistanceFromLatLon(prev.lat, prev.lon, cur.lat, cur.lon).toFixed(1);
+
+    const marker = L.marker([cur.lat, cur.lon]).addTo(map);
+    marker.bindPopup(`<b>${cur.zakaznik || "Zákazník"}</b><br>${cur.adresa}<br><small>${cur.cas || ""}</small>`);
+    markers.push(marker);
+
+    counter++;
+    const row = document.createElement("div");
+    row.className = "dayRow";
+    row.innerHTML = `
+      <div class="num">${counter}.</div>
+      <div class="info">
+        <div class="addr"><b>${cur.adresa}</b></div>
+        <div class="time"><b>${cur.cas || "-"}</b> &nbsp;•&nbsp; ${distKm} km</div>
+      </div>`;
+    listContainer.appendChild(row);
+  }
+
+  // 🔹 Zobraz trasu na mapě
+  if (coords.length > 1) {
+    const line = L.polyline(coords.map(c => [c.lat, c.lon]), { color: "#007bff", weight: 3 }).addTo(map);
+    map.fitBounds(line.getBounds().pad(0.2));
+  } else {
+    map.setView(WGS_CENTER, 10);
+  }
 }
 
-/* === 📥 NAČTENÍ DAT Z WORKERU === */
+// 🔸 Funkce pro výpočet vzdálenosti mezi GPS body (Haversine)
+function getDistanceFromLatLon(lat1, lon1, lat2, lon2) {
+  const R = 6371; // km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+</script>
+<!-- 🟩 KONEC SEKCE 7/10 – MAPA A ZOBRAZENÍ DNĚ (v2 s výpočtem vzdáleností) -->
+
+
+
+<!-- 🟩 ZAČÁTEK SEKCE 8/10 – DODATEČNÝ STYL PRO PODMAPOVÝ SEZNAM -->
+<style>
+#dayList {
+  margin-top:8px;
+  background:white;
+  border-radius:8px;
+  padding:10px;
+  box-shadow:0 2px 4px rgba(0,0,0,0.1);
+  font-size:13px;
+  line-height:1.4;
+  color:#333;
+}
+.dayRow {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border-bottom:1px solid #eee;
+  padding:4px 0;
+}
+.dayRow:last-child { border-bottom:none; }
+.dayRow .num {
+  font-weight:700;
+  color:#0090d4;
+}
+.dayRow .info {
+  flex:1;
+}
+.dayRow .addr {
+  font-weight:600;
+}
+.dayRow .time {
+  font-size:12px;
+  color:#555;
+}
+</style>
+<!-- 🟩 KONEC SEKCE 8/10 – DODATEČNÝ STYL PRO PODMAPOVÝ SEZNAM -->
+
+
+<!-- 🟩 ZAČÁTEK SEKCE 9/10 – NAČÍTÁNÍ DAT Z WORKERU -->
+<script>
 async function loadTemporaryFiles() {
   try {
-    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles?"+Date.now(), {cache:"no-store"});
+    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles?" + Date.now(), { cache:"no-store" });
     const json = await res.json();
     const data = Array.isArray(json) ? json.map(r => r.data || r) : (json.data || []);
     dataAll = data.filter(d => d.datum);
@@ -214,13 +356,24 @@ async function loadTemporaryFiles() {
     buildCalendar();
   }
 }
+</script>
+<!-- 🟩 KONEC SEKCE 9/10 – NAČÍTÁNÍ DAT Z WORKERU -->
 
-/* === 🔧 INIT === */
+
+<!-- 🟩 ZAČÁTEK SEKCE 10/10 – INICIALIZACE -->
+<script>
 document.addEventListener("DOMContentLoaded", () => {
   initMap();
   loadTemporaryFiles();
+
+  // Přidání prostoru pro seznam pod mapou
+  const mapParent = document.getElementById("map").parentElement;
+  const listDiv = document.createElement("div");
+  listDiv.id = "dayList";
+  mapParent.appendChild(listDiv);
 });
 </script>
+<!-- 🟩 KONEC SEKCE 10/10 – INICIALIZACE -->
 
 </body>
 </html>
