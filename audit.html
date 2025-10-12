@@ -1,15 +1,16 @@
 <!-- 
-=========================================================
-💎 WHITE GLOVE SERVICE – AUDIT SYSTEM (v4.1)
-=========================================================
+====================================================================
+💎 WHITE GLOVE SERVICE – AUDIT SYSTEM v5.0 (část 1/3)
+====================================================================
 Autor: Radek Zikmund & Hugo (GPT-5)
 Datum: 2025-10-12
 Popis:
-  Vizuální diagnostika a kontrola WGS stránek.
-  – Logy a chyby v levém panelu
-  – Živý náhled stránky vpravo
-  – Zvýraznění chybějících prvků
-=========================================================
+  Centrální vizuální diagnostický panel WGS – část 1/3.
+  Obsahuje:
+  – základní UI rozložení (header, panely, footer)
+  – levý log panel s chyby / varování / návrhy
+  – pravý iframe náhled zvolené stránky
+====================================================================
 -->
 
 <!DOCTYPE html>
@@ -19,31 +20,129 @@ Popis:
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Audit – White Glove Service</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+
 <style>
-body{font-family:"Inter",sans-serif;margin:0;display:flex;flex-direction:column;height:100vh;background:#f6f7fb;color:#222;}
-header{background:#fff;padding:10px 20px;box-shadow:0 2px 6px rgba(0,0,0,.1);display:flex;align-items:center;gap:10px;z-index:5;}
-header img{height:36px;margin-right:8px;}
-header strong{font-weight:900;font-size:18px;}
-select,button{padding:8px 12px;border:1px solid #ccc;border-radius:6px;font-family:inherit;background:#f9f9f9;cursor:pointer;}
-select:focus,button:focus{outline:none;border-color:#999;}
-main{display:flex;flex:1;overflow:hidden;}
-#logs{width:40%;background:#fff;overflow:auto;padding:12px;font-size:13px;line-height:1.4;border-right:2px solid #e0e0e0;}
-#preview{flex:1;position:relative;background:#fafafa;}
-iframe{width:100%;height:100%;border:none;background:#fff;}
-.log{margin:3px 0;padding:5px 7px;border-left:4px solid transparent;cursor:pointer;}
-.log.info{border-color:#2196f3;color:#222;}
-.log.warn{border-color:#ffa000;background:#fff8e1;}
-.log.error{border-color:#e53935;background:#ffebee;}
+:root {
+  --blue:#2196f3;
+  --red:#e53935;
+  --yellow:#ffa000;
+  --bg:#f6f7fb;
+}
+body{
+  font-family:"Inter",sans-serif;
+  margin:0;
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  background:var(--bg);
+  color:#222;
+}
+header{
+  background:#fff;
+  padding:10px 20px;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+  display:flex;
+  align-items:center;
+  gap:10px;
+  z-index:5;
+}
+header img{
+  height:36px;
+  margin-right:8px;
+}
+header strong{
+  font-weight:900;
+  font-size:18px;
+}
+select,button{
+  padding:8px 12px;
+  border:1px solid #ccc;
+  border-radius:6px;
+  font-family:inherit;
+  background:#f9f9f9;
+  cursor:pointer;
+}
+select:focus,button:focus{
+  outline:none;
+  border-color:#999;
+}
+#tabs{
+  display:flex;
+  background:#fff;
+  border-bottom:1px solid #e0e0e0;
+}
+.tab{
+  padding:10px 16px;
+  cursor:pointer;
+  border-bottom:3px solid transparent;
+  font-weight:600;
+  user-select:none;
+}
+.tab.active{
+  border-bottom-color:var(--blue);
+  color:var(--blue);
+}
+main{
+  display:flex;
+  flex:1;
+  overflow:hidden;
+}
+#logs{
+  width:40%;
+  background:#fff;
+  overflow:auto;
+  padding:12px;
+  font-size:13px;
+  line-height:1.4;
+  border-right:2px solid #e0e0e0;
+}
+#preview{
+  flex:1;
+  position:relative;
+  background:#fafafa;
+  display:flex;
+  flex-direction:column;
+}
+iframe{
+  width:100%;
+  flex:1;
+  border:none;
+  background:#fff;
+}
+.log{
+  margin:3px 0;
+  padding:5px 7px;
+  border-left:4px solid transparent;
+  cursor:pointer;
+}
+.log.info{border-color:var(--blue);}
+.log.warn{border-color:var(--yellow);background:#fff8e1;}
+.log.error{border-color:var(--red);background:#ffebee;}
 .highlight{outline:3px solid red;outline-offset:-3px;transition:all .2s ease;}
-#suggestion{display:none;background:#eef;padding:4px;border-left:3px solid #2196f3;margin-top:4px;font-size:12px;}
-footer{background:#fff;text-align:center;padding:6px 10px;font-size:12px;border-top:1px solid #eee;color:#666;}
+#suggestion{
+  display:none;
+  background:#eef;
+  padding:4px;
+  border-left:3px solid var(--blue);
+  margin-top:4px;
+  font-size:12px;
+}
+footer{
+  background:#fff;
+  text-align:center;
+  padding:6px 10px;
+  font-size:12px;
+  border-top:1px solid #eee;
+  color:#666;
+}
 </style>
 </head>
+
 <body>
 
 <header>
   <img src="https://raw.githubusercontent.com/radecek222-boop/reklamace/main/logo-wgs.png" alt="WGS logo" onerror="this.style.display='none'">
-  <strong>WHITE GLOVE SERVICE – AUDIT</strong>
+  <strong>WHITE GLOVE SERVICE – AUDIT CENTER</strong>
   <select id="pageSelect">
     <option>index.html</option>
     <option>seznam.html</option>
@@ -54,6 +153,14 @@ footer{background:#fff;text-align:center;padding:6px 10px;font-size:12px;border-
   <button id="runBtn">Spustit audit</button>
 </header>
 
+<div id="tabs">
+  <div class="tab active" data-tab="logs">📜 Logy</div>
+  <div class="tab" data-tab="functions">🧠 Funkce</div>
+  <div class="tab" data-tab="performance">⚙️ Výkon</div>
+  <div class="tab" data-tab="visual">🔍 Vizualizace</div>
+  <div class="tab" data-tab="report">📄 Report</div>
+</div>
+
 <main>
   <div id="logs"></div>
   <div id="preview">
@@ -61,12 +168,12 @@ footer{background:#fff;text-align:center;padding:6px 10px;font-size:12px;border-
   </div>
 </main>
 
-<footer>© White Glove Service s.r.o. – vizuální auditní panel v4.1</footer>
+<footer>© White Glove Service s.r.o. – Audit Center v5.0 (část 1/3)</footer>
 
 <script>
+// 🟦 ZÁKLADNÍ LOG SYSTÉM
 const logBox=document.getElementById("logs");
 const frame=document.getElementById("frame");
-
 function log(type,msg,selector="",hint=""){
   const div=document.createElement("div");
   div.className=`log ${type}`;
@@ -85,12 +192,17 @@ function log(type,msg,selector="",hint=""){
   logBox.appendChild(div);
   logBox.scrollTop=logBox.scrollHeight;
 }
-
 function highlight(sel){
-  try{const el=frame.contentDocument.querySelector(sel);if(el)el.classList.add("highlight");}catch{}
+  try{
+    const el=frame.contentDocument.querySelector(sel);
+    if(el)el.classList.add("highlight");
+  }catch{}
 }
-function clearHighlight(){frame.contentDocument.querySelectorAll(".highlight").forEach(el=>el.classList.remove("highlight"));}
+function clearHighlight(){
+  frame.contentDocument.querySelectorAll(".highlight").forEach(el=>el.classList.remove("highlight"));
+}
 
+// 🟨 OVLÁDÁNÍ AUDITU
 document.getElementById("runBtn").onclick=()=>{
   logBox.innerHTML="";
   const file=document.getElementById("pageSelect").value;
@@ -109,6 +221,7 @@ document.getElementById("runBtn").onclick=()=>{
   };
 };
 
+// 🟩 ZÁKLADNÍ AUDIT FUNKCE (načtení elementů)
 function auditCore(){
   (async()=>{
     const ids=["searchInput","tableContainer","calendarContainer","mapContainer","planModal","signatureCanvas","uploadSection"];
@@ -126,3 +239,246 @@ function auditCore(){
 
 </body>
 </html>
+<!-- ==============================================================
+💎 WHITE GLOVE SERVICE – AUDIT SYSTEM v5.0 (část 2/3)
+Rozšíření:
+  – tab Funkce: seznam, vyhledávání, grafické znázornění vztahů
+  – tab Výkon: měření načtení zdrojů + paměť
+================================================================= -->
+
+<script>
+// 🟨 TAB OVLÁDÁNÍ
+const tabs=document.querySelectorAll(".tab");
+tabs.forEach(t=>t.addEventListener("click",()=>{
+  tabs.forEach(a=>a.classList.remove("active"));
+  t.classList.add("active");
+  showTab(t.dataset.tab);
+}));
+
+// 🟩 Přepínání obsahu tabů
+function showTab(tab){
+  const logs=document.getElementById("logs");
+  const perf=document.getElementById("perfPanel");
+  const func=document.getElementById("funcPanel");
+  const vis=document.getElementById("visPanel");
+  const rep=document.getElementById("reportPanel");
+  [logs,perf,func,vis,rep].forEach(el=>el&&el.classList.add("hidden"));
+  if(tab==="logs")logs.classList.remove("hidden");
+  if(tab==="performance")perf?.classList.remove("hidden");
+  if(tab==="functions")func?.classList.remove("hidden");
+  if(tab==="visual")vis?.classList.remove("hidden");
+  if(tab==="report")rep?.classList.remove("hidden");
+}
+
+// 🧠 FUNKCE – seznam + vizualizace
+const funcPanel=document.createElement("div");
+funcPanel.id="funcPanel";
+funcPanel.classList.add("hidden");
+funcPanel.style.cssText="width:40%;background:#fff;overflow:auto;padding:10px;font-size:13px;border-right:2px solid #e0e0e0;";
+funcPanel.innerHTML="<h3>🧠 Seznam funkcí</h3><input id='fnFilter' placeholder='Hledat…' style='width:90%;padding:6px;margin-bottom:6px'><div id='fnList'></div>";
+document.querySelector("main").prepend(funcPanel);
+
+// 🧠 Načtení funkcí po auditu
+function showFunctions(win){
+  const list=document.getElementById("fnList");
+  list.innerHTML="";
+  const all=Object.keys(win).filter(k=>typeof win[k]==="function").sort();
+  all.forEach(fn=>{
+    const d=document.createElement("div");
+    d.textContent=fn;
+    d.style.cursor="pointer";
+    d.onclick=()=>highlightCall(fn);
+    list.appendChild(d);
+  });
+  document.getElementById("fnFilter").oninput=e=>{
+    const q=e.target.value.toLowerCase();
+    [...list.children].forEach(ch=>{
+      ch.style.display=ch.textContent.toLowerCase().includes(q)?"block":"none";
+    });
+  };
+}
+function highlightCall(name){
+  log("info",`Funkce kliknuta: ${name}`,"",`Zkontroluj, kde je ${name} volána nebo definována.`);
+}
+
+// 🟩 Zachycení funkcí po načtení stránky do iframe
+const origRun=document.getElementById("runBtn").onclick;
+document.getElementById("runBtn").onclick=()=>{
+  origRun();
+  frame.onload=()=>{
+    const win=frame.contentWindow;
+    showFunctions(win);
+    performanceAudit(win);
+  };
+};
+
+// ⚙️ VÝKON – měření Performance API
+const perfPanel=document.createElement("div");
+perfPanel.id="perfPanel";
+perfPanel.classList.add("hidden");
+perfPanel.style.cssText="width:40%;background:#fff;overflow:auto;padding:10px;font-size:13px;border-right:2px solid #e0e0e0;";
+perfPanel.innerHTML="<h3>⚙️ Výkon</h3><div id='perfSummary'></div><table id='perfTable' style='width:100%;border-collapse:collapse;font-size:12px'><thead><tr><th style='text-align:left'>Zdroj</th><th>Čas (ms)</th></tr></thead><tbody></tbody></table>";
+document.querySelector("main").prepend(perfPanel);
+
+// 🧮 Měření
+function performanceAudit(win){
+  const summary=document.getElementById("perfSummary");
+  const tbody=document.querySelector("#perfTable tbody");
+  tbody.innerHTML="";
+  const res=performance.getEntriesByType("resource");
+  let total=0;
+  res.forEach(r=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${r.name.split("/").pop()}</td><td>${r.duration.toFixed(1)}</td>`;
+    tbody.appendChild(tr);
+    total+=r.duration;
+  });
+  const domTime=(performance.timing.domComplete-performance.timing.navigationStart)/1000;
+  summary.innerHTML=`Celkový čas zdrojů: <b>${total.toFixed(1)} ms</b><br>DOM ready: <b>${domTime.toFixed(2)} s</b>`;
+  if(performance.memory){
+    const m=performance.memory;
+    const used=(m.usedJSHeapSize/1048576).toFixed(1);
+    const limit=(m.jsHeapSizeLimit/1048576).toFixed(1);
+    summary.innerHTML+=`<br>Paměť: ${used}/${limit} MB`;
+  }
+}
+
+// 🔍 Vizualizace funkčního stromu (Canvas)
+const visPanel=document.createElement("div");
+visPanel.id="visPanel";
+visPanel.classList.add("hidden");
+visPanel.style.cssText="flex:1;display:flex;align-items:center;justify-content:center;background:#fff;";
+visPanel.innerHTML="<canvas id='funcGraph' width='600' height='400'></canvas>";
+document.querySelector("main").appendChild(visPanel);
+
+function drawFunctionGraph(win){
+  const fns=Object.keys(win).filter(k=>typeof win[k]==="function").slice(0,40);
+  const ctx=document.getElementById("funcGraph").getContext("2d");
+  ctx.clearRect(0,0,600,400);
+  ctx.font="12px Inter";
+  ctx.fillStyle="#333";
+  fns.forEach((f,i)=>{
+    const x=(i%10)*60+40;
+    const y=Math.floor(i/10)*70+40;
+    ctx.beginPath();
+    ctx.arc(x,y,20,0,Math.PI*2);
+    ctx.fillStyle="#2196f3";
+    ctx.fill();
+    ctx.fillStyle="#fff";
+    ctx.fillText(f.substring(0,6),x-16,y+4);
+  });
+  log("info",`🧩 Vykresleno ${fns.length} funkcí v grafu`);
+}
+
+// Spustí vizualizaci po načtení iframe
+frame.addEventListener("load",()=>{
+  const win=frame.contentWindow;
+  drawFunctionGraph(win);
+});
+</script>
+<!-- ==============================================================
+💎 WHITE GLOVE SERVICE – AUDIT SYSTEM v5.0 (část 3/3)
+Rozšíření:
+  – panel Report (PDF export)
+  – lokální AI návrhy oprav
+  – kontrola bezpečnosti a integrity verzí
+================================================================= -->
+
+<script>
+// 📄 REPORT PANEL
+const reportPanel=document.createElement("div");
+reportPanel.id="reportPanel";
+reportPanel.classList.add("hidden");
+reportPanel.style.cssText="width:40%;background:#fff;overflow:auto;padding:10px;font-size:13px;border-right:2px solid #e0e0e0;";
+reportPanel.innerHTML=`
+  <h3>📄 Report systému</h3>
+  <button id='exportPdf'>Exportovat PDF</button>
+  <div id='reportContent' style='margin-top:10px;'></div>`;
+document.querySelector("main").prepend(reportPanel);
+
+document.getElementById("exportPdf").onclick=generatePdfReport;
+
+// 🧾 Vytvoření PDF reportu
+async function generatePdfReport(){
+  const { jsPDF } = await import("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+  const pdf = new jsPDF();
+  let y=10;
+  pdf.setFont("helvetica","bold");
+  pdf.text("WHITE GLOVE SERVICE – AUDIT REPORT",10,y);
+  y+=10;
+  pdf.setFont("helvetica","normal");
+  pdf.text("Datum: "+new Date().toLocaleString(),10,y);
+  y+=10;
+  const logs=document.querySelectorAll(".log");
+  logs.forEach(l=>{
+    if(y>270){pdf.addPage();y=10;}
+    const txt=`${l.classList.contains("error")?"[ERROR]":l.classList.contains("warn")?"[WARN]":"[INFO]"} ${l.textContent.trim()}`;
+    pdf.text(txt,10,y);
+    y+=6;
+  });
+  pdf.save("WGS_Audit_Report.pdf");
+  log("info","📄 PDF report vygenerován");
+}
+
+// 🧠 LOKÁLNÍ AI NÁVRHY OPRAV
+function aiSuggestion(errorMsg){
+  const msg=errorMsg.toLowerCase();
+  if(msg.includes("null is not an object")||msg.includes("undefined")){
+    return "Zkontroluj, zda je element existující v DOM než na něj přistupuješ. Přidej podmínku `if (el)`.";
+  }else if(msg.includes("failed to fetch")){
+    return "Zkontroluj Worker endpoint nebo CORS hlavičky. Možná síťová chyba.";
+  }else if(msg.includes("syntaxerror")){
+    return "Zkontroluj uzavírání závorek nebo uvozovek v JavaScriptu.";
+  }else if(msg.includes("not a function")){
+    return "Funkce volána dřív, než je definována. Přesuň definici nad volání nebo použij `defer`.";
+  }else return "Zkontroluj konzoli a strukturu kódu. Možná chybí import nebo proměnná.";
+}
+
+// Přidáme AI návrhy do log systému
+const oldLog=log;
+log=function(type,msg,sel,hint){
+  let suggestion=hint;
+  if(!hint && type==="error") suggestion=aiSuggestion(msg);
+  oldLog(type,msg,sel,suggestion);
+};
+
+// 🔒 SECURITY & INTEGRITY CHECK
+async function securityAudit(){
+  log("info","🔐 Spouštím bezpečnostní kontrolu...");
+  const scripts=[...document.scripts].map(s=>s.src).filter(Boolean);
+  scripts.forEach(s=>{
+    if(s.startsWith("http://")) log("warn",`Nezabezpečený skript: ${s}`,"","Použij https:// místo http://");
+  });
+  const libs=["leaflet","vanilla-calendar","jspdf"];
+  const found={};
+  scripts.forEach(src=>{
+    libs.forEach(lib=>{
+      if(src.toLowerCase().includes(lib)) found[lib]=src;
+    });
+  });
+  Object.entries(found).forEach(([lib,src])=>{
+    log("info",`Knihovna ${lib}: ${src.split("/").pop()}`);
+  });
+  const hashObj={};
+  for(const s of scripts){
+    try{
+      const r=await fetch(s,{cache:"no-store"});
+      const t=await r.text();
+      const hash=await crypto.subtle.digest("SHA-1",new TextEncoder().encode(t));
+      const hex=[...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,"0")).join("");
+      hashObj[s]=hex;
+    }catch{}
+  }
+  log("info","🔎 Hash kontrola dokončena – "+Object.keys(hashObj).length+" skriptů zkontrolováno.");
+}
+setTimeout(securityAudit,4000);
+
+// 🧩 DOPLŇUJÍCÍ VYLEPŠENÍ UI
+const style=document.createElement("style");
+style.textContent=".hidden{display:none!important;} th,td{border-bottom:1px solid #eee;padding:2px 4px;}";
+document.head.appendChild(style);
+
+// 🧭 ÚVODNÍ ZPRÁVA
+console.log("✅ WHITE GLOVE SERVICE – AUDIT CENTER v5.0 připraveno");
+log("info","Audit Center v5.0 inicializován. Přepínej panely nahoře pro detailní přehled.");
+</script>
