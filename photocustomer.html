@@ -310,7 +310,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 
 
 
-<!-- 🟨 ZAČÁTEK SEKCE D/10 – PDF EXPORT A ODESLÁNÍ -->
+<!-- 🟨 ZAČÁTEK SEKCE D/10 – PDF EXPORT A ODESLÁNÍ (v2.0 – přímý náhled PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
@@ -318,35 +318,35 @@ window.generatePdf = async function () {
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF("p", "pt", "a4");
   const el = document.querySelector(".wrapper");
+
   try {
-    const c = await html2canvas(el, { scale: 2, useCORS: true });
-    const img = c.toDataURL("image/png");
+    const canvas = await html2canvas(el, { scale: 2, useCORS: true });
+    const img = canvas.toDataURL("image/png");
     const w = pdf.internal.pageSize.getWidth();
-    const h = (c.height * w) / c.width;
+    const h = (canvas.height * w) / canvas.width;
     pdf.addImage(img, "PNG", 0, 0, w, h);
   } catch (e) {
     pdf.text("⚠️ Nelze vykreslit fotodokumentaci", 20, 50);
+    console.error("Chyba při generování PDF:", e);
   }
-  return pdf.output("blob");
+
+  return pdf;
 };
 
-// 🟢 Po exportu PDF spočítej velikost a aktualizuj informační text
+// 🔵 Kliknutí na tlačítko EXPORT TO PDF → vytvoří PDF a hned ho otevře
 document.getElementById("btnExportPdf")?.addEventListener("click", async () => {
-  const info = document.getElementById("compressionInfo");
-  if (!info) return;
-
-  info.innerHTML = "📄 Vytvářím PDF, čekejte...";
   try {
-    const blob = await window.generatePdf(true);
-    const sizeMB = (blob.size / 1024 / 1024).toFixed(2);
-    info.innerHTML = `✅ PDF vytvořeno – velikost souboru: <strong>${sizeMB} MB</strong>`;
+    const pdf = await window.generatePdf();
+    const blob = pdf.output("blob");
+    const blobUrl = URL.createObjectURL(blob);
+    window.open(blobUrl, "_blank"); // 🟢 Otevře rovnou náhled PDF
+    console.log("✅ PDF exportováno a zobrazeno v novém okně.");
   } catch (e) {
-    info.innerHTML = "❌ Chyba při vytváření PDF";
-    console.error(e);
+    console.error("❌ Chyba při vytváření PDF:", e);
   }
 });
 </script>
-<!-- 🟨 KONEC SEKCE D/10 -->
+<!-- 🟨 KONEC SEKCE D/10 – PDF EXPORT A ODESLÁNÍ (v2.0) -->
 
 
   <!-- 🟨 ZAČÁTEK SEKCE E/10 – ULOŽENÍ NA TEMPORARYFILES S KOMPRESE -->
