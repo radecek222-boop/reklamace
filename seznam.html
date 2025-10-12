@@ -1,34 +1,3 @@
-<!-- 
-====================================================================
-💎 WHITE GLOVE SERVICE – SEZNAM REKLAMACÍ
-====================================================================
-Verze systému:       v1.0
-Datum sestavení:     2025-10-08
-Autor:               Hugo (White Glove Service) & GPT-5
-Projekt:             WGS reklamace / servisní plánování
-Soubory:             seznam.html (hlavní přehled), novareklamace.html (data)
-Worker:              https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles
-Repozitář:           https://github.com/radecek222-boop/reklamace
-Popis:
-  Kompletní rozhraní pro zobrazení a správu reklamací.
-  - Přímé načítání dat z GitHub JSON přes Cloudflare Worker
-  - Mapa, kalendář, plán dne a ukládání termínů
-  - Kompatibilní s iPhone Safari a desktop prohlížeči
-
-Struktura souboru:
-  A – Struktura stránky a tlačítka
-  B – Načítání dat a tabulka + debug
-  C – Detail zákazníka
-  D – Uložení termínu (GitHub + toast)
-  E – Plán dne (mapa + trasa)
-  F – Pomocné funkce a utilitky
-  G – Externí knihovny a globální inicializace
-
-Poslední úprava:     2025-10-08 / 14:00  
-====================================================================
--->
-
-
 
 <!-- 🟨 SEKCE A – ZÁKLAD (struktura stránky, styly, tlačítka, vyhledávání) -->
 <!DOCTYPE html>
@@ -1799,160 +1768,6 @@ function showSuccessOverlay(title, text) {
 
 
 
-<!-- 🟦 SEKCE E – PLÁN DNE (kalendář, mapa, trasa, legenda) -->
-<!-- ====================================================== -->
-
-<!-- 🟦 E-1: OTEVŘENÍ OKNA PLÁNU DNE -->
-<script>
-function openPlanModal() {
-  const overlay = document.createElement("div");
-  overlay.id = "planModal";
-  overlay.innerHTML = `
-    <div class="planContent">
-      <div class="planLeft">
-        <div id="planCalendar"></div>
-        <div id="planLegend"></div>
-        <button id="planCloseBtn" class="btn-close">Zpět</button>
-      </div>
-      <div class="planRight">
-        <div id="planMap"></div>
-        <div id="planList"></div>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
-  setTimeout(()=>overlay.classList.add("active"),20);
-
-  initPlanCalendar(overlay);
-  overlay.querySelector("#planCloseBtn").onclick = ()=>overlay.remove();
-}
-</script>
-<!-- 🟦 KONEC E-1 -->
-
-
-<!-- 🟦 E-2: KALENDÁŘ A NAČTENÍ DNÍ -->
-<script>
-function initPlanCalendar(overlay){
-  const cal = new VanillaCalendar("#planCalendar",{
-    settings:{ lang:"cs", selection:{ day:"single" }, visibility:{ theme:"light" }},
-    actions:{ clickDay:e=>{
-      const d = e.target.dataset.calendarDay;
-      if(!d)return;
-      loadPlanForDay(d,overlay);
-    }}
-  });
-  cal.init();
-
-  // vyznačit dny s termínem modrým puntíkem
-  const data = dataAll.filter(x=>x.datum);
-  data.forEach(r=>{
-    const el=document.querySelector(`[data-calendar-day="${r.datum}"]`);
-    if(el) el.classList.add("vanilla-calendar-day__btn_selected");
-  });
-}
-</script>
-<!-- 🟦 KONEC E-2 -->
-
-
-<!-- 🟦 E-3: NAČTENÍ A ZOBRAZENÍ DNĚ -->
-<script>
-async function loadPlanForDay(date,overlay){
-  const list=dataAll.filter(r=>r.datum===date && r.stav!=="zruseno");
-  const planList=overlay.querySelector("#planList");
-  const planLegend=overlay.querySelector("#planLegend");
-  const planMap=overlay.querySelector("#planMap");
-
-  if(!list.length){
-    planList.innerHTML="<div class='empty'>Žádné zakázky pro tento den</div>";
-    planLegend.innerHTML="";
-    planMap.innerHTML="";
-    return;
-  }
-
-  // seřadit podle času
-  list.sort((a,b)=>(a.cas||"").localeCompare(b.cas||""));
-  planList.innerHTML="";
-  planLegend.innerHTML="";
-
-  let legendHTML="<table class='legendTable'><tr><th>#</th><th>Čas</th><th>Zákazník</th></tr>";
-  list.forEach((r,i)=>{
-    legendHTML+=`<tr><td>${i+1}</td><td>${r.cas||"-"}</td><td>${r.zakaznik}</td></tr>`;
-  });
-  legendHTML+="</table>";
-  planLegend.innerHTML=legendHTML;
-
-  planList.innerHTML=list.map((r,i)=>`
-    <div class="planItem">
-      <div class="planNum">${i+1}</div>
-      <div class="planName">${r.zakaznik}</div>
-      <div class="planAddr">${r.adresa}</div>
-      <div class="planTime">${r.cas}</div>
-    </div>`).join("");
-
-  await showPlanMap(list,planMap);
-}
-</script>
-<!-- 🟦 KONEC E-3 -->
-
-
-<!-- 🟦 E-4: MAPA A TRASA -->
-<script>
-async function showPlanMap(list,container){
-  const wgs=[50.049,14.523];
-  const map=L.map(container).setView(wgs,9);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);
-  const points=[wgs];
-  const markers=[L.marker(wgs,{title:"WGS"})];
-  const geos=[];
-
-  for(const r of list){
-    if(!r.adresa)continue;
-    const geo=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(r.adresa)}`).then(x=>x.json());
-    if(geo[0]){
-      const p=[+geo[0].lat,+geo[0].lon];
-      geos.push(p);
-      points.push(p);
-      markers.push(L.marker(p,{title:r.zakaznik}).addTo(map).bindPopup(`${r.zakaznik}<br>${r.adresa}<br>${r.cas}`));
-    }
-  }
-
-  if(points.length>1){
-    L.polyline(points,{color:"#0046ff",weight:3}).addTo(map);
-    map.fitBounds(L.featureGroup(markers).getBounds().pad(0.3));
-  }
-}
-</script>
-<!-- 🟦 KONEC E-4 -->
-
-
-<!-- 🟦 E-STYLE: MAPA + LEGENDA + ROZLOŽENÍ -->
-<style>
-#planModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);
-  justify-content:center;align-items:center;z-index:9999;opacity:0;transition:opacity .25s ease;}
-#planModal.active{display:flex;opacity:1;}
-.planContent{background:#fff;border-radius:14px;display:grid;
-  grid-template-columns:340px 1fr;gap:15px;padding:20px;max-width:90vw;max-height:90vh;overflow:auto;}
-.planLeft{display:flex;flex-direction:column;align-items:center;}
-#planCalendar{width:100%;}
-.legendTable{border-collapse:collapse;width:100%;margin-top:10px;font-size:.9em;}
-.legendTable th,.legendTable td{border-bottom:1px solid #ddd;padding:4px;text-align:left;}
-.legendTable th{background:#f2f2f2;font-weight:700;}
-.btn-close{margin-top:10px;background:linear-gradient(135deg,#dc3545,#f87171);color:#fff;
-  border:none;border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;}
-.planRight{display:flex;flex-direction:column;gap:10px;}
-#planMap{height:360px;border-radius:10px;border:1px solid #ccc;}
-.planItem{background:#f8f9fa;padding:8px 10px;border-radius:8px;margin-bottom:6px;
-  display:grid;grid-template-columns:30px 1fr 1fr 60px;align-items:center;gap:8px;}
-.planNum{font-weight:800;color:#0046ff;}
-.planName{font-weight:600;}
-.planAddr{font-size:.9em;color:#333;}
-.planTime{text-align:right;font-weight:600;}
-.empty{text-align:center;color:#555;margin-top:30px;}
-@media(max-width:900px){.planContent{grid-template-columns:1fr;max-width:100vw;}}
-</style>
-<!-- 🟦 KONEC SEKCE E -->
-
-
-
 
 
 
@@ -2142,25 +1957,28 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // 3️⃣ Napojení hlavních tlačítek
   const planBtn = document.getElementById("planBtn");
-  if (planBtn) planBtn.onclick = openPlanModal; // 🔵 „Plán dne“
+  if (planBtn) {
+    planBtn.onclick = () => {
+      console.log("📅 Přesměrovávám na plán dne...");
+      window.location.href = "plandne.html";
+    };
+  }
 
   const reloadBtn = document.getElementById("reloadBtn");
   if (reloadBtn) reloadBtn.onclick = loadData;  // 🔄 „Načíst znovu“
 
   // 4️⃣ Kontrola načtených knihoven
   if (typeof L === "undefined") {
-    console.error("❌ Leaflet se nonačetl – zkontroluj CDN.");
+    console.error("❌ Leaflet se nenačetl – zkontroluj CDN.");
   } else {
     console.log("🗺️ Leaflet OK");
   }
 
   if (typeof VanillaCalendar === "undefined") {
-    console.error("❌ Vanilla Calendar se nonačetl – zkontroluj link v sekci G-1.");
-  } else {
-    console.log("📅 Vanilla Calendar inicializován (v2.8.1 – GitHub lokální verze)");
+    console.warn("ℹ️ Vanilla Calendar není potřeba v seznamu – používá se jen v plandne.html");
   }
 
-  console.log("🧭 Načteny všechny sekce A–G (verze v1.0 – 10/2025)");
+  console.log("🧭 Načteny všechny sekce A–G (verze v1.1 – přesměrování na plandne.html)");
 });
 
 window.addEventListener("error", e => {
@@ -2170,8 +1988,6 @@ window.addEventListener("unhandledrejection", e => {
   console.error("⚠️ Nezpracované Promise:", e.reason);
 });
 </script>
-<!-- 🟪 KONEC G-2 -->
-
 <!-- 🟪 KONEC G-2 -->
 
 
@@ -2251,159 +2067,3 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 </script>
-
-
-
-
-
-
-
-<!-- 
-============================================================
-🧭 WHITE GLOVE SERVICE – SEZNAM REKLAMACÍ (mapa sekcí A–G)
-Verze: 1.0 (říjen 2025)
-Autor: Hugo & GPT-5
-============================================================
-
-🔸 SEKCE A – STRUKTURA STRÁNKY
-  - HTML rozložení (hlavička, tlačítka, vyhledávání, tabulka)
-  - základní CSS vzhled
-  - všechny viditelné prvky uživatelského rozhraní
-
-🔹 SEKCE B – NAČÍTÁNÍ DAT
-  - Fetch z Cloudflare Workera (https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles)
-  - funkce loadData() + renderTable()
-  - vyhledávání zákazníků, filtrování
-  - debug panel (B-DEBUG) – počet záznamů + čas načtení
-
-🔹 SEKCE C – DETAIL ZÁKAZNÍKA
-  - openDetail(index) – zobrazení detailu z tabulky
-  - levý panel: kalendář, čas, tlačítka (Uložit / Nezvedá / Zrušil / Zpět)
-  - pravý panel: údaje zákazníka, mapa (Leaflet), vzdálenost od WGS
-  - rozděleno do C-1 až C-5 + styly
-
-🔹 SEKCE D – ULOŽENÍ TERMÍNU
-  - uložit přes Worker (GitHub update)
-  - loader ⏳ + toast 🔔 + success overlay ✅
-  - funkce showToast(), showSuccessOverlay(), setNextToast()
-  - ukládání do localStorage + přenos mezi relacemi
-
-🔹 SEKCE E – PLÁN DNE
-  - openPlanModal() – měsíční kalendář + mapa dne
-  - zobrazení zákazníků podle času
-  - vykreslení trasy WGS → zákazníci (Leaflet)
-  - legenda (čas, pořadí, jméno)
-  - responzivní pro mobil i desktop
-
-🔹 SEKCE F – POMOCNÉ FUNKCE
-  - normalizePrahaAddress() – úprava adres
-  - ulozTermin() – uložení termínu do localStorage
-  - computeDataHash() – kontrolní hash pro změny
-  - formátování času, datumu, animace flash
-  - přenos toastu po reloadu
-
-🔹 SEKCE G – EXTERNÍ KNIHOVNY + GLOBÁLNÍ INIT
-  - import Leaflet + Vanilla Calendar + jsPDF
-  - kontrola načtení knihoven (konzolové logy)
-  - globální styly, ochrana proti chybám (error / rejection)
-
-============================================================
-📂 Celková struktura:
-A  – HTML UI
-B  – Data & Tabulka
-C  – Detail zákazníka
-D  – Uložení termínu
-E  – Plán dne
-F  – Pomocné funkce
-G  – Externí knihovny & Init
-============================================================
-
-🧠 Poznámka:
-Tento blok je pouze dokumentační (HTML komentář).
-Nemá žádný vliv na funkci kódu a může být volně přesouván
-nebo doplňován podle potřeby vývoje.
-
-============================================================
--->
-
-
-<!-- 
-============================================================
-⚙️ WHITE GLOVE SERVICE – TECHNICKÝ INDEX FUNKCÍ
-============================================================
-
-📦 SEKCE A – STRUKTURA A OVLÁDÁNÍ
-───────────────────────────────────────────────
-• window.scrollTo()                  → posun při otevření kalendáře
-• (DOM event listener)               → kliknutí na tlačítko termínu
-
-📡 SEKCE B – NAČÍTÁNÍ DAT + DEBUG
-───────────────────────────────────────────────
-• loadData()                         → načtení dat z Workera (JSON)
-• renderTable(arr)                   → vykreslení tabulky záznamů
-• normalizePrahaAddress(addr)        → úprava adres Praha bez PSČ
-• sortSmart(data)                    → chytré řazení dat
-• hashData(arr)                      → hash pro detekci změn
-• playNotification()                 → zvuk při nových záznamech
-• searchInput.oninput                → filtrování výsledků
-• reloadBtn.onclick                  → ruční obnovení dat
-
-👤 SEKCE C – DETAIL ZÁKAZNÍKA
-───────────────────────────────────────────────
-• openDetail(index)                  → otevře detail zákazníka (modal)
-• updateTermInfoBox()                → aktualizace textu s datem/časem
-• updateTime()                       → přepočet času při změně hodin/minut
-• flashBox()                         → krátká animace při potvrzení
-• calcDistanceCoords()               → výpočet vzdálenosti mezi body
-• (Leaflet map init)                 → zobrazení mapy zákazníka
-• (VanillaCalendar init)             → malý kalendář v detailu
-• (Event listeners)                  → tlačítka Uložit / Nezvedá / Zrušit / Zpět
-
-💾 SEKCE D – ULOŽENÍ TERMÍNU
-───────────────────────────────────────────────
-• ulozitTerminNaGitHub()             → ukládá změny přes Worker → GitHub
-• ulozTermin()                       → zapisuje termín do localStorage
-• showToast(msg, type)               → krátká zpráva v rohu
-• setNextToast(msg, type)            → uloží toast pro příští zobrazení
-• (Loader overlay)                   → vizuální animace ⏳ během ukládání
-
-🗓️ SEKCE E – PLÁN DNE
-───────────────────────────────────────────────
-• initCalendar()                     → zobrazení Vanilla Calendaru
-• addBlueDots()                      → označení dnů s uloženými termíny
-• showPlanForDay(date)               → vykreslí mapu a legendu pro vybraný den
-• recalcDeparture()                  → přepočítá čas odjezdu
-• highlightTodayRows()               → zvýrazní dnešní termíny (blikání)
-• exportPlanToPDF()                  → export plánu dne do PDF
-
-🧩 SEKCE F – POMOCNÉ FUNKCE
-───────────────────────────────────────────────
-• normalizePrahaAddress()            → (základní verze) zkrácení adres
-• ulozTermin(item)                   → ukládání lokálních termínů
-• computeDataHash()                  → hash kontrola
-• formatDateCzech()                  → převod ISO data do českého formátu
-• formatTimeShort(h, m)              → formátování času HH:MM
-• (flashGreen animace)               → potvrzení uložených dat
-
-🌍 SEKCE G – EXTERNÍ KNIHOVNY + INIT
-───────────────────────────────────────────────
-• Leaflet (L.*)                      → mapy, trasy, značky
-• VanillaCalendar()                  → kalendář (verze 2.8.1)
-• jsPDF()                            → export PDF
-• window.addEventListener("DOMContentLoaded")  → globální start logů
-• window.addEventListener("error")   → zachytí JS chyby
-• window.addEventListener("unhandledrejection") → zachytí chyby Promise
-
-============================================================
-🧠 DOPORUČENÍ PRO LADĚNÍ
-───────────────────────────────────────────────
-• Pokud se data nenačítají → zkontroluj Worker (sekce B)
-• Pokud mapa nefunguje → zkontroluj Leaflet import (sekce G)
-• Pokud kalendář nefunguje → Vanilla Calendar (sekce G)
-• Pokud toast mizí → kontrola sessionStorage (sekce D/F)
-• Pokud detail zamrzá → zkontroluj funkce openDetail() a ulozitTerminNaGitHub()
-
-============================================================
-📘 VERZE: 1.0 – říjen 2025
-============================================================
--->
