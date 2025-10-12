@@ -638,8 +638,7 @@ async function createLocalPhotoPdf(base64Arr) {
 
 
 
-
-/* 🟨🟨🟨🟨🟨 ZAČÁTEK BLOKU J-D – Generování PDF protokolu */
+/* 🟨🟨🟨🟨🟨 ZAČÁTEK BLOKU J-D – Generování PDF protokolu (v2 bez deformace) */
 async function generateProtocolPDF() {
   const { jsPDF } = window.jspdf;
   const wrapper = document.querySelector(".wrapper");
@@ -649,17 +648,41 @@ async function generateProtocolPDF() {
   const vis = btns.style.visibility;
   btns.style.visibility = "hidden";
 
+  // vytvoříme kvalitní screenshot
   const canvas = await html2canvas(wrapper, { scale: 3, backgroundColor: "#fff" });
   const imgData = canvas.toDataURL("image/jpeg", 0.98);
-  doc.addImage(imgData, "JPEG", 0, 0, 210, 297);
+
+  // velikost A4 v pixelech (poměr 1 : 1.414)
+  const pageW = 210;
+  const pageH = 297;
+  const imgRatio = canvas.width / canvas.height;
+  const pageRatio = pageW / pageH;
+
+  let imgW, imgH, posX, posY;
+
+  if (imgRatio > pageRatio) {
+    // obrázek je širší než A4 → přizpůsobíme šířku
+    imgW = pageW;
+    imgH = pageW / imgRatio;
+    posX = 0;
+    posY = (pageH - imgH) / 2;
+  } else {
+    // obrázek je vyšší než A4 → přizpůsobíme výšku
+    imgH = pageH;
+    imgW = pageH * imgRatio;
+    posY = 0;
+    posX = (pageW - imgW) / 2;
+  }
+
+  doc.addImage(imgData, "JPEG", posX, posY, imgW, imgH);
   btns.style.visibility = vis;
 
-  // ✍️ Podpis už je zahrnut v HTML (canvas je součástí wrapperu)
-  // Není potřeba přidávat novou stránku ani samostatně vkládat podpis
+  console.log(`✅ PDF protokol bez deformace (${imgW.toFixed(1)}×${imgH.toFixed(1)} mm)`);
 
   return doc;
 }
-/* 🟨🟨🟨🟨🟨 KONEC BLOKU J-D – Generování PDF protokolu */
+/* 🟨🟨🟨🟨🟨 KONEC BLOKU J-D – Generování PDF protokolu (v2 bez deformace) */
+
 
 
 
