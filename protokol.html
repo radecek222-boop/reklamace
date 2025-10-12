@@ -737,9 +737,27 @@ function hideWait(success=true) {
 
 <!-- 🟨🟨🟨🟨🟨 KONEC BLOKU WAIT-DIALOG -->
 
-<!-- 🟨 Sekce K – Automatické načtení fotodokumentace z Worker -->
+<!-- 🟨 Sekce K – Automatické načtení fotodokumentace z localStorage + Worker -->
 <script>
-async function loadCustomerPhotosFromWorker(orderNumber) {
+async function loadCustomerPhotos(orderNumber) {
+  // 🟢 1️⃣ Zkus načíst z localStorage (okamžitě)
+  const base64 = localStorage.getItem("photoPdfData");
+  if (base64) {
+    const container = document.createElement("div");
+    container.id = "photoPreviewContainer";
+    container.style.display = "block";
+    container.style.marginTop = "25px";
+    container.innerHTML = `
+      <h3 style="margin-top:25px;">📸 Fotodokumentace</h3>
+      <iframe id="photoPreviewFrame" src="${base64}" 
+        style="width:100%;height:700px;border:1px solid #ccc;border-radius:8px;">
+      </iframe>
+    `;
+    document.querySelector(".wrapper").appendChild(container);
+    console.log("✅ Fotodokumentace načtena z localStorage");
+  }
+
+  // 🔵 2️⃣ Poté zkus načíst ze serveru (Worker)
   try {
     const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer", {
       cache: "no-store"
@@ -748,42 +766,53 @@ async function loadCustomerPhotosFromWorker(orderNumber) {
       console.warn("⚠️ Nelze načíst photocustomer.json");
       return;
     }
-  
-  const all = await res.json();
-const arr = Array.isArray(all) ? all : all.records || [];
 
-const record = arr.find(r => r.cislo === orderNumber);
-if (!record || !record.file) {
-  console.warn("⚠️ Fotodokumentace pro tuto objednávku nebyla nalezena");
-  return;
-}
+    const all = await res.json();
+    const arr = Array.isArray(all) ? all : all.records || [];
+    const record = arr.find(r => r.cislo === orderNumber);
+    if (!record || !record.file) {
+      console.warn("⚠️ Fotodokumentace pro tuto objednávku nebyla nalezena");
+      return;
+    }
 
-const container = document.getElementById("photoPreviewContainer");
-const frame = document.getElementById("photoPreviewFrame");
-container.style.display = "block";
-frame.src = record.file;
+    const frame = document.getElementById("photoPreviewFrame");
+    if (frame) {
+      frame.src = record.file;
+      console.log("✅ Fotodokumentace aktualizována z Workeru");
+    } else {
+      const container = document.createElement("div");
+      container.id = "photoPreviewContainer";
+      container.style.marginTop = "25px";
+      container.innerHTML = `
+        <h3 style="margin-top:25px;">📸 Fotodokumentace</h3>
+        <iframe id="photoPreviewFrame" src="${record.file}" 
+          style="width:100%;height:700px;border:1px solid #ccc;border-radius:8px;">
+        </iframe>
+      `;
+      document.querySelector(".wrapper").appendChild(container);
+    }
 
-showNotif("success", "Fotodokumentace načtena z Workeru");
+    if (typeof showNotif === "function") showNotif("success", "Fotodokumentace načtena");
   } catch (err) {
     console.error("❌ Chyba při načítání fotodokumentace:", err);
-    showNotif("error", "Nelze načíst fotodokumentaci");
+    if (typeof showNotif === "function") showNotif("error", "Nelze načíst fotodokumentaci");
   }
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-  // 1️⃣ Pokud už jsou data v localStorage, přečti číslo objednávky
   const data = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
   const orderNum =
     document.getElementById("order-number")?.value ||
     data.cislo ||
     "";
 
-  // 2️⃣ Zkus načíst fotky podle čísla objednávky
   if (orderNum) {
-    loadCustomerPhotosFromWorker(orderNum);
+    loadCustomerPhotos(orderNum);
   }
 });
 </script>
+<!-- 🟨 KONEC SEKCE K – Automatické načtení fotodokumentace z localStorage + Worker -->
+
 
 </body>
 </html>
