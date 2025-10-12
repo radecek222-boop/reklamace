@@ -151,7 +151,7 @@ button:hover { transform:scale(1.03); opacity:0.9; }
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   try {
-    const raw = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
+   const data = JSON.parse(localStorage.getItem("protokolData") || "{}");
     const data = raw.data || raw; // 🟢 podpora obou formátů (temporaryfiles.json i původní)
 
     if (!data || Object.keys(data).length === 0) {
