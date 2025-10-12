@@ -481,51 +481,161 @@ function showNotif(type = "success", text = "Hotovo") {
 /* 🟨🟨🟨🟨🟨 KONEC BLOKU J-B – Pomocná funkce pro notifikace */
 
 
-/* 🟨🟨🟨🟨🟨 ZAČÁTEK BLOKU J-C – Připojení fotodokumentace (v2 s náhledem z temporaryfiles) */
-let attachedPhotos = null;
+/* 🟨🟨🟨🟨🟨 ZAČÁTEK BLOKU J-C – Přidání lokálních fotek z zařízení (v3 – komprese + náhled) */
+let attachedPhotos = [];
+
 async function attachPhotos() {
-  try {
-    const data = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
-    const orderNum = data.cislo || document.getElementById("order-number")?.value || "";
+  // 🟩 Skrytý vstup pro výběr fotek
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+  input.multiple = true;
+  input.capture = "environment";
+  input.style.display = "none";
+  document.body.appendChild(input);
 
-    if (!orderNum) {
-      showNotif("warning", "Nelze načíst fotky – chybí číslo zakázky");
-      return;
-    }
+  input.onchange = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
 
-    showWait("Načítám fotky z temporaryfiles...");
-    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles", { cache: "no-store" });
+    showWait("Zpracovávám fotky…");
+    try {
+      attachedPhotos = [];
 
-    if (!res.ok) throw new Error("Nelze načíst temporaryfiles");
+      for (const file of files) {
+        const compressed = await compressImage(file, 0.5); // max ~0.5 MB
+        attachedPhotos.push(compressed);
+      }
 
-    const all = await res.json();
-    const arr = Array.isArray(all) ? all : all.data || [];
-    const record = arr.find(r => r.cislo === orderNum);
+      // 🟢 Uložení do localStorage
+      const dataUrls = await Promise.all(attachedPhotos.map(f => toBase64(f)));
+      localStorage.setItem("localPhotoSet", JSON.stringify(dataUrls));
 
-    if (!record || !record.file) {
+      // 🟢 Zobrazení pod protokolem
+      renderPhotoPreview(dataUrls);
+
+      hideWait(true);
+      showNotif("success", "Fotky přidány");
+    } catch (err) {
+      console.error("❌ Chyba při zpracování fotek:", err);
       hideWait(false);
-      showNotif("warning", "Žádné fotky nebyly nalezeny");
-      return;
+      showNotif("error", "Chyba při přidávání fotek");
+    } finally {
+      input.remove();
     }
+  };
 
-    // 🟢 Uložení fotodokumentace do localStorage a zobrazení v náhledu
-    attachedPhotos = record.file;
-    localStorage.setItem("photoPdfData", record.file);
-
-    const preview = document.getElementById("photoPreviewContainer");
-    const frame = document.getElementById("photoPreviewFrame");
-    preview.style.display = "block";
-    frame.src = record.file;
-
-    hideWait(true);
-    showNotif("success", "Fotky načteny z temporaryfiles");
-  } catch (e) {
-    hideWait(false);
-    console.error("❌ Chyba při připojení fotek:", e);
-    showNotif("error", "Nelze načíst fotky z temporaryfiles");
-  }
+  input.click();
 }
-/* 🟨🟨🟨🟨🟨 KONEC BLOKU J-C – Připojení fotodokumentace (v2) */
+
+// 🧩 Komprese obrázku pomocí canvasu
+async function compressImage(file, maxMB = 0.5) {
+  const img = await loadImage(URL.createObjectURL(file));
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  const maxWidth = 1200; // přiměřená velikost
+  const scale = Math.min(1, maxWidth / img.width);
+  canvas.width = img.width * scale;
+  canvas.height = img.height * scale;
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  let quality = 0.85;
+  let blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
+  while (blob.size > maxMB * 1024 * 1024 && quality > 0.4) {
+    quality -= 0.05;
+    blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
+  }
+  return blob;
+}
+
+// 🧩 Převod Blob → Base64
+function toBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+// 🧩 Načtení obrázku
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+// 🧩 Vykreslení náhledu pod protokol
+function renderPhotoPreview(base64Arr) {
+  let container = document.getElementById("photoPreviewContainer");
+  let frame = document.getElementById("photoPreviewFrame");
+
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "photoPreviewContainer";
+    container.style.marginTop = "25px";
+    document.querySelector(".wrapper").appendChild(container);
+  }
+
+  container.innerHTML = `<h3 style="margin-top:25px;">📸 Fotky ze zařízení</h3>
+    <div id="photoGrid" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;"></div>
+    <iframe id="photoPreviewFrame"
+      style="width:100%;height:700px;border:1px solid #ccc;border-radius:8px;"></iframe>`;
+
+  const grid = container.querySelector("#photoGrid");
+  base64Arr.forEach(src => {
+    const img = document.createElement("img");
+    img.src = src;
+    img.style.width = "180px";
+    img.style.height = "120px";
+    img.style.objectFit = "cover";
+    img.style.borderRadius = "6px";
+    img.style.cursor = "pointer";
+    img.onclick = () => window.open(src, "_blank");
+    grid.appendChild(img);
+  });
+
+  // 🟦 vytvoření jednoduchého PDF z těchto fotek pro export pod protokol
+  createLocalPhotoPdf(base64Arr).then(base64pdf => {
+    localStorage.setItem("photoPdfDataLocal", base64pdf);
+    frame.src = base64pdf;
+  });
+}
+
+// 🧩 Vytvoření PDF z lokálních fotek
+async function createLocalPhotoPdf(base64Arr) {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("p", "mm", "a4");
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+
+  pdf.setFontSize(14);
+  pdf.text("WHITE GLOVE SERVICE – Lokální fotky", pageW / 2, 20, { align: "center" });
+  pdf.line(20, 25, pageW - 20, 25);
+
+  let y = 35;
+  let col = 0;
+  for (const src of base64Arr) {
+    const imgW = (pageW - 60) / 2;
+    const imgH = imgW * 0.75;
+    const x = 20 + (col % 2) * (imgW + 20);
+    pdf.addImage(src, "JPEG", x, y, imgW, imgH);
+    col++;
+    if (col % 2 === 0) y += imgH + 10;
+    if (y > pageH - 40) {
+      pdf.addPage();
+      y = 30;
+    }
+  }
+
+  return pdf.output("datauristring");
+}
+/* 🟨🟨🟨🟨🟨 KONEC BLOKU J-C – Přidání lokálních fotek z zařízení (v3 – komprese + náhled) */
+
 
 
 
