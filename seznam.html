@@ -810,54 +810,55 @@ function openDetail(index) {
       </div>
     </div>`;
 
-  // 🧩 KONTROLA FOTODOKUMENTACE
-  async function checkPhotoDocumentation(item, overlay) {
-    try {
-      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles?" + Date.now(), { cache: "no-store" });
-      const all = await res.json();
-      const arr = Array.isArray(all) ? all : (all.data || all.records || []);
-      if (!Array.isArray(arr)) return;
+<script>
+// 🧩 KONTROLA FOTODOKUMENTACE
+async function checkPhotoDocumentation(item, overlay) {
+  try {
+    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles?" + Date.now(), { cache: "no-store" });
+    const all = await res.json();
+    const arr = Array.isArray(all) ? all : (all.data || all.records || []);
+    if (!Array.isArray(arr)) return;
 
-      const found = arr.find(r => (r.data?.cislo || r.cislo) === item.cislo);
-      if (found && (found.data?.file || found.file)) {
-        const rightPanel = overlay.querySelector(".right-panel");
-        const box = document.createElement("div");
-        box.className = "info-box";
-        box.innerHTML = `
-          <div class="box-header"><strong>📎 Fotodokumentace</strong></div>
-          <div class="box-content">
-            <p>Fotodokumentace je přiložena k zakázce č. ${found.data?.cislo || found.cislo}</p>
-            <button id="openPhotoDocBtn" class="btn-blue" style="margin-top:6px;">Otevřít PDF</button>
-          </div>`;
-        rightPanel.prepend(box);
+    const found = arr.find(r => (r.data?.cislo || r.cislo) === item.cislo);
+    if (found && (found.data?.file || found.file)) {
+      const rightPanel = overlay.querySelector(".right-panel");
+      const box = document.createElement("div");
+      box.className = "info-box";
+      box.innerHTML = `
+        <div class="box-header"><strong>📎 Fotodokumentace</strong></div>
+        <div class="box-content">
+          <p>Fotodokumentace je přiložena k zakázce č. ${found.data?.cislo || found.cislo}</p>
+          <button id="openPhotoDocBtn" class="btn-blue" style="margin-top:6px;">Otevřít PDF</button>
+        </div>`;
+      rightPanel.prepend(box);
 
-        const btn = box.querySelector("#openPhotoDocBtn");
-        btn.onclick = () => {
-          const fileUrl = found.data?.file || found.file;
-          const orderNum = found.data?.cislo || found.cislo;
-          const link = document.createElement("a");
-          link.href = fileUrl;
-          link.download = `Fotodokumentace_${orderNum}.pdf`;
-          link.click();
-        };
-      }
-    } catch (err) {
-      console.warn("⚠️ Nepodařilo se načíst temporaryfiles:", err);
+      const btn = box.querySelector("#openPhotoDocBtn");
+      btn.onclick = () => {
+        const fileUrl = found.data?.file || found.file;
+        const orderNum = found.data?.cislo || found.cislo;
+        const link = document.createElement("a");
+        link.href = fileUrl;
+        link.download = `Fotodokumentace_${orderNum}.pdf`;
+        link.click();
+      };
     }
+  } catch (err) {
+    console.warn("⚠️ Nepodařilo se načíst temporaryfiles:", err);
   }
+}
 
-  document.body.appendChild(overlay);
-  setTimeout(() => overlay.classList.add("active"), 10);
+document.body.appendChild(overlay);
+setTimeout(() => overlay.classList.add("active"), 10);
 
-  initCalendarAndTime(overlay, item, index);
-  initMapForDetail(overlay, item);
-  initDetailButtons(overlay, item, index);
+initCalendarAndTime(overlay, item, index);
+initMapForDetail(overlay, item);
+initDetailButtons(overlay, item, index);
 
-  // 🔗 Zkontroluj, zda má zákazník fotodokumentaci
-  checkPhotoDocumentation(item, overlay);
+// 🔗 Zkontroluj, zda má zákazník fotodokumentaci
+checkPhotoDocumentation(item, overlay);
 
-  overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
-  overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
+overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
+overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
 }
 
 
