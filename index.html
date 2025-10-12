@@ -517,5 +517,125 @@ document.getElementById("adminPassword").addEventListener("keypress", e => {
   if (e.key === "Enter") tryLogin();
 });
 </script>
+
+  <!-- 🧩 AUDIT PŘÍSTUP (tajný přístup k audit.html – kód: audit2025) -->
+<style>
+#auditAccessBtn {
+  position: fixed;
+  top: 10px;
+  left: 15px;
+  background: linear-gradient(135deg, #222, #555);
+  color: #fff;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-family: "Inter", sans-serif;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  z-index: 2100;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+}
+#auditAccessBtn:hover { opacity: 1; transform: scale(1.05); }
+
+#auditOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 3000;
+  backdrop-filter: blur(4px);
+}
+#auditBox {
+  background: rgba(40,40,40,0.95);
+  padding: 35px 30px;
+  border-radius: 14px;
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 4px 25px rgba(0,0,0,0.5);
+  animation: fadeIn 0.3s ease-in-out;
+  width: 90%;
+  max-width: 320px;
+}
+#auditBox h2 {
+  margin-top: 0;
+  font-size: 1.3em;
+  font-weight: 800;
+}
+#auditPass {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #555;
+  border-radius: 8px;
+  background: #222;
+  color: #eee;
+  font-size: 1em;
+  margin-bottom: 14px;
+}
+#auditConfirm {
+  background: linear-gradient(135deg, #1565c0, #2196f3);
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform .15s ease-in-out, opacity .2s;
+}
+#auditConfirm:hover { transform: scale(1.05); opacity: 0.9; }
+#auditError {
+  color: #ff5252;
+  font-size: 0.9em;
+  margin-top: 5px;
+  display: none;
+}
+</style>
+
+<button id="auditAccessBtn">AUDIT</button>
+
+<div id="auditOverlay">
+  <div id="auditBox">
+    <h2>Audit přístup</h2>
+    <p>Zadej přístupový kód</p>
+    <input type="password" id="auditPass" placeholder="••••••">
+    <div id="auditError">❌ Nesprávný kód</div>
+    <button id="auditConfirm">Potvrdit</button>
+  </div>
+</div>
+
+<script>
+const AUDIT_CODE = "audit2025";
+const auditBtn = document.getElementById("auditAccessBtn");
+const overlay = document.getElementById("auditOverlay");
+const input = document.getElementById("auditPass");
+const error = document.getElementById("auditError");
+
+auditBtn.addEventListener("click", () => {
+  overlay.style.display = "flex";
+  input.value = "";
+  error.style.display = "none";
+  input.focus();
+});
+
+document.getElementById("auditConfirm").addEventListener("click", () => {
+  if (input.value.trim() === AUDIT_CODE) {
+    window.open("audit.html", "_blank");
+    overlay.style.display = "none";
+  } else {
+    error.style.display = "block";
+    input.value = "";
+    input.focus();
+  }
+});
+
+input.addEventListener("keypress", e => {
+  if (e.key === "Enter") document.getElementById("auditConfirm").click();
+});
+</script>
+
+  
 </body>
 </html>
