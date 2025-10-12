@@ -7,7 +7,7 @@ Datum sestavení:     2025-10-08
 Autor:               Hugo (White Glove Service) & GPT-5
 Projekt:             WGS reklamace / servisní plánování
 Soubory:             seznam.html (hlavní přehled), orders.json (data)
-Worker:              https://wgs-token.72nvwf4pb2.workers.dev/orders
+Worker:              https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles
 Repozitář:           https://github.com/radecek222-boop/reklamace
 Popis:
   Kompletní rozhraní pro zobrazení a správu reklamací.
@@ -327,7 +327,7 @@ tr.stav-hotovo:hover td {
 /* ============================= */
 /* ⚙️ KONSTANTY A PROMĚNNÉ       */
 /* ============================= */
-const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/orders";
+const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles";
 const tableContainer = document.getElementById("tableContainer");
 const searchInput = document.getElementById("search");
 const reloadBtn = document.getElementById("reloadBtn");
@@ -766,7 +766,7 @@ function openDetail(index) {
   // 🧩 KONTROLA FOTODOKUMENTACE (napojení na photocustomer.json)
 async function checkPhotoDocumentation(item, overlay) {
   try {
-    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/photocustomer?" + Date.now(), {
+    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles?" + Date.now(), {
       cache: "no-store"
     });
     const data = await res.json();
@@ -831,7 +831,7 @@ function initDetailButtons(overlay, item, index) {
       item.stav = "domluveno";
       stavy[id] = "domluveno";
 
-      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "update", record: item })
@@ -853,7 +853,7 @@ function initDetailButtons(overlay, item, index) {
     try {
       item.stav = "ceka";
       stavy[id] = "ceka";
-      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "update", record: item })
@@ -1449,7 +1449,7 @@ function openCustomerDetail(item, overlay) {
     item.produkt = modal.querySelector("#editProdukt").value.trim();
 
     try {
-      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "update", record: item })
@@ -1493,7 +1493,7 @@ function openPopisEditor(item, overlay) {
     item.popis = modal.querySelector("#editPopis").value.trim();
 
     try {
-      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+      const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "update", record: item })
@@ -1644,7 +1644,7 @@ async function ulozitTerminNaGitHub(item, id, datum, cas, overlay, btn, infoBox)
 
   try {
     // 💾 Uložení přes Worker na GitHub
-    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
+    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "update", record: item })
@@ -2275,7 +2275,7 @@ Autor: Hugo & GPT-5
   - všechny viditelné prvky uživatelského rozhraní
 
 🔹 SEKCE B – NAČÍTÁNÍ DAT
-  - Fetch z Cloudflare Workera (https://wgs-token.72nvwf4pb2.workers.dev/orders)
+  - Fetch z Cloudflare Workera (https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles)
   - funkce loadData() + renderTable()
   - vyhledávání zákazníků, filtrování
   - debug panel (B-DEBUG) – počet záznamů + čas načtení
