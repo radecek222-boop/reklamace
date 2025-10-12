@@ -154,10 +154,30 @@ document.addEventListener("DOMContentLoaded", () => {
     const raw = JSON.parse(localStorage.getItem("protokolData") || "{}");
     const data = raw.data || raw; // 🟢 podpora obou formátů (temporaryfiles.json i původní)
 
+    // 🧩 Bezpečnostní pojistka proti prázdným záznamům
     if (!data || Object.keys(data).length === 0) {
       console.warn("⚠️ Nebyla nalezena data zákazníka v localStorage");
+      window.preventWorkerPost = true; // blokace zápisu na Worker
       return;
     }
+
+    // ✅ Pokud data existují, uložíme si je pro práci s protokolem
+    window.currentCustomer = data;
+
+    // 🔹 Doplnění údajů do stránky
+    document.getElementById("zakaznik").textContent = data.zakaznik || "–";
+    document.getElementById("adresa").textContent = data.adresa || "–";
+    document.getElementById("telefon").textContent = data.telefon || "–";
+    document.getElementById("produkt").textContent = data.produkt || "–";
+    document.getElementById("cislo").textContent = data.cislo || "–";
+    document.getElementById("popis").textContent = data.popis || "–";
+
+  } catch (e) {
+    console.error("❌ Chyba při načítání dat zákazníka:", e);
+    window.preventWorkerPost = true; // pojistka i při chybě
+  }
+});
+</script>
 
     // 🔹 Propis základních údajů do protokolu
     const map = {
