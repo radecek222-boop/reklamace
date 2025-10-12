@@ -898,24 +898,25 @@ if (uploadBtn) {
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("reklamaceForm");
+  const wait = document.getElementById("waitOverlay");
+  const success = document.getElementById("successCheck");
+  const predvolba = document.getElementById("predvolba");
+
   if (!form) {
-    console.warn("⚠️ Formulář #reklamaceForm nebyl nalezen.");
+    console.error("❌ Formulář #reklamaceForm nebyl nalezen!");
     return;
   }
+
+  console.log("✅ Form listener připojen.");
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const wait = document.getElementById("waitOverlay");
-    const success = document.getElementById("successCheck");
-    if (wait) wait.classList.add("active");
+    wait.classList.add("active");
 
     const f = e.target;
-    const predvolba = document.getElementById("predvolba");
-
-    // 🟢 Odesíláme správné názvy polí (datum_prodeje, datum_reklamace)
     const dataObj = {
-      type: "reklamace",  // ✅ opraveno z "typ" na "type"
+      type: "reklamace",
       contract: f.zpracoval.value,
       cislo: f.cislo.value.trim().toUpperCase(),
       zakaznik: f.zakaznik.value,
@@ -930,27 +931,25 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     try {
-      // 🧩 Zabraň opakovanému odeslání při F5
-if (sessionStorage.getItem("formSent") === "1") return;
-sessionStorage.setItem("formSent", "1");
       const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ record: dataObj })
       });
       const json = await res.json();
-      console.log("📤 Odpověď workeru:", json);
+      console.log("📤 Worker odpověď:", json);
 
       wait.classList.remove("active");
       success.classList.add("active");
-      setTimeout(() => window.location.href = "index.html", 2500);
+      setTimeout(() => window.location.href = "seznam.html", 2500);
     } catch (err) {
       wait.classList.remove("active");
-      alert("Chyba při odesílání: " + err.message);
+      alert("❌ Chyba při odesílání: " + err.message);
     }
   });
 });
 </script>
+
 
 <!-- 🟨 KONEC ČÁSTI 7/10 – ODESLÁNÍ FORMULÁŘE -->
 
