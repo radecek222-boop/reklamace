@@ -1,138 +1,125 @@
 <!-- 
 =========================================================
-💎 WHITE GLOVE SERVICE – AUDIT SYSTEM
+💎 WHITE GLOVE SERVICE – AUDIT SYSTEM (v4.1)
 =========================================================
-Autor:       Radek Zikmund & Hugo (GPT-5)
-Verze:       v2.1
-Popis:       Diagnostika všech WGS stránek (HTML, CSS, JS)
----------------------------------------------------------
+Autor: Radek Zikmund & Hugo (GPT-5)
+Datum: 2025-10-12
+Popis:
+  Vizuální diagnostika a kontrola WGS stránek.
+  – Logy a chyby v levém panelu
+  – Živý náhled stránky vpravo
+  – Zvýraznění chybějících prvků
+=========================================================
 -->
 
 <!DOCTYPE html>
 <html lang="cs">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Audit – White Glove Service</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
-body {
-  font-family: "Inter", sans-serif;
-  background: #f6f7fb;
-  margin: 0;
-  padding: 40px;
-  text-align: center;
-}
-h1 {
-  font-weight: 900;
-  margin-bottom: 10px;
-}
-select, button {
-  font-family: inherit;
-  padding: 10px 16px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  margin: 10px;
-}
-iframe {
-  width: 100%;
-  height: 70vh;
-  border: 2px solid #ddd;
-  border-radius: 10px;
-  margin-top: 20px;
-  background: white;
-}
+body{font-family:"Inter",sans-serif;margin:0;display:flex;flex-direction:column;height:100vh;background:#f6f7fb;color:#222;}
+header{background:#fff;padding:10px 20px;box-shadow:0 2px 6px rgba(0,0,0,.1);display:flex;align-items:center;gap:10px;z-index:5;}
+header img{height:36px;margin-right:8px;}
+header strong{font-weight:900;font-size:18px;}
+select,button{padding:8px 12px;border:1px solid #ccc;border-radius:6px;font-family:inherit;background:#f9f9f9;cursor:pointer;}
+select:focus,button:focus{outline:none;border-color:#999;}
+main{display:flex;flex:1;overflow:hidden;}
+#logs{width:40%;background:#fff;overflow:auto;padding:12px;font-size:13px;line-height:1.4;border-right:2px solid #e0e0e0;}
+#preview{flex:1;position:relative;background:#fafafa;}
+iframe{width:100%;height:100%;border:none;background:#fff;}
+.log{margin:3px 0;padding:5px 7px;border-left:4px solid transparent;cursor:pointer;}
+.log.info{border-color:#2196f3;color:#222;}
+.log.warn{border-color:#ffa000;background:#fff8e1;}
+.log.error{border-color:#e53935;background:#ffebee;}
+.highlight{outline:3px solid red;outline-offset:-3px;transition:all .2s ease;}
+#suggestion{display:none;background:#eef;padding:4px;border-left:3px solid #2196f3;margin-top:4px;font-size:12px;}
+footer{background:#fff;text-align:center;padding:6px 10px;font-size:12px;border-top:1px solid #eee;color:#666;}
 </style>
 </head>
 <body>
 
-<h1>🔍 WGS – Audit System</h1>
-<p>Vyber stránku pro kontrolu:</p>
+<header>
+  <img src="https://raw.githubusercontent.com/radecek222-boop/reklamace/main/logo-wgs.png" alt="WGS logo" onerror="this.style.display='none'">
+  <strong>WHITE GLOVE SERVICE – AUDIT</strong>
+  <select id="pageSelect">
+    <option>index.html</option>
+    <option>seznam.html</option>
+    <option>orders.html</option>
+    <option>protokol.html</option>
+    <option>photocustomer.html</option>
+  </select>
+  <button id="runBtn">Spustit audit</button>
+</header>
 
-<select id="pageSelect">
-  <option value="index.html">index.html</option>
-  <option value="seznam.html">seznam.html</option>
-  <option value="orders.html">orders.html</option>
-  <option value="protokol.html">protokol.html</option>
-  <option value="photocustomer.html">photocustomer.html</option>
-</select>
+<main>
+  <div id="logs"></div>
+  <div id="preview">
+    <iframe id="frame" sandbox="allow-scripts allow-same-origin"></iframe>
+  </div>
+</main>
 
-<button id="loadBtn">Načíst a spustit audit</button>
-
-<iframe id="auditFrame" sandbox="allow-scripts allow-same-origin"></iframe>
+<footer>© White Glove Service s.r.o. – vizuální auditní panel v4.1</footer>
 
 <script>
-document.getElementById("loadBtn").addEventListener("click", () => {
-  const page = document.getElementById("pageSelect").value;
-  const iframe = document.getElementById("auditFrame");
+const logBox=document.getElementById("logs");
+const frame=document.getElementById("frame");
 
-  iframe.src = page;
-  iframe.onload = () => {
-    console.clear();
-    console.log(`=======================================================`);
-    console.log(`🔍 AUDIT – ${page}`);
-    console.log(`=======================================================`);
+function log(type,msg,selector="",hint=""){
+  const div=document.createElement("div");
+  div.className=`log ${type}`;
+  div.innerHTML=`<b>${type.toUpperCase()}</b> ${msg}`;
+  if(hint){
+    const sug=document.createElement("div");
+    sug.id="suggestion";
+    sug.innerHTML=`💡 ${hint}`;
+    div.appendChild(sug);
+    div.onclick=()=>sug.style.display=sug.style.display==="block"?"none":"block";
+  }
+  if(selector){
+    div.addEventListener("mouseover",()=>highlight(selector));
+    div.addEventListener("mouseout",clearHighlight);
+  }
+  logBox.appendChild(div);
+  logBox.scrollTop=logBox.scrollHeight;
+}
 
-    try {
-      iframe.contentWindow.eval(`(${auditCore.toString()})();`);
-    } catch (err) {
-      console.error("⚠️ Nelze spustit audit ve stránce:", err.message);
-    }
-  };
-});
+function highlight(sel){
+  try{const el=frame.contentDocument.querySelector(sel);if(el)el.classList.add("highlight");}catch{}
+}
+function clearHighlight(){frame.contentDocument.querySelectorAll(".highlight").forEach(el=>el.classList.remove("highlight"));}
 
-function auditCore() {
-  (async () => {
-    console.group("🧠 WGS UNIVERSAL AUDIT – START");
-
-    // HTML info
-    console.log("📄 Title:", document.title);
-    console.log("🔗 URL:", location.href);
-
-    // Key elements
-    const ids = ["searchInput","tableContainer","calendarContainer","mapContainer","planModal","signatureCanvas","uploadSection"];
-    ids.forEach(id => {
-      const el = document.getElementById(id);
-      if (!el) console.warn(`❌ Missing element: #${id}`);
-      else console.log(`✅ Found: #${id} (${el.tagName})`);
+document.getElementById("runBtn").onclick=()=>{
+  logBox.innerHTML="";
+  const file=document.getElementById("pageSelect").value;
+  frame.src=file;
+  log("info",`Načítám stránku: ${file}`);
+  frame.onload=()=>{
+    const win=frame.contentWindow;
+    log("info",`✅ Načteno: ${file}`);
+    win.addEventListener("error",e=>{
+      log("error",`${e.message} (řádek ${e.lineno})`,"","Zkontroluj chybějící element nebo pořadí skriptů.");
     });
+    win.addEventListener("unhandledrejection",e=>{
+      log("error",`Promise: ${e.reason}`);
+    });
+    win.eval("(" + auditCore.toString() + ")()");
+  };
+};
 
-    // Functions
-    const fns = Object.keys(window).filter(k => typeof window[k] === "function");
-    console.log("🧩 Functions found:", fns.length);
-    console.log(fns.filter(f => /(init|load|save|open|render|update)/i.test(f)));
-
-    // Scripts
-    console.group("⚙️ Scripts:");
-    [...document.scripts].forEach((s, i) => console.log(`${i+1}.`, s.src || "inline"));
-    console.groupEnd();
-
-    // Styles
-    console.group("🎨 Stylesheets:");
-    [...document.styleSheets].forEach((s, i) => console.log(`${i+1}.`, s.href || "inline <style>"));
-    console.groupEnd();
-
-    // Worker test
-    const urls = [
-      "https://wgs-token.72nvwf4pb2.workers.dev/orders",
-      "https://wgs-token.72nvwf4pb2.workers.dev/hotove",
-      "https://wgs-token.72nvwf4pb2.workers.dev/photocustomer"
-    ];
-    for (const u of urls) {
-      try {
-        const r = await fetch(u, { method: "HEAD", cache: "no-store" });
-        console.log(`🌍 ${u} → ${r.status}`);
-      } catch(e) {
-        console.warn(`❌ ${u} → ${e.message}`);
-      }
-    }
-
-    // Listeners + runtime check
-    window.addEventListener("unhandledrejection", e => console.error("🚨 Promise error:", e.reason));
-    window.addEventListener("error", e => console.error("🔥 JS error:", e.message));
-
-    console.groupEnd();
-    console.log("✅ AUDIT COMPLETE");
+function auditCore(){
+  (async()=>{
+    const ids=["searchInput","tableContainer","calendarContainer","mapContainer","planModal","signatureCanvas","uploadSection"];
+    ids.forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el) parent.log("warn",`Chybí #${id}`,"#"+id,"Doplň element nebo uprav JS, který ho používá.");
+      else parent.log("info",`#${id} nalezen`);
+    });
+    const fns=Object.keys(window).filter(k=>typeof window[k]==="function");
+    if(!window.loadData) parent.log("warn","Funkce loadData nenalezena","","Ověř, že je JS načten dřív než se volá.");
+    parent.log("info",`🔧 Načteno ${fns.length} funkcí.`);
   })();
 }
 </script>
