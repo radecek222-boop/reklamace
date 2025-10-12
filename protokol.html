@@ -152,7 +152,7 @@ button:hover { transform:scale(1.03); opacity:0.9; }
 document.addEventListener("DOMContentLoaded", () => {
   try {
    const data = JSON.parse(localStorage.getItem("protokolData") || "{}");
-    const data = raw.data || raw; // 🟢 podpora obou formátů (temporaryfiles.json i původní)
+    let data = raw.data || raw; // 🟢 podpora obou formátů (temporaryfiles.json i původní)
 
     if (!data || Object.keys(data).length === 0) {
       console.warn("⚠️ Nebyla nalezena data zákazníka v localStorage");
