@@ -182,7 +182,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 });
 </script>
 <!-- 🟨 KONEC SEKCE B/10 -->
-<!-- 🟨 ZAČÁTEK SEKCE C/10 – FOTKY A UPLOAD -->
+<!-- 🟨 ZAČÁTEK SEKCE C/10 – FOTKY A UPLOAD (v2.0 – přesná komprese max 0.5 MB) -->
 <div class="photo-block" data-section="before"><div class="photo-title">BEFORE</div><div class="photo-preview" id="preview-before"></div></div>
 <div class="photo-block" data-section="id"><div class="photo-title">ID</div><div class="photo-preview" id="preview-id"></div></div>
 <div class="photo-block" data-section="problem"><div class="photo-title">DETAIL BUG</div><div class="photo-preview" id="preview-problem"></div></div>
@@ -192,7 +192,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 <input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
 <div class="progress-bar-container"><div class="progress-bar-fill" id="progressFill"></div></div>
 
-<!-- 🔹 NOVÝ INFORMAČNÍ BOX O KOMPRESI -->
+<!-- 🔹 Informační box o kompresi -->
 <div id="compressionInfo" style="margin-top:15px;text-align:center;color:#555;font-size:0.9em;">
   📷 Zatím žádné fotky nenahrány.
 </div>
@@ -209,70 +209,105 @@ document.addEventListener("DOMContentLoaded",()=>{
 
 <script>
 (function(){
-  const input=document.getElementById("photoInput");
-  const sections={before:[],id:[],problem:[],repair:[],after:[]};
-  const fill=document.getElementById("progressFill");
-  const info=document.getElementById("compressionInfo");
+  const input = document.getElementById("photoInput");
+  const sections = { before:[], id:[], problem:[], repair:[], after:[] };
+  const fill = document.getElementById("progressFill");
+  const info = document.getElementById("compressionInfo");
 
-  document.querySelectorAll(".photo-block").forEach(b=>b.addEventListener("click",()=>{input.dataset.section=b.dataset.section;input.click();}));
-
-  input.addEventListener("change",async()=>{
-    const s=input.dataset.section;if(!s)return;
-    const files=Array.from(input.files);
-    let originalSize=0, compressedSize=0;
-    for(const f of files){
-      originalSize += f.size;
-      const blob=await compressImage(f,90);
-      compressedSize += blob.size;
-      const url=URL.createObjectURL(blob);
-      const o=await getOrientation(f);
-      sections[s].push({blob,url,orientation:o});
-    }
-    render(s);input.value="";await autoUpload();
-
-    // 💡 Aktualizuj info text po nahrání
-    const ratio = (compressedSize/originalSize*100).toFixed(1);
-    info.innerHTML = `📦 Komprese dokončena – zmenšeno na ${ratio}% původní velikosti.<br>
-      Odhadovaná velikost výsledného PDF: <strong>${(compressedSize/1024/1024).toFixed(2)} MB</strong>`;
+  // 📸 Kliknutí na blok – vyvolá výběr souborů
+  document.querySelectorAll(".photo-block").forEach(b=>{
+    b.addEventListener("click",()=>{
+      input.dataset.section = b.dataset.section;
+      input.click();
+    });
   });
 
-  async function compressImage(f,m=90){
-    const i=await createImageBitmap(f);
-    const c=document.createElement("canvas");
-    let w=i.width,h=i.height,r=w/h;
-    if(w>h&&w>m){h=Math.round(m/r);w=m;}
-    else if(h>=w&&h>m){w=Math.round(m*r);h=m;}
-    c.width=w;c.height=h;
-    c.getContext("2d").drawImage(i,0,0,w,h);
-    return new Promise(r=>c.toBlob(r,"image/jpeg",0.85));
+  // 🔧 Po výběru fotek
+  input.addEventListener("change", async ()=>{
+    const section = input.dataset.section;
+    if(!section) return;
+
+    const files = Array.from(input.files);
+    let originalSize = 0, compressedSize = 0;
+
+    for (const file of files) {
+      originalSize += file.size;
+      const blob = await compressImageToMax(file, 500); // max 500 KB
+      compressedSize += blob.size;
+      const url = URL.createObjectURL(blob);
+      const orientation = await getOrientation(file);
+      sections[section].push({ blob, url, orientation });
+    }
+
+    render(section);
+    input.value = "";
+    await autoUpload();
+
+    // ✅ Skutečné údaje po kompresi
+    const ratio = ((compressedSize / originalSize) * 100).toFixed(1);
+    const totalMB = (compressedSize / 1024 / 1024).toFixed(2);
+    const avgMB = ((compressedSize / files.length) / 1024 / 1024).toFixed(2);
+    info.innerHTML = `
+      📦 Komprese dokončena – max 0.5 MB na fotku<br>
+      Celkem: <strong>${totalMB} MB</strong> | Průměr: ${avgMB} MB / foto (${ratio}% původní velikosti)
+    `;
+  });
+
+  // 🧩 Komprese fotky s limitem 0.5 MB
+  async function compressImageToMax(file, maxKB = 500) {
+    const img = await createImageBitmap(file);
+    const canvas = document.createElement("canvas");
+    let w = img.width, h = img.height;
+    const maxDim = 1600;
+
+    if (w > h && w > maxDim) { h = Math.round(h * (maxDim / w)); w = maxDim; }
+    else if (h >= w && h > maxDim) { w = Math.round(w * (maxDim / h)); h = maxDim; }
+
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, w, h);
+
+    let q = 0.9;
+    let blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", q));
+    while (blob.size / 1024 > maxKB && q > 0.4) {
+      q -= 0.05;
+      blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", q));
+    }
+    return blob;
   }
 
-  async function getOrientation(f){
-    const i=await createImageBitmap(f);
-    return i.width>i.height?"landscape":"portrait";
+  async function getOrientation(file){
+    const img = await createImageBitmap(file);
+    return img.width > img.height ? "landscape" : "portrait";
   }
 
-  function render(s){
-    const c=document.getElementById("preview-"+s);
-    c.innerHTML="";
-    sections[s].forEach(p=>{
-      const img=document.createElement("img");
-      img.src=p.url;
-      img.className="photo-thumb";
-      c.append(img);
+  // 🖼️ Vykreslení náhledů
+  function render(section){
+    const container = document.getElementById("preview-"+section);
+    container.innerHTML = "";
+    sections[section].forEach(p=>{
+      const img = document.createElement("img");
+      img.src = p.url;
+      img.className = "photo-thumb";
+      container.append(img);
     });
   }
 
+  // 🔄 Simulace průběhu nahrávání
   async function autoUpload(){
-    const all=Object.values(sections).flat();
-    if(!all.length)return;
-    let u=0;
-    for(const p of all){await new Promise(r=>setTimeout(r,150));u++;fill.style.width=Math.round((u/all.length)*100)+"%";}
-    localStorage.setItem("photoUploadedAt",Date.now());
+    const all = Object.values(sections).flat();
+    if(!all.length) return;
+    for (let i=0; i<all.length; i++){
+      await new Promise(r=>setTimeout(r,150));
+      fill.style.width = Math.round(((i+1)/all.length)*100) + "%";
+    }
+    localStorage.setItem("photoUploadedAt", Date.now());
   }
 })();
 </script>
-<!-- 🟨 KONEC SEKCE C/10 -->
+<!-- 🟨 KONEC SEKCE C/10 – FOTKY A UPLOAD (v2.0) -->
+
 
 
 <!-- 🟨 ZAČÁTEK SEKCE D/10 – PDF EXPORT A ODESLÁNÍ -->
