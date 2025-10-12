@@ -1,0 +1,141 @@
+<!-- 
+=========================================================
+💎 WHITE GLOVE SERVICE – AUDIT SYSTEM
+=========================================================
+Autor:       Radek Zikmund & Hugo (GPT-5)
+Verze:       v2.1
+Popis:       Diagnostika všech WGS stránek (HTML, CSS, JS)
+---------------------------------------------------------
+-->
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audit – White Glove Service</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+body {
+  font-family: "Inter", sans-serif;
+  background: #f6f7fb;
+  margin: 0;
+  padding: 40px;
+  text-align: center;
+}
+h1 {
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+select, button {
+  font-family: inherit;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin: 10px;
+}
+iframe {
+  width: 100%;
+  height: 70vh;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  margin-top: 20px;
+  background: white;
+}
+</style>
+</head>
+<body>
+
+<h1>🔍 WGS – Audit System</h1>
+<p>Vyber stránku pro kontrolu:</p>
+
+<select id="pageSelect">
+  <option value="index.html">index.html</option>
+  <option value="seznam.html">seznam.html</option>
+  <option value="orders.html">orders.html</option>
+  <option value="protokol.html">protokol.html</option>
+  <option value="photocustomer.html">photocustomer.html</option>
+</select>
+
+<button id="loadBtn">Načíst a spustit audit</button>
+
+<iframe id="auditFrame" sandbox="allow-scripts allow-same-origin"></iframe>
+
+<script>
+document.getElementById("loadBtn").addEventListener("click", () => {
+  const page = document.getElementById("pageSelect").value;
+  const iframe = document.getElementById("auditFrame");
+
+  iframe.src = page;
+  iframe.onload = () => {
+    console.clear();
+    console.log(`=======================================================`);
+    console.log(`🔍 AUDIT – ${page}`);
+    console.log(`=======================================================`);
+
+    try {
+      iframe.contentWindow.eval(`(${auditCore.toString()})();`);
+    } catch (err) {
+      console.error("⚠️ Nelze spustit audit ve stránce:", err.message);
+    }
+  };
+});
+
+function auditCore() {
+  (async () => {
+    console.group("🧠 WGS UNIVERSAL AUDIT – START");
+
+    // HTML info
+    console.log("📄 Title:", document.title);
+    console.log("🔗 URL:", location.href);
+
+    // Key elements
+    const ids = ["searchInput","tableContainer","calendarContainer","mapContainer","planModal","signatureCanvas","uploadSection"];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) console.warn(`❌ Missing element: #${id}`);
+      else console.log(`✅ Found: #${id} (${el.tagName})`);
+    });
+
+    // Functions
+    const fns = Object.keys(window).filter(k => typeof window[k] === "function");
+    console.log("🧩 Functions found:", fns.length);
+    console.log(fns.filter(f => /(init|load|save|open|render|update)/i.test(f)));
+
+    // Scripts
+    console.group("⚙️ Scripts:");
+    [...document.scripts].forEach((s, i) => console.log(`${i+1}.`, s.src || "inline"));
+    console.groupEnd();
+
+    // Styles
+    console.group("🎨 Stylesheets:");
+    [...document.styleSheets].forEach((s, i) => console.log(`${i+1}.`, s.href || "inline <style>"));
+    console.groupEnd();
+
+    // Worker test
+    const urls = [
+      "https://wgs-token.72nvwf4pb2.workers.dev/orders",
+      "https://wgs-token.72nvwf4pb2.workers.dev/hotove",
+      "https://wgs-token.72nvwf4pb2.workers.dev/photocustomer"
+    ];
+    for (const u of urls) {
+      try {
+        const r = await fetch(u, { method: "HEAD", cache: "no-store" });
+        console.log(`🌍 ${u} → ${r.status}`);
+      } catch(e) {
+        console.warn(`❌ ${u} → ${e.message}`);
+      }
+    }
+
+    // Listeners + runtime check
+    window.addEventListener("unhandledrejection", e => console.error("🚨 Promise error:", e.reason));
+    window.addEventListener("error", e => console.error("🔥 JS error:", e.message));
+
+    console.groupEnd();
+    console.log("✅ AUDIT COMPLETE");
+  })();
+}
+</script>
+
+</body>
+</html>
