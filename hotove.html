@@ -104,7 +104,23 @@ tr:hover{background:#f1f6ff;}
 <script>
 async function loadDone(autoRetry = true) {
   const stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
-  const dataAll = JSON.parse(localStorage.getItem("dataAll") || "[]");
+  let dataAll = [];
+
+  // 🟩 Nové načítání z temporaryfiles.json (Worker)
+  try {
+    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles", {
+      cache: "no-store"
+    });
+    const json = await res.json();
+    if (Array.isArray(json.data)) {
+      dataAll = json.data
+        .filter(x => x.type === "order" || x.type === "reklamace" || x.type === "hotovo")
+        .map(x => x.data);
+    }
+  } catch (e) {
+    console.warn("⚠️ Nelze načíst temporaryfiles:", e);
+    dataAll = JSON.parse(localStorage.getItem("dataAll") || "[]");
+  }
 
   // ⏳ Pokud nejsou data, zkus znovu za 5 s (čekáme, až GitHub uloží změny)
   if (!dataAll.length) {
@@ -116,10 +132,10 @@ async function loadDone(autoRetry = true) {
   // 🔍 Filtrování hotových reklamací
   const hotove = dataAll.filter(r => {
     const id = r.cislo || r.zakaznik;
-    return stavy[id] === "hotovo";
+    return stavy[id] === "hotovo" || r.stav?.toLowerCase() === "hotovo";
   });
 
-   // ⏳ Pokud zatím žádné hotové, zkus znovu po 5 s
+  // ⏳ Pokud zatím žádné hotové, zkus znovu po 5 s
   if (!hotove.length) {
     tableContainer.innerHTML = "<div class='loading'>Žádné hotové reklamace – kontroluji aktualizaci...</div>";
     if (autoRetry) setTimeout(() => loadDone(false), 5000);
@@ -131,6 +147,7 @@ async function loadDone(autoRetry = true) {
 }
 </script>
 <!-- 🟨 KONEC SEKCE D -->
+
 
 <!-- 🟨 ZAČÁTEK SEKCE E – GENEROVÁNÍ TABULKY (s datem protokolu) -->
 <script>
