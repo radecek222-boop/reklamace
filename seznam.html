@@ -786,8 +786,6 @@ function openDetail(index) {
   overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
 }
 </script>
-<!-- 🟩 KONEC C-1 + C-4: DETAIL ZÁKAZNÍKA + KONTAKTOVACÍ DIALOG -->
-
         <!-- 🧾 PRAVÝ PANEL -->
         <div class="right-panel">
           <div class="info-box clickable" id="customerBox">
@@ -816,32 +814,35 @@ function openDetail(index) {
   async function checkPhotoDocumentation(item, overlay) {
     try {
       const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles?" + Date.now(), { cache: "no-store" });
-      const data = await res.json();
-      if (!Array.isArray(data)) return;
+      const all = await res.json();
+      const arr = Array.isArray(all) ? all : (all.data || all.records || []);
+      if (!Array.isArray(arr)) return;
 
-      const found = data.find(r => r.cislo === item.cislo);
-      if (found) {
+      const found = arr.find(r => (r.data?.cislo || r.cislo) === item.cislo);
+      if (found && (found.data?.file || found.file)) {
         const rightPanel = overlay.querySelector(".right-panel");
         const box = document.createElement("div");
         box.className = "info-box";
         box.innerHTML = `
           <div class="box-header"><strong>📎 Fotodokumentace</strong></div>
           <div class="box-content">
-            <p>Fotodokumentace je přiložena k zakázce č. ${found.cislo}</p>
+            <p>Fotodokumentace je přiložena k zakázce č. ${found.data?.cislo || found.cislo}</p>
             <button id="openPhotoDocBtn" class="btn-blue" style="margin-top:6px;">Otevřít PDF</button>
           </div>`;
         rightPanel.prepend(box);
 
         const btn = box.querySelector("#openPhotoDocBtn");
         btn.onclick = () => {
+          const fileUrl = found.data?.file || found.file;
+          const orderNum = found.data?.cislo || found.cislo;
           const link = document.createElement("a");
-          link.href = found.file;
-          link.download = `Fotodokumentace_${found.cislo}.pdf`;
+          link.href = fileUrl;
+          link.download = `Fotodokumentace_${orderNum}.pdf`;
           link.click();
         };
       }
     } catch (err) {
-      console.warn("⚠️ Nepodařilo se načíst photocustomer.json:", err);
+      console.warn("⚠️ Nepodařilo se načíst temporaryfiles:", err);
     }
   }
 
@@ -867,12 +868,22 @@ function initDetailButtons(overlay, item, index) {
 
   // 🟢 Uložit / změnit termín
   overlay.querySelector("#saveTermBtn").onclick = async () => {
-    // TODO: implementace uložení / změny termínu
+    try {
+      console.log("💾 Ukládám / měním termín…");
+      // zde se případně doplní logika pro uložení
+    } catch (e) {
+      console.error("❌ Chyba při ukládání termínu:", e);
+    }
   };
 
   // 🟣 Čeká na díly
   overlay.querySelector("#waitBtn").onclick = async () => {
-    // TODO: implementace stavu čekání na díly
+    try {
+      console.log("🟣 Nastavuji stav: čeká na díly");
+      // zde se případně doplní logika pro označení stavu
+    } catch (e) {
+      console.error("❌ Chyba při označení čekání na díly:", e);
+    }
   };
 
   // 📄 Protokol
@@ -880,7 +891,6 @@ function initDetailButtons(overlay, item, index) {
     localStorage.setItem("protokolData", JSON.stringify(item));
     window.location.href = "protokol.html";
   };
-}
 
   // 📸 Zahájit návštěvu
   const startVisitBtn = overlay.querySelector("#startVisitBtn");
