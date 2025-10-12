@@ -425,20 +425,13 @@ async function generateProtocolPDF() {
   doc.addImage(imgData, "JPEG", 0, 0, 210, 297);
   btns.style.visibility = vis;
 
-  // ✍️ Přidání podpisu
-  if (signaturePad && !signaturePad.isEmpty()) {
-    const sig = signaturePad.toDataURL("image/png");
-    doc.addPage();
-    doc.text("Podpis zákazníka / Customer signature", 20, 30);
-    doc.addImage(sig, "PNG", 20, 40, 120, 60);
-  } else {
-    doc.addPage();
-    doc.text("Bez podpisu zákazníka / No customer signature", 20, 30);
-  }
+  // ✍️ Podpis už je zahrnut v HTML (canvas je součástí wrapperu)
+  // Není potřeba přidávat novou stránku ani samostatně vkládat podpis
 
   return doc;
 }
 /* 🟨🟨🟨🟨🟨 KONEC BLOKU J-D – Generování PDF protokolu */
+
 
 
 /* 🟨🟨🟨🟨🟨 ZAČÁTEK BLOKU J-E – Spojení PDF s fotkami */
