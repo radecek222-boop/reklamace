@@ -740,47 +740,67 @@ if (res.ok) {
 /* 🟨🟨🟨🟨🟨 KONEC BLOKU J-E – Spojení PDF s fotkami */
 
 
-/* 🟨🟨🟨🟨🟨 ZAČÁTEK BLOKU J-F – Export PDF + označení hotovo */
+/* 🟨🟨🟨🟨🟨 ZAČÁTEK BLOKU J-F – Export PDF + plná fotodokumentace bez iframe */
 async function exportPDF() {
   try {
     showNotif("success", "Generuji PDF...");
     const proto = await generateProtocolPDF();
-    const merged = await mergeWithPhotos(proto);
-    const blob = merged instanceof Blob ? merged : new Blob([proto.output("arraybuffer")]);
-    const url = URL.createObjectURL(blob);
 
-    if (/iPhone|iPad|Android/i.test(navigator.userAgent)) {
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "WGS_protokol.pdf";
-      a.click();
-    } else {
+    // 🟩 Načti fotodokumentaci z localStorage (priorita: local → photocustomer)
+    const photoBase64 =
+      localStorage.getItem("photoPdfDataLocal") ||
+      localStorage.getItem("photoPdfData") ||
+      null;
+
+    if (photoBase64) {
+      console.log("📎 Přidávám fotodokumentaci do exportu…");
+      const merged = await mergePdfWithPhotos(proto, photoBase64);
+      const blob = new Blob([merged], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
+      showNotif("success", "PDF s fotodokumentací vytvořeno");
+    } else {
+      console.warn("⚠️ Žádná fotodokumentace – exportuji jen protokol");
+      const blob = proto.output("blob");
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+      showNotif("warning", "Exportován pouze protokol");
     }
-
-    // 🟢 Označit jako hotovo po exportu
-    try {
-      const data = JSON.parse(localStorage.getItem("protokolData") || "{}");
-      if (data.cislo) {
-        data.stav = "hotovo";
-        await fetch("https://wgs-token.72nvwf4pb2.workers.dev/orders", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "update", record: data })
-        });
-        console.log("✅ Reklamace označena jako hotová:", data.cislo);
-      }
-    } catch (err) {
-      console.warn("⚠️ Nelze uložit stav hotovo:", err);
-    }
-
-    showNotif("success", "PDF úspěšně vytvořeno");
   } catch (e) {
     console.error("❌ Chyba exportu PDF:", e);
     showNotif("error", "Chyba při exportu PDF");
   }
 }
-/* 🟨🟨🟨🟨🟨 KONEC BLOKU J-F – Export PDF + označení hotovo */
+
+// 🧩 Spojení hlavního PDF (protokol) s fotodokumentací z localStorage
+async function mergePdfWithPhotos(protoDoc, photoBase64) {
+  if (!window.PDFLib) {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js";
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  const { PDFDocument } = window.PDFLib;
+  const protoBytes = await protoDoc.output("arraybuffer");
+  const mainPdf = await PDFDocument.load(protoBytes);
+
+  const base64 = photoBase64.split(",")[1];
+  const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+  const photosPdf = await PDFDocument.load(bytes);
+
+  const copied = await mainPdf.copyPages(photosPdf, photosPdf.getPageIndices());
+  copied.forEach(p => mainPdf.addPage(p));
+
+  const mergedBytes = await mainPdf.save();
+  console.log(`✅ Spojeno: ${mainPdf.getPageCount()} stránek celkem`);
+  return mergedBytes;
+}
+/* 🟨🟨🟨🟨🟨 KONEC BLOKU J-F – Export PDF + plná fotodokumentace bez iframe */
+
 
 
 
