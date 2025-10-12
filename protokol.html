@@ -266,25 +266,25 @@ document.addEventListener("DOMContentLoaded", () => {
  
 <!-- 🟨 ZAČÁTEK SEKCE F – Podpis a tlačítka -->
 <style>
-/* 🔴 Tlačítko Vymazat – vpravo nad rámečkem */
+/* 🔴 Tlačítko Vymazat – vlevo nad textem */
 .btn-clear {
-  position: absolute;
-  top: -34px;
-  right: 0;
+  display: block;
+  margin-bottom: 6px;
   background: linear-gradient(135deg,#e63946,#ff6b6b);
   color: #fff;
   border: none;
   border-radius: 6px;
-  font-size: 0.8em;
+  font-size: 0.75em;
   font-weight: 600;
-  padding: 6px 12px;
+  padding: 4px 12px;
+  height: 26px;
+  line-height: 18px;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  transform: scale(0.9);
   transition: transform 0.15s ease, opacity 0.2s;
 }
 .btn-clear:hover {
-  transform: scale(1.0);
+  transform: scale(1.05);
   opacity: 0.9;
 }
 
@@ -321,14 +321,14 @@ button.btn:hover { transform: scale(1.03); opacity: 0.9; }
 
 .signature-wrapper {
   position: relative;
-  margin-top: 30px;
+  margin-top: 0;
 }
 </style>
 
+<button class="btn-clear" type="button" onclick="signaturePad.clear()">Vymazat</button>
 <div class="section-title">Podpis zákazníka<span class="en-label">Customer signature</span></div>
 
 <div class="signature-wrapper">
-  <button class="btn-clear" type="button" onclick="signaturePad.clear()">Vymazat</button>
   <canvas id="signature-pad"></canvas>
 </div>
 <div class="signature-label">Podepište se prstem nebo myší</div>
@@ -347,6 +347,11 @@ button.btn:hover { transform: scale(1.03); opacity: 0.9; }
           style="width:100%;height:480px;border:1px solid #ccc;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1);"></iframe>
 </div>
 <!-- 🟨 KONEC SEKCE F – Podpis a tlačítka -->
+
+
+
+
+
 
 
 
