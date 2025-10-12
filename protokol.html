@@ -453,24 +453,52 @@ function showNotif(type = "success", text = "Hotovo") {
 /* 🟨🟨🟨🟨🟨 KONEC BLOKU J-B – Pomocná funkce pro notifikace */
 
 
-/* 🟨🟨🟨🟨🟨 ZAČÁTEK BLOKU J-C – Připojení fotodokumentace */
+/* 🟨🟨🟨🟨🟨 ZAČÁTEK BLOKU J-C – Připojení fotodokumentace (v2 s náhledem z temporaryfiles) */
 let attachedPhotos = null;
-function attachPhotos() {
-  const photoPdfData = localStorage.getItem("photoPdfData");
-  const preview = document.getElementById("photoPreviewContainer");
-  const frame = document.getElementById("photoPreviewFrame");
+async function attachPhotos() {
+  try {
+    const data = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
+    const orderNum = data.cislo || document.getElementById("order-number")?.value || "";
 
-  if (!photoPdfData) {
-    showNotif("warning", "Žádné fotky nebyly nalezeny");
-    preview.style.display = "none";
-    return;
+    if (!orderNum) {
+      showNotif("warning", "Nelze načíst fotky – chybí číslo zakázky");
+      return;
+    }
+
+    showWait("Načítám fotky z temporaryfiles...");
+    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles", { cache: "no-store" });
+
+    if (!res.ok) throw new Error("Nelze načíst temporaryfiles");
+
+    const all = await res.json();
+    const arr = Array.isArray(all) ? all : all.data || [];
+    const record = arr.find(r => r.cislo === orderNum);
+
+    if (!record || !record.file) {
+      hideWait(false);
+      showNotif("warning", "Žádné fotky nebyly nalezeny");
+      return;
+    }
+
+    // 🟢 Uložení fotodokumentace do localStorage a zobrazení v náhledu
+    attachedPhotos = record.file;
+    localStorage.setItem("photoPdfData", record.file);
+
+    const preview = document.getElementById("photoPreviewContainer");
+    const frame = document.getElementById("photoPreviewFrame");
+    preview.style.display = "block";
+    frame.src = record.file;
+
+    hideWait(true);
+    showNotif("success", "Fotky načteny z temporaryfiles");
+  } catch (e) {
+    hideWait(false);
+    console.error("❌ Chyba při připojení fotek:", e);
+    showNotif("error", "Nelze načíst fotky z temporaryfiles");
   }
-  attachedPhotos = photoPdfData;
-  preview.style.display = "block";
-  frame.src = photoPdfData;
-  showNotif("success", "Fotodokumentace připojena");
 }
-/* 🟨🟨🟨🟨🟨 KONEC BLOKU J-C – Připojení fotodokumentace */
+/* 🟨🟨🟨🟨🟨 KONEC BLOKU J-C – Připojení fotodokumentace (v2) */
+
 
 
 /* 🟨🟨🟨🟨🟨 ZAČÁTEK BLOKU J-D – Generování PDF protokolu */
