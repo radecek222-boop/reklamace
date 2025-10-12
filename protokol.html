@@ -647,50 +647,48 @@ async function createLocalPhotoPdf(base64Arr) {
 
 
 
-/* 🟨🟨🟨🟨🟨 ZAČÁTEK BLOKU J-D – Generování PDF protokolu (v2 bez deformace) */
+/* 🟨🟨🟨🟨🟨 ZAČÁTEK BLOKU J-D – Generování PDF protokolu (A4, bez iframu) */
 async function generateProtocolPDF() {
   const { jsPDF } = window.jspdf;
   const wrapper = document.querySelector(".wrapper");
   const doc = new jsPDF("p", "mm", "a4");
 
+  // 🟡 Skryjeme iframe s fotkami během exportu
+  const photoPreview = document.getElementById("photoPreviewContainer");
+  const wasVisible = photoPreview && photoPreview.style.display !== "none";
+  if (photoPreview) photoPreview.style.display = "none";
+
+  // 🟡 Skryjeme tlačítka, aby nebyla v PDF
   const btns = document.querySelector(".btns");
   const vis = btns.style.visibility;
   btns.style.visibility = "hidden";
 
-  // vytvoříme kvalitní screenshot
-  const canvas = await html2canvas(wrapper, { scale: 3, backgroundColor: "#fff" });
-  const imgData = canvas.toDataURL("image/jpeg", 0.98);
+  // 🟢 Vytvoření plátna v měřítku 3× pro ostrý text
+  const canvas = await html2canvas(wrapper, {
+    scale: 3,
+    backgroundColor: "#fff",
+    useCORS: true
+  });
 
-  // velikost A4 v pixelech (poměr 1 : 1.414)
+  const imgData = canvas.toDataURL("image/jpeg", 0.98);
   const pageW = 210;
   const pageH = 297;
-  const imgRatio = canvas.width / canvas.height;
-  const pageRatio = pageW / pageH;
 
-  let imgW, imgH, posX, posY;
+  // 🟢 Vypočet poměru pro přesné vyplnění A4
+  const imgW = pageW;
+  const imgH = (canvas.height * pageW) / canvas.width;
 
-  if (imgRatio > pageRatio) {
-    // obrázek je širší než A4 → přizpůsobíme šířku
-    imgW = pageW;
-    imgH = pageW / imgRatio;
-    posX = 0;
-    posY = (pageH - imgH) / 2;
-  } else {
-    // obrázek je vyšší než A4 → přizpůsobíme výšku
-    imgH = pageH;
-    imgW = pageH * imgRatio;
-    posY = 0;
-    posX = (pageW - imgW) / 2;
-  }
+  // 🟢 Vložení jako A4 strana
+  doc.addImage(imgData, "JPEG", 0, 0, imgW, imgH > pageH ? pageH : imgH);
 
-  doc.addImage(imgData, "JPEG", posX, posY, imgW, imgH);
+  // 🟢 Vrátíme viditelnost tlačítek a iframu
   btns.style.visibility = vis;
+  if (photoPreview && wasVisible) photoPreview.style.display = "block";
 
-  console.log(`✅ PDF protokol bez deformace (${imgW.toFixed(1)}×${imgH.toFixed(1)} mm)`);
-
+  console.log("✅ Exportováno jako přesná A4 bez náhledu iframu");
   return doc;
 }
-/* 🟨🟨🟨🟨🟨 KONEC BLOKU J-D – Generování PDF protokolu (v2 bez deformace) */
+/* 🟨🟨🟨🟨🟨 KONEC BLOKU J-D – Generování PDF protokolu (A4, bez iframu) */
 
 
 
