@@ -735,41 +735,42 @@ function renderMainPreview(){
     }
   }
 
-  // ☁️ Upload s kontrolou duplikátů nahrání (bez varování, čisté)
-  const uploadBtn = document.getElementById("uploadBtn");
-  if (uploadBtn) {
-    uploadBtn.addEventListener("click", async () => {
-      if (!compressedPhotos.length) return;
-      uploadBtn.disabled = true;
+ // ☁️ Upload s kontrolou duplikátů nahrání (bez varování, čisté)
+const uploadBtn = document.getElementById("uploadBtn");
+if (uploadBtn) {
+  uploadBtn.addEventListener("click", async () => {
+    if (!compressedPhotos.length) return;
+    uploadBtn.disabled = true;
 
-      for (const p of compressedPhotos) {
-        const alreadyUploaded = window.uploadedPhotos.some(u => u.name === p.file.name);
-        if (alreadyUploaded) continue;
+    for (const p of compressedPhotos) {
+      const alreadyUploaded = window.uploadedPhotos.some(u => u.name === p.file.name);
+      if (alreadyUploaded) continue;
 
-        try {
-          const formData = new FormData();
-          formData.append("file", p.blob, p.file.name);
-          const r = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload", {
-            method: "POST",
-            body: formData
-          });
-          const res = await r.json();
-          p.item.classList.add("uploaded");
-          window.uploadedPhotos.push({
-            filename: res.filename,
-            name: p.file.name,
-            preview: p.preview
-          });
-        } catch (e) {
-          console.error("❌ Chyba při uploadu:", e);
-        }
+      try {
+        const formData = new FormData();
+        formData.append("file", p.blob, p.file.name);
+        const r = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload", {
+          method: "POST",
+          body: formData
+        });
+        const res = await r.json();
+        p.item.classList.add("uploaded");
+        window.uploadedPhotos.push({
+          filename: res.filename,
+          name: p.file.name,
+          preview: p.preview
+        });
+      } catch (e) {
+        console.error("❌ Chyba při uploadu:", e);
       }
+    }
 
-      renderMainPreview();
-      photoModal.classList.remove("active");
-      uploadBtn.disabled = false;
-    });
-  }
+    renderMainPreview();
+    photoModal.classList.remove("active");
+    uploadBtn.disabled = false;
+  });
+}
+
 
   // 📋 Náhledy po nahrání (s možností odstranit)
   function renderMainPreview() {
