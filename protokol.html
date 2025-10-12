@@ -264,17 +264,78 @@ document.addEventListener("DOMContentLoaded", () => {
   </script>
 
  
-<!-- 🟨 Sekce F – Podpis a tlačítka -->
+<!-- 🟨 ZAČÁTEK SEKCE F – Podpis a tlačítka -->
+<style>
+/* 🔴 Tlačítko Vymazat podpis */
+.btn-clear {
+  position: absolute;
+  right: 0;
+  transform: translateY(-50%);
+  background: linear-gradient(135deg,#e63946,#ff6b6b);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8em;
+  font-weight: 600;
+  padding: 6px 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.btn-clear:hover { opacity: 0.9; transform: translateY(-50%) scale(1.05); }
+
+/* 🎨 Spodní tlačítka */
+.btns {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  position: relative;
+}
+button.btn {
+  flex: 1 1 22%;
+  max-width: 220px;
+  height: 50px;
+  font-size: 0.95em;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #fff;
+  text-align: center;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  transition: transform 0.1s ease, opacity 0.2s;
+}
+button.btn:hover { transform: scale(1.03); opacity: 0.9; }
+
+.btn-yellow { background: linear-gradient(135deg,#ffb200,#ffca40); color:#222; }
+.btn-blue   { background: linear-gradient(135deg,#0090d4,#33b6ff); }
+.btn-green  { background: linear-gradient(135deg,#00b56a,#00da80); }
+.btn-gray   { background: linear-gradient(135deg,#9b9b9b,#bfbfbf); color:#000; }
+
+.signature-wrapper {
+  position: relative;
+  margin-top: 10px;
+}
+</style>
+
 <div class="section-title">Podpis zákazníka<span class="en-label">Customer signature</span></div>
-<canvas id="signature-pad"></canvas>
+
+<div class="signature-wrapper">
+  <button class="btn-clear" type="button" onclick="signaturePad.clear()">Vymazat podpis</button>
+  <canvas id="signature-pad"></canvas>
+</div>
 <div class="signature-label">Podepište se prstem nebo myší</div>
 
 <div class="btns">
-  <button class="btn-clear" type="button" onclick="signaturePad.clear()">Vymazat podpis</button>
-  <button class="btn-back" type="button" onclick="window.location.href='index.html'">Zpět</button>
-  <button class="btn-photos" type="button" onclick="attachPhotos()">Přidat fotky</button>
-  <button class="btn-pdf" type="button" onclick="exportPDF()">Exportovat PDF</button>
-  <button class="btn-email" type="button" onclick="mailCustomer()">Odeslat zákazníkovi</button>
+  <button class="btn btn-yellow" type="button" onclick="attachPhotos()">Přidat fotky</button>
+  <button class="btn btn-blue" type="button" onclick="exportPDF()">Exportovat PDF</button>
+  <button class="btn btn-green" type="button" onclick="mailCustomer()">Odeslat zákazníkovi</button>
+  <button class="btn btn-gray" type="button" onclick="window.location.href='index.html'">Zpět</button>
 </div>
 
 <!-- 🟩 Náhled připojených fotek -->
@@ -283,6 +344,8 @@ document.addEventListener("DOMContentLoaded", () => {
   <iframe id="photoPreviewFrame"
           style="width:100%;height:480px;border:1px solid #ccc;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1);"></iframe>
 </div>
+<!-- 🟨 KONEC SEKCE F – Podpis a tlačítka -->
+
 
 <!-- 🟨 Sekce G – Notifikace -->
 <div id="notif" class="notif"></div>
