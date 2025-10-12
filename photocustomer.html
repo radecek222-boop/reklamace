@@ -229,54 +229,53 @@ document.addEventListener("DOMContentLoaded",()=>{
 window.generatePdf=async function(){const{jsPDF}=window.jspdf;const pdf=new jsPDF("p","pt","a4");const el=document.querySelector(".wrapper");try{const c=await html2canvas(el,{scale:2,useCORS:true});const img=c.toDataURL("image/png");const w=pdf.internal.pageSize.getWidth();const h=(c.height*w)/c.width;pdf.addImage(img,"PNG",0,0,w,h);}catch(e){pdf.text("⚠️ Nelze vykreslit fotodokumentaci",20,50);}return pdf.output("blob");};
 </script>
 <!-- 🟨 KONEC SEKCE D/10 -->
-<!-- 🟨 ZAČÁTEK SEKCE E/10 – ULOŽENÍ NA TEMPORARYFILES -->
+
+  <!-- 🟨 ZAČÁTEK SEKCE E/10 – ULOŽENÍ NA TEMPORARYFILES S KOMPRESE -->
 <script>
 document.addEventListener("DOMContentLoaded",()=>{
   const sendBtn=document.getElementById("btnSendToDetail");
   const exportBtn=document.getElementById("btnExportPdf");
-  const wait=document.getElementById("waitOverlay");
 
-  window.showNotif=function(t="success",x="Hotovo"){
-    const n=document.getElementById("notif");
-    n.className=`notif ${t}`;
-    n.textContent=x;
-    n.classList.add("show");
-    clearTimeout(window._notifTimer);
-    window._notifTimer=setTimeout(()=>n.classList.remove("show"),2500);
-  };
+  async function compressPdfTo1MB(pdfBlob){
+    const arrayBuffer = await pdfBlob.arrayBuffer();
+    const pdfData = new Uint8Array(arrayBuffer);
+    const { jsPDF } = window.jspdf;
+    const tmpCanvas = document.createElement("canvas");
+    const ctx = tmpCanvas.getContext("2d");
 
-  // 💾 EXPORT TO PDF – nabídka stažení + uložení na TEMPORARYFILES
-  exportBtn?.addEventListener("click",async()=>{
-    try{
-      showWait("Exportuji PDF...");
-      const b=await window.generatePdf(true);
+    // 🟢 Převedeme PDF na obrázek pomocí pdf.js (light verze)
+    const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+    const page = await pdf.getPage(1);
+    const viewport = page.getViewport({ scale: 1 });
+    tmpCanvas.width = viewport.width;
+    tmpCanvas.height = viewport.height;
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    const imgData = tmpCanvas.toDataURL("image/jpeg", 0.6);
 
-      // 🟢 Nabídka uložení PDF uživateli
-      const url=URL.createObjectURL(b);
-      const a=document.createElement("a");
-      a.href=url;
-      a.download="WGS_photodocumentation.pdf";
-      a.click();
-      URL.revokeObjectURL(url);
+    // 🟡 Nový PDF s menší kompresí
+    const newPdf = new jsPDF("p", "pt", "a4");
+    const pageWidth = newPdf.internal.pageSize.getWidth();
+    const pageHeight = (tmpCanvas.height * pageWidth) / tmpCanvas.width;
+    newPdf.addImage(imgData, "JPEG", 0, 0, pageWidth, pageHeight);
+    const newBlob = newPdf.output("blob");
 
-      // ☁️ Uložení na TEMPORARYFILES (záloha)
-      await savePhotoToWorker(b);
-
-      hideWait(true);
-      showNotif("success","PDF uloženo");
-    }catch(e){
-      hideWait(false);
-      showNotif("error","Chyba PDF");
+    // 🔻 Pokud je větší než 1 MB, sniž kvalitu
+    if (newBlob.size > 1000000) {
+      const scale = Math.max(0.3, 1 - newBlob.size / 5000000);
+      const smallerImg = tmpCanvas.toDataURL("image/jpeg", scale);
+      const smallPdf = new jsPDF("p", "pt", "a4");
+      smallPdf.addImage(smallerImg, "JPEG", 0, 0, pageWidth, pageHeight);
+      return smallPdf.output("blob");
     }
-  });
+    return newBlob;
+  }
 
-  // 📤 Odeslání do detailu zákazníka
   sendBtn?.addEventListener("click",async()=>{
     try{
-      showWait("Odesílám fotky...");
-      const b=await window.generatePdf(true);
+      showWait("Komprimuji fotky...");
+      let pdfBlob = await window.generatePdf(true);
+      pdfBlob = await compressPdfTo1MB(pdfBlob);
 
-      // 🟢 Uložení PDF do localStorage pro protokol.html
       const reader=new FileReader();
       reader.onloadend=()=>{
         localStorage.setItem("photoPdfData",reader.result);
@@ -284,42 +283,19 @@ document.addEventListener("DOMContentLoaded",()=>{
         showNotif("success","Odesláno do detailu");
         setTimeout(()=>window.location.href="protokol.html",1000);
       };
-      reader.readAsDataURL(b);
+      reader.readAsDataURL(pdfBlob);
 
-      // ☁️ Záložní uložení do Worker
-      await savePhotoToWorker(b);
+      await savePhotoToWorker(pdfBlob);
     }catch(e){
       hideWait(false);
       showNotif("error","Chyba odeslání");
+      console.error(e);
     }
   });
 });
-
-async function savePhotoToWorker(pdfBlob){
-  try{
-    const r=new FileReader();
-    r.onloadend=async()=>{
-      const base64=r.result;
-      const c=JSON.parse(localStorage.getItem("currentCustomer")||"{}");
-      const rec={
-        cislo:c.cislo||"",
-        zakaznik:c.zakaznik||"",
-        datum:new Date().toISOString(),
-        file:base64
-      };
-      await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({record:rec})
-      });
-    };
-    r.readAsDataURL(pdfBlob);
-  }catch(e){
-    console.warn("⚠️ Chyba při ukládání do Worker:",e);
-  }
-}
 </script>
-<!-- 🟨 KONEC SEKCE E/10 – ULOŽENÍ NA TEMPORARYFILES -->
+<!-- 🟨 KONEC SEKCE E/10 – ULOŽENÍ NA TEMPORARYFILES S KOMPRESE -->
+
 
 
 <!-- 🟨 ZAČÁTEK SEKCE F/10 – DIALOG ČEKÁNÍ -->
