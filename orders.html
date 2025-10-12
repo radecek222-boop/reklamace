@@ -432,17 +432,105 @@
     <div class="photo-modal-actions">
       <button type="button" id="selectFiles" class="btn-gray">Vyber soubory</button>
       <input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
-      <button type="button" id="uploadPhotos" class="btn-green">Nahrát fotografie</button>
       <button type="button" id="closePhotoModal" class="btn-white">Zavřít</button>
     </div>
   </div>
 </div>
 
 <script>
-// sjednocený trigger pro výběr souborů
-document.getElementById("selectFiles").addEventListener("click",()=>{
-  document.getElementById("photoInput").click();
+const selectFiles = document.getElementById("selectFiles");
+const photoInput = document.getElementById("photoInput");
+const photoModal = document.getElementById("photoModal");
+const photoPreview = document.getElementById("photoPreview");
+const photoPreviewMain = document.getElementById("photoPreviewMain");
+
+let photoFiles = [];
+window.uploadedPhotos = [];
+
+selectFiles.addEventListener("click", () => photoInput.click());
+
+// 📸 Po výběru fotek → automaticky nahraj + zavři
+photoInput.addEventListener("change", async () => {
+  const files = Array.from(photoInput.files);
+  if (!files.length) return;
+
+  photoModal.classList.add("active");
+  photoPreview.innerHTML = "";
+  for (const file of files.slice(0,5)) {
+    const img = document.createElement("img");
+    const wrap = document.createElement("div");
+    const bar = document.createElement("div");
+    wrap.className = "photo-item processing";
+    bar.className = "progress-bar";
+    wrap.append(img, bar);
+    photoPreview.append(wrap);
+
+    const reader = new FileReader();
+    reader.onload = e => img.src = e.target.result;
+    reader.readAsDataURL(file);
+
+    const blob = await compressImage(file);
+    await uploadAndPreview(blob, file, wrap, img);
+  }
+
+  photoModal.classList.remove("active");
+  renderMainPreview();
 });
+
+// 🧩 Komprese
+async function compressImage(file, maxSizeKB=500, maxDim=800){
+  const img = await createImageBitmap(file);
+  const canvas = document.createElement("canvas");
+  let [w,h] = [img.width,img.height];
+  if (w>h && w>maxDim){ h=Math.round(h*(maxDim/w)); w=maxDim; }
+  else if (h>w && h>maxDim){ w=Math.round(w*(maxDim/h)); h=maxDim; }
+  canvas.width=w; canvas.height=h;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img,0,0,w,h);
+  let q=0.9;
+  let blob = await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));
+  while(blob.size/1024>maxSizeKB && q>0.4){
+    q-=0.1;
+    blob = await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));
+  }
+  return blob;
+}
+
+// ☁️ Upload
+async function uploadAndPreview(blob, file, wrap, img){
+  const formData = new FormData();
+  formData.append("file", blob, file.name);
+  try {
+    const r = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload", { method:"POST", body:formData });
+    const res = await r.json();
+    wrap.classList.remove("processing");
+    wrap.querySelector(".progress-bar").style.width="100%";
+    window.uploadedPhotos.push({ filename: res.filename, name: file.name, preview: img.src });
+  } catch (err) {
+    console.error("❌ Upload selhal:", err);
+  }
+}
+
+// 🖼️ Náhled hlavních fotek
+function renderMainPreview(){
+  photoPreviewMain.innerHTML = "";
+  window.uploadedPhotos.forEach((p,index)=>{
+    const row = document.createElement("div");
+    row.className = "photo-item-main";
+    const img = document.createElement("img");
+    img.className = "photo-thumb";
+    img.src = p.preview;
+    const name = document.createElement("div");
+    name.className = "photo-name";
+    name.textContent = p.name;
+    const remove = document.createElement("button");
+    remove.className = "photo-remove";
+    remove.textContent = "×";
+    remove.onclick = ()=>{ window.uploadedPhotos.splice(index,1); renderMainPreview(); };
+    row.append(img,name,remove);
+    photoPreviewMain.append(row);
+  });
+}
 </script>
 
 <style>
