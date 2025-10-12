@@ -705,6 +705,11 @@ function renderMobileBlocks(arr) {
 <!-- 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA + KONTAKTOVACÍ DIALOG -->
 <script>
 function openDetail(index) {
+  if (typeof dataAll === "undefined") {
+    console.error("❌ dataAll není definováno – openDetail nelze spustit");
+    return;
+  }
+
   const item = dataAll[index];
   if (!item) return;
 
@@ -742,6 +747,46 @@ function openDetail(index) {
             <button id="createProtocolBtn" class="tile-btn btn-blue">Vytvořit protokol</button>
           </div>
         </div>
+
+        <!-- 🧾 PRAVÝ PANEL -->
+        <div class="right-panel">
+          <div class="info-box clickable" id="customerBox">
+            <div class="box-header"><strong>Zákazník</strong></div>
+            <div class="box-content">
+              <p><strong>Jméno:</strong> ${item.zakaznik || "–"}</p>
+              <p><strong>Adresa:</strong> ${adresaUpravena}</p>
+              <p><strong>Telefon:</strong> ${item.telefon || "–"}</p>
+              <p><strong>Email:</strong> ${item.email || "–"}</p>
+              <p><strong>Produkt / model:</strong> ${item.produkt || "–"}</p>
+            </div>
+          </div>
+
+          <div class="info-box clickable" id="popisBox">
+            <div class="box-header"><strong>Popis závady</strong></div>
+            <div class="box-content" id="popisContent">${item.popis || "–"}</div>
+          </div>
+
+          <div class="distance-banner" id="mapDistance">📍 Počítám vzdálenost…</div>
+          <div id="mapDetail"></div>
+        </div>
+      </div>
+    </div>`;
+
+  // 🧩 Po vložení obsahu aktivuj animaci
+  document.body.appendChild(overlay);
+  setTimeout(() => overlay.classList.add("active"), 10);
+
+  // 🧭 Inicializace detailu
+  initCalendarAndTime(overlay, item, index);
+  initMapForDetail(overlay, item);
+  initDetailButtons(overlay, item, index);
+
+  // 🔗 Reakce na kliknutí do boxů
+  overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
+  overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
+}
+</script>
+<!-- 🟩 KONEC C-1 + C-4: DETAIL ZÁKAZNÍKA + KONTAKTOVACÍ DIALOG -->
 
         <!-- 🧾 PRAVÝ PANEL -->
         <div class="right-panel">
@@ -821,16 +866,21 @@ function initDetailButtons(overlay, item, index) {
   const infoBox = overlay.querySelector("#termInfoBox");
 
   // 🟢 Uložit / změnit termín
-  overlay.querySelector("#saveTermBtn").onclick = async () => { ... };
+  overlay.querySelector("#saveTermBtn").onclick = async () => {
+    // TODO: implementace uložení / změny termínu
+  };
 
   // 🟣 Čeká na díly
-  overlay.querySelector("#waitBtn").onclick = async () => { ... };
+  overlay.querySelector("#waitBtn").onclick = async () => {
+    // TODO: implementace stavu čekání na díly
+  };
 
   // 📄 Protokol
   overlay.querySelector("#createProtocolBtn").onclick = () => {
     localStorage.setItem("protokolData", JSON.stringify(item));
     window.location.href = "protokol.html";
   };
+}
 
   // 📸 Zahájit návštěvu
   const startVisitBtn = overlay.querySelector("#startVisitBtn");
