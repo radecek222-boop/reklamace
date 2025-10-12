@@ -735,57 +735,52 @@ function renderMainPreview(){
     }
   }
 
-// ☁️ Upload s kontrolou duplikátů nahrání
-const uploadBtn = document.getElementById("uploadBtn");
+  // ☁️ Upload s kontrolou duplikátů nahrání (bez varování, čisté)
+  const uploadBtn = document.getElementById("uploadBtn");
+  if (uploadBtn) {
+    uploadBtn.addEventListener("click", async () => {
+      if (!compressedPhotos.length) return;
+      uploadBtn.disabled = true;
 
-if (!uploadBtn) {
-  console.info("ℹ️ #uploadBtn se na této stránce nenachází – blok nahrávání byl přeskočen.");
-} else {
-  uploadBtn.addEventListener("click", async () => {
-    if (!compressedPhotos.length) return;
-    uploadBtn.disabled = true;
+      for (const p of compressedPhotos) {
+        const alreadyUploaded = window.uploadedPhotos.some(u => u.name === p.file.name);
+        if (alreadyUploaded) continue;
 
-    for (const p of compressedPhotos) {
-      const alreadyUploaded = window.uploadedPhotos.some(u => u.name === p.file.name);
-      if (alreadyUploaded) continue;
-
-      try {
-        const formData = new FormData();
-        formData.append("file", p.blob, p.file.name);
-        const r = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload", {
-          method: "POST",
-          body: formData
-        });
-        const res = await r.json();
-        p.item.classList.add("uploaded");
-        window.uploadedPhotos.push({
-          filename: res.filename,
-          name: p.file.name,
-          preview: p.preview
-        });
-      } catch (e) {
-        console.error("❌ Chyba při uploadu:", e);
+        try {
+          const formData = new FormData();
+          formData.append("file", p.blob, p.file.name);
+          const r = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload", {
+            method: "POST",
+            body: formData
+          });
+          const res = await r.json();
+          p.item.classList.add("uploaded");
+          window.uploadedPhotos.push({
+            filename: res.filename,
+            name: p.file.name,
+            preview: p.preview
+          });
+        } catch (e) {
+          console.error("❌ Chyba při uploadu:", e);
+        }
       }
-    }
 
-    renderMainPreview();
-    photoModal.classList.remove("active");
-    uploadBtn.disabled = false;
-  });
-}
+      renderMainPreview();
+      photoModal.classList.remove("active");
+      uploadBtn.disabled = false;
+    });
+  }
 
+  // 📋 Náhledy po nahrání (s možností odstranit)
+  function renderMainPreview() {
+    photoPreviewMain.innerHTML = "";
+    window.uploadedPhotos.forEach((p, index) => {
+      const row = document.createElement("div");
+      row.className = "photo-item-main";
 
-// 📋 Náhledy po nahrání (s možností odstranit)
-function renderMainPreview() {
-  photoPreviewMain.innerHTML = "";
-  window.uploadedPhotos.forEach((p, index) => {
-    const row = document.createElement("div");
-    row.className = "photo-item-main";
-
-    const img = document.createElement("img");
-    img.className = "photo-thumb";
-    img.src = p.preview;
-
+      const img = document.createElement("img");
+      img.className = "photo-thumb";
+      img.src = p.preview;
 
       const name = document.createElement("div");
       name.className = "photo-name";
@@ -808,6 +803,7 @@ function renderMainPreview() {
 </script>
 
 <!-- 🟨 KONEC ČÁSTI 5/10 – LOGIKA PRO FOTKY -->
+
 
 
 
