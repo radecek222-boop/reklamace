@@ -737,7 +737,10 @@ function renderMainPreview(){
 
 // ☁️ Upload s kontrolou duplikátů nahrání
 const uploadBtn = document.getElementById("uploadBtn");
-if (uploadBtn) {
+
+if (!uploadBtn) {
+  console.info("ℹ️ #uploadBtn se na této stránce nenachází – blok nahrávání byl přeskočen.");
+} else {
   uploadBtn.addEventListener("click", async () => {
     if (!compressedPhotos.length) return;
     uploadBtn.disabled = true;
@@ -761,7 +764,7 @@ if (uploadBtn) {
           preview: p.preview
         });
       } catch (e) {
-        console.error(e);
+        console.error("❌ Chyba při uploadu:", e);
       }
     }
 
@@ -769,9 +772,8 @@ if (uploadBtn) {
     photoModal.classList.remove("active");
     uploadBtn.disabled = false;
   });
-} else {
-  console.warn("⚠️ Element #uploadBtn nebyl nalezen – sekce nahrávání přeskočena.");
 }
+
 
 // 📋 Náhledy po nahrání (s možností odstranit)
 function renderMainPreview() {
