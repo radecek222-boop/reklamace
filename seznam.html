@@ -704,6 +704,8 @@ function renderMobileBlocks(arr) {
 
 <!-- 🟩 C-1 + C-4: DETAIL ZÁKAZNÍKA + KONTAKTOVACÍ DIALOG -->
 <script>
+
+/* 🟩🟩🟩🟩🟩 PODSEKCE 1 – HLAVNÍ FUNKCE openDetail() */
 function openDetail(index) {
   if (typeof dataAll === "undefined") {
     console.error("❌ dataAll není definováno – openDetail nelze spustit");
@@ -785,33 +787,9 @@ function openDetail(index) {
   overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
   overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
 }
-</script>
-        <!-- 🧾 PRAVÝ PANEL -->
-        <div class="right-panel">
-          <div class="info-box clickable" id="customerBox">
-            <div class="box-header"><strong>Zákazník</strong></div>
-            <div class="box-content">
-              <p><strong>Jméno:</strong> ${item.zakaznik || "–"}</p>
-              <p><strong>Adresa:</strong> ${adresaUpravena}</p>
-              <p><strong>Telefon:</strong> ${item.telefon || "–"}</p>
-              <p><strong>Email:</strong> ${item.email || "–"}</p>
-              <p><strong>Produkt / model:</strong> ${item.produkt || "–"}</p>
-            </div>
-          </div>
 
-          <div class="info-box clickable" id="popisBox">
-            <div class="box-header"><strong>Popis závady</strong></div>
-            <div class="box-content" id="popisContent">${item.popis || "–"}</div>
-          </div>
 
-          <div class="distance-banner" id="mapDistance">📍 Počítám vzdálenost…</div>
-          <div id="mapDetail"></div>
-        </div>
-      </div>
-    </div>`;
-
-<script>
-// 🧩 KONTROLA FOTODOKUMENTACE
+/* 🟩🟩🟩🟩🟩 PODSEKCE 2 – KONTROLA FOTODOKUMENTACE */
 async function checkPhotoDocumentation(item, overlay) {
   try {
     const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles?" + Date.now(), { cache: "no-store" });
@@ -847,6 +825,8 @@ async function checkPhotoDocumentation(item, overlay) {
   }
 }
 
+
+/* 🟩🟩🟩🟩🟩 PODSEKCE 3 – SPOUŠTĚCÍ INICIALIZACE DETAILU */
 document.body.appendChild(overlay);
 setTimeout(() => overlay.classList.add("active"), 10);
 
@@ -859,10 +839,9 @@ checkPhotoDocumentation(item, overlay);
 
 overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
 overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
-}
 
 
-/* 🟦 DETAIL – FUNKCE TLAČÍTEK */
+/* 🟩🟩🟩🟩🟩 PODSEKCE 4 – FUNKCE TLAČÍTEK DETAILU */
 function initDetailButtons(overlay, item, index) {
   const id = item.cislo || `radek-${index}`;
   const infoBox = overlay.querySelector("#termInfoBox");
@@ -909,9 +888,9 @@ function initDetailButtons(overlay, item, index) {
   // 🔙 Zpět
   overlay.querySelector("#closeBtn").onclick = () => overlay.remove();
 }
+
 </script>
 <!-- 🟩 KONEC C-1 + C-4 -->
-
 
 
 
