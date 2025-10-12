@@ -130,7 +130,12 @@ table.calendar-table td:hover {
 <div class="main">
   <!-- 🟨 Kalendář -->
   <div id="calendar">
-    <h3 style="text-align:center;margin:0 0 8px;">Říjen 2025</h3>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <button onclick="changeMonth(-1)" style="background:none;border:none;font-size:18px;cursor:pointer;">◀</button>
+      <h3 id="monthLabel" style="margin:0;">Říjen 2025</h3>
+      <button onclick="changeMonth(1)" style="background:none;border:none;font-size:18px;cursor:pointer;">▶</button>
+    </div>
+
     <table class="calendar-table">
       <thead>
         <tr><th>Po</th><th>Út</th><th>St</th><th>Čt</th><th>Pá</th><th>So</th><th>Ne</th></tr>
@@ -144,6 +149,7 @@ table.calendar-table td:hover {
   <div id="map"></div>
 </div>
 <!-- 🟩 KONEC SEKCE 3/10 – HLAVNÍ OBSAH -->
+
 
 
 <!-- 🟩 ZAČÁTEK SEKCE 4/10 – TLAČÍTKA -->
@@ -190,18 +196,29 @@ function initMap() {
 }
 </script>
 <!-- 🟩 KONEC SEKCE 5/10 – LEAFLET MAPA -->
-<!-- 🟩 ZAČÁTEK SEKCE 6/10 – KALENDÁŘ -->
+<!-- 🟩 ZAČÁTEK SEKCE 6/10 – KALENDÁŘ S NAVIGACÍ -->
 <script>
+let currentYear, currentMonth;
+
 function buildCalendar(plannedDates = []) {
   const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const first = new Date(year, month, 1);
-  const last = new Date(year, month + 1, 0);
+  if (currentYear === undefined) currentYear = today.getFullYear();
+  if (currentMonth === undefined) currentMonth = today.getMonth();
+
+  const first = new Date(currentYear, currentMonth, 1);
+  const last = new Date(currentYear, currentMonth + 1, 0);
   const startDay = (first.getDay() + 6) % 7; // Po=0
   const totalDays = last.getDate();
   const body = document.getElementById("calendarBody");
   body.innerHTML = "";
+
+  // 🗓️ Aktualizuj nadpis měsíce
+  const header = document.getElementById("monthLabel");
+  const monthNames = [
+    "Leden","Únor","Březen","Duben","Květen","Červen",
+    "Červenec","Srpen","Září","Říjen","Listopad","Prosinec"
+  ];
+  header.textContent = `${monthNames[currentMonth]} ${currentYear}`;
 
   let row = document.createElement("tr");
   for (let i = 0; i < startDay; i++) row.appendChild(document.createElement("td"));
@@ -214,14 +231,19 @@ function buildCalendar(plannedDates = []) {
     const td = document.createElement("td");
     td.textContent = d;
 
-    const dateStr = `${year}-${String(month + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
     if (plannedDates.includes(dateStr)) {
       const square = document.createElement("div");
       square.className = "square";
       td.appendChild(square);
     }
 
-    if (d === today.getDate()) td.classList.add("today");
+    if (
+      d === today.getDate() &&
+      currentMonth === today.getMonth() &&
+      currentYear === today.getFullYear()
+    ) td.classList.add("today");
+
     td.addEventListener("click", () => showDayOnMap(dateStr));
     row.appendChild(td);
   }
@@ -229,8 +251,21 @@ function buildCalendar(plannedDates = []) {
   while (row.children.length < 7) row.appendChild(document.createElement("td"));
   body.appendChild(row);
 }
+
+// 🔄 Navigace mezi měsíci
+function changeMonth(offset) {
+  currentMonth += offset;
+  if (currentMonth < 0) {
+    currentMonth = 11;
+    currentYear--;
+  } else if (currentMonth > 11) {
+    currentMonth = 0;
+    currentYear++;
+  }
+  buildCalendar([...new Set(dataAll.map(d => d.datum))]);
+}
 </script>
-<!-- 🟩 KONEC SEKCE 6/10 – KALENDÁŘ -->
+<!-- 🟩 KONEC SEKCE 6/10 – KALENDÁŘ S NAVIGACÍ -->
 
 
 <!-- 🟩 ZAČÁTEK SEKCE 7/10 – MAPA A ZOBRAZENÍ DNĚ (v2 s výpočtem vzdáleností) -->
