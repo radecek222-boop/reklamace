@@ -1,0 +1,40 @@
+name: Test cleanup photocustomer.json
+
+on:
+  workflow_dispatch:  # ruční spuštění
+
+permissions:
+  contents: read
+
+jobs:
+  test-cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Simulate cleanup (no commit)
+        run: |
+          file="photocustomer.json"
+          echo "🧪 TEST ČIŠTĚNÍ SOUBORU: $file"
+          now=$(date +%s)
+
+          if [ -f "$file" ]; then
+            echo "📄 Počet původních záznamů: $(jq length $file)"
+            echo ""
+            echo "🧹 Následující záznamy jsou starší než 24h a byly by odstraněny:"
+            jq --argjson now "$now" \
+              '[.[] | select(.datum != null and (($now - (try ((.datum | fromdateiso8601) // 0))) >= 86400)) | {cislo, zakaznik, datum}]' \
+              "$file"
+
+            echo ""
+            echo "✅ Záznamy, které by zůstaly:"
+            jq --argjson now "$now" \
+              '[.[] | select(.datum != null and (($now - (try ((.datum | fromdateiso8601) // 0))) < 86400)) | {cislo, zakaznik, datum}]' \
+              "$file"
+          else
+            echo "❌ Soubor $file nebyl nalezen."
+          fi
