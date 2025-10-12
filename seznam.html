@@ -322,11 +322,10 @@ tr.stav-hotovo:hover td {
 
 
 
-<!-- 🟦 SEKCE B – NAČÍTÁNÍ DAT + TABULKA + DEBUG (opravená pro data.data) -->
+<!-- 🟦 SEKCE B – NAČÍTÁNÍ DAT + TABULKA + DEBUG (rozdělená na podsekce) -->
 <script>
-/* ============================= */
-/* ⚙️ KONSTANTY A PROMĚNNÉ       */
-/* ============================= */
+
+<!-- 🟨🟨🟨🟨🟨 ZAČÁTEK PODSEKCE B1 – KONSTANTY A PROMĚNNÉ -->
 const API_URL = "https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles";
 const tableContainer = document.getElementById("tableContainer");
 const searchInput = document.getElementById("search");
@@ -334,15 +333,15 @@ const reloadBtn = document.getElementById("reloadBtn");
 
 let dataAll = [];
 let stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
+<!-- 🟨🟨🟨🟨🟨 KONEC PODSEKCE B1 – KONSTANTY A PROMĚNNÉ -->
 
-/* ============================= */
-/* 🔄 AUTOMATICKÉ NAČÍTÁNÍ DAT   */
-/* ============================= */
+
+<!-- 🟨🟨🟨🟨🟨 ZAČÁTEK PODSEKCE B2 – AUTOMATICKÉ NAČÍTÁNÍ DAT -->
 setInterval(loadData, 120000); // každé 2 minuty
+<!-- 🟨🟨🟨🟨🟨 KONEC PODSEKCE B2 – AUTOMATICKÉ NAČÍTÁNÍ DAT -->
 
-/* ============================= */
-/* 🧭 NAČÍTÁNÍ DAT Z API (OKAMŽITÉ) */
-/* ============================= */
+
+<!-- 🟨🟨🟨🟨🟨 ZAČÁTEK PODSEKCE B3 – NAČÍTÁNÍ DAT Z API -->
 async function loadData() {
   console.log("📥 Načítám data z Workeru…");
   tableContainer.innerHTML = "<div class='loading'>Načítám data...</div>";
@@ -386,10 +385,10 @@ async function loadData() {
     updateDebug(0);
   }
 }
+<!-- 🟨🟨🟨🟨🟨 KONEC PODSEKCE B3 – NAČÍTÁNÍ DAT Z API -->
 
-/* ============================= */
-/* 📋 VYKRESLENÍ TABULKY / BLOKŮ */
-/* ============================= */
+
+<!-- 🟨🟨🟨🟨🟨 ZAČÁTEK PODSEKCE B4 – VYKRESLENÍ TABULKY -->
 function renderTable(arr) {
   if (!arr || !arr.length) {
     tableContainer.innerHTML = "<div>Žádné záznamy</div>";
@@ -464,10 +463,10 @@ function renderTable(arr) {
     row.addEventListener("click", () => openDetail(row.dataset.index));
   });
 }
+<!-- 🟨🟨🟨🟨🟨 KONEC PODSEKCE B4 – VYKRESLENÍ TABULKY -->
 
-/* ============================= */
-/* 🔍 VYHLEDÁVÁNÍ                */
-/* ============================= */
+
+<!-- 🟨🟨🟨🟨🟨 ZAČÁTEK PODSEKCE B5 – VYHLEDÁVÁNÍ + DEBUG -->
 searchInput.addEventListener("input", () => {
   const q = searchInput.value.trim().toLowerCase();
   if (!q) return renderTable(dataAll);
@@ -477,14 +476,8 @@ searchInput.addEventListener("input", () => {
   ));
 });
 
-/* ============================= */
-/* 🔁 RUČNÍ NAČTENÍ DAT           */
-/* ============================= */
 reloadBtn.addEventListener("click", loadData);
 
-/* ============================= */
-/* 🧩 DEBUG PANEL                 */
-/* ============================= */
 function updateDebug(count) {
   const c = document.getElementById("debugCount");
   const t = document.getElementById("debugTime");
@@ -492,6 +485,8 @@ function updateDebug(count) {
   c.textContent = count;
   t.textContent = new Date().toLocaleTimeString("cs-CZ",{ hour:"2-digit", minute:"2-digit", second:"2-digit" });
 }
+<!-- 🟨🟨🟨🟨🟨 KONEC PODSEKCE B5 – VYHLEDÁVÁNÍ + DEBUG -->
+
 </script>
 
 <style>
@@ -511,6 +506,7 @@ function updateDebug(count) {
   <small>Aktualizace: <span id="debugTime">–</span></small>
 </div>
 <!-- 🟦 KONEC SEKCE B -->
+
 
 
 
