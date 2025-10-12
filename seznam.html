@@ -856,8 +856,10 @@ function initDetailButtons(overlay, item, index) {
     }
   };
 
-  // 🟣 Čeká na díly
-  overlay.querySelector("#waitBtn").onclick = async () => {
+ // 🟣 Čeká na díly
+const waitBtn = overlay.querySelector("#waitBtn");
+if (waitBtn) {
+  waitBtn.onclick = async () => {
     try {
       console.log("🟣 Nastavuji stav: čeká na díly");
       // zde se případně doplní logika pro označení stavu
@@ -865,6 +867,7 @@ function initDetailButtons(overlay, item, index) {
       console.error("❌ Chyba při označení čekání na díly:", e);
     }
   };
+}
 
   // 📄 Protokol
   overlay.querySelector("#createProtocolBtn").onclick = () => {
