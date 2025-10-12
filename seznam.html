@@ -355,7 +355,10 @@ async function loadData() {
     // 🟩 OPRAVA: správné zpracování odpovědi z Workeru
     if (!Array.isArray(data)) {
       if (typeof data === "object" && Array.isArray(data.data)) {
-        data = data.data;
+        // 🟢 nový formát z temporaryfiles.json
+        data = data.data
+          .filter(x => x.type === "order" || x.type === "reklamace")
+          .map(x => x.data);
       } else {
         data = [];
       }
@@ -385,7 +388,6 @@ async function loadData() {
     updateDebug(0);
   }
 }
-
 
 /* ============================= */
 /* 📋 VYKRESLENÍ TABULKY / BLOKŮ */
