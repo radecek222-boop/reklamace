@@ -266,14 +266,11 @@ document.addEventListener("DOMContentLoaded", () => {
  
 <!-- 🟨 ZAČÁTEK SEKCE F – Podpis a tlačítka -->
 <style>
-/* 🔴 Tlačítko Vymazat podpis – vlevo nahoře vedle nadpisu */
-.signature-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
-}
-.signature-header .btn-clear {
+/* 🔴 Tlačítko Vymazat – vpravo nad rámečkem */
+.btn-clear {
+  position: absolute;
+  top: -34px;
+  right: 0;
   background: linear-gradient(135deg,#e63946,#ff6b6b);
   color: #fff;
   border: none;
@@ -286,7 +283,7 @@ document.addEventListener("DOMContentLoaded", () => {
   transform: scale(0.9);
   transition: transform 0.15s ease, opacity 0.2s;
 }
-.signature-header .btn-clear:hover {
+.btn-clear:hover {
   transform: scale(1.0);
   opacity: 0.9;
 }
@@ -324,16 +321,14 @@ button.btn:hover { transform: scale(1.03); opacity: 0.9; }
 
 .signature-wrapper {
   position: relative;
-  margin-top: 10px;
+  margin-top: 30px;
 }
 </style>
 
-<div class="signature-header">
-  <div class="section-title">Podpis zákazníka<span class="en-label">Customer signature</span></div>
-  <button class="btn-clear" type="button" onclick="signaturePad.clear()">Vymazat podpis</button>
-</div>
+<div class="section-title">Podpis zákazníka<span class="en-label">Customer signature</span></div>
 
 <div class="signature-wrapper">
+  <button class="btn-clear" type="button" onclick="signaturePad.clear()">Vymazat</button>
   <canvas id="signature-pad"></canvas>
 </div>
 <div class="signature-label">Podepište se prstem nebo myší</div>
@@ -352,6 +347,7 @@ button.btn:hover { transform: scale(1.03); opacity: 0.9; }
           style="width:100%;height:480px;border:1px solid #ccc;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1);"></iframe>
 </div>
 <!-- 🟨 KONEC SEKCE F – Podpis a tlačítka -->
+
 
 
 
