@@ -160,33 +160,23 @@ td.adresa,
 td.telefon { font-weight: 600; }
 tr:hover { background: #f1f6ff; cursor: pointer; }
 
-/* ============================= */
-/* 🟢 STAVY REKLAMACÍ            */
-/* ============================= */
-.stav-novy      { background: #fff9b1 !important; }
-.stav-domluveno { background: #99b3ff !important; }
-.stav-zruseno   { background: #ff6666 !important; }
-.stav-nezveda   { background: #ffad33 !important; }
-
-/* ============================= */
-/* 📱 MOBILNÍ ZOBRAZENÍ          */
-/* ============================= */
-@media (max-width:700px){
-  table { display:none; }
-  .btn {
-    width:100%;
-    min-width:unset;
-    text-align:center;
+if (stav === "domluveno") {
+  if (z.datum && z.cas) {
+    try {
+      const d = new Date(z.datum + "T" + z.cas);
+      const days = ["Neděle","Pondělí","Úterý","Středa","Čtvrtek","Pátek","Sobota"];
+      const den = days[d.getDay()];
+      const denMesic = `${d.getDate()}. ${d.toLocaleString("cs-CZ", { month: "long" })}`;
+      const cas = z.cas.slice(0,5);
+      statusCell.innerHTML = `<span class='status blue'>${den} ${denMesic} • ${cas}</span>`;
+    } catch {
+      statusCell.innerHTML = "<span class='status blue'>Domluveno</span>";
+    }
+  } else {
+    statusCell.innerHTML = "<span class='status blue'>Domluveno</span>";
   }
 }
-</style>
-</head>
 
-<body>
-  <div class="wrapper">
-    <!-- 🧾 HLAVIČKA STRÁNKY -->
-    <h1>WHITE GLOVE SERVICE</h1>
-    <h2>Seznam reklamací a servisních požadavků</h2>
 
     <!-- 🧭 OVLÁDACÍ TLAČÍTKA -->
     <div class="actions">
