@@ -716,11 +716,14 @@ function openDetail(index) {
   if (!item) return;
 
   const overlay = document.createElement("div");
+  const tpl = String.raw`
+  ...
+</div>`;
   overlay.className = "detail-overlay";
   const adresaUpravena = normalizePrahaAddress(item.adresa || "");
 
   // použijeme String.raw + následné bezpečné nahrazení </script>
-  const tpl = String.raw`
+
     <div class="detail-modal">
       <div class="grid-layout">
         <!-- 🧭 LEVÝ PANEL -->
@@ -773,30 +776,37 @@ function openDetail(index) {
           <div id="mapDetail"></div>
         </div>
       </div>
-    </div>`;
 
-  // 🧩 Po vložení obsahu aktivuj animaci
+   <!-- 🧾 PRAVÝ PANEL -->
+  <div    
   document.body.appendChild(overlay);
-  setTimeout(() => overlay.classList.add("active"), 10);
+  setTimeout(() => overlay.classList.add("active"), 10); 
+  </div>
 
   // 🧭 Inicializace detailu
-  initCalendarAndTime(overlay, item, index);
+ 
+    <div     initCalendarAndTime(overlay, item, index);
   initMapForDetail(overlay, item);
   initDetailButtons(overlay, item, index);
 
   // 🔗 Reakce na kliknutí do boxů
-  overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
-  overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
+  
+   <div      overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
+  overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);</div>
+       </div>
+       
+      
 }
 
 
 /* 🟩🟩🟩🟩🟩 PODSEKCE 2 – KONTROLA FOTODOKUMENTACE */
-async function checkPhotoDocumentation(item, overlay) {
+      
+<div async function checkPhotoDocumentation(item, overlay) {
   try {
     const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles?" + Date.now(), { cache: "no-store" });
     const all = await res.json();
     const arr = Array.isArray(all) ? all : (all.data || all.records || []);
-    if (!Array.isArray(arr)) return;
+    if (!Array.isArray(arr)) return;</div>
 
     const found = arr.find(r => (r.data?.cislo || r.cislo) === item.cislo);
     if (found && (found.data?.file || found.file)) {
@@ -828,21 +838,11 @@ async function checkPhotoDocumentation(item, overlay) {
 
 
 /* 🟩🟩🟩🟩🟩 PODSEKCE 3 – SPOUŠTĚCÍ INICIALIZACE DETAILU */
-document.body.appendChild(overlay);
-setTimeout(() => overlay.classList.add("active"), 10);
 
-initCalendarAndTime(overlay, item, index);
-initMapForDetail(overlay, item);
-initDetailButtons(overlay, item, index);
-
-// 🔗 Zkontroluj, zda má zákazník fotodokumentaci
-checkPhotoDocumentation(item, overlay);
-
-overlay.querySelector("#customerBox").onclick = () => openCustomerDetail(item, overlay);
-overlay.querySelector("#popisBox").onclick = () => openPopisEditor(item, overlay);
 
 
 /* 🟩🟩🟩🟩🟩 PODSEKCE 4 – FUNKCE TLAČÍTEK DETAILU */
+
 function initDetailButtons(overlay, item, index) {
   const id = item.cislo || `radek-${index}`;
   const infoBox = overlay.querySelector("#termInfoBox");
