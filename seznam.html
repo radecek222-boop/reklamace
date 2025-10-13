@@ -343,13 +343,17 @@ async function loadOrders(){
   try{
     tableBody.innerHTML=`<tr><td colspan="4" style="text-align:center;color:#888;">🔄 Načítám data...</td></tr>`;
     const base="https://wgs-token.72nvwf4pb2.workers.dev";
-    const urls=[`${base}/orders`,`${base}/hotove`,`${base}/aftersales`];
-    const results=await Promise.all(urls.map(u=>fetch(u+"?"+Date.now()).then(r=>r.json()).catch(()=>[])));
-    allOrders=results.flat().filter(Boolean);
+    const urls=[`${base}/orders`, `${base}/hotove`, `${base}/temporaryfiles`];
+    const results=await Promise.all(
+      urls.map(u=>fetch(u+"?"+Date.now())
+      .then(r=>r.json())
+      .catch(()=>[]))
+    );
+    allOrders = results.flat().filter(Boolean);
     renderOrders();
   }catch(e){
-    console.error("❌ Chyba načítání:",e);
-    tableBody.innerHTML=`<tr><td colspan="4" style="text-align:center;color:#f66;">Chyba načítání dat</td></tr>`;
+    console.error("❌ Chyba načítání:", e);
+    tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#f66;">Chyba načítání dat</td></tr>`;
   }
 }
 
