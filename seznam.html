@@ -1,10 +1,14 @@
-<!-- 🟣🟣🟣 WGS SEZNAM REKLAMACÍ – DARK NEON STYLE (část 1/4) -->
+<!-- 🟣🟣🟣 WGS SEZNAM REKLAMACÍ – DARK NEON STYLE (část 1/3) -->
 <!DOCTYPE html>
 <html lang="cs">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Seznam reklamací – White Glove Service</title>
+
+<!-- 🌍 MAPA -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
 /* 🌌 ZÁKLADNÍ POZADÍ */
@@ -148,199 +152,160 @@ tr:hover{background:rgba(120,120,255,0.08);}
     <button id="planBtn" class="btn btn-plan">Plán dne</button>
   </div>
 
-<!-- 🟣🟣🟣 WGS SEZNAM REKLAMACÍ – DARK NEON STYLE (část 2/4) -->
+<!-- 🟦🟦🟦🟦🟦 ZAČÁTEK MODALU – ÚPRAVA ZÁKAZNÍKA -->
 <style>
-/* 🟩 MODÁLNÍ DETAIL ZÁKAZNÍKA */
-.modal-overlay {
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.8);
-  backdrop-filter:blur(10px);
-  display:none;
-  justify-content:center;
-  align-items:center;
-  z-index:5000;
+#editModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,30,0.8);
+  backdrop-filter: blur(10px);
+  display: none;
+  justify-content: center;
+  align-items: flex-start;
+  z-index: 9500;
+  padding-top: 60px;
 }
-.modal-overlay.active {
-  display:flex;
-}
+#editModal.active { display: flex; }
 
-.modal-box {
-  width:92%;
-  max-width:900px;
-  background:radial-gradient(circle at top left,#0d0d1a 0%,#05050a 100%);
-  border-radius:20px;
-  box-shadow:
-    0 0 35px rgba(0,255,255,0.15),
-    inset 0 0 25px rgba(0,255,255,0.05);
-  color:#e5e9ff;
-  padding:26px 28px;
-  position:relative;
-  overflow-y:auto;
-  max-height:90vh;
-  animation:fadeIn .3s ease-out;
+.edit-box {
+  width: 94%;
+  max-width: 600px;
+  background: radial-gradient(circle at top left, #0d0d1a, #05050a);
+  border-radius: 16px;
+  color: #e5e9ff;
+  box-shadow: 0 0 25px rgba(0,255,255,0.2);
+  padding: 25px 30px;
+  overflow-y: auto;
+  max-height: 85vh;
 }
-@keyframes fadeIn {
-  from {opacity:0;transform:scale(0.96);}
-  to {opacity:1;transform:scale(1);}
+.edit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(0,255,255,0.25);
+  margin-bottom: 10px;
 }
-
-.modal-box h3 {
-  color:#00e0ff;
-  border-bottom:1px solid rgba(0,255,255,0.25);
-  padding-bottom:8px;
-  margin-top:0;
-  font-weight:700;
-  text-shadow:0 0 10px rgba(0,255,255,0.3);
-}
-
-.modal-close {
-  position:absolute;
-  top:14px;
-  right:14px;
-  background:linear-gradient(135deg,#ff4a4a,#e60073);
-  border:none;
-  color:#fff;
-  border-radius:10px;
-  padding:8px 14px;
-  font-weight:600;
-  cursor:pointer;
-  box-shadow:0 0 15px rgba(255,0,80,0.5);
-  transition:all .25s ease;
-}
-.modal-close:hover {
-  transform:scale(1.07);
-  box-shadow:0 0 25px rgba(255,0,100,0.6);
-}
-
-/* 📱 Responsivita */
-@media(max-width:600px){
-  .modal-box {
-    width:95%;
-    padding:20px;
-    border-radius:16px;
-  }
-
-
-/* 🟩 KALENDÁŘ – NEON ZELENÝ */
-.calendar-container {
-  background:rgba(0,30,0,0.5);
-  border:1px solid rgba(0,255,100,0.3);
-  border-radius:10px;
-  padding:10px;
-  box-shadow:0 0 25px rgba(0,255,120,0.3);
-  margin-top:18px;
-  color:#9fffcb;
-  font-size:0.9em;
-  text-align:center;
-}
-.calendar-day {
-  display:inline-block;
-  width:34px;height:34px;
-  line-height:34px;
-  margin:2px;border-radius:6px;
-  cursor:pointer;
-  transition:all .2s;
-}
-.calendar-day:hover {
-  background:rgba(0,255,100,0.15);
-  box-shadow:0 0 8px rgba(0,255,100,0.6);
-}
-.calendar-day.active {
-  background:linear-gradient(135deg,#00ff99,#33ffaa);
-  color:#000;
-  box-shadow:0 0 12px rgba(0,255,100,0.9);
-}
-
-/* 🟩 NOVÉ TLAČÍTKO FOTODOKUMENTACE */
-.btn-photos {
-  background:linear-gradient(135deg,#00b56a,#00ff99);
-  color:#000;
-  font-weight:700;
+.edit-close {
+  background: linear-gradient(135deg,#ff4a4a,#e60073);
+  color: #fff;
   border:none;
   border-radius:8px;
-  padding:10px 18px;
-  margin-top:15px;
+  padding:6px 12px;
+  font-weight:600;
   cursor:pointer;
-  box-shadow:0 0 15px rgba(0,255,120,0.4);
-  transition:transform .15s;
+  transition:transform .2s;
 }
-.btn-photos:hover {
-  transform:scale(1.05);
-  box-shadow:0 0 25px rgba(0,255,120,0.6);
+.edit-close:hover { transform:scale(1.05); }
+.edit-box label {
+  display:block;
+  font-weight:600;
+  margin-top:10px;
+  color:#9dcdff;
 }
+.edit-box input, .edit-box textarea {
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  background:#fff;
+  color:#111;
+  box-sizing:border-box;
+}
+.edit-box textarea { min-height:90px; resize:vertical; }
+.edit-actions {
+  margin-top:18px;
+  display:flex;
+  justify-content:flex-end;
+  gap:12px;
+}
+.btn-save {
+  background:linear-gradient(135deg,#00c774,#00ff99);
+  color:#000;
+  font-weight:700;
+  padding:10px 20px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  transition:transform .2s;
+}
+.btn-save:hover { transform:scale(1.05); }
 </style>
 
-<!-- 🧩 MODÁLNÍ OKNO DETAILU -->
-<div id="detailModal" class="modal-overlay">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closeDetail()">Zavřít</button>
-    <h3 id="detailName">Zákazník</h3>
-    <p><strong>Adresa:</strong> <span id="detailAddress">–</span></p>
-    <p><strong>Telefon:</strong> <span id="detailPhone">–</span></p>
-    <p><strong>Popis závady:</strong></p>
-    <p id="detailDesc" style="white-space:pre-wrap;background:rgba(255,255,255,0.03);padding:10px;border-radius:6px;"></p>
+<div id="editModal">
+  <div class="edit-box">
+    <div class="edit-header">
+      <h3>Upravit zákazníka</h3>
+      <button class="edit-close" onclick="closeEdit()">Zavřít</button>
+    </div>
+    <form id="editForm">
+      <label>Jméno zákazníka:</label>
+      <input type="text" id="editZakaznik">
 
-    <!-- 🟩 Kalendář -->
-    <div id="calendar" class="calendar-container"></div>
+      <label>Adresa:</label>
+      <input type="text" id="editAdresa">
 
-    <!-- 🟩 Nové tlačítko na fotky -->
-    <button class="btn-photos" id="photoBtn">📷 Zobrazit fotodokumentaci</button>
+      <label>Telefon:</label>
+      <input type="text" id="editTelefon">
+
+      <label>Popis závady:</label>
+      <textarea id="editPopis"></textarea>
+
+      <div class="edit-actions">
+        <button type="button" class="btn-save" onclick="saveEdit()">💾 Uložit změny</button>
+      </div>
+    </form>
   </div>
 </div>
 
 <script>
-const modal=document.getElementById("detailModal");
-const detailName=document.getElementById("detailName");
-const detailAddress=document.getElementById("detailAddress");
-const detailPhone=document.getElementById("detailPhone");
-const detailDesc=document.getElementById("detailDesc");
-const photoBtn=document.getElementById("photoBtn");
+let currentEditItem = null;
 
-/* 🟦 Otevření detailu */
-function openDetail(item){
-  detailName.textContent=item.zakaznik||"–";
-  detailAddress.textContent=item.adresa||"–";
-  detailPhone.textContent=item.telefon||"–";
-  detailDesc.textContent=item.popis||"–";
-  modal.classList.add("active");
-
-  generateCalendar();
-  photoBtn.onclick=()=>openPhotoViewer(item.cislo||"");
+// 🟦 Otevření modalu pro editaci
+function openEditModal(item){
+  currentEditItem = item;
+  document.getElementById("editZakaznik").value = item.zakaznik || "";
+  document.getElementById("editAdresa").value = item.adresa || "";
+  document.getElementById("editTelefon").value = item.telefon || "";
+  document.getElementById("editPopis").value = item.popis || "";
+  document.getElementById("editModal").classList.add("active");
 }
 
-/* 🟦 Zavření detailu */
-function closeDetail(){modal.classList.remove("active");}
+// 🟦 Zavření
+function closeEdit(){
+  document.getElementById("editModal").classList.remove("active");
+}
 
-/* 🟩 NEON ZELENÝ KALENDÁŘ – jednoduchý měsíční přehled */
-function generateCalendar(){
-  const now=new Date();
-  const year=now.getFullYear();
-  const month=now.getMonth();
-  const first=new Date(year,month,1);
-  const days=new Date(year,month+1,0).getDate();
-  let html=`<strong>${now.toLocaleString('cs-CZ',{month:'long'})} ${year}</strong><br>`;
-  for(let d=1;d<=days;d++){
-    html+=`<span class="calendar-day">${d}</span>`;
+// 🟩 Uložení změn a přepis do seznamu
+async function saveEdit(){
+  if(!currentEditItem) return;
+  const updated = {
+    ...currentEditItem,
+    zakaznik: document.getElementById("editZakaznik").value.trim(),
+    adresa: document.getElementById("editAdresa").value.trim(),
+    telefon: document.getElementById("editTelefon").value.trim(),
+    popis: document.getElementById("editPopis").value.trim()
+  };
+
+  try {
+    const base = "https://wgs-token.72nvwf4pb2.workers.dev";
+    await fetch(`${base}/orders`, {
+      method: "PUT",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(updated)
+    });
+    showNotif("ok","Záznam upraven");
+    closeEdit();
+    loadOrders();
+  } catch (e) {
+    console.error("❌ Chyba při ukládání:", e);
+    showNotif("error","Nepodařilo se uložit změny");
   }
-  document.getElementById("calendar").innerHTML=html;
-  const today=document.querySelectorAll(".calendar-day")[now.getDate()-1];
-  if(today) today.classList.add("active");
 }
-
-/* 🟩 Zobrazení fotodokumentace – otevře nové okno */
-async function openPhotoViewer(orderNumber){
-  if(!orderNumber){alert("Chybí číslo zakázky.");return;}
-  const url=`photocustomer.html?cislo=${encodeURIComponent(orderNumber)}`;
-  window.open(url,"_blank");
-}
-
-/* 🟦 DEMO pro kliknutí na tabulku (bude navazovat na část 3/4) */
-window.showDetailExample=()=>{
-  openDetail({zakaznik:"Jan Novák",adresa:"Praha 1",telefon:"+420 777 111 222",popis:"Opotřebení potahu – levá opěrka.",cislo:"NCE1234"});
-};
 </script>
-<!-- 🟣🟣🟣 WGS SEZNAM REKLAMACÍ – DARK NEON STYLE (část 3/4) -->
+<!-- 🟦🟦🟦🟦🟦 KONEC MODALU – ÚPRAVA ZÁKAZNÍKA -->
+
+
+<!-- 🟩 TABULKA SEZNAMU -->
 <style>
 /* 🟦 STAVY ŘÁDKŮ */
 tr.new td {background:rgba(255,240,120,0.08);color:#fff176;}
@@ -397,23 +362,22 @@ function renderOrders(){
     tableBody.innerHTML=`<tr><td colspan="4" style="text-align:center;color:#999;">Žádné záznamy</td></tr>`;
     return;
   }
-tableBody.innerHTML = allOrders.map(o => {
-  const item = o.data || o; // 🟢 přidáno – podporuje i vnořená data z temporaryfiles
-  const stav = (item.stav || "").toLowerCase();
-  let cls = "";
-  if (stav.includes("nov")) cls = "new";
-  else if (stav.includes("domlu")) cls = "done";
-  else if (stav.includes("zru")) cls = "cancelled";
-  return `
-    <tr class="${cls}" onclick='openDetail(${JSON.stringify(item)})'>
-      <td>${item.zakaznik || "–"}</td>
-      <td>${item.adresa || "–"}</td>
-      <td>${item.telefon || "–"}</td>
-      <td>${item.stav || "–"}</td>
-    </tr>`;
-}).join("");
+  tableBody.innerHTML = allOrders.map(o => {
+    const item = o.data || o;
+    const stav = (item.stav || "").toLowerCase();
+    let cls = "";
+    if (stav.includes("nov")) cls = "new";
+    else if (stav.includes("domlu")) cls = "done";
+    else if (stav.includes("zru")) cls = "cancelled";
+    return `
+      <tr class="${cls}" onclick='openDetail(${JSON.stringify(item)})'>
+        <td>${item.zakaznik || "–"}</td>
+        <td>${item.adresa || "–"}</td>
+        <td>${item.telefon || "–"}</td>
+        <td>${item.stav || "–"}</td>
+      </tr>`;
+  }).join("");
 }
-
 
 /* 🔁 TLAČÍTKO NAČÍST ZNOVU */
 reloadBtn.onclick=loadOrders;
@@ -421,7 +385,7 @@ reloadBtn.onclick=loadOrders;
 /* 🚀 START */
 window.addEventListener("DOMContentLoaded",loadOrders);
 </script>
-<!-- 🟣🟣🟣 WGS SEZNAM REKLAMACÍ – DARK NEON STYLE (část 4/4 – ZÁVĚR) -->
+<!-- 🟣🟣🟣 WGS SEZNAM REKLAMACÍ – DARK NEON STYLE (část 3/3 – ZÁVĚR) -->
 <style>
 /* ✨ ANIMOVANÉ POZADÍ */
 body::before{
@@ -537,7 +501,6 @@ document.addEventListener("mouseout",()=>{
 const planBtn=document.getElementById("planBtn");
 if(planBtn){
   planBtn.addEventListener("click",()=>{
-    // Uložení indikátoru, že uživatel šel do Plánu dne
     sessionStorage.setItem("fromPlanDne","1");
     window.location.href="plandne.html";
   });
@@ -552,5 +515,6 @@ window.addEventListener("DOMContentLoaded",()=>{
   }
 });
 </script>
-
-<!-- 🟪🟪🟪 KONEC STRÁNKY SEZNAM.HTML (NEON VERZE) -->
+</div>
+</body>
+</html>
