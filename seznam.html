@@ -152,107 +152,89 @@ tr:hover{background:rgba(120,120,255,0.08);}
     <button id="planBtn" class="btn btn-plan">Plán dne</button>
   </div>
 
-<!-- 🟦🟦🟦🟦🟦 ZAČÁTEK MODERNÍHO DETAILU ZÁKAZNÍKA -->
+<!-- 🟦🟦🟦 DETAIL ZÁKAZNÍKA – VERZE S LIGHTBOXEM A ZAROVNANÝMI TLAČÍTKY -->
 <style>
 #detailModal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,30,0.8);
-  backdrop-filter: blur(12px);
-  display: none;
-  justify-content: center;
-  align-items: flex-start;
-  z-index: 9000;
-  padding-top: 40px;
+  position:fixed;inset:0;
+  background:rgba(0,0,30,0.8);
+  backdrop-filter:blur(12px);
+  display:none;justify-content:center;align-items:flex-start;
+  z-index:9000;padding-top:40px;
 }
-#detailModal.active { display: flex; }
-
-.detail-box {
-  width: 94%;
-  max-width: 950px;
-  background: radial-gradient(circle at top left, #0d0d1a, #05050a);
-  border-radius: 18px;
-  box-shadow: 0 0 25px rgba(0,255,255,0.2);
-  color: #e5e9ff;
-  padding: 25px 30px;
-  overflow-y: auto;
-  max-height: 90vh;
+#detailModal.active{display:flex;}
+.detail-box{
+  width:94%;max-width:900px;
+  background:radial-gradient(circle at top left,#0d0d1a,#05050a);
+  border-radius:18px;box-shadow:0 0 25px rgba(0,255,255,0.2);
+  color:#e5e9ff;padding:25px 30px;overflow-y:auto;max-height:90vh;
 }
-.detail-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(0,255,255,0.2);
-  margin-bottom: 10px;
+.detail-header{
+  display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid rgba(0,255,255,0.2);margin-bottom:10px;
 }
-.detail-close {
-  background: linear-gradient(135deg,#ff4a4a,#e60073);
-  color:#fff;
-  border:none;
-  border-radius:10px;
-  padding:8px 14px;
-  font-weight:600;
-  cursor:pointer;
+.detail-close{
+  background:linear-gradient(135deg,#ff4a4a,#e60073);
+  color:#fff;border:none;border-radius:10px;
+  padding:8px 14px;font-weight:600;cursor:pointer;
   box-shadow:0 0 15px rgba(255,0,100,0.4);
-  transition:all .25s ease;
 }
-.detail-close:hover { transform:scale(1.07); }
+.detail-grid{display:flex;flex-wrap:wrap;gap:25px;margin-top:15px;}
+.detail-info{flex:1 1 400px;}
+.detail-map{flex:1 1 400px;min-height:250px;border-radius:12px;overflow:hidden;}
+.detail-section{margin-top:15px;padding:10px;background:rgba(255,255,255,0.03);border-radius:8px;}
+.detail-section h4{margin:0 0 6px;color:#7fd0ff;display:flex;justify-content:space-between;align-items:center;}
 
-.detail-grid {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  margin-top: 15px;
+/* 🟩 UNIFIKOVANÁ TLAČÍTKA */
+.detail-buttons{
+  display:flex;gap:10px;margin-top:15px;
+  justify-content:space-between;
 }
-.detail-info { flex: 1 1 380px; }
-.detail-map { flex: 1 1 380px; min-height: 250px; border-radius: 12px; overflow: hidden; }
-
-.detail-section {
-  margin-top: 15px;
-  padding: 10px;
-  background: rgba(255,255,255,0.03);
-  border-radius: 8px;
+.detail-buttons a{
+  flex:1;text-align:center;height:44px;display:flex;align-items:center;justify-content:center;
+  border:none;border-radius:10px;font-weight:600;font-size:0.95em;
+  transition:transform .2s,box-shadow .2s;text-decoration:none;
 }
-.detail-section h4 { margin: 0 0 6px; color: #7fd0ff; }
-
-.detail-photos { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
-.detail-photos img {
-  width: 150px; height: 100px; object-fit: cover;
-  border-radius: 8px; cursor: pointer; transition: transform .2s;
-}
-.detail-photos img:hover { transform: scale(1.05); }
-
-/* 🧭 Waze + Telefon */
-.btn-waze, .btn-call, .btn-photos {
-  display:inline-flex; align-items:center; gap:6px;
-  padding:10px 16px; border:none; border-radius:8px;
-  font-weight:600; cursor:pointer; text-decoration:none;
-  transition:transform .2s, box-shadow .2s;
-  margin-right:10px; margin-top:8px;
-}
-.btn-waze {
+.btn-waze{
   background:linear-gradient(135deg,#0077ff,#00aaff);
-  color:#fff; box-shadow:0 0 15px rgba(0,150,255,0.4);
+  color:#fff;box-shadow:0 0 15px rgba(0,150,255,0.4);
 }
-.btn-waze:hover { transform:scale(1.05); box-shadow:0 0 25px rgba(0,150,255,0.6); }
-
-.btn-call {
+.btn-call{
   background:linear-gradient(135deg,#00d87d,#00ff9c);
-  color:#000; box-shadow:0 0 15px rgba(0,255,150,0.3);
+  color:#000;box-shadow:0 0 15px rgba(0,255,150,0.3);
 }
-.btn-call:hover { transform:scale(1.05); box-shadow:0 0 25px rgba(0,255,150,0.6); }
+.btn-waze:hover,.btn-call:hover{transform:scale(1.04);box-shadow:0 0 25px rgba(0,255,255,0.6);}
 
-.btn-photos {
+/* 🟦 Fotky */
+.btn-photos{
   background:linear-gradient(135deg,#00b56a,#00ff99);
-  color:#000; box-shadow:0 0 15px rgba(0,255,120,0.4);
+  color:#000;border:none;border-radius:8px;
+  padding:6px 14px;font-weight:600;cursor:pointer;
+  box-shadow:0 0 15px rgba(0,255,120,0.4);
 }
-.btn-photos:hover { transform:scale(1.05); box-shadow:0 0 25px rgba(0,255,120,0.6); }
+.btn-photos.disabled{
+  background:rgba(100,100,100,0.3);color:#aaa;box-shadow:none;cursor:default;
+}
 
-/* 📱 Mobil */
-@media (max-width: 800px) {
-  .detail-grid { flex-direction: column; }
-  .detail-map { order: 5; }
+/* 🟧 Lightbox */
+#photoLightbox{
+  position:fixed;inset:0;background:rgba(0,0,0,0.95);
+  display:none;flex-direction:column;justify-content:center;align-items:center;
+  z-index:9999;
 }
+#photoLightbox.active{display:flex;}
+#photoLightbox img{
+  max-width:90%;max-height:80vh;object-fit:contain;border-radius:8px;
+}
+.lightbox-nav{
+  margin-top:15px;display:flex;gap:20px;align-items:center;
+}
+.lightbox-btn{
+  background:linear-gradient(135deg,#00bfa5,#00ffcc);
+  color:#000;border:none;border-radius:8px;
+  padding:8px 18px;font-weight:700;cursor:pointer;
+  box-shadow:0 0 12px rgba(0,255,200,0.5);
+}
+.lightbox-btn:hover{transform:scale(1.05);}
 </style>
 
 <div id="detailModal">
@@ -265,19 +247,20 @@ tr:hover{background:rgba(120,120,255,0.08);}
     <div class="detail-grid">
       <div class="detail-info">
         <p><strong>Adresa:</strong> <span id="detailAddress">–</span></p>
-        <p>
-          <strong>Telefon:</strong> <a id="detailPhone" href="#" style="color:#00ffcc;text-decoration:none;">–</a>
-        </p>
+        <p><strong>Telefon:</strong> <a id="detailPhone" href="#" style="color:#00ffcc;text-decoration:none;">–</a></p>
 
         <div class="detail-section">
-          <h4>Popis závady</h4>
+          <h4>
+            <span>Popis závady</span>
+          </h4>
           <div id="detailDesc">–</div>
         </div>
 
-        <div class="detail-section" id="photoSection" style="display:none;">
-          <h4>Fotodokumentace</h4>
-          <button class="btn-photos" id="photoBtn">📷 Zobrazit fotografie</button>
-          <div class="detail-photos" id="detailPhotos"></div>
+        <div class="detail-section">
+          <h4>
+            <span>Fotodokumentace</span>
+            <button id="photoBtn" class="btn-photos">Načítám...</button>
+          </h4>
         </div>
 
         <div class="detail-section">
@@ -285,9 +268,9 @@ tr:hover{background:rgba(120,120,255,0.08);}
           <div id="detailDistance">📍 Počítám vzdálenost…</div>
         </div>
 
-        <div style="margin-top:15px;">
-          <a id="wazeLink" target="_blank" class="btn-waze">🧭 Otevřít ve Waze</a>
-          <a id="callLink" class="btn-call">📞 Volat</a>
+        <div class="detail-buttons">
+          <a id="wazeLink" target="_blank" class="btn-waze"> Waze</a>
+          <a id="callLink" class="btn-call">Volat</a>
         </div>
       </div>
 
@@ -296,97 +279,88 @@ tr:hover{background:rgba(120,120,255,0.08);}
   </div>
 </div>
 
+<!-- 🖼️ LIGHTBOX FOTEK -->
+<div id="photoLightbox">
+  <img id="lightboxImg" src="" alt="">
+  <div class="lightbox-nav">
+    <button class="lightbox-btn" id="prevPhoto">◀</button>
+    <button class="lightbox-btn" id="nextPhoto">▶</button>
+    <button class="lightbox-btn" onclick="closeLightbox()">Zavřít</button>
+  </div>
+</div>
+
 <script>
-const WGS_HOME = [50.08031890414999, 14.59812450867171];
-let map, marker;
+const WGS_HOME=[50.08031890414999,14.59812450867171];
+let map,marker,photosArr=[],currentPhoto=0;
 
-// 🟦 Otevření detailu zákazníka
-async function openDetail(item) {
-  const name = item.zakaznik || "–";
-  const addr = item.adresa || "";
-  const phone = item.telefon || "";
-  const desc = item.popis || "–";
+async function openDetail(item){
+  const addr=item.adresa||"", phone=item.telefon||"", desc=item.popis||"–";
+  const name=item.zakaznik||"–", photos=Array.isArray(item.fotky)?item.fotky.filter(f=>f):[];
 
-  document.getElementById("detailName").textContent = name;
-  document.getElementById("detailAddress").textContent = addr;
-  document.getElementById("detailPhone").textContent = phone || "–";
-  document.getElementById("detailPhone").href = phone ? `tel:${phone}` : "#";
-  document.getElementById("detailDesc").textContent = desc;
+  document.getElementById("detailName").textContent=name;
+  document.getElementById("detailAddress").textContent=addr;
+  document.getElementById("detailPhone").textContent=phone||"–";
+  document.getElementById("detailPhone").href=phone?`tel:${phone}`:"#";
+  document.getElementById("detailDesc").textContent=desc;
   document.getElementById("detailModal").classList.add("active");
 
-  // 🧭 Waze + Telefon odkazy
-  const wazeURL = `https://waze.com/ul?q=${encodeURIComponent(addr)}`;
-  document.getElementById("wazeLink").href = wazeURL;
-  document.getElementById("callLink").href = phone ? `tel:${phone}` : "#";
+  document.getElementById("wazeLink").href=`https://waze.com/ul?q=${encodeURIComponent(addr)}`;
+  document.getElementById("callLink").href=phone?`tel:${phone}`:"#";
 
-  // 📷 Fotky
-  const photoSection = document.getElementById("photoSection");
-  const photoContainer = document.getElementById("detailPhotos");
-  photoContainer.innerHTML = "";
-  if (Array.isArray(item.fotky) && item.fotky.length > 0) {
-    item.fotky.forEach(src => {
-      if (!src) return;
-      const img = document.createElement("img");
-      img.src = src;
-      img.onclick = () => window.open(src, "_blank");
-      photoContainer.appendChild(img);
-    });
-    photoSection.style.display = "block";
-  } else {
-    photoSection.style.display = "none";
+  const btn=document.getElementById("photoBtn");
+  if(photos.length>0){
+    btn.textContent=`📷 Zobrazit fotografie (${photos.length})`;
+    btn.classList.remove("disabled");
+    btn.onclick=()=>openLightbox(photos);
+  }else{
+    btn.textContent="Nejsou žádné fotografie";
+    btn.classList.add("disabled");
+    btn.onclick=null;
   }
 
-  // 🗺️ Mapa
-  setTimeout(() => {
-    if (!map) {
-      map = L.map("detailMap").setView(WGS_HOME, 10);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "" }).addTo(map);
+  setTimeout(()=>{
+    if(!map){
+      map=L.map("detailMap").setView(WGS_HOME,10);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:""}).addTo(map);
     }
-    if (marker) map.removeLayer(marker);
+    if(marker)map.removeLayer(marker);
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}`)
-      .then(r => r.json())
-      .then(res => {
-        if (res && res[0]) {
-          const lat = parseFloat(res[0].lat);
-          const lon = parseFloat(res[0].lon);
-          marker = L.marker([lat, lon]).addTo(map);
-          map.setView([lat, lon], 12);
-          const dist = getDistanceKm(WGS_HOME, [lat, lon]);
-          document.getElementById("detailDistance").textContent = `${dist.toFixed(1)} km od WGS`;
-        } else {
-          document.getElementById("detailDistance").textContent = "Nelze zjistit polohu.";
-        }
-      })
-      .catch(() => {
-        document.getElementById("detailDistance").textContent = "Chyba při načítání mapy.";
-      });
-  }, 300);
-
-  // 📷 Otevření fotodokumentace
-  document.getElementById("photoBtn").onclick = () => {
-    if (!item.cislo) { alert("Chybí číslo reklamace."); return; }
-    window.open(`photocustomer.html?cislo=${encodeURIComponent(item.cislo)}`, "_blank");
-  };
+      .then(r=>r.json()).then(res=>{
+        if(res&&res[0]){
+          const lat=parseFloat(res[0].lat),lon=parseFloat(res[0].lon);
+          marker=L.marker([lat,lon]).addTo(map);
+          map.setView([lat,lon],12);
+          const dist=getDist(WGS_HOME,[lat,lon]);
+          document.getElementById("detailDistance").textContent=`${dist.toFixed(1)} km od WGS`;
+        }else document.getElementById("detailDistance").textContent="Nelze zjistit polohu.";
+      }).catch(()=>document.getElementById("detailDistance").textContent="Chyba při načítání mapy.");
+  },300);
 }
 
-// 📏 Výpočet vzdálenosti (Haversine)
-function getDistanceKm([lat1, lon1], [lat2, lon2]) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) ** 2 +
-            Math.cos(lat1 * Math.PI / 180) *
-            Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+function getDist([a,b],[c,d]){
+  const R=6371,dl=(c-a)*Math.PI/180,dn=(d-b)*Math.PI/180;
+  const h=Math.sin(dl/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dn/2)**2;
+  return R*2*Math.atan2(Math.sqrt(h),Math.sqrt(1-h));
 }
+function closeDetail(){document.getElementById("detailModal").classList.remove("active");}
 
-// 🟦 Zavření
-function closeDetail() {
-  document.getElementById("detailModal").classList.remove("active");
+/* 🖼️ LIGHTBOX */
+function openLightbox(arr){
+  photosArr=arr;currentPhoto=0;
+  document.getElementById("photoLightbox").classList.add("active");
+  showPhoto();
+}
+function showPhoto(){
+  document.getElementById("lightboxImg").src=photosArr[currentPhoto];
+}
+document.getElementById("prevPhoto").onclick=()=>{if(currentPhoto>0){currentPhoto--;showPhoto();}};
+document.getElementById("nextPhoto").onclick=()=>{if(currentPhoto<photosArr.length-1){currentPhoto++;showPhoto();}};
+function closeLightbox(){
+  document.getElementById("photoLightbox").classList.remove("active");
 }
 </script>
-<!-- 🟦🟦🟦🟦🟦 KONEC MODERNÍHO DETAILU ZÁKAZNÍKA -->
+<!-- 🟦🟦🟦 KONEC DETAILU ZÁKAZNÍKA -->
+
 
 
 
