@@ -213,6 +213,76 @@ h3{
   </div>
 </div>
 
+<!-- 🟩 MODAL – SPRÁVA SYSTÉMU (EDITOVAT) -->
+<div class="overlay" id="editModal">
+  <div class="box">
+    <h2>Správa systému</h2>
+    <p style="color:#ccc;margin:10px 0;">Vyberte požadovanou akci:</p>
+
+    <div class="edit-option"><button class="btn-edit" onclick="openAddContract()">Přidat nového zadavatele</button></div>
+    <div class="edit-option"><button class="btn-edit" onclick="openEditOrders()">Upravit / Smazat reklamaci</button></div>
+    <div class="edit-option"><button class="btn-edit" onclick="backupData()">Zálohovat všechna data</button></div>
+    <div class="edit-option"><button class="btn-edit" onclick="cleanupTemporary()">Vymazat dočasné položky</button></div>
+    <div class="edit-option"><button class="btn-edit" onclick="openConfig()">Upravit API klíče a konfiguraci</button></div>
+    <div class="edit-option"><button class="btn-edit" onclick="openStats()">Zobrazit výdělky techniků</button></div>
+    <div class="edit-option"><button class="btn-edit" onclick="resetPlan()">Resetovat plán dne</button></div>
+
+    <div style="display:flex;gap:12px;margin-top:25px;">
+      <button onclick="closeEditModal()" style="flex:1;background:#555;">Zavřít</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.btn-edit {
+  width:100%;
+  margin:6px 0;
+  padding:10px 16px;
+  border:none;
+  border-radius:10px;
+  background:linear-gradient(135deg,#007bff,#00e0ff);
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  transition:transform .2s,box-shadow .3s;
+}
+.btn-edit:hover {
+  transform:translateY(-2px);
+  box-shadow:0 0 18px rgba(0,255,255,0.4);
+}
+.edit-option {
+  margin-bottom:8px;
+}
+</style>
+
+<script>
+// 🧩 Přidání tlačítka Editovat pro admina
+window.addEventListener("DOMContentLoaded",()=>{
+  if(localStorage.getItem("wgsAdmin")){
+    const adminButtons=document.getElementById("adminButtons");
+    const editBtn=document.createElement("button");
+    editBtn.textContent="Editovat";
+    editBtn.className="btn btn-admin-dark";
+    editBtn.onclick=()=>document.getElementById("editModal").style.display="flex";
+    adminButtons.appendChild(editBtn);
+  }
+});
+
+// 🔧 Zavření modalu
+function closeEditModal(){
+  document.getElementById("editModal").style.display="none";
+}
+
+// 🔧 Funkce – placeholdery akcí
+function openAddContract(){window.location.href="contracts.html";}
+function openEditOrders(){window.location.href="seznam.html";}
+function openStats(){window.location.href="statistics.html";}
+function openConfig(){alert("Otevře konfiguraci Geoapify / API.");}
+function backupData(){alert("Zahájí zálohování všech JSON dat.");}
+function cleanupTemporary(){alert("Vymaže dočasné položky z temporaryfiles.");}
+function resetPlan(){alert("Vyprázdní plán dne.");}
+</script>
+
 <!-- 🔐 LOGIN -->
 <div class="overlay" id="adminLoginOverlay">
   <div class="box">
@@ -311,7 +381,6 @@ h3{
 }
 </style>
 
-
 <script>
 const ACCESS_CODE="332018";
 const adminButton=document.getElementById("adminButton");
@@ -367,7 +436,7 @@ const dialog=document.getElementById("requestDialog");
 document.getElementById("openRequestDialog").onclick=()=>dialog.style.display="flex";
 document.getElementById("cancelReq").onclick=()=>dialog.style.display="none";
 document.getElementById("confirmReq").onclick=()=>{
-  const choice=document.querySelector('input[name="reqType"]:checked');
+  const choice=document.querySelector('input[name="reqType']:checked');
   const err=document.getElementById("reqError");
   if(!choice){err.style.display="block";return;}
   err.style.display="none";dialog.style.display="none";
@@ -377,4 +446,3 @@ document.getElementById("confirmReq").onclick=()=>{
 </script>
 </body>
 </html>
-
