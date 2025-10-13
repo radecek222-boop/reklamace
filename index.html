@@ -304,6 +304,127 @@ document.getElementById("reklamaceForm").addEventListener("submit", async e => {
 }
 .footer:hover {opacity:1;color:#cfc;}
 </style>
+<!-- 🔝 ADMIN PŘÍSTUP -->
+<style>
+#adminTopBar{
+  position:fixed;
+  top:20px;right:20px;
+  z-index:3000;
+}
+#adminButton{
+  padding:10px 24px;
+  border:none;
+  border-radius:12px;
+  font-weight:600;
+  color:#fff;
+  background:linear-gradient(135deg,#007bff,#00e0ff);
+  box-shadow:0 0 15px rgba(0,255,255,0.3);
+  cursor:pointer;
+  transition:all 0.3s;
+}
+#adminButton:hover{
+  transform:translateY(-2px);
+  box-shadow:0 0 25px rgba(0,255,255,0.6);
+}
+#adminButton.active{
+  background:linear-gradient(135deg,#00bfa6,#00e0ff);
+  box-shadow:0 0 30px rgba(0,255,255,0.6);
+}
+
+/* 🌫️ ADMIN MODAL */
+.admin-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(10px);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:4000;
+}
+.admin-box{
+  background:rgba(30,30,40,0.95);
+  padding:35px 30px;
+  border-radius:18px;
+  text-align:center;
+  box-shadow:0 0 25px rgba(0,0,0,0.6);
+  width:90%;
+  max-width:400px;
+  animation:fadeIn .3s ease;
+}
+.admin-box h2{color:#fff;margin:0 0 15px;}
+.admin-box input{
+  width:100%;padding:12px;border:none;
+  border-radius:10px;background:rgba(255,255,255,0.1);
+  color:#fff;text-align:center;font-size:1em;margin-bottom:18px;
+}
+.admin-box button{
+  width:100%;padding:10px;border:none;border-radius:10px;
+  background:linear-gradient(135deg,#007bff,#00e0ff);
+  color:#fff;font-weight:600;cursor:pointer;
+  transition:transform .2s,opacity .2s;
+}
+.admin-box button:hover{transform:scale(1.03);opacity:0.9;}
+.admin-error{color:#ff4d4d;display:none;margin-top:8px;}
+</style>
+
+<div id="adminTopBar">
+  <button id="adminButton">ADMIN</button>
+</div>
+
+<div class="admin-overlay" id="adminOverlay">
+  <div class="admin-box">
+    <h2>Přístup administrátora</h2>
+    <input type="password" id="adminPass" placeholder="Zadejte kód •••••">
+    <button id="adminConfirm">Potvrdit</button>
+    <div class="admin-error" id="adminError">❌ Nesprávný kód</div>
+  </div>
+</div>
+
+<script>
+const ADMIN_CODE="332018";
+const adminBtn=document.getElementById("adminButton");
+const overlay=document.getElementById("adminOverlay");
+const pass=document.getElementById("adminPass");
+const err=document.getElementById("adminError");
+
+function setAdmin(active){
+  if(active){
+    adminBtn.classList.add("active");
+    adminBtn.textContent="Odhlásit";
+    localStorage.setItem("wgsAdmin","1");
+  }else{
+    adminBtn.classList.remove("active");
+    adminBtn.textContent="ADMIN";
+    localStorage.removeItem("wgsAdmin");
+  }
+}
+
+adminBtn.onclick=()=>{
+  if(localStorage.getItem("wgsAdmin")){
+    setAdmin(false);
+  }else{
+    overlay.style.display="flex";
+    pass.value="";
+    err.style.display="none";
+    pass.focus();
+  }
+};
+
+document.getElementById("adminConfirm").onclick=()=>{
+  if(pass.value.trim()===ADMIN_CODE){
+    overlay.style.display="none";
+    setAdmin(true);
+  }else{
+    err.style.display="block";
+    pass.value="";
+    pass.focus();
+  }
+};
+
+pass.onkeypress=e=>{if(e.key==="Enter")document.getElementById("adminConfirm").click();};
+window.addEventListener("DOMContentLoaded",()=>{if(localStorage.getItem("wgsAdmin"))setAdmin(true);});
+</script>
+
 
 </body>
 </html>
