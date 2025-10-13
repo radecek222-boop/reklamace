@@ -460,115 +460,78 @@ document.getElementById("btnExportPdf")?.addEventListener("click",generatePdfPre
 </script>
 
 <!-- 🟪 KONEC ČÁSTI 5/10 – PDF EXPORT (MODERNÍ NÁHLED) -->
-<!-- 🟪 ZAČÁTEK ČÁSTI 6/10 – SKUTEČNÉ PDF Z FOTEK -->
+<!-- 🟪 ZAČÁTEK ČÁSTI 6/10 – SPODNÍ TLAČÍTKA -->
 
-<script>
-document.getElementById("btnSendToDetail")?.addEventListener("click",async()=>{
-  try{
-    showWait("Vytvářím PDF z fotek...");
-    const pdfBlob = await generatePhotoPdf();
+<div class="actions dual-actions" id="uploadSection">
+  <button type="button" id="btnSendToDetail" class="btn-uniform neon-blue">
+    <span>ODESLAT DO DETAILU ZÁKAZNÍKA</span>
+  </button>
+</div>
 
-    // 🧠 Uloží PDF do localStorage jako base64 → načte se v protokolu
-    const reader = new FileReader();
-    reader.onloadend=()=>{
-      localStorage.setItem("photoPdfData",reader.result);
-      hideWait(true);
-      showNotif("success","Odesláno do detailu");
-      setTimeout(()=>window.location.href="protokol.html",1500);
-    };
-    reader.readAsDataURL(pdfBlob);
-  }catch(e){
-    console.error("❌ Chyba při PDF z fotek:",e);
-    hideWait(false);
-  }
-});
+<div class="actions dual-actions">
+  <a href="index.html" class="btn-uniform neon-gray"><span>ZPĚT</span></a>
+  <button type="button" id="btnExportPdf" class="btn-uniform neon-green"><span>EXPORT TO PDF</span></button>
+</div>
 
-async function generatePhotoPdf(){
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF("p","mm","a4");
-  const pageW = pdf.internal.pageSize.getWidth();
-  const pageH = pdf.internal.pageSize.getHeight();
-
-  const data = JSON.parse(localStorage.getItem("currentCustomer")||"{}");
-  const sections = {
-    before:"BEFORE",
-    id:"ID",
-    problem:"DETAIL BUG",
-    repair:"REPAIR",
-    after:"AFTER"
-  };
-
-  // 🧾 Hlavička
-  pdf.setFont("helvetica","bold");
-  pdf.setFontSize(18);
-  pdf.text("WHITE GLOVE SERVICE",pageW/2,18,{align:"center"});
-  pdf.setFontSize(11);
-  pdf.text("Photo documentation",pageW/2,26,{align:"center"});
-  pdf.line(20,30,pageW-20,30);
-
-  pdf.setFont("helvetica","normal");
-  pdf.setFontSize(9);
-  pdf.text(`Customer: ${data.zakaznik||"-"}`,20,38);
-  pdf.text(`Address: ${data.adresa||"-"}`,20,43);
-  pdf.text(`Order: ${data.cislo||"-"}`,20,48);
-  pdf.line(20,52,pageW-20,52);
-
-  let y = 60;
-
-  for(const [key,title] of Object.entries(sections)){
-    const block = document.getElementById("preview-"+key);
-    if(!block || !block.children.length) continue;
-
-    if(y > pageH - 50){pdf.addPage();y=25;}
-
-    pdf.setFont("helvetica","bold");
-    pdf.setFontSize(11);
-    pdf.text(title,20,y);
-    y+=6;
-
-    const photos = Array.from(block.children).map(img=>img.src);
-    let col=0;
-    for(const src of photos){
-      if(y > pageH - 70){pdf.addPage();y=25;}
-      const img = await loadImage(src);
-      const ratio = img.width/img.height;
-      const imgW = (pageW-60)/2;
-      const imgH = imgW/ratio;
-      const x = 20 + (col%2)*(imgW+20);
-      pdf.addImage(src,"JPEG",x,y,imgW,imgH);
-      col++;
-      if(col%2===0) y+=imgH+10;
-    }
-    y+=12;
-  }
-
-  // 📏 Komprese PDF pod 2 MB
-  let blob = pdf.output("blob");
-  if(blob.size>2_000_000){
-    const { jsPDF } = window.jspdf;
-    const pdf2 = new jsPDF("p","mm","a4");
-    const img = await loadImage(URL.createObjectURL(blob));
-    const w=pdf2.internal.pageSize.getWidth();
-    const h=(img.height*w)/img.width;
-    pdf2.addImage(img,"JPEG",0,0,w,h,"","FAST");
-    blob=pdf2.output("blob");
-  }
-
-  console.log(`✅ PDF z fotek (${(blob.size/1024/1024).toFixed(2)} MB)`);
-  return blob;
+<style>
+.actions{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:14px;
+  margin-top:30px;
+}
+.btn-uniform{
+  flex:1 1 260px;
+  max-width:280px;
+  height:54px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:700;
+  letter-spacing:0.5px;
+  font-size:1em;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  text-shadow:0 0 8px rgba(0,0,0,0.3);
+  box-shadow:0 4px 12px rgba(0,0,0,0.25);
+  transition:all 0.25s ease;
 }
 
-function loadImage(src){
-  return new Promise((resolve,reject)=>{
-    const i=new Image();
-    i.onload=()=>resolve(i);
-    i.onerror=reject;
-    i.src=src;
-  });
+/* 🎨 Barvy jednotlivých variant */
+.neon-blue{
+  background:linear-gradient(135deg,#007bff,#33c6ff);
+  box-shadow:0 0 15px rgba(0,183,255,0.4);
 }
-</script>
+.neon-blue:hover{
+  transform:translateY(-2px);
+  box-shadow:0 0 25px rgba(0,183,255,0.6);
+}
 
-<!-- 🟪 KONEC ČÁSTI 6/10 – SKUTEČNÉ PDF Z FOTEK -->
+.neon-green{
+  background:linear-gradient(135deg,#00c37a,#00ffae);
+  box-shadow:0 0 15px rgba(0,255,180,0.4);
+}
+.neon-green:hover{
+  transform:translateY(-2px);
+  box-shadow:0 0 25px rgba(0,255,180,0.6);
+}
+
+.neon-gray{
+  background:linear-gradient(135deg,#7a7a7a,#a6a6a6);
+  color:#f5f5f5;
+  box-shadow:0 0 12px rgba(180,180,180,0.3);
+}
+.neon-gray:hover{
+  transform:translateY(-2px);
+  box-shadow:0 0 22px rgba(200,200,200,0.5);
+}
+</style>
+
+<!-- 🟪 KONEC ČÁSTI 6/10 – SPODNÍ TLAČÍTKA -->
+
 <!-- 🟪 ZAČÁTEK ČÁSTI 7/10 – ČEKACÍ DIALOG -->
 
 <div id="waitDialog">
