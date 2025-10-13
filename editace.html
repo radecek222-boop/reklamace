@@ -1,190 +1,179 @@
-<!-- 🟦 WGS EDITACE – Admin centrum (část 1/2) -->
+<!-- 🟦 WGS – EDITACE SYSTÉMU (bloky pod sebou, WGS styl) -->
 <!DOCTYPE html>
 <html lang="cs">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Editace systému – WGS</title>
+<title>Editace systému – White Glove Service</title>
 
 <style>
-/* 🎬 FILMOVÝ MODRO-STŘÍBRNÝ NEON */
-body {
+/* 🌌 ZÁKLAD */
+html,body{
+  height:100%;
+  width:100%;
   margin:0;
   font-family:"Inter",system-ui,sans-serif;
-  background:radial-gradient(circle at 50% 20%,#0a0d13 0%,#06080d 80%,#000 100%);
-  color:#d7e2ff;
-  min-height:100vh;
+  background:radial-gradient(circle at 30% 30%,#1e1f25,#111);
+  color:#fff;
   display:flex;
   flex-direction:column;
   align-items:center;
-  overflow-x:hidden;
+  justify-content:center;
+  overflow:hidden;
 }
+
+/* 💫 ANIMACE POZADÍ */
 body::before{
   content:"";
-  position:fixed;inset:0;
-  background:
-    radial-gradient(circle at 30% 40%,rgba(0,180,255,0.08),transparent 70%),
-    radial-gradient(circle at 70% 60%,rgba(255,255,255,0.05),transparent 70%);
-  animation:glow 12s ease-in-out infinite alternate;
-  z-index:-1;
+  position:fixed;
+  inset:0;
+  background:linear-gradient(135deg,#007bff55,#00e0ff33,#111);
   filter:blur(100px);
+  animation:moveBg 12s ease-in-out infinite alternate;
+  z-index:-1;
 }
-@keyframes glow{
-  0%{filter:hue-rotate(0deg);}
-  100%{filter:hue-rotate(60deg);}
+@keyframes moveBg{
+  0%{transform:translate(-10%,-10%) scale(1);}
+  100%{transform:translate(10%,10%) scale(1.2);}
 }
 
-/* 🔹 WRAPPER */
+/* 📦 WRAPPER */
 .wrapper{
-  width:95%;
-  max-width:1200px;
-  margin:50px auto 70px;
-  padding:40px 30px 60px;
-  background:linear-gradient(135deg,rgba(25,30,40,0.7),rgba(10,10,20,0.8));
-  border:1px solid rgba(150,200,255,0.1);
-  border-radius:20px;
-  box-shadow:
-    0 0 35px rgba(0,180,255,0.2),
-    inset 0 0 20px rgba(255,255,255,0.05);
+  text-align:center;
+  width:100%;
+  max-width:900px;
+  padding:4vh 5vw;
+  box-sizing:border-box;
 }
 
-/* 🧭 HLAVIČKA */
+/* 🏷️ NADPISY */
 h1{
-  text-align:center;
-  font-size:2.5em;
+  font-size:clamp(3em,8vw,7em);
   font-weight:900;
-  letter-spacing:2px;
-  background:linear-gradient(90deg,#00aaff,#b8d8ff);
+  letter-spacing:-3px;
+  background:linear-gradient(90deg,#00c6ff,#00ffcc);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
-  margin-bottom:10px;
+  margin:0;
 }
 h2{
-  text-align:center;
-  color:#9ccfff;
-  font-weight:400;
-  margin-bottom:40px;
+  text-transform:uppercase;
+  font-size:clamp(1em,2vw,1.4em);
+  letter-spacing:4px;
+  margin:8px 0 40px;
+  color:#b8fff2;
+}
+
+/* BLOKY */
+.block{
+  margin-bottom:45px;
+  padding:25px;
+  border-radius:18px;
+  background:rgba(255,255,255,0.05);
+  box-shadow:inset 0 0 20px rgba(255,255,255,0.05),0 0 20px rgba(0,255,255,0.05);
+  backdrop-filter:blur(10px);
+}
+.block h3{
+  margin-top:0;
+  font-size:1.2em;
+  font-weight:600;
+  letter-spacing:1px;
+  color:#8ff5ff;
+  margin-bottom:20px;
 }
 
 /* 🔘 TLAČÍTKA */
 .btn{
   display:inline-block;
-  padding:12px 26px;
+  width:80%;
+  max-width:350px;
+  margin:10px auto;
+  padding:14px 20px;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
   font-weight:600;
   font-size:1em;
   cursor:pointer;
-  color:#fff;
-  background:linear-gradient(135deg,#007bff,#00c8ff);
-  box-shadow:0 0 20px rgba(0,200,255,0.3);
-  margin:6px 8px;
   transition:transform .2s,box-shadow .3s;
-  text-decoration:none;
 }
-.btn:hover{transform:translateY(-3px);box-shadow:0 0 30px rgba(0,200,255,0.5);}
-.btn-danger{background:linear-gradient(135deg,#a00,#e33);}
-.btn-silver{background:linear-gradient(135deg,#666,#aaa);}
-.btn-back{
-  display:block;
-  margin:50px auto 0;
-  padding:12px 30px;
-  border-radius:12px;
-  background:linear-gradient(135deg,#888,#ccc);
-  color:#000;
-  font-weight:700;
-  text-decoration:none;
-  box-shadow:0 0 20px rgba(255,255,255,0.1);
-}
-.btn-back:hover{box-shadow:0 0 30px rgba(255,255,255,0.3);}
 
-/* 🔹 SEKCE */
-.section{
-  margin-bottom:50px;
-  padding:25px 20px 35px;
-  background:rgba(255,255,255,0.02);
-  border:1px solid rgba(100,150,255,0.15);
-  border-radius:14px;
-  box-shadow:inset 0 0 20px rgba(100,150,255,0.08);
+/* Modrý styl */
+.btn-blue{
+  background:linear-gradient(135deg,#007bff,#00e0ff);
+  color:#fff;
+  box-shadow:0 0 25px rgba(0,255,255,0.25);
 }
-.section h3{
-  color:#a8d4ff;
-  border-bottom:1px solid rgba(120,180,255,0.2);
-  padding-bottom:6px;
-  margin-top:0;
-  margin-bottom:15px;
+.btn-blue:hover{
+  transform:translateY(-3px);
+  box-shadow:0 0 40px rgba(0,255,255,0.45);
 }
-.section p{color:#9fb4d1;margin-bottom:15px;font-size:0.95em;}
+
+/* Ledově bílý styl */
+.btn-white{
+  background:linear-gradient(135deg,#cfeaff,#ffffff);
+  color:#000;
+  box-shadow:0 0 25px rgba(255,255,255,0.25);
+}
+.btn-white:hover{
+  transform:translateY(-3px);
+  box-shadow:0 0 40px rgba(255,255,255,0.45);
+}
+
+/* Červený pro reset */
+.btn-red{
+  background:linear-gradient(135deg,#ff4b4b,#ff9999);
+  color:#fff;
+  box-shadow:0 0 25px rgba(255,100,100,0.3);
+}
+.btn-red:hover{
+  transform:translateY(-3px);
+  box-shadow:0 0 40px rgba(255,100,100,0.5);
+}
+
+/* 🔙 ZPĚT */
+.back-btn{
+  margin-top:20px;
+  padding:14px 34px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(135deg,#444,#777);
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  box-shadow:0 0 15px rgba(255,255,255,0.1);
+  transition:all .3s;
+}
+.back-btn:hover{
+  box-shadow:0 0 30px rgba(255,255,255,0.3);
+}
 </style>
 </head>
 
 <body>
 <div class="wrapper">
-  <h1>WGS ADMIN</h1>
-  <h2>Centrum správy systému</h2>
+  <h1>WGS</h1>
+  <h2>Editace systému</h2>
 
-  <!-- 🟩 SEKCE 1 – ZADAVATELÉ -->
-  <div class="section">
-    <h3>🧱 Správa zadavatelů (prodejců)</h3>
-    <p>Přidávej, upravuj nebo maž zadavatele – např. Natuzzi, Phase, Softaly, Jamall apod.</p>
-    <button class="btn" onclick="window.location.href='contracts.html'">Otevřít správu zadavatelů</button>
-    <button class="btn-silver" onclick="alert('Export seznamu zadavatelů do CSV – připravuje se')">Exportovat</button>
+  <!-- 🔷 BLOK 1 – SPRÁVA REKLAMACÍ -->
+  <div class="block">
+    <h3>Správa reklamací</h3>
+    <button class="btn btn-blue" onclick="window.location.href='contracts.html'">Zadavatelé (Prodejci)</button><br>
+    <button class="btn btn-blue" onclick="window.location.href='seznam.html'">Seznam reklamací</button><br>
+    <button class="btn btn-blue" onclick="window.location.href='plandne.html'">Plán dne</button><br>
+    <button class="btn btn-blue" onclick="window.location.href='statistics.html'">Statistiky</button>
   </div>
 
-  <!-- 🟦 SEKCE 2 – REKLAMACE -->
-  <div class="section">
-    <h3>🧾 Správa reklamací</h3>
-    <p>Vyhledání podle čísla reklamace, úprava záznamu nebo smazání záznamu ze seznamu.</p>
-    <button class="btn" onclick="window.location.href='seznam.html'">Otevřít seznam reklamací</button>
-    <button class="btn-danger" onclick="alert('Funkce Smazat reklamaci bude dostupná po potvrzení admina')">Smazat reklamaci</button>
+  <!-- 🔷 BLOK 2 – ÚDRŽBA DAT -->
+  <div class="block">
+    <h3>Údržba dat</h3>
+    <button class="btn btn-white" onclick="alert('Zálohuji všechna data...')">Zálohování dat</button><br>
+    <button class="btn btn-white" onclick="alert('Mažu dočasné položky...')">Vymazat dočasné položky</button><br>
+    <button class="btn btn-white" onclick="alert('Otevírám konfiguraci systému...')">Konfigurace systému</button><br>
+    <button class="btn btn-red" onclick="if(confirm('Opravdu resetovat plán dne?')) alert('Plán dne byl resetován.')">Resetovat plán dne</button>
   </div>
 
-  <!-- 🟨 SEKCE 3 – ZÁLOHOVÁNÍ / ÚDRŽBA -->
-  <div class="section">
-    <h3>💾 Zálohování a údržba dat</h3>
-    <p>Správa datových souborů (JSON – orders, hotove, temporaryfiles). Zálohování a čištění starých záznamů.</p>
-    <button class="btn" onclick="alert('Spouštím zálohování dat z Workeru')">Zálohovat všechna data</button>
-    <button class="btn-danger" onclick="alert('Vymažu temporary soubory po ověření admina')">Vymazat dočasné položky</button>
-  </div>
-  <!-- 🟧 SEKCE 4 – API a KONFIGURACE -->
-  <div class="section">
-    <h3>🔧 API a konfigurace systému</h3>
-    <p>Správa Geoapify klíče, Worker endpointů a dalších konfiguračních proměnných.</p>
-    <button class="btn" onclick="openConfig()">Upravit konfiguraci</button>
-    <button class="btn-silver" onclick="alert('Načtu aktuální konfiguraci ze serveru')">Zobrazit aktuální nastavení</button>
-  </div>
-
-  <!-- 🟫 SEKCE 5 – PLÁN DNE -->
-  <div class="section">
-    <h3>📆 Plán dne</h3>
-    <p>Zde můžeš spravovat rozpis techniků, jejich trasy a plánované zásahy.</p>
-    <button class="btn" onclick="window.location.href='plandne.html'">Otevřít plán dne</button>
-    <button class="btn-danger" onclick="resetPlan()">Resetovat plán dne</button>
-  </div>
-
-  <!-- 🟩 SEKCE 6 – STATISTIKY -->
-  <div class="section">
-    <h3>💰 Statistiky a přehled výdělků</h3>
-    <p>Výdělek techniků, počet reklamací, kurz EUR → CZK a přehled období.</p>
-    <button class="btn" onclick="window.location.href='statistics.html'">Zobrazit statistiky</button>
-    <button class="btn-silver" onclick="alert('Export přehledu do PDF – připravuje se')">Exportovat do PDF</button>
-  </div>
-
-  <!-- 🟪 TLAČÍTKO ZPĚT -->
-  <a href="index.html" class="btn-back">⬅ Zpět na hlavní stránku</a>
+  <!-- 🔙 ZPĚT -->
+  <button class="back-btn" onclick="window.location.href='index.html'">Zpět na hlavní stránku</button>
 </div>
-
-<script>
-/* 🧩 FUNKCE PRO ADMIN AKCE */
-function openConfig(){
-  alert("Otevře editor konfigurace (Geoapify API Key, Worker URL apod.)");
-}
-function resetPlan(){
-  if(confirm("Opravdu chceš vymazat celý plán dne?")) {
-    alert("✅ Plán dne byl resetován.");
-  }
-}
-</script>
-
 </body>
 </html>
