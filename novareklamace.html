@@ -1,190 +1,448 @@
-<!-- 🟢 ZAČÁTEK ČÁSTI 1/2 – nová reklamace (Green-Neon styl 2025 – FULL RESPONSIVE) -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 1/5 – ZÁKLADNÍ STRUKTURA + STYL NEON TYRKYS -->
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Nová reklamace – White Glove Service</title>
 
-<!-- 📍 Leaflet mapa -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<!-- Leaflet pro mapu -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
-/* 🌍 Celoplošné přizpůsobení */
-html,body{
-  margin:0;padding:0;
-  width:100%;height:100%;
-  min-height:100vh;
+body{
+  margin:0;
   font-family:"Inter",system-ui,sans-serif;
-  background:#0e1614;
-  color:#e6fff7;
-  display:flex;justify-content:center;align-items:flex-start;
-  box-sizing:border-box;
-  overflow-x:hidden;
+  background:#0f1816;
+  color:#eafffa;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  min-height:100vh;
 }
 body::before{
   content:"";
   position:fixed;inset:0;
   background:
-    radial-gradient(circle at 25% 20%,#00b56a55,#0e1614 60%),
-    radial-gradient(circle at 80% 80%,#00e0a650,#0e1614 70%);
-  background-blend-mode:screen;
-  filter:blur(80px);
-  animation:moveBg 12s ease-in-out infinite alternate;
-  z-index:-2;
+    radial-gradient(circle at 25% 25%,#00c89a33,#0f1816 70%),
+    radial-gradient(circle at 80% 80%,#00ffcc22,#0f1816 60%);
+  filter:blur(70px);
+  z-index:-1;
 }
-@keyframes moveBg{0%{transform:translate(-3%,-3%);}100%{transform:translate(3%,3%);}}
-
-/* 🧊 Wrapper */
 .wrapper{
-  width:100%;
-  max-width:1200px;
-  min-height:calc(100vh - 60px);
-  background:rgba(255,255,255,0.04);
+  background:rgba(255,255,255,0.05);
   border:1px solid rgba(255,255,255,0.08);
-  border-radius:20px;
-  backdrop-filter:blur(20px);
-  box-shadow:0 0 35px rgba(0,255,170,0.2);
-  padding:40px 30px;
-  margin:40px auto 80px;
-  box-sizing:border-box;
-  animation:fadeIn .8s ease;
+  border-radius:16px;
+  backdrop-filter:blur(15px);
+  padding:40px 28px;
+  margin:40px 15px 100px;
+  max-width:760px;width:100%;
+  box-shadow:0 0 35px rgba(0,255,200,0.25);
 }
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-
-/* 🏷️ Nadpisy */
-h1,h2{text-align:center;margin:0 0 20px;}
 h1{
-  font-size:2.6em;
+  text-align:center;
+  font-size:2.4em;
   font-weight:900;
-  letter-spacing:-1px;
-  background:linear-gradient(90deg,#00d084,#00b56a);
+  margin:0 0 6px;
+  background:linear-gradient(90deg,#00ffc8,#00a87d);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
 }
 h2{
+  text-align:center;
   font-size:1.1em;
   font-weight:500;
   color:#aefcd8;
-  margin-bottom:30px;
-  text-transform:uppercase;
+  margin-bottom:25px;
 }
-
-/* 📱 Responzivní úpravy nadpisů */
-@media (max-width:800px){h1{font-size:2.2em;} h2{font-size:1em;}}
-@media (max-width:480px){h1{font-size:1.8em;} h2{font-size:0.95em;letter-spacing:1px;}}
-
-/* 🧾 Formulář */
-label{display:block;font-weight:600;margin-top:15px;margin-bottom:5px;color:#e6fff7;}
+label{display:block;font-weight:600;margin-top:14px;margin-bottom:5px;color:#d9fff0;}
 input,textarea,select{
   width:100%;
   padding:12px;
   font-size:1em;
   border:none;
   border-radius:10px;
-  background:rgba(255,255,255,0.08);
-  color:#fff;
-  outline:none;
-  box-shadow:inset 0 0 6px rgba(0,0,0,0.4);
-  transition:border .2s,box-shadow .2s,background .3s;
+  background:#fff;
+  color:#111;
   box-sizing:border-box;
 }
 input:focus,textarea:focus,select:focus{
-  background:rgba(255,255,255,0.12);
-  box-shadow:0 0 0 2px #00b56a88;
+  outline:2px solid #00c89a;
 }
 textarea{height:100px;resize:vertical;}
-small{font-size:0.8em;color:#aaa;}
-
-/* 🔘 Tlačítka */
 .btn{
   display:inline-block;
-  padding:12px 28px;
+  padding:12px 26px;
+  border:none;
   border-radius:10px;
   font-weight:600;
-  border:none;
   color:#fff;
   cursor:pointer;
-  font-size:1em;
-  transition:transform .15s ease-in-out,opacity .25s;
-  box-shadow:0 0 12px rgba(0,255,170,0.3);
+  box-shadow:0 0 12px rgba(0,255,200,0.3);
+  transition:transform .15s ease,opacity .25s;
 }
-.btn:hover{transform:scale(1.05);opacity:0.9;}
-.btn-back{background:linear-gradient(135deg,#555,#777);}
-.btn-send{background:linear-gradient(135deg,#00b56a,#00e0a6);}
-
-/* 📍 Mapa a návrhy */
-.address-wrapper{position:relative;}
-.suggestions{
-  position:absolute;top:100%;left:0;width:100%;
-  background:rgba(20,30,25,0.95);
-  border:1px solid rgba(255,255,255,0.1);
-  border-radius:10px;
-  box-shadow:0 0 20px rgba(0,0,0,0.4);
-  max-height:180px;overflow-y:auto;z-index:1000;
-}
-.suggestions div{padding:8px;cursor:pointer;color:#eee;}
-.suggestions div:hover{background:rgba(0,255,170,0.1);}
-#mapPreview{
-  width:100%;
-  height:250px;
-  margin-top:10px;
-  border-radius:14px;
-  overflow:hidden;
-  box-shadow:0 0 20px rgba(0,0,0,0.3);
-}
-
-/* 📱 Responzivní úpravy formuláře */
-@media (max-width:600px){
-  .wrapper{padding:20px 15px;max-width:95%;}
-  input,textarea,select{font-size:0.95em;padding:10px;}
-  #mapPreview{height:200px;}
-}
+.btn:hover{transform:scale(1.05);opacity:.9;}
+.btn-send{background:linear-gradient(135deg,#00b56a,#00ffb0);}
+.btn-back{background:linear-gradient(135deg,#666,#999);}
+.actions{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:25px;}
+@media(max-width:600px){.wrapper{padding:25px 18px;}}
 </style>
 </head>
-
 <body>
-  <div class="wrapper">
-    <h1>WGS</h1>
-    <h2>Nová reklamace</h2>
+<div class="wrapper">
+<h1>WHITE GLOVE SERVICE</h1>
+<h2>Nová reklamace</h2>
+<form id="reklamaceForm" novalidate>
+<!-- 🟨 KONEC ČÁSTI 1/5 -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 2/5 – FORMULÁŘ ZÁKAZNÍKA + LOGIKA -->
+<label>Číslo reklamace / objednávky:</label>
+<input type="text" id="cislo" name="cislo" required>
 
-    <form id="novareklamaceForm" novalidate>
-      <label>Číslo reklamace / objednávky:</label>
-      <input type="text" name="cislo" value="Nová reklamace" readonly />
+<label>Zákazník:</label>
+<input type="text" id="zakaznik" name="zakaznik" required placeholder="např. Jiří Novák">
 
-      <label>Zákazník:</label>
-      <input type="text" name="zakaznik" required placeholder="např. Jiří Novák" />
+<label>Ulice a číslo popisné:</label>
+<div class="address-wrapper">
+  <input type="text" id="ulice" name="ulice" required placeholder="např. Vinohradská 120">
+  <div id="suggestions" class="suggestions"></div>
+</div>
+<div id="mapPreview" style="margin-top:10px;height:250px;border-radius:14px;overflow:hidden;"></div>
 
-      <label>Ulice a číslo popisné:</label>
-      <div class="address-wrapper">
-        <input type="text" id="ulice" name="ulice" required placeholder="např. Vinohradská 120" />
-        <div id="suggestions" class="suggestions"></div>
-      </div>
-      <div id="mapPreview"></div>
+<label>Město:</label>
+<input type="text" id="mesto" name="mesto" required placeholder="např. Praha">
 
-      <label>Město:</label>
-      <input type="text" id="mesto" name="mesto" required placeholder="např. Praha" />
+<label>PSČ:</label>
+<input type="text" id="psc" name="psc" required pattern="\\d{3}\\s?\\d{2}" placeholder="např. 110 00">
 
-      <label>PSČ:</label>
-      <input type="text" id="psc" name="psc" required pattern="\\d{3}\\s?\\d{2}" placeholder="např. 110 00" />
+<label>Telefon:</label>
+<div style="display:flex;gap:8px;">
+  <select id="predvolba" style="max-width:130px;">
+    <option value="+420">🇨🇿 +420</option>
+    <option value="+421">🇸🇰 +421</option>
+    <option value="+43">🇦🇹 +43</option>
+  </select>
+  <input type="tel" id="telefon" name="telefon" required placeholder="např. 777123456">
+</div>
 
-      <label>Telefon:</label>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-        <select id="predvolba" style="max-width:130px;background:rgba(255,255,255,0.08);border:none;border-radius:10px;color:#fff;padding:10px;">
-          <option value="+420">🇨🇿 +420</option>
-          <option value="+421">🇸🇰 +421</option>
-          <option value="+43">🇦🇹 +43</option>
-        </select>
-        <input type="tel" id="telefon" name="telefon" required placeholder="např. 777 123 456" style="flex:1;min-width:150px;" />
-      </div>
+<label>E-mail:</label>
+<input type="email" id="email" name="email" required placeholder="např. info@firma.cz">
 
-      <label>E-mail:</label>
-      <input type="email" id="email" name="email" required placeholder="např. info@firma.cz" />
+<label>Model / Název produktu:</label>
+<input type="text" id="produkt" name="produkt" required placeholder="např. C142">
 
-      <label>Model / Název produktu:</label>
-      <input type="text" name="produkt" required placeholder="např. C142" />
+<div id="dealerFields">
+  <label>Objednávku zpracoval:</label>
+  <select id="zpracoval" name="zpracoval">
+    <option value="">Vyber...</option>
+    <option>Natuzzi Editions – Strejcek</option>
+    <option>Natuzzi Editions – Vimrova</option>
+    <option>Natuzzi Italia – Jama</option>
+    <option>Natuzzi Italia – River</option>
+    <option>Phase – Klucarova</option>
+    <option>Phase – Jancova</option>
+    <option>Softaly – Soho</option>
+    <option value="Jiná">Jiná</option>
+  </select>
 
-      <label>Popis závady / požadavku:</label>
-      <textarea name="popis" required placeholder="Popište problém, opravu nebo požadavek..."></textarea>
-<!-- 🟢 KONEC ČÁSTI 1/2 – pokračování v části 2/2 -->
+  <div id="jinaSekce" style="display:none;margin-top:10px;">
+    <label>Zadej jiného zadavatele:</label>
+    <input type="text" id="jinaJmeno" placeholder="Jméno firmy">
+    <label>Email:</label>
+    <input type="email" id="jinaEmail" placeholder="např. info@firma.cz">
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+  const isDealer=localStorage.getItem("isDealer")==="true";
+  const poleCislo=document.getElementById("cislo");
+  const dealerBox=document.getElementById("dealerFields");
+  if(!isDealer){
+    poleCislo.value="Pozáruční servis";
+    poleCislo.readOnly=true;
+    dealerBox.style.display="none";
+  }
+  const select=document.getElementById("zpracoval");
+  select.addEventListener("change",()=>{
+    document.getElementById("jinaSekce").style.display=
+      select.value==="Jiná"?"block":"none";
+  });
+});
+</script>
+<!-- 🟨 KONEC ČÁSTI 2/5 -->
+<!-- 🟨 ZAČÁTEK ČÁSTI 3/5 – KALENDÁŘE -->
+<label>Datum prodeje:</label>
+<input type="date" id="datum_prodeje" name="datum_prodeje">
+
+<label>Datum reklamace:</label>
+<input type="date" id="datum_reklamace" name="datum_reklamace" required>
+<!-- 🟨 KONEC ČÁSTI 3/5 -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 4/5 – FOTKY + VALIDACE + LOCALSTORAGE + LIGHTBOX -->
+<label>Popis závady:</label>
+<textarea id="popis" name="popis" required placeholder="Popište závadu nebo problém..."></textarea>
+
+<div class="photo-frame">
+  <div class="photo-frame__header">
+    <div class="photo-frame__title">Fotodokumentace</div>
+    <button type="button" id="addPhotoBtn" class="btn-photo">📷 Přidat fotografie</button>
+  </div>
+  <div class="photo-frame__info">Max. 10 fotografií (JPG/PNG/HEIC, ≤ 0,5 MB každá)</div>
+  <div id="photoPreviewMain" class="photo-preview-main"></div>
+</div>
+
+<input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
+
+<!-- 🔍 Lightbox -->
+<div id="lightbox" class="lightbox">
+  <img id="lightboxImg" src="">
+</div>
+
+<style>
+.photo-frame {
+  border:1px solid #00bfa5; border-radius:10px; padding:14px; margin-top:18px;
+  background:linear-gradient(180deg,#f8fdfd 0%,#eefafa 100%);
+}
+.photo-frame__header{display:flex;justify-content:space-between;align-items:center;}
+.photo-frame__title{font-weight:700;color:#007f73;font-size:1.05em;}
+.btn-photo{
+  padding:8px 16px;border-radius:8px;
+  border:1px solid #00bfa5;background:linear-gradient(135deg,#00d0b3,#00a891);
+  color:#fff;font-weight:600;cursor:pointer;transition:all .2s ease;
+}
+.btn-photo:hover{transform:scale(1.04);opacity:.9;}
+.photo-frame__info{font-size:.8em;color:#444;margin-top:3px;}
+.photo-preview-main{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.photo-item{position:relative;width:90px;height:90px;border-radius:8px;overflow:hidden;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);cursor:pointer;}
+.photo-item img{width:100%;height:100%;object-fit:contain;background:#fff;}
+.photo-remove{position:absolute;top:3px;right:3px;width:20px;height:20px;
+  border:none;border-radius:50%;background:rgba(255,255,255,.85);color:#d40000;
+  font-weight:bold;font-size:14px;cursor:pointer;}
+.photo-remove:hover{background:#fff;transform:scale(1.15);}
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);
+  justify-content:center;align-items:center;z-index:9999;}
+.lightbox.active{display:flex;}
+.lightbox img{max-width:95vw;max-height:90vh;border-radius:12px;box-shadow:0 0 20px #000;}
+</style>
+
+<script>
+const photoInput=document.getElementById("photoInput");
+const photoPreviewMain=document.getElementById("photoPreviewMain");
+const addPhotoBtn=document.getElementById("addPhotoBtn");
+const lightbox=document.getElementById("lightbox");
+const lightboxImg=document.getElementById("lightboxImg");
+
+let photos=[];
+
+// 📸 Přidání fotek
+addPhotoBtn.onclick=()=>photoInput.click();
+
+photoInput.onchange=async()=>{
+  const files=Array.from(photoInput.files);
+  for(const f of files.slice(0,10-photos.length)){
+    const blob=await compressImage(f);
+    const reader=new FileReader();
+    reader.onload=e=>{
+      photos.push({name:f.name,blob,preview:e.target.result});
+      renderPhotos();
+      saveDraft();
+    };
+    reader.readAsDataURL(blob);
+  }
+  photoInput.value="";
+};
+
+// 🧩 Komprese obrázku (zachování proporcí)
+async function compressImage(file,maxKB=500,maxDim=1280){
+  const img=await createImageBitmap(file);
+  const canvas=document.createElement("canvas");
+  let [w,h]=[img.width,img.height];
+  if(w>h&&w>maxDim){h=Math.round(h*(maxDim/w));w=maxDim;}
+  else if(h>=w&&h>maxDim){w=Math.round(w*(maxDim/h));h=maxDim;}
+  canvas.width=w;canvas.height=h;
+  const ctx=canvas.getContext("2d");
+  ctx.drawImage(img,0,0,w,h);
+  let q=0.9,blob;
+  do{blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));q-=0.1;}
+  while(blob.size/1024>maxKB&&q>0.4);
+  return blob;
+}
+
+// 🖼️ Zobrazení miniatur
+function renderPhotos(){
+  photoPreviewMain.innerHTML="";
+  photos.forEach((p,i)=>{
+    const item=document.createElement("div");
+    item.className="photo-item";
+    const img=document.createElement("img");
+    img.src=p.preview;
+    img.onclick=()=>showLightbox(p.preview);
+    const del=document.createElement("button");
+    del.className="photo-remove";
+    del.textContent="×";
+    del.onclick=(e)=>{e.stopPropagation();photos.splice(i,1);renderPhotos();saveDraft();};
+    item.append(img,del);
+    photoPreviewMain.append(item);
+  });
+}
+
+// 🔍 Lightbox
+function showLightbox(src){
+  lightboxImg.src=src;
+  lightbox.classList.add("active");
+}
+lightbox.onclick=()=>lightbox.classList.remove("active");
+
+// 💾 Uložení rozpracovaných dat
+function saveDraft(){
+  const form=document.getElementById("reklamaceForm");
+  const data=new FormData(form);
+  const obj=Object.fromEntries(data.entries());
+  obj.photos=photos.map(p=>p.preview);
+  localStorage.setItem("novaReklamaceDraft",JSON.stringify(obj));
+}
+
+// 🔁 Obnovení dat při otevření
+window.addEventListener("DOMContentLoaded",()=>{
+  const draft=localStorage.getItem("novaReklamaceDraft");
+  if(draft){
+    const obj=JSON.parse(draft);
+    Object.keys(obj).forEach(k=>{
+      const el=document.querySelector(`[name='${k}']`);
+      if(el)el.value=obj[k];
+    });
+    if(obj.photos){
+      photos=obj.photos.map(p=>({preview:p,name:"uloženo",blob:null}));
+      renderPhotos();
+    }
+  }
+});
+
+// 🧾 Validace jména, emailu, telefonu
+const nameField=document.querySelector("input[name='zakaznik']");
+nameField.addEventListener("input",()=>{
+  nameField.value=nameField.value
+    .split(" ")
+    .map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase())
+    .join(" ");
+});
+document.getElementById("email").addEventListener("input",e=>{
+  e.target.setCustomValidity(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value)?"":"Neplatný email");
+});
+document.getElementById("telefon").addEventListener("input",e=>{
+  e.target.setCustomValidity(/^\d{6,}$/.test(e.target.value)?"":"Min. 6 čísel");
+});
+</script>
+<!-- 🟩 KONEC ČÁSTI 4/5 – FOTKY + VALIDACE + LOCALSTORAGE + LIGHTBOX -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 5/5 – ODESLÁNÍ, ANIMACE, PŘESMĚROVÁNÍ -->
+
+<!-- 💾 Overlay načítání -->
+<div class="wait-overlay" id="waitOverlay">
+  <div class="hourglass"></div>
+  <p>Čekejte prosím, probíhá odesílání…</p>
+</div>
+
+<!-- ✅ Hotovo animace -->
+<div class="success-check" id="successCheck">
+  <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+    <defs>
+      <linearGradient id="gradTurq" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#00e0c0;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#00a88f;stop-opacity:1" />
+      </linearGradient>
+    </defs>
+    <circle cx="26" cy="26" r="25" fill="none" stroke="#e0e0e0"/>
+    <path fill="none" stroke="url(#gradTurq)" d="M14 27l7 7 16-16"
+      stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</div>
+
+<style>
+.wait-overlay {
+  display:none; position:fixed; inset:0; z-index:3000;
+  background:rgba(255,255,255,0.9);
+  backdrop-filter:blur(3px);
+  justify-content:center; align-items:center;
+  flex-direction:column; color:#007f73; font-weight:600;
+  font-size:1.1em;
+}
+.wait-overlay.active{display:flex;}
+.hourglass{
+  border:4px solid #ccc; border-top:4px solid #00bfa5;
+  border-radius:50%; width:40px; height:40px;
+  animation:spin 1s linear infinite; margin-bottom:10px;
+}
+@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+
+.success-check {
+  display:none; position:fixed; inset:0;
+  justify-content:center; align-items:center;
+  background:rgba(255,255,255,0.95);
+  z-index:3100;
+}
+.success-check.active{display:flex;}
+.checkmark{
+  width:90px;height:90px;stroke-width:3;
+  fill:none;stroke-dasharray:48;stroke-dashoffset:48;
+  animation:draw 1s ease forwards;
+}
+@keyframes draw{to{stroke-dashoffset:0;}}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+  const form=document.getElementById("reklamaceForm");
+  const wait=document.getElementById("waitOverlay");
+  const success=document.getElementById("successCheck");
+
+  if(!form)return;
+
+  form.addEventListener("submit",async(e)=>{
+    e.preventDefault();
+    wait.classList.add("active");
+
+    const f=e.target;
+    const predvolba=document.getElementById("predvolba");
+    const photos=(window.photos||[]).map(p=>p.preview);
+    const dataObj={
+      typ:"reklamace",
+      cislo:f.cislo.value.trim()||"Pozáruční servis",
+      zakaznik:f.zakaznik.value,
+      adresa:`${f.ulice.value}, ${f.mesto.value}, ${f.psc.value}`,
+      telefon:`${predvolba.value} ${f.telefon.value}`,
+      email:f.email.value,
+      produkt:f.produkt.value,
+      datum_prodeje:f.datum_prodeje?.value||"",
+      datum_reklamace:f.datum_reklamace?.value||"",
+      popis:f.popis.value,
+      fotky:photos
+    };
+
+    try{
+      const res=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({record:dataObj})
+      });
+
+      if(!res.ok)throw new Error("Chybná odpověď: "+res.status);
+      const json=await res.json();
+      console.log("📤 Worker odpověď:",json);
+
+      // ✅ Hotovo
+      localStorage.removeItem("novaReklamaceDraft");
+      wait.classList.remove("active");
+      success.classList.add("active");
+
+      setTimeout(()=>{window.location.href="index.html";},2500);
+    }catch(err){
+      console.error(err);
+      alert("❌ Chyba při odesílání: "+err.message);
+      wait.classList.remove("active");
+    }
+  });
+});
+</script>
+
+<!-- 🟩 KONEC ČÁSTI 5/5 – ODESLÁNÍ, ANIMACE, PŘESMĚROVÁNÍ -->
