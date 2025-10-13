@@ -214,5 +214,138 @@ async function exportPDF(){
 function mailCustomer(){showNotif("warning","Otevírám mail…");}
 function attachPhotos(){showNotif("warning","Zatím neaktivní demo");}
 </script>
+  <!-- 🟦 ČÁST 2/2 – FOTODOKUMENTACE + SPOJENÍ PDF -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+
+<script>
+let attachedPhotos = [];
+
+// 📸 Přidání fotek nebo pořízení z kamery
+async function attachPhotos() {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+  input.multiple = true;
+  input.capture = "environment";
+  input.style.display = "none";
+  document.body.appendChild(input);
+
+  input.onchange = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    showNotif("success", "Zpracovávám fotky...");
+    attachedPhotos = [];
+    for (const file of files) {
+      const blob = await compressImage(file, 0.6);
+      const base64 = await toBase64(blob);
+      attachedPhotos.push(base64);
+    }
+    localStorage.setItem("photoPdfDataLocal", JSON.stringify(attachedPhotos));
+    renderPhotoPreview(attachedPhotos);
+    showNotif("success", "Fotky přidány");
+    input.remove();
+  };
+  input.click();
+}
+
+// 🧩 Komprese obrázku
+async function compressImage(file, maxMB = 0.6) {
+  const img = await loadImage(URL.createObjectURL(file));
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  const maxW = 1200;
+  const s = Math.min(1, maxW / img.width);
+  canvas.width = img.width * s;
+  canvas.height = img.height * s;
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  let q = 0.85;
+  let blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", q));
+  while (blob.size > maxMB * 1024 * 1024 && q > 0.4) {
+    q -= 0.05;
+    blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", q));
+  }
+  return blob;
+}
+
+// 🧩 Načtení a převod
+function loadImage(src){return new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src=src;});}
+function toBase64(b){return new Promise((r,j)=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.onerror=j;fr.readAsDataURL(b);});}
+
+// 🧩 Náhled pod protokolem
+function renderPhotoPreview(arr){
+  let cont=document.getElementById("photoPreviewContainer");
+  if(!cont){
+    cont=document.createElement("div");
+    cont.id="photoPreviewContainer";
+    cont.style.marginTop="25px";
+    document.querySelector(".wrapper").appendChild(cont);
+  }
+  cont.innerHTML="<h3 style='margin-bottom:10px;'>📷 Připojené fotky</h3><div id='photoGrid' style='display:flex;flex-wrap:wrap;gap:10px;'></div>";
+  const grid=cont.querySelector("#photoGrid");
+  arr.forEach(s=>{
+    const img=document.createElement("img");
+    img.src=s;
+    img.style.width="160px";
+    img.style.height="110px";
+    img.style.objectFit="cover";
+    img.style.borderRadius="6px";
+    img.style.cursor="pointer";
+    img.onclick=()=>window.open(s,"_blank");
+    grid.appendChild(img);
+  });
+}
+
+// 🧩 Sloučení protokolu + fotky
+async function mergePdfWithPhotos(protoDoc, arr){
+  const { PDFDocument } = window.PDFLib;
+  const protoBytes = await protoDoc.output("arraybuffer");
+  const mainPdf = await PDFDocument.load(protoBytes);
+  const photosPdf = await createPhotosPdf(arr);
+  const copy = await mainPdf.copyPages(photosPdf, photosPdf.getPageIndices());
+  copy.forEach(p=>mainPdf.addPage(p));
+  return await mainPdf.save();
+}
+
+// 🧩 Vytvoření PDF s fotkami
+async function createPhotosPdf(arr){
+  const { jsPDF } = window.jspdf;
+  const pdf=new jsPDF("p","mm","a4");
+  const w=pdf.internal.pageSize.getWidth(), h=pdf.internal.pageSize.getHeight();
+  let y=20;
+  for(const src of arr){
+    const imgW=w-40, imgH=(imgW*3)/4;
+    if(y+imgH>h-20){pdf.addPage();y=20;}
+    pdf.addImage(src,"JPEG",20,y,imgW,imgH);
+    y+=imgH+10;
+  }
+  const bytes=pdf.output("arraybuffer");
+  return await PDFLib.PDFDocument.load(bytes);
+}
+
+// 🧩 Přepsaný exportPDF pro spojení
+async function exportPDF(){
+  try{
+    showNotif("success","Generuji PDF...");
+    const proto=await generateProtocolPDF();
+    const local=JSON.parse(localStorage.getItem("photoPdfDataLocal")||"[]");
+    if(local.length){
+      const merged=await mergePdfWithPhotos(proto,local);
+      const blob=new Blob([merged],{type:"application/pdf"});
+      const url=URL.createObjectURL(blob);
+      window.open(url,"_blank");
+      showNotif("success","PDF vytvořeno s fotkami");
+    }else{
+      const blob=proto.output("blob");
+      const url=URL.createObjectURL(blob);
+      window.open(url,"_blank");
+      showNotif("warning","Export bez fotek");
+    }
+  }catch(e){console.error(e);showNotif("error","Chyba exportu PDF");}
+}
+</script>
+
+<!-- 🟦 KONEC ČÁSTI 2/2 – FOTODOKUMENTACE + SPOJENÍ PDF -->
+
 </body>
 </html>
