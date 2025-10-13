@@ -397,22 +397,23 @@ function renderOrders(){
     tableBody.innerHTML=`<tr><td colspan="4" style="text-align:center;color:#999;">Žádné záznamy</td></tr>`;
     return;
   }
-
-  tableBody.innerHTML=allOrders.map(item=>{
-    const stav=(item.stav||"").toLowerCase();
-    let cls="";
-    if(stav.includes("nov"))cls="new";
-    else if(stav.includes("domlu"))cls="done";
-    else if(stav.includes("zru"))cls="cancelled";
-    return `
-      <tr class="${cls}" onclick='openDetail(${JSON.stringify(item)})'>
-        <td>${item.zakaznik||"–"}</td>
-        <td>${item.adresa||"–"}</td>
-        <td>${item.telefon||"–"}</td>
-        <td>${item.stav||"–"}</td>
-      </tr>`;
-  }).join("");
+tableBody.innerHTML = allOrders.map(o => {
+  const item = o.data || o; // 🟢 přidáno – podporuje i vnořená data z temporaryfiles
+  const stav = (item.stav || "").toLowerCase();
+  let cls = "";
+  if (stav.includes("nov")) cls = "new";
+  else if (stav.includes("domlu")) cls = "done";
+  else if (stav.includes("zru")) cls = "cancelled";
+  return `
+    <tr class="${cls}" onclick='openDetail(${JSON.stringify(item)})'>
+      <td>${item.zakaznik || "–"}</td>
+      <td>${item.adresa || "–"}</td>
+      <td>${item.telefon || "–"}</td>
+      <td>${item.stav || "–"}</td>
+    </tr>`;
+}).join("");
 }
+
 
 /* 🔁 TLAČÍTKO NAČÍST ZNOVU */
 reloadBtn.onclick=loadOrders;
