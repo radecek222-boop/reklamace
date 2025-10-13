@@ -215,6 +215,8 @@ h3{
     <div class="icon" id="adminErrorIcon">❌</div>
     <div class="error-text" id="adminErrorText">Nesprávný kód</div>
     <button id="adminLoginBtn">Potvrdit</button>
+    <!-- 🔙 Přidané tlačítko Zpět -->
+    <button id="adminBackBtn" style="margin-top:10px;background:#555;">Zpět</button>
   </div>
 </div>
 
@@ -349,6 +351,7 @@ adminButton.onclick=()=>{loginOverlay.style.display="flex";document.getElementBy
 logoutButton.onclick=logout;
 backButton.onclick=()=>{loginOverlay.style.display="none";};
 document.getElementById("adminLoginBtn").onclick=tryLogin;
+document.getElementById("adminBackBtn").onclick=()=>{loginOverlay.style.display="none";};
 document.getElementById("adminPassword").onkeypress=e=>{if(e.key==="Enter")tryLogin();};
 window.addEventListener("DOMContentLoaded",()=>{if(localStorage.getItem("wgsAdmin"))showAdmin();});
 
