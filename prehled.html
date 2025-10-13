@@ -7,89 +7,151 @@
 
 <style>
 body {
-  font-family: "Inter", system-ui, sans-serif;
-  background: #f6f7fb;
-  margin: 0; padding: 0;
-  display: flex; justify-content: center; align-items: flex-start;
-  min-height: 100vh;
+  font-family:"Inter",system-ui,sans-serif;
+  background:radial-gradient(circle at top left,#020611 0%,#050a1a 80%);
+  color:#e8f0ff;
+  margin:0;padding:0;
+  display:flex;justify-content:center;align-items:flex-start;
+  min-height:100vh;
 }
 .wrapper {
-  background: #fff;
-  padding: 30px; margin: 40px 15px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  width: 100%; max-width: 960px;
-  position: relative; box-sizing: border-box;
+  background:rgba(10,15,30,0.9);
+  padding:30px;margin:40px 15px;
+  border-radius:14px;
+  box-shadow:0 0 25px rgba(0,100,255,0.25);
+  width:100%;max-width:960px;
+  position:relative;box-sizing:border-box;
+  backdrop-filter:blur(8px);
 }
-h1 { text-align: center; font-size: 2.1em; font-weight: 900; color: #111; margin: 0 0 8px; }
-.sub { text-align: center; color: #111; margin-bottom: 30px; font-size: 1.05em; font-weight: 500; }
-
-#logoutBtn {
-  position: absolute; top: 15px; right: 20px;
-  background: linear-gradient(135deg,#b8b8b8,#d3d3d3);
-  border: none; color: #333; font-weight: 600;
-  border-radius: 8px; padding: 6px 14px; cursor: pointer;
-  transition: opacity .25s;
-  font-size: 0.9em;
+h1{
+  text-align:center;
+  font-size:2.2em;
+  font-weight:900;
+  color:#80bfff;
+  margin:0 0 8px;
+  text-shadow:0 0 20px rgba(0,128,255,0.4);
 }
-#logoutBtn:hover { opacity: .85; }
-
-.obrat-box {
-  text-align: center;
-  background: linear-gradient(135deg,#e0e0e0,#f0f0f0);
-  border-radius: 12px;
-  padding: 25px 20px;
-  margin-bottom: 25px;
-  font-size: 1.5em;
-  font-weight: 700;
-  color: #111;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-  position: relative;
+.sub{
+  text-align:center;
+  color:#bcd3ff;
+  margin-bottom:28px;
+  font-size:1.05em;
+  font-weight:500;
 }
-#currencyToggle {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  background: linear-gradient(135deg,#b5b5b5,#e0e0e0);
-  border: none;
-  border-radius: 8px;
-  padding: 5px 10px;
-  font-size: 0.85em;
-  font-weight: 600;
-  cursor: pointer;
-  color: #222;
-  transition: background .25s;
+#logoutBtn{
+  position:absolute;top:15px;right:20px;
+  background:linear-gradient(135deg,#1c1f2b,#2b3a5c);
+  border:none;color:#fff;font-weight:600;
+  border-radius:8px;padding:6px 14px;cursor:pointer;
+  transition:all .25s;font-size:.9em;
+  box-shadow:0 0 12px rgba(0,128,255,0.25);
 }
-#currencyToggle:hover { background: linear-gradient(135deg,#999,#c9c9c9); }
-
-.btn {
-  border: none; border-radius: 8px; padding: 12px 28px;
-  font-size: 1em; font-weight: 600; cursor: pointer;
-  color: #fff; background: linear-gradient(135deg,#444,#707070);
-  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-  display: block; margin: 0 auto 25px; transition: transform .15s, opacity .25s;
+#logoutBtn:hover{transform:scale(1.05);box-shadow:0 0 18px rgba(0,128,255,0.4);}
+.obrat-box{
+  text-align:center;
+  background:linear-gradient(135deg,#0a122b,#102a52);
+  border-radius:12px;
+  padding:25px 20px;
+  margin-bottom:25px;
+  font-size:1.5em;
+  font-weight:700;
+  color:#eaf3ff;
+  box-shadow:inset 0 0 15px rgba(0,100,255,0.25);
+  position:relative;
 }
-.btn:hover { transform: scale(1.05); opacity: .9; }
+#currencyToggle{
+  position:absolute;
+  top:12px;right:16px;
+  background:linear-gradient(135deg,#1b2e4b,#224e83);
+  border:none;border-radius:8px;
+  padding:5px 10px;
+  font-size:0.85em;
+  font-weight:600;
+  cursor:pointer;
+  color:#fff;
+  transition:all .25s;
+  box-shadow:0 0 10px rgba(0,128,255,0.25);
+}
+#currencyToggle:hover{background:linear-gradient(135deg,#265b96,#2d79c2);}
+.btn{
+  border:none;border-radius:10px;padding:12px 28px;
+  font-size:1em;font-weight:600;cursor:pointer;
+  color:#fff;
+  background:linear-gradient(135deg,#003399,#0055ff);
+  box-shadow:0 0 18px rgba(0,100,255,0.25);
+  display:block;margin:0 auto 25px;
+  transition:transform .15s,opacity .25s;
+}
+.btn:hover{transform:scale(1.05);opacity:.9;box-shadow:0 0 25px rgba(0,128,255,0.4);}
+table{
+  width:100%;border-collapse:collapse;margin-top:10px;
+  background:rgba(255,255,255,0.02);
+  box-shadow:0 0 15px rgba(0,128,255,0.1);
+}
+th,td{
+  padding:10px 8px;
+  border-bottom:1px solid rgba(0,128,255,0.15);
+  text-align:left;
+}
+th{
+  background:rgba(0,100,255,0.1);
+  color:#b0d0ff;
+  text-transform:uppercase;
+  letter-spacing:.3px;
+}
+tr:hover{background:rgba(0,128,255,0.08);}
 
-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-th, td { padding: 10px 8px; border-bottom: 1px solid #ddd; text-align: left; }
-th { background: #f0f0f0; }
-tr:hover { background: #fafafa; }
-
-/* modal + tick */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 4000; backdrop-filter: blur(4px); }
-.modal-overlay.active { display: flex; }
-.modal-box { background: rgba(40,40,40,.95); color: #fff; padding: 30px; border-radius: 14px; max-width: 680px; width: 90%; display: flex; flex-direction: row; gap: 20px; flex-wrap: wrap; justify-content: space-between; position: relative; }
-.modal-column { flex: 1 1 45%; display: flex; flex-direction: column; gap: 10px; }
-.modal-column h3 { margin-bottom: 8px; border-bottom: 1px solid #666; padding-bottom: 4px; }
-.client-list { max-height: 280px; overflow-y: auto; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; }
-.client-list label { display:block; padding:4px; cursor:pointer; }
-.modal-actions { width: 100%; display: flex; justify-content: center; gap: 12px; margin-top: 20px; }
-.modal-actions button { border: none; border-radius: 8px; padding: 10px 20px; font-size: .95em; cursor: pointer; }
-.btn-dark { background: linear-gradient(135deg,#444,#707070); color:#fff; }
-.btn-light { background: linear-gradient(135deg,#888,#b5b5b5); color:#fff; }
-.confirm-tick { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.1); opacity: 0; font-size: 90px; color: #00ff88; text-shadow: 0 0 25px rgba(0,255,150,0.6); transition: transform .5s ease, opacity .5s ease; }
-.confirm-tick.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+/* MODAL */
+.modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.7);
+  display:none;justify-content:center;align-items:center;
+  z-index:4000;
+  backdrop-filter:blur(6px);
+}
+.modal-overlay.active{display:flex;}
+.modal-box{
+  background:rgba(5,10,20,0.95);
+  color:#fff;
+  padding:30px;
+  border-radius:14px;
+  max-width:700px;width:90%;
+  display:flex;flex-direction:row;gap:20px;flex-wrap:wrap;
+  justify-content:space-between;position:relative;
+  box-shadow:0 0 25px rgba(0,128,255,0.3);
+}
+.modal-column{flex:1 1 45%;display:flex;flex-direction:column;gap:10px;}
+.modal-column h3{margin-bottom:8px;border-bottom:1px solid #225;padding-bottom:4px;color:#80bfff;}
+.client-list{
+  max-height:280px;overflow-y:auto;
+  background:rgba(255,255,255,0.05);
+  padding:8px;border-radius:8px;
+  border:1px solid rgba(0,128,255,0.1);
+}
+.client-list label{display:block;padding:4px;cursor:pointer;color:#e0ecff;}
+.client-list label:hover{background:rgba(0,128,255,0.15);}
+.modal-actions{width:100%;display:flex;justify-content:center;gap:12px;margin-top:20px;}
+.modal-actions button{border:none;border-radius:8px;padding:10px 20px;font-size:.95em;cursor:pointer;}
+.btn-dark{
+  background:linear-gradient(135deg,#003399,#0055ff);
+  color:#fff;box-shadow:0 0 15px rgba(0,100,255,0.3);
+}
+.btn-light{
+  background:linear-gradient(135deg,#444,#777);
+  color:#fff;box-shadow:0 0 10px rgba(255,255,255,0.15);
+}
+.btn-dark:hover{box-shadow:0 0 25px rgba(0,128,255,0.5);}
+.btn-light:hover{opacity:.9;}
+.confirm-tick{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(0.1);
+  opacity:0;font-size:90px;
+  color:#00aaff;
+  text-shadow:0 0 30px rgba(0,150,255,0.7);
+  transition:transform .5s ease,opacity .5s ease;
+}
+.confirm-tick.show{transform:translate(-50%,-50%) scale(1);opacity:1;}
+#cnbInfo{text-align:center;font-size:.85em;color:#99bbff;margin-top:12px;}
 </style>
 </head>
 
@@ -110,10 +172,10 @@ tr:hover { background: #fafafa; }
     <thead>
       <tr><th>Zákazník</th><th>Číslo objednávky</th><th>Zadavatel</th><th>Částka</th></tr>
     </thead>
-    <tbody><tr><td colspan="4" style="text-align:center;color:#888;padding:20px;">Zatím žádná data</td></tr></tbody>
+    <tbody><tr><td colspan="4" style="text-align:center;color:#777;padding:20px;">Zatím žádná data</td></tr></tbody>
   </table>
 
-  <div id="cnbInfo" style="text-align:center;font-size:0.85em;color:#666;margin-top:12px;"></div>
+  <div id="cnbInfo"></div>
 </div>
 
 <!-- 🧾 MODÁLNÍ OKNO -->
@@ -150,7 +212,7 @@ tr:hover { background: #fafafa; }
 </div>
 
 <script>
-let allOrders=[], cnbRate=25.5, cnbDate="", currency="CZK";
+let allOrders=[],cnbRate=25.5,cnbDate="",currency="CZK";
 const infoObrat=document.getElementById("infoObrat"),
 currencyToggle=document.getElementById("currencyToggle"),
 logoutBtn=document.getElementById("logoutBtn"),
@@ -163,16 +225,13 @@ cnbInfo=document.getElementById("cnbInfo"),
 resultsTableBody=document.querySelector("#resultsTable tbody"),
 tick=document.getElementById("tick");
 
-// 💶 kurz
 async function loadCNB(){
  try{
   const r=await fetch("https://api.frankfurter.app/latest?from=EUR&to=CZK");
-  const d=await r.json(); cnbRate=d.rates.CZK; cnbDate=d.date;
+  const d=await r.json();cnbRate=d.rates.CZK;cnbDate=d.date;
  }catch{cnbRate=25.5;cnbDate="–";}
  cnbInfo.textContent=`Kurz ECB: 1 € = ${cnbRate.toFixed(3)} Kč (k ${cnbDate})`;
 }
-
-// 📋 Zadavatelé
 async function loadClients(){
  const known=[
   "Natuzzi Editions - Strejcek","Natuzzi Editions - Vimrova",
@@ -182,25 +241,15 @@ async function loadClients(){
  ];
  try{
   const r=await fetch("https://radecek222-boop.github.io/reklamace/hotove.json?t="+Date.now());
-  const d=await r.json(); allOrders=d;
+  const d=await r.json();allOrders=d;
   const newC=[...new Set(d.map(x=>x.contract||"").filter(Boolean))];
   const all=[...new Set([...known,...newC])].sort();
   const sel=JSON.parse(localStorage.getItem("selClients")||"[]");
   clientList.innerHTML=all.map(c=>`<label><input type="checkbox" value="${c}" ${sel.includes(c)?"checked":""}> ${c}</label>`).join("");
  }catch{clientList.innerHTML="<p>❌ Chyba načtení.</p>";}
 }
-
-// 🇨🇿🇸🇰 Rozdělení zakázek podle zkratky
-function isCzechOrder(order){
- const cz=["NCE","NBU","NBR"];
- return cz.some(p=>String(order.cislo||"").startsWith(p));
-}
-function isSlovakOrder(order){
- const sk=["NZA","NBA","NKE"];
- return sk.some(p=>String(order.cislo||"").startsWith(p));
-}
-
-// výpočet
+function isCzechOrder(o){return["NCE","NBU","NBR"].some(p=>String(o.cislo||"").startsWith(p));}
+function isSlovakOrder(o){return["NZA","NBA","NKE"].some(p=>String(o.cislo||"").startsWith(p));}
 function convertToEUR(v){
  if(typeof v==="string"&&v.includes("€"))return parseFloat(v.replace(/[^\d,.-]/g,"").replace(",","."));
  if(typeof v==="string"&&v.includes("K"))return parseFloat(v.replace(/[^\d,.-]/g,"").replace(",",".")/cnbRate);
@@ -208,52 +257,41 @@ function convertToEUR(v){
 }
 function fmtEUR(x){return x.toLocaleString("cs-CZ",{style:"currency",currency:"EUR"});}
 function fmtCZK(x){return x.toLocaleString("cs-CZ",{style:"currency",currency:"CZK"});}
-
 function render(){
  const clients=JSON.parse(localStorage.getItem("selClients")||"[]");
  const period=JSON.parse(localStorage.getItem("selPeriod")||"{}");
- const from=period.from?new Date(period.from):null;
- const to=period.to?new Date(period.to):null;
+ const from=period.from?new Date(period.from):null,to=period.to?new Date(period.to):null;
  let f=allOrders.slice();
  if(clients.length){
-   f=f.filter(x=>{
-     const contract=x.contract||""; const tech=(x.technik||"").toLowerCase();
-     let match=false;
-     for(const c of clients){
-       if(contract.includes(c))match=true;
-       if(c==="Milan Kolín" && (tech.includes("kolín")||tech.includes("oba")))match=true;
-       if(c==="Radek Zikmund" && (tech.includes("zikmund")||tech.includes("oba")))match=true;
-     }
-     return match;
-   });
+  f=f.filter(x=>{
+    const contract=x.contract||"";const tech=(x.technik||"").toLowerCase();let match=false;
+    for(const c of clients){
+      if(contract.includes(c))match=true;
+      if(c==="Milan Kolín"&&(tech.includes("kolín")||tech.includes("oba")))match=true;
+      if(c==="Radek Zikmund"&&(tech.includes("zikmund")||tech.includes("oba")))match=true;
+    }
+    return match;
+  });
  }
  if(from&&to)f=f.filter(x=>{const d=new Date(x.datumProtokolu||x.datum_reklamace||x.datum);return d>=from&&d<=to;});
-
- // 🇨🇿🇸🇰 rozdělení
- const czOrders=f.filter(isCzechOrder);
- const skOrders=f.filter(isSlovakOrder);
-
+ const czOrders=f.filter(isCzechOrder),skOrders=f.filter(isSlovakOrder);
  let totalEUR=f.reduce((a,x)=>a+convertToEUR(x.cenaCelkem||x.cena||x.total),0);
  const totalCZK=totalEUR*cnbRate;
  const display=currency==="CZK"?fmtCZK(totalCZK):fmtEUR(totalEUR);
  infoObrat.firstChild.textContent=`Obrat: ${display}`;
-
  function rowHTML(arr){
   return arr.map(x=>`<tr>
-    <td>${x.zakaznik||"–"}</td>
-    <td>${x.cislo||x.typ==="pozáruční"?"Pozáruční":"–"}</td>
-    <td>${x.contract||"–"}</td>
-    <td>${currency==="CZK"?fmtCZK(convertToEUR(x.cenaCelkem||x.cena||x.total)*cnbRate):fmtEUR(convertToEUR(x.cenaCelkem||x.cena||x.total))}</td>
+   <td>${x.zakaznik||"–"}</td>
+   <td>${x.cislo||x.typ==="pozáruční"?"Pozáruční":"–"}</td>
+   <td>${x.contract||"–"}</td>
+   <td>${currency==="CZK"?fmtCZK(convertToEUR(x.cenaCelkem||x.cena||x.total)*cnbRate):fmtEUR(convertToEUR(x.cenaCelkem||x.cena||x.total))}</td>
   </tr>`).join("");
  }
-
  resultsTableBody.innerHTML=
   (czOrders.length?`<tr><th colspan="4">🇨🇿 České zakázky</th></tr>${rowHTML(czOrders)}`:"")+
   (skOrders.length?`<tr><th colspan="4">🇸🇰 Slovenské zakázky</th></tr>${rowHTML(skOrders)}`:"")+
-  ((!czOrders.length&&!skOrders.length)?`<tr><td colspan="4" style="text-align:center;color:#888;padding:20px;">Žádné výsledky</td></tr>`:"");
+  ((!czOrders.length&&!skOrders.length)?`<tr><td colspan="4" style="text-align:center;color:#666;padding:20px;">Žádné výsledky</td></tr>`:"");
 }
-
-// ovládání
 filterBtn.onclick=()=>{filterModal.classList.add("active");loadClients();};
 closeFilter.onclick=()=>filterModal.classList.remove("active");
 confirmFilter.onclick=()=>{
@@ -264,15 +302,7 @@ confirmFilter.onclick=()=>{
  tick.classList.add("show");
  setTimeout(()=>{tick.classList.remove("show");filterModal.classList.remove("active");render();},1500);
 };
-
-// přepínání měny
-currencyToggle.onclick=()=>{
- currency = currency==="CZK"?"EUR":"CZK";
- currencyToggle.textContent = currency;
- render();
-};
-
-// měsíc → od/do
+currencyToggle.onclick=()=>{currency=currency==="CZK"?"EUR":"CZK";currencyToggle.textContent=currency;render();};
 const monthSelect=document.getElementById("monthSelect"),df=document.getElementById("dateFrom"),dt=document.getElementById("dateTo");
 if(monthSelect)monthSelect.onchange=()=>{
  const y=new Date().getFullYear(),m=monthSelect.value;if(!m){df.value=dt.value="";return;}
@@ -280,16 +310,8 @@ if(monthSelect)monthSelect.onchange=()=>{
  const fmt=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
  df.value=fmt(f);dt.value=fmt(l);
 };
-
-// tlačítko odejít
 logoutBtn.onclick=()=>{window.location.href="index.html";};
-
-// start
-window.addEventListener("DOMContentLoaded",async()=>{
- await loadCNB();
- await loadClients();
- render();
-});
+window.addEventListener("DOMContentLoaded",async()=>{await loadCNB();await loadClients();render();});
 </script>
 </body>
 </html>
