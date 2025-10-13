@@ -161,26 +161,6 @@ textarea{height:100px;resize:vertical;}
 </div>
 
 <script>
-// 🔧 Po načtení stránky nastaví režim (prodejce / zákazník)
-document.addEventListener("DOMContentLoaded",()=>{
-  const params=new URLSearchParams(window.location.search);
-  const typ=params.get("typ");
-  const poleCislo=document.getElementById("cislo");
-  const dealerBox=document.getElementById("dealerFields");
-  if(typ==="zakaznik"){
-    poleCislo.value="Pozáruční servis";
-    poleCislo.readOnly=true;
-    dealerBox.style.display="none";
-  }
-});
-
-// 📦 Zobrazení sekce Jiná
-const select=document.getElementById("zpracoval");
-select.addEventListener("change",()=>{
-  document.getElementById("jinaSekce").style.display=
-    select.value==="Jiná"?"block":"none";
-});
-
 // 🚫 Zamezit odeslání Enterem
 document.querySelectorAll("input").forEach(el=>{
   el.addEventListener("keydown",e=>{
@@ -188,7 +168,21 @@ document.querySelectorAll("input").forEach(el=>{
   });
 });
 
+// 🧩 ZABRÁNĚNÍ PŘEDČASNÉMU SUBMITU PŘI VÝBĚRU DATUMU
+document.querySelectorAll("input[type='date']").forEach(el=>{
+  el.addEventListener("change",e=>{
+    e.stopPropagation();
+    e.preventDefault();
+    // jen uložíme aktuální draft, ale nic neodesíláme
+    if(typeof saveDraft==="function") saveDraft();
+  });
+  el.addEventListener("click",e=>{
+    e.stopPropagation();
+  });
+});
+
 // 🌍 Geoapify – našeptávač adres
+
 let geoTimeout;
 const ulice=document.getElementById("ulice");
 const suggestions=document.getElementById("suggestions");
