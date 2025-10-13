@@ -33,7 +33,25 @@ body::before{
   100%{transform:translate(10%,10%) scale(1.2);}
 }
 
-/* 🧊 WRAPPER – dynamická velikost */
+/* 💫 SVĚTELNÝ FLASH PO LOGINU */
+#loginFlash{
+  position:fixed;
+  inset:0;
+  background:radial-gradient(circle at center,#00e0ff 0%,transparent 60%);
+  opacity:0;
+  z-index:9999;
+  pointer-events:none;
+}
+.flash-active{
+  animation:flashEffect 1.2s ease-out forwards;
+}
+@keyframes flashEffect{
+  0%{opacity:0;}
+  15%{opacity:0.8;}
+  100%{opacity:0;}
+}
+
+/* 🧊 WRAPPER */
 .wrapper{
   width:100%;
   max-width:1400px;
@@ -179,18 +197,12 @@ h3{
 .box button:hover{opacity:0.9;transform:scale(1.03);}
 .error-text{color:#ff5252;margin-top:8px;display:none;}
 .icon{font-size:2em;margin:8px 0;display:none;}
-
-/* 📱 MOBIL */
-@media(max-width:600px){
-  .wrapper{padding:8vh 5vw;}
-  h1{font-size:3em;}
-  h2{font-size:1em;letter-spacing:2px;}
-  h3{font-size:0.9em;}
-}
 </style>
 </head>
 
 <body>
+<div id="loginFlash"></div>
+
 <div id="adminTopBar">
   <button id="adminButton">ADMIN</button>
   <button id="backButton">Zpět</button>
@@ -213,76 +225,6 @@ h3{
   </div>
 </div>
 
-<!-- 🟩 MODAL – SPRÁVA SYSTÉMU (EDITOVAT) -->
-<div class="overlay" id="editModal">
-  <div class="box">
-    <h2>Správa systému</h2>
-    <p style="color:#ccc;margin:10px 0;">Vyberte požadovanou akci:</p>
-
-    <div class="edit-option"><button class="btn-edit" onclick="openAddContract()">Přidat nového zadavatele</button></div>
-    <div class="edit-option"><button class="btn-edit" onclick="openEditOrders()">Upravit / Smazat reklamaci</button></div>
-    <div class="edit-option"><button class="btn-edit" onclick="backupData()">Zálohovat všechna data</button></div>
-    <div class="edit-option"><button class="btn-edit" onclick="cleanupTemporary()">Vymazat dočasné položky</button></div>
-    <div class="edit-option"><button class="btn-edit" onclick="openConfig()">Upravit API klíče a konfiguraci</button></div>
-    <div class="edit-option"><button class="btn-edit" onclick="openStats()">Zobrazit výdělky techniků</button></div>
-    <div class="edit-option"><button class="btn-edit" onclick="resetPlan()">Resetovat plán dne</button></div>
-
-    <div style="display:flex;gap:12px;margin-top:25px;">
-      <button onclick="closeEditModal()" style="flex:1;background:#555;">Zavřít</button>
-    </div>
-  </div>
-</div>
-
-<style>
-.btn-edit {
-  width:100%;
-  margin:6px 0;
-  padding:10px 16px;
-  border:none;
-  border-radius:10px;
-  background:linear-gradient(135deg,#007bff,#00e0ff);
-  color:#fff;
-  font-weight:600;
-  cursor:pointer;
-  transition:transform .2s,box-shadow .3s;
-}
-.btn-edit:hover {
-  transform:translateY(-2px);
-  box-shadow:0 0 18px rgba(0,255,255,0.4);
-}
-.edit-option {
-  margin-bottom:8px;
-}
-</style>
-
-<script>
-// 🧩 Přidání tlačítka Editovat pro admina
-window.addEventListener("DOMContentLoaded",()=>{
-  if(localStorage.getItem("wgsAdmin")){
-    const adminButtons=document.getElementById("adminButtons");
-    const editBtn=document.createElement("button");
-    editBtn.textContent="Editovat";
-    editBtn.className="btn btn-admin-dark";
-    editBtn.onclick=()=>document.getElementById("editModal").style.display="flex";
-    adminButtons.appendChild(editBtn);
-  }
-});
-
-// 🔧 Zavření modalu
-function closeEditModal(){
-  document.getElementById("editModal").style.display="none";
-}
-
-// 🔧 Funkce – placeholdery akcí
-function openAddContract(){window.location.href="contracts.html";}
-function openEditOrders(){window.location.href="seznam.html";}
-function openStats(){window.location.href="statistics.html";}
-function openConfig(){alert("Otevře konfiguraci Geoapify / API.");}
-function backupData(){alert("Zahájí zálohování všech JSON dat.");}
-function cleanupTemporary(){alert("Vymaže dočasné položky z temporaryfiles.");}
-function resetPlan(){alert("Vyprázdní plán dne.");}
-</script>
-
 <!-- 🔐 LOGIN -->
 <div class="overlay" id="adminLoginOverlay">
   <div class="box">
@@ -299,26 +241,13 @@ function resetPlan(){alert("Vyprázdní plán dne.");}
 <div class="overlay" id="requestDialog">
   <div class="box">
     <h2>Vyberte zadavatele</h2>
-    <p style="color:#ccc;margin:10px 0;"></p>
-
     <div class="req-option">
-      <label>
-        <input type="radio" name="reqType" value="prodejce">
-        <span class="checkmark"></span>
-        <span class="req-text">Prodejce (Nová reklamace)</span>
-      </label>
+      <label><input type="radio" name="reqType" value="prodejce"><span class="checkmark"></span><span class="req-text">Prodejce (Nová reklamace)</span></label>
     </div>
-
     <div class="req-option">
-      <label>
-        <input type="radio" name="reqType" value="zakaznik">
-        <span class="checkmark"></span>
-        <span class="req-text">Zákazník (Pozáruční servis)</span>
-      </label>
+      <label><input type="radio" name="reqType" value="zakaznik"><span class="checkmark"></span><span class="req-text">Zákazník (Pozáruční servis)</span></label>
     </div>
-
     <div id="reqError" class="error-text">⚠️ Vyberte jednu z možností</div>
-
     <div style="display:flex;gap:12px;margin-top:25px;">
       <button id="confirmReq" style="flex:1;">Potvrdit</button>
       <button id="cancelReq" style="flex:1;background:#555;">Zrušit</button>
@@ -326,123 +255,79 @@ function resetPlan(){alert("Vyprázdní plán dne.");}
   </div>
 </div>
 
-<style>
-.req-option {
-  margin:12px 0;
-}
-.req-option label {
-  display:flex;
-  align-items:center;
-  gap:12px;
-  cursor:pointer;
-  font-size:1em;
-  color:#e0e0e0;
-  user-select:none;
-}
-.req-option input[type="radio"] {
-  display:none;
-}
-.checkmark {
-  width:22px;
-  height:22px;
-  border-radius:6px;
-  border:2px solid #00e0c0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  transition:all .2s ease;
-}
-.checkmark::after {
-  content:"";
-  width:10px;
-  height:10px;
-  border-left:3px solid #00e0c0;
-  border-bottom:3px solid #00e0c0;
-  transform:rotate(-45deg) scale(0);
-  opacity:0;
-  transition:transform .25s ease,opacity .25s ease;
-}
-.req-option input:checked + .checkmark {
-  background:rgba(0,224,192,0.1);
-  box-shadow:0 0 10px rgba(0,224,192,0.3);
-  animation:pulse 0.5s ease;
-}
-.req-option input:checked + .checkmark::after {
-  transform:rotate(-45deg) scale(1);
-  opacity:1;
-}
-@keyframes pulse {
-  0%{transform:scale(1);}
-  50%{transform:scale(1.15);}
-  100%{transform:scale(1);}
-}
-.req-text {
-  flex:1;
-}
-</style>
-
 <script>
-const ACCESS_CODE="332018";
-const adminButton=document.getElementById("adminButton");
-const backButton=document.getElementById("backButton");
-const logoutButton=document.getElementById("logoutButton");
-const loginOverlay=document.getElementById("adminLoginOverlay");
-const publicButtons=document.getElementById("publicButtons");
-const adminButtons=document.getElementById("adminButtons");
+document.addEventListener("DOMContentLoaded",()=>{
+  const ACCESS_CODE="332018";
+  const adminButton=document.getElementById("adminButton");
+  const backButton=document.getElementById("backButton");
+  const logoutButton=document.getElementById("logoutButton");
+  const loginOverlay=document.getElementById("adminLoginOverlay");
+  const publicButtons=document.getElementById("publicButtons");
+  const adminButtons=document.getElementById("adminButtons");
+  const flash=document.getElementById("loginFlash");
 
-/* 🧭 ADMIN LOGIKA */
-function showAdmin(){
-  publicButtons.style.display="none";
-  adminButtons.style.display="flex";
-  logoutButton.style.display="inline-block";
-  backButton.style.display="inline-block";
-  adminButton.classList.add("active");
-}
-function hideAdmin(){
-  publicButtons.style.display="flex";
-  adminButtons.style.display="none";
-  logoutButton.style.display="none";
-  backButton.style.display="none";
-  adminButton.classList.remove("active");
-}
-function logout(){
-  localStorage.removeItem("wgsAdmin");
-  hideAdmin();
-}
-function tryLogin(){
-  const val=document.getElementById("adminPassword").value.trim();
-  const ok=document.getElementById("adminSuccessIcon"),
-        no=document.getElementById("adminErrorIcon"),
-        err=document.getElementById("adminErrorText");
-  ok.style.display=no.style.display=err.style.display="none";
-  if(val===ACCESS_CODE){
-    ok.style.display="block";
-    localStorage.setItem("wgsAdmin","1");
-    setTimeout(()=>{loginOverlay.style.display="none";showAdmin();},700);
-  }else{
-    no.style.display="block";err.style.display="block";
-    document.getElementById("adminPassword").value="";
+  const audio=new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_d0f62cf58b.mp3?filename=interface-confirm-147007.mp3");
+
+  function showAdmin(){
+    publicButtons.style.display="none";
+    adminButtons.style.display="flex";
+    logoutButton.style.display="inline-block";
+    backButton.style.display="inline-block";
+    adminButton.classList.add("active");
   }
-}
-adminButton.onclick=()=>{loginOverlay.style.display="flex";document.getElementById("adminPassword").focus();};
-logoutButton.onclick=logout;
-backButton.onclick=()=>{loginOverlay.style.display="none";};
-document.getElementById("adminLoginBtn").onclick=tryLogin;
-document.getElementById("adminPassword").onkeypress=e=>{if(e.key==="Enter")tryLogin();};
-window.addEventListener("DOMContentLoaded",()=>{if(localStorage.getItem("wgsAdmin"))showAdmin();});
+  function hideAdmin(){
+    publicButtons.style.display="flex";
+    adminButtons.style.display="none";
+    logoutButton.style.display="none";
+    backButton.style.display="none";
+    adminButton.classList.remove("active");
+  }
+  function logout(){
+    localStorage.removeItem("wgsAdmin");
+    hideAdmin();
+  }
+  function tryLogin(){
+    const val=document.getElementById("adminPassword").value.trim();
+    const ok=document.getElementById("adminSuccessIcon"),
+          no=document.getElementById("adminErrorIcon"),
+          err=document.getElementById("adminErrorText");
+    ok.style.display=no.style.display=err.style.display="none";
+    if(val===ACCESS_CODE){
+      ok.style.display="block";
+      localStorage.setItem("wgsAdmin","1");
+      flash.classList.add("flash-active");
+      audio.play();
+      setTimeout(()=>{
+        flash.classList.remove("flash-active");
+        loginOverlay.style.display="none";
+        showAdmin();
+      },1200);
+    }else{
+      no.style.display="block";err.style.display="block";
+      document.getElementById("adminPassword").value="";
+    }
+  }
 
-/* 🧾 MODAL – výběr požadavku */
-const dialog=document.getElementById("requestDialog");
-document.getElementById("openRequestDialog").onclick=()=>dialog.style.display="flex";
-document.getElementById("cancelReq").onclick=()=>dialog.style.display="none";
-document.getElementById("confirmReq").onclick=()=>{
-  const choice=document.querySelector('input[name="reqType']:checked');
-  const err=document.getElementById("reqError");
-  if(!choice){err.style.display="block";return;}
-  err.style.display="none";dialog.style.display="none";
-  const typ=choice.value;
-  window.location.href=`novareklamace.html?typ=${typ}`;
-};
+  adminButton.onclick=()=>{loginOverlay.style.display="flex";document.getElementById("adminPassword").focus();};
+  logoutButton.onclick=logout;
+  backButton.onclick=()=>{loginOverlay.style.display="none";};
+  document.getElementById("adminLoginBtn").onclick=tryLogin;
+  document.getElementById("adminPassword").onkeypress=e=>{if(e.key==="Enter")tryLogin();};
+  if(localStorage.getItem("wgsAdmin"))showAdmin();
+
+  // 🧾 MODAL – výběr požadavku
+  const dialog=document.getElementById("requestDialog");
+  document.getElementById("openRequestDialog").onclick=()=>dialog.style.display="flex";
+  document.getElementById("cancelReq").onclick=()=>dialog.style.display="none";
+  document.getElementById("confirmReq").onclick=()=>{
+    const choice=document.querySelector('input[name="reqType"]:checked');
+    const err=document.getElementById("reqError");
+    if(!choice){err.style.display="block";return;}
+    err.style.display="none";dialog.style.display="none";
+    const typ=choice.value;
+    window.location.href=`novareklamace.html?typ=${typ}`;
+  };
+});
 </script>
 </body>
 </html>
