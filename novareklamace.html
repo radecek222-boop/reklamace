@@ -95,7 +95,9 @@ textarea{height:100px;resize:vertical;}
 <h2>Nová reklamace</h2>
 <form id="reklamaceForm" novalidate>
 <!-- 🟨 KONEC ČÁSTI 1/5 -->
-<!-- 🟨 ZAČÁTEK ČÁSTI 2/5 – LOGIKA + ADRESY + MÍSTO -->
+
+
+  <!-- 🟩 ZAČÁTEK ČÁSTI 2/5 – FORMULÁŘ + ADRESY + ZADAVATEL + VALIDACE -->
 <label>Číslo reklamace / objednávky:</label>
 <input type="text" id="cislo" name="cislo" required>
 
@@ -104,7 +106,7 @@ textarea{height:100px;resize:vertical;}
 
 <label>Ulice a číslo popisné:</label>
 <div class="address-wrapper">
-  <input type="text" id="ulice" name="ulice" required placeholder="např. Vinohradská 120">
+  <input type="text" id="ulice" name="ulice" required placeholder="např. Vinohradská 120" autocomplete="off">
   <div id="suggestions" class="suggestions"></div>
 </div>
 <div id="mapPreview" style="margin-top:10px;height:250px;border-radius:14px;overflow:hidden;"></div>
@@ -113,7 +115,7 @@ textarea{height:100px;resize:vertical;}
 <input type="text" id="mesto" name="mesto" required placeholder="např. Praha">
 
 <label>PSČ:</label>
-<input type="text" id="psc" name="psc" required pattern="\d{3}\s?\d{2}" placeholder="např. 110 00">
+<input type="text" id="psc" name="psc" required pattern="\\d{3}\\s?\\d{2}" placeholder="např. 110 00">
 
 <label>Telefon:</label>
 <div style="display:flex;gap:8px;">
@@ -131,12 +133,13 @@ textarea{height:100px;resize:vertical;}
 <label>Model / Název produktu:</label>
 <input type="text" id="produkt" name="produkt" required placeholder="např. C142">
 
+<!-- 📍 Zadavatel -->
 <div id="dealerFields">
   <label>Objednávku zpracoval:</label>
-  <select id="zpracoval" name="zpracoval">
-    <option value="">Vyber…</option>
-    <option>Natuzzi Editions – Strejcek</option>
-    <option>Natuzzi Editions – Vimrova</option>
+  <select id="zpracoval" name="zpracoval" required>
+    <option value="">Vyber...</option>
+    <option>Natuzzi Editions – Strejček</option>
+    <option>Natuzzi Editions – Vimrová</option>
     <option>Natuzzi Italia – Jama</option>
     <option>Natuzzi Italia – River</option>
     <option>Phase – Klucarova</option>
@@ -146,68 +149,90 @@ textarea{height:100px;resize:vertical;}
   </select>
 
   <div id="jinaSekce" style="display:none;margin-top:10px;">
-    <label>Zadej jiného zadavatele:</label>
-    <input type="text" id="jinaJmeno" placeholder="Jméno firmy">
-    <label>Email:</label>
-    <input type="email" id="jinaEmail" placeholder="např. info@firma.cz">
+    <label>Jméno a příjmení:</label>
+    <input type="text" id="jinaJmeno" placeholder="např. Petr Horák">
+    <label>Obchod / firma:</label>
+    <input type="text" id="jinaFirma" placeholder="např. Design Studio CZ">
+    <label>Telefon:</label>
+    <input type="tel" id="jinaTelefon" placeholder="např. 777123456">
+    <label>E-mail:</label>
+    <input type="email" id="jinaEmail" placeholder="např. info@studio.cz">
   </div>
 </div>
 
 <script>
+// 🔧 Po načtení stránky nastaví režim (prodejce / zákazník)
 document.addEventListener("DOMContentLoaded",()=>{
-  // 🔹 Rozpoznání typu (z index.html)
   const params=new URLSearchParams(window.location.search);
   const typ=params.get("typ");
   const poleCislo=document.getElementById("cislo");
   const dealerBox=document.getElementById("dealerFields");
-  if(typ==="prodejce"){
-    localStorage.setItem("isDealer","true");
-    dealerBox.style.display="block";
-    poleCislo.removeAttribute("readonly");
-    if(poleCislo.value==="Pozáruční servis") poleCislo.value="";
-  }else{
-    localStorage.removeItem("isDealer");
-    dealerBox.style.display="none";
+  if(typ==="zakaznik"){
     poleCislo.value="Pozáruční servis";
     poleCislo.readOnly=true;
+    dealerBox.style.display="none";
   }
+});
 
-  // 🔹 Sekce „Jiná“ zadavatele
-  const select=document.getElementById("zpracoval");
-  select.addEventListener("change",()=>{
-    document.getElementById("jinaSekce").style.display=
-      select.value==="Jiná"?"block":"none";
-  });
+// 📦 Zobrazení sekce Jiná
+const select=document.getElementById("zpracoval");
+select.addEventListener("change",()=>{
+  document.getElementById("jinaSekce").style.display=
+    select.value==="Jiná"?"block":"none";
+});
 
-  // 🔹 Našeptávač adres (Geoapify fallback Nominatim)
-  const addr=document.getElementById("ulice");
-  const sugg=document.getElementById("suggestions");
-  const map=L.map("mapPreview").setView([50.08,14.60],12);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OSM"}).addTo(map);
-  let marker=null;
-
-  addr.addEventListener("input",async()=>{
-    const val=addr.value.trim();
-    if(val.length<3){sugg.innerHTML="";return;}
-    const res=await fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(val)}&format=json&apiKey=YOUR_API_KEY`);
-    const data=await res.json();
-    sugg.innerHTML=data.results.slice(0,5).map(x=>`<div class="suggItem">${x.formatted}</div>`).join("");
-    [...sugg.children].forEach(d=>d.onclick=()=>{
-      addr.value=d.textContent;sugg.innerHTML="";
-      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(d.textContent)}`)
-        .then(r=>r.json()).then(j=>{
-          if(j[0]){
-            const {lat,lon}=j[0];
-            if(marker)map.removeLayer(marker);
-            marker=L.marker([lat,lon]).addTo(map);
-            map.setView([lat,lon],15);
-          }
-        });
-    });
+// 🚫 Zamezit odeslání Enterem
+document.querySelectorAll("input").forEach(el=>{
+  el.addEventListener("keydown",e=>{
+    if(e.key==="Enter") e.preventDefault();
   });
 });
+
+// 🌍 Geoapify – našeptávač adres
+let geoTimeout;
+const ulice=document.getElementById("ulice");
+const suggestions=document.getElementById("suggestions");
+const map=L.map("mapPreview").setView([50.08,14.6],12);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:""}).addTo(map);
+let marker;
+
+ulice.addEventListener("input",()=>{
+  clearTimeout(geoTimeout);
+  const query=ulice.value.trim();
+  if(!query){suggestions.innerHTML="";return;}
+  geoTimeout=setTimeout(async()=>{
+  const res=await fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&format=json&apiKey=b363199bb14e47189558d03b81ca9ba1`);
+    const data=await res.json();
+    suggestions.innerHTML="";
+    data.results.slice(0,5).forEach(r=>{
+      const div=document.createElement("div");
+      div.textContent=r.formatted;
+      div.onclick=()=>{
+        ulice.value=r.address_line1||"";
+        document.getElementById("mesto").value=r.city||"";
+        document.getElementById("psc").value=r.postcode||"";
+        suggestions.innerHTML="";
+        if(marker) map.removeLayer(marker);
+        marker=L.marker([r.lat,r.lon]).addTo(map);
+        map.setView([r.lat,r.lon],15);
+      };
+      suggestions.appendChild(div);
+    });
+  },400);
+});
+
+// 🎨 Styl našeptávače
+const css=document.createElement("style");
+css.textContent=`
+.suggestions{position:absolute;z-index:1000;background:#fff;color:#111;width:100%;border-radius:0 0 10px 10px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.15);}
+.suggestions div{padding:8px 12px;cursor:pointer;}
+.suggestions div:hover{background:#e0fff8;}
+.address-wrapper{position:relative;}
+`;
+document.head.appendChild(css);
 </script>
-<!-- 🟨 KONEC ČÁSTI 2/5 -->
+<!-- 🟩 KONEC ČÁSTI 2/5 -->
+
 
 
 <!-- 🟩 ZAČÁTEK ČÁSTI 3/5 – INTERAKTIVNÍ KALENDÁŘ (tyrkys styl) -->
@@ -616,5 +641,12 @@ document.addEventListener("DOMContentLoaded",()=>{
     }
   });
 });
+  // 🚫 Zamezit odeslání formuláře při výběru data
+document.querySelectorAll('input[type="date"]').forEach(el=>{
+  el.addEventListener("keydown",e=>{
+    if(e.key==="Enter") e.preventDefault();
+  });
+});
+
 </script>
 <!-- 🟩 KONEC ČÁSTI 5/5 -->
