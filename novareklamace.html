@@ -242,7 +242,7 @@ document.head.appendChild(css);
 
 
 
-<!-- 🟩 ZAČÁTEK ČÁSTI 3/5 – INTERAKTIVNÍ KALENDÁŘ (tyrkys styl) -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 3/5 – INTERAKTIVNÍ KALENDÁŘ (tyrkys styl – OPRAVENÁ VERZE) -->
 <label>Datum prodeje:</label>
 <div class="calendar-group">
   <input type="hidden" id="datum_prodeje" name="datum_prodeje">
@@ -301,18 +301,22 @@ font-weight:600;font-size:.85em;text-align:center;color:#007f73;margin-bottom:4p
 </style>
 
 <script>
-let activeInput=null,selectedDate=null,currentMonth=new Date();
+let activeInput=null,selectedDate=null,selectedCell=null,currentMonth=new Date();
 
 function renderCalendar(){
   const grid=document.getElementById("calendarGrid");
   const monthLabel=document.getElementById("monthLabel");
   const year=currentMonth.getFullYear();
   const month=currentMonth.getMonth();
-  const firstDay=(new Date(year,month,1).getDay()+6)%7; // pondělí jako 1.
+  const firstDay=(new Date(year,month,1).getDay()+6)%7;
   const daysInMonth=new Date(year,month+1,0).getDate();
+
   monthLabel.textContent=`${["Leden","Únor","Březen","Duben","Květen","Červen","Červenec","Srpen","Září","Říjen","Listopad","Prosinec"][month]} ${year}`;
   grid.innerHTML="";
+  selectedCell=null;
+
   for(let i=0;i<firstDay;i++){grid.append(document.createElement("div"));}
+
   for(let d=1;d<=daysInMonth;d++){
     const cell=document.createElement("div");
     cell.textContent=d;
@@ -320,6 +324,7 @@ function renderCalendar(){
       grid.querySelectorAll(".selected").forEach(c=>c.classList.remove("selected"));
       cell.classList.add("selected");
       selectedDate=new Date(year,month,d);
+      selectedCell=cell;
     };
     grid.append(cell);
   }
@@ -336,7 +341,7 @@ document.getElementById("prevMonth").onclick=()=>{currentMonth.setMonth(currentM
 document.getElementById("nextMonth").onclick=()=>{currentMonth.setMonth(currentMonth.getMonth()+1);renderCalendar();};
 document.getElementById("cancelCalendar").onclick=()=>{document.getElementById("calendarModal").style.display="none";};
 document.getElementById("confirmCalendar").onclick=()=>{
-  if(!selectedDate)return;
+  if(!selectedDate||!selectedCell)return;
   const iso=selectedDate.toISOString().split("T")[0];
   document.getElementById(activeInput).value=iso;
   document.getElementById(activeInput+"_text").textContent=
@@ -345,6 +350,7 @@ document.getElementById("confirmCalendar").onclick=()=>{
 };
 </script>
 <!-- 🟩 KONEC ČÁSTI 3/5 -->
+
 
 
 <!-- 🟩 ZAČÁTEK ČÁSTI 4/5 – FOTKY + VALIDACE + LOCALSTORAGE + ZADAVATEL + EMAIL -->
