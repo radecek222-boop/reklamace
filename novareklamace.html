@@ -214,14 +214,14 @@ document.addEventListener("DOMContentLoaded",()=>{
 <label>Datum prodeje:</label>
 <div class="calendar-group">
   <input type="hidden" id="datum_prodeje" name="datum_prodeje">
-  <button type="button" class="btn-calendar" data-target="datum_prodeje">📅 Vyber datum</button>
+  <button type="button" class="btn-calendar" data-target="datum_prodeje">Vyber datum</button>
   <span id="datum_prodeje_text" class="calendar-text">Nezvoleno</span>
 </div>
 
 <label>Datum reklamace:</label>
 <div class="calendar-group">
   <input type="hidden" id="datum_reklamace" name="datum_reklamace">
-  <button type="button" class="btn-calendar" data-target="datum_reklamace">📅 Vyber datum</button>
+  <button type="button" class="btn-calendar" data-target="datum_reklamace">Vyber datum</button>
   <span id="datum_reklamace_text" class="calendar-text">Nezvoleno</span>
 </div>
 
@@ -314,7 +314,7 @@ document.getElementById("confirmCalendar").onclick=()=>{
 </script>
 <!-- 🟩 KONEC ČÁSTI 3/5 -->
 
-<!-- 🟩 ZAČÁTEK ČÁSTI 4/5 – FOTKY + VALIDACE + LOCALSTORAGE + JINÝ ZADAVATEL -->
+<!-- 🟩 ZAČÁTEK ČÁSTI 4/5 – FOTKY + VALIDACE + LOCALSTORAGE + ZADAVATEL + EMAIL -->
 
 <label>Popis závady:</label>
 <textarea id="popis" name="popis" required placeholder="Popište závadu nebo problém..."></textarea>
@@ -333,8 +333,27 @@ document.getElementById("confirmCalendar").onclick=()=>{
 <!-- 🔍 Lightbox -->
 <div id="lightbox" class="lightbox"><img id="lightboxImg" src=""></div>
 
+<!-- 🟩 BLOK – Zadavatel -->
+<div style="margin-top:25px;">
+  <label>Objednávku zpracoval:</label>
+  <select id="zpracoval" name="zpracoval" style="height:48px;font-size:1em;border-radius:10px;">
+    <option value="">Vyber...</option>
+    <option>Natuzzi Editions – Strejček</option>
+    <option>Natuzzi Editions – Vimrová</option>
+    <option>Natuzzi Italia – Jama</option>
+    <option>Natuzzi Italia – River</option>
+    <option>Phase – Klúčarová</option>
+    <option>Phase – Jančová</option>
+    <option>Softaly – Soho</option>
+    <option>Natuzzi Editions – Bratislava</option>
+    <option>Natuzzi Editions – SOHO Design</option>
+    <option>Natuzzi Editions – JAMA</option>
+    <option value="Jiná">Jiná</option>
+  </select>
+</div>
+
 <!-- 🟩 BLOK – Jiný zadavatel -->
-<div id="jinaSekce" style="display:none;margin-top:20px;padding:16px;border-radius:10px;border:1px solid #00c8a0;background:rgba(255,255,255,0.05);">
+<div id="jinaSekce" style="display:none;margin-top:16px;padding:16px;border-radius:10px;border:1px solid #00c8a0;background:rgba(255,255,255,0.05);">
   <label>Jméno:</label>
   <input type="text" id="jinaJmeno" name="jinaJmeno" placeholder="např. Jan">
 
@@ -403,7 +422,7 @@ const lightboxImg=document.getElementById("lightboxImg");
 
 let photos=[];
 
-// Přidání fotek
+// 📸 Přidání fotek
 addPhotoBtn.onclick=()=>photoInput.click();
 
 photoInput.onchange=async()=>{
@@ -421,7 +440,7 @@ photoInput.onchange=async()=>{
   photoInput.value="";
 };
 
-// Komprese obrázku
+// 🧩 Komprese obrázku (zachování proporcí)
 async function compressImage(file,maxKB=500,maxDim=1280){
   const img=await createImageBitmap(file);
   const canvas=document.createElement("canvas");
@@ -437,7 +456,7 @@ async function compressImage(file,maxKB=500,maxDim=1280){
   return blob;
 }
 
-// Miniatury
+// 🖼️ Miniatury
 function renderPhotos(){
   photoPreviewMain.innerHTML="";
   photos.forEach((p,i)=>{
@@ -455,11 +474,11 @@ function renderPhotos(){
   });
 }
 
-// Lightbox
+// 🔍 Lightbox
 function showLightbox(src){lightboxImg.src=src;lightbox.classList.add("active");}
 lightbox.onclick=()=>lightbox.classList.remove("active");
 
-// Uložení rozpracovaných dat
+// 💾 Uložení rozpracovaných dat
 function saveDraft(){
   const form=document.getElementById("reklamaceForm");
   const data=new FormData(form);
@@ -468,7 +487,7 @@ function saveDraft(){
   localStorage.setItem("novaReklamaceDraft",JSON.stringify(obj));
 }
 
-// Obnovení dat
+// 🔁 Obnovení dat při otevření
 window.addEventListener("DOMContentLoaded",()=>{
   const draft=localStorage.getItem("novaReklamaceDraft");
   if(draft){
@@ -482,9 +501,16 @@ window.addEventListener("DOMContentLoaded",()=>{
       renderPhotos();
     }
   }
+
+  // 🔄 Logika rozbalení "Jiná"
+  const select=document.getElementById("zpracoval");
+  const jinaSekce=document.getElementById("jinaSekce");
+  select.addEventListener("change",()=>{
+    jinaSekce.style.display = select.value==="Jiná" ? "block" : "none";
+  });
 });
 
-// Validace polí
+// 🧾 Validace jména, emailu, telefonu
 const nameField=document.querySelector("input[name='zakaznik']");
 nameField.addEventListener("input",()=>{
   nameField.value=nameField.value
