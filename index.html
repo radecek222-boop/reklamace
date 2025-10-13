@@ -5,651 +5,281 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WGS – White Glove Service</title>
 
-<!-- 🟦 SEKCE 1/5 – STYL -->
 <style>
-body {
-  font-family: "Inter", system-ui, sans-serif;
-  background: #f6f7fb;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  text-align: center;
-  color: #111;
+/* 🌌 ZÁKLAD */
+html,body {
+  height:100%;
+  margin:0;
+  font-family:"Inter",system-ui,sans-serif;
+  overflow:hidden;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:#fff;
+  background: radial-gradient(circle at 30% 30%, #1e1f25, #111);
+}
+body::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,#007bff55,#00e0ff33,#111);
+  filter:blur(100px);
+  animation:moveBg 12s ease-in-out infinite alternate;
+  z-index:-2;
+}
+@keyframes moveBg {
+  0%{transform:translate(-10%,-10%) scale(1);}
+  100%{transform:translate(10%,10%) scale(1.2);}
 }
 
-/* 🔠 Nápisy */
+/* 🧊 HERO OBSAH */
+.wrapper {
+  text-align:center;
+  z-index:2;
+  padding:40px;
+  border-radius:30px;
+  backdrop-filter:blur(20px);
+  background:rgba(255,255,255,0.05);
+  box-shadow:0 0 40px rgba(255,255,255,0.05);
+}
 h1 {
-  font-size: 9em;
-  font-weight: 900;
-  margin: 0;
-  letter-spacing: -3px;
-  line-height: 1.1;
+  font-size:8em;
+  font-weight:900;
+  letter-spacing:-3px;
+  background:linear-gradient(90deg,#00c6ff,#0072ff);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  margin:0;
 }
-
 h2 {
-  font-size: 1.3em;
-  font-weight: 700;
-  letter-spacing: 3px;
-  color: #333;
-  margin: 10px 0 8px;
-  text-transform: uppercase;
-  max-width: 460px;
-  width: 100%;
+  text-transform:uppercase;
+  font-size:1.4em;
+  letter-spacing:4px;
+  margin:10px 0 8px;
+  color:#cdd7ff;
 }
-
 h3 {
-  font-size: 1.1em;
-  font-weight: 400;
-  color: #666;
-  margin-bottom: 60px;
-  max-width: 460px;
-  width: 100%;
+  color:#aaa;
+  margin-bottom:60px;
+  font-weight:400;
 }
 
-/* 🧩 Kontejner tlačítek */
+/* 🧩 TLAČÍTKA */
 .btn-container {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  justify-content: center;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:20px;
 }
-
-/* 🧩 Tlačítka */
 .btn {
-  color: white;
-  font-weight: 600;
-  padding: 14px 32px;
-  font-size: 1em;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-  transition: transform 0.1s ease-in-out, opacity 0.2s;
-  text-decoration: none;
-  min-width: 240px;
-  text-align: center;
+  padding:14px 36px;
+  border:none;
+  border-radius:12px;
+  font-weight:600;
+  font-size:1em;
+  color:#fff;
+  cursor:pointer;
+  text-decoration:none;
+  background:linear-gradient(135deg,#007bff,#00e0ff);
+  box-shadow:0 0 20px rgba(0,255,255,0.3);
+  transition:transform 0.2s,box-shadow 0.3s,opacity 0.3s;
+  min-width:230px;
 }
-.btn:hover { transform: scale(1.04); opacity: 0.9; }
-
-/* 🎨 Barevné varianty */
-.btn-light {
-  background: linear-gradient(135deg, #888, #b5b5b5);
+.btn:hover {
+  transform:translateY(-3px);
+  box-shadow:0 0 35px rgba(0,255,255,0.6);
+  opacity:0.95;
 }
 .btn-dark {
-  background: linear-gradient(135deg, #444, #707070);
+  background:linear-gradient(135deg,#444,#777);
+  box-shadow:0 0 15px rgba(0,0,0,0.4);
 }
 .btn-admin-light {
-  background: linear-gradient(135deg, #0052cc, #357aff);
+  background:linear-gradient(135deg,#0066ff,#33ccff);
 }
 .btn-admin-dark {
-  background: linear-gradient(135deg, #222, #555);
+  background:linear-gradient(135deg,#333,#555);
+}
+.btn-plan {
+  background:linear-gradient(135deg,#00bfa6,#1de9b6);
 }
 
-/* 🔝 Horní panel – ADMIN + logout */
+/* 🔝 ADMIN PANEL */
 #adminTopBar {
-  position: fixed;
-  top: 10px;
-  right: 15px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 2000;
+  position:fixed;
+  top:15px;right:20px;
+  display:flex;gap:10px;
 }
+#adminButton,#logoutButton {
+  background:rgba(255,255,255,0.08);
+  border:none;
+  border-radius:10px;
+  padding:8px 18px;
+  color:#fff;
+  font-weight:600;
+  backdrop-filter:blur(10px);
+  cursor:pointer;
+  transition:all 0.3s;
+}
+#adminButton.active {animation:pulse 2s infinite;}
+@keyframes pulse {
+  0%,100%{box-shadow:0 0 10px #00e0ff;}
+  50%{box-shadow:0 0 25px #00e0ff;}
+}
+#logoutButton{display:none;}
 
-/* 🩶 Veřejný režim – světlejší a decentní */
-#adminButton {
-  background: linear-gradient(135deg, #b8b8b8, #d3d3d3);
-  color: #fff;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  transition: all 0.3s ease;
+/* 🌫️ LOGIN & AUDIT POPUP */
+.overlay {
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(10px);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:1000;
 }
+.box {
+  background:rgba(30,30,40,0.8);
+  padding:40px 30px;
+  border-radius:16px;
+  text-align:center;
+  box-shadow:0 0 30px rgba(0,0,0,0.5);
+  animation:fadeIn .4s ease;
+}
+@keyframes fadeIn {from{opacity:0;transform:scale(0.9);}to{opacity:1;transform:scale(1);}}
+.box h2 {margin-top:0;color:#fff;}
+.box input {
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  background:rgba(255,255,255,0.1);
+  color:#fff;
+  margin-bottom:15px;
+  text-align:center;
+  font-size:1em;
+}
+.box button {
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  background:linear-gradient(135deg,#00e0ff,#007bff);
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  transition:opacity 0.2s,transform 0.2s;
+}
+.box button:hover{opacity:0.9;transform:scale(1.03);}
+.error-text{color:#ff5252;margin-top:8px;display:none;}
+.icon{font-size:2em;margin:8px 0;display:none;}
 
-/* 🩶 Po přihlášení (tmavší a jemně blikající) */
-#adminButton.active {
-  background: linear-gradient(135deg, #444, #666);
-  animation: pulseAdmin 2s infinite ease-in-out;
+/* 🔍 AUDIT BTN */
+#auditAccessBtn {
+  position:fixed;
+  top:15px;left:20px;
+  background:rgba(255,255,255,0.08);
+  border:none;
+  border-radius:10px;
+  padding:8px 16px;
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  backdrop-filter:blur(10px);
+  transition:all .3s;
 }
-
-#logoutButton {
-  background: linear-gradient(135deg, #555, #888);
-  color: #fff;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  transition: background 0.3s ease, color 0.3s ease;
-  display: none;
-}
-
-/* 🔁 Jemné pulzování admin režimu */
-@keyframes pulseAdmin {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.75; }
-}
-
-/* ✨ Ostatní animace */
-@keyframes fadeIn { from {opacity:0;transform:translateY(-10px);} to {opacity:1;transform:translateY(0);} }
-@keyframes fadeInOut {
-  0% { opacity:0; transform:scale(0.8); }
-  20% { opacity:1; transform:scale(1.1); }
-  50% { transform:scale(1); }
-  80% { opacity:1; transform:scale(1.05); }
-  100% { opacity:0; transform:scale(0.8); }
-}
-@keyframes blinkRed {
-  0%, 50%, 100% { background: linear-gradient(135deg, #b30000, #ff3333); }
-  25%, 75% { background: linear-gradient(135deg, #ff6666, #ff3333); }
-}
-
-/* 📱 Responzivní úpravy */
-@media (max-width:768px) {
-  h1 { font-size: 5.2em; }
-  h2 { font-size: 1.2em; letter-spacing: 2px; max-width: 340px; }
-  h3 { font-size: 1em; max-width: 340px; }
-  #adminTopBar { right:50%; transform:translateX(50%); top:10px; flex-direction:column; }
-  .btn-container { flex-direction: column; gap: 15px; }
-}
+#auditAccessBtn:hover{background:rgba(255,255,255,0.15);}
 </style>
+</head>
 
-
-
-  
-
-<!-- 🟩 SEKCE 2/5 – OBSAH (HERO) -->
 <body>
-  <h1>WGS</h1>
-  <h2>WHITE GLOVE SERVICE</h2>
-  <h3>specializovaný autorizovaný servis Natuzzi</h3>
+  <div class="wrapper">
+    <h1>WGS</h1>
+    <h2>WHITE GLOVE SERVICE</h2>
+    <h3>specializovaný autorizovaný servis Natuzzi</h3>
 
-  <!-- Veřejná tlačítka -->
-  <div class="btn-container" id="publicButtons">
-    <a href="novareklamace.html" class="btn btn-light">Nová reklamace</a>
-    <a href="aftersales.html" class="btn btn-dark">Pozáruční servis</a>
+    <div class="btn-container" id="publicButtons">
+      <a href="novareklamace.html" class="btn">Nová reklamace</a>
+      <a href="aftersales.html" class="btn btn-dark">Pozáruční servis</a>
+    </div>
+
+    <div class="btn-container" id="adminButtons" style="display:none;">
+      <a href="seznam.html" class="btn btn-admin-light">Seznam reklamací</a>
+      <a href="plandne.html" class="btn btn-plan">Plán dne</a>
+      <a href="prehled.html" class="btn btn-admin-dark">Statistika</a>
+    </div>
   </div>
 
-  <!-- Admin tlačítka -->
-  <div class="btn-container" id="adminButtons" style="display:none;">
-    <a href="seznam.html" class="btn btn-admin-light">Seznam reklamací</a>
-    <a href="plandne.html" class="btn btn-plan">Plán dne</a>
-    <a href="prehled.html" class="btn btn-admin-dark">Statistika</a>
-  </div>
-
-  <!-- Horní lišta s jemným ADMIN tlačítkem -->
   <div id="adminTopBar">
     <button id="adminButton">ADMIN</button>
-    <button id="logoutButton">Odhlásit se</button>
+    <button id="logoutButton">Odhlásit</button>
   </div>
-</body>
+  <button id="auditAccessBtn">AUDIT</button>
 
-<!-- 🩵 Styl pro tlačítko Plán dne -->
-<style>
-.btn-plan {
-  background: linear-gradient(135deg, #007bcc, #33b6ff);
-  color: #fff;
-}
-.btn-plan:hover {
-  transform: scale(1.04);
-  opacity: 0.9;
-}
-</style>
-
-
-
-  
-<!-- 🟧 SEKCE 3/5 – LOGIN BOX -->
-<div id="adminLoginOverlay">
-  <div id="adminLoginBox">
-    <h2>Přístup administrátora</h2>
-    <p>Zadejte přístupový kód</p>
-    <input type="password" id="adminPassword" placeholder="••••••">
-    <div id="adminErrorIcon" class="icon hidden">❌</div>
-    <div id="adminSuccessIcon" class="icon hidden">✅</div>
-    <div id="adminErrorText" class="error-text hidden">Nesprávný kód</div>
-    <button id="adminLoginBtn">Potvrdit</button>
+  <!-- 🔐 LOGIN -->
+  <div class="overlay" id="adminLoginOverlay">
+    <div class="box">
+      <h2>Přístup administrátora</h2>
+      <input type="password" id="adminPassword" placeholder="Kód •••••">
+      <div class="icon" id="adminSuccessIcon">✅</div>
+      <div class="icon" id="adminErrorIcon">❌</div>
+      <div class="error-text" id="adminErrorText">Nesprávný kód</div>
+      <button id="adminLoginBtn">Potvrdit</button>
+    </div>
   </div>
-</div>
 
-<style>
-#adminLoginOverlay {
-  position: fixed;
-  top:0; left:0; width:100%; height:100%;
-  background: rgba(0,0,0,0.6);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 3000;
-  backdrop-filter: blur(4px);
-}
-
-#adminLoginBox {
-  background: rgba(50,50,50,0.95);
-  padding: 45px 35px;
-  border-radius: 16px;
-  box-shadow: 0 4px 25px rgba(0,0,0,0.5);
-  text-align: center;
-  max-width: 340px;
-  width: 90%;
-  color: white;
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-#adminLoginBox h2 {
-  margin-top: 0;
-  font-size: 1.4em;
-  font-weight: 800;
-  color: #fff;
-}
-
-#adminLoginBox p {
-  color: #ccc;
-  font-size: 0.95em;
-  margin-bottom: 20px;
-}
-
-#adminPassword {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid #555;
-  border-radius: 10px;
-  font-size: 1em;
-  background: #222;
-  color: #eee;
-  margin-bottom: 15px;
-  box-sizing: border-box;
-  outline: none;
-  transition: all 0.25s ease-in-out;
-}
-#adminPassword:focus {
-  border-color: #4caf50;
-  box-shadow: 0 0 6px rgba(76,175,80,0.4);
-}
-
-#adminLoginBtn {
-  background: linear-gradient(135deg, #007e33, #00c851);
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 1em;
-  transition: transform 0.1s ease-in-out, opacity 0.2s;
-}
-#adminLoginBtn:hover {
-  transform: scale(1.05);
-  opacity: 0.9;
-}
-
-.icon {
-  font-size: 2.6em;
-  margin: 10px 0;
-  animation: pop 0.4s ease forwards;
-}
-
-.error-text {
-  color: #ff5252;
-  font-weight: 600;
-  margin-top: 5px;
-  font-size: 0.9em;
-}
-
-.hidden {
-  display: none;
-}
-
-/* ✅ Fajfka a ❌ křížek animace */
-@keyframes pop {
-  0% { transform: scale(0.4); opacity: 0; }
-  50% { transform: scale(1.3); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-/* Efekt fade-in pro celé okno */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-</style>
-
-
-
-  
-<!-- 🟥 SEKCE 4/5 – FUNKCE ADMINA -->
-<script>
-const ACCESS_CODE = "wgs2025";
-const EXPIRATION_MINUTES = 10;
-const INACTIVITY_MINUTES = 5;
-let inactivityTimer, countdownTimer, remainingTime = EXPIRATION_MINUTES * 60;
-
-const publicButtons = document.getElementById("publicButtons");
-const adminButtons  = document.getElementById("adminButtons");
-const adminButton   = document.getElementById("adminButton");
-const logoutButton  = document.getElementById("logoutButton");
-
-function showAdminEnvironment() {
-  publicButtons.style.display = "none";
-  adminButtons.style.display = "flex";
-  logoutButton.style.display = "inline-block";
-
-  // ✅ Aktivace vizuálního režimu ADMIN
-  adminButton.classList.add("active");
-
-  startCountdown();
-}
-
-function hideAdminEnvironment() {
-  publicButtons.style.display = "flex";
-  adminButtons.style.display = "none";
-  logoutButton.style.display = "none";
-
-  // ❎ Deaktivace režimu ADMIN
-  adminButton.classList.remove("active");
-  stopCountdown();
-  adminButton.textContent = "ADMIN";
-  adminButton.classList.remove("blink");
-}
-
-/* 🟢 Přihlášení */
-adminButton.addEventListener("click", () => {
-  document.getElementById("adminLoginOverlay").style.display = "flex";
-  document.getElementById("adminPassword").focus();
-});
-
-/* 🔴 Odhlášení */
-logoutButton.addEventListener("click", () => logout("odhlášení uživatelem"));
-
-/* 🧩 Ověření kódu s animacemi ✅❌ */
-function tryLogin() {
-  const input = document.getElementById("adminPassword");
-  const errorText = document.getElementById("adminErrorText");
-  const successIcon = document.getElementById("adminSuccessIcon");
-  const errorIcon = document.getElementById("adminErrorIcon");
-
-  // Skryj vše před novou animací
-  errorText.classList.add("hidden");
-  errorIcon.classList.add("hidden");
-  successIcon.classList.add("hidden");
-
-  if (input.value.trim() === ACCESS_CODE) {
-    // ✅ Správný kód
-    successIcon.classList.remove("hidden");
-
-    // Ulož přihlášení do localStorage
-    localStorage.setItem("wgsAdmin", JSON.stringify({ code: "OK", time: Date.now() }));
-
-    // Po 1 sekundě zavři okno a přepni do admin prostředí
-    setTimeout(() => {
-      document.getElementById("adminLoginOverlay").style.display = "none";
-      input.value = "";
-      startInactivityTimer();
-      showAdminEnvironment();
-    }, 1000);
-  } else {
-    // ❌ Špatný kód
-    errorIcon.classList.remove("hidden");
-    errorText.classList.remove("hidden");
-    input.value = "";
-    input.focus();
-  }
-}
-
-/* 🔄 Odhlášení po neaktivitě nebo vypršení */
-function logout(reason = "neaktivity") {
-  localStorage.removeItem("wgsAdmin");
-  hideAdminEnvironment();
-  console.log(`⏱️ Přístup admina ukončen (${reason}).`);
-}
-
-/* ⏱️ Inaktivita */
-function resetInactivityTimer() {
-  clearTimeout(inactivityTimer);
-  inactivityTimer = setTimeout(() => logout("neaktivity"), INACTIVITY_MINUTES * 60 * 1000);
-}
-
-function startInactivityTimer() {
-  resetInactivityTimer();
-  ["click","mousemove","keypress","scroll","touchstart","focus"].forEach(evt=>{
-    document.addEventListener(evt, resetInactivityTimer, { passive: true });
-  });
-}
-
-/* ⌛ Odpočet */
-function startCountdown() {
-  clearInterval(countdownTimer);
-  remainingTime = EXPIRATION_MINUTES * 60;
-  countdownTimer = setInterval(() => {
-    remainingTime--;
-    if (remainingTime <= 0) {
-      logout("vypršení času");
-      clearInterval(countdownTimer);
-      return;
-    }
-    const m = String(Math.floor(remainingTime / 60)).padStart(2, "0");
-    const s = String(remainingTime % 60).padStart(2, "0");
-    adminButton.textContent = `${m}:${s}`;
-    if (remainingTime <= 60) adminButton.classList.add("blink");
-    else adminButton.classList.remove("blink");
-  }, 1000);
-}
-
-function stopCountdown() {
-  clearInterval(countdownTimer);
-  remainingTime = EXPIRATION_MINUTES * 60;
-}
-
-/* 🔁 Obnovení přihlášení při reloadu stránky */
-window.addEventListener("DOMContentLoaded", () => {
-  const adminData = localStorage.getItem("wgsAdmin");
-  if (adminData) {
-    const { time } = JSON.parse(adminData);
-    const now = Date.now();
-    if ((now - time) / 60000 < EXPIRATION_MINUTES) {
-      showAdminEnvironment();
-      startInactivityTimer();
-    } else localStorage.removeItem("wgsAdmin");
-  }
-});
-
-/* 🎯 Tlačítka potvrzení */
-document.getElementById("adminLoginBtn").addEventListener("click", tryLogin);
-document.getElementById("adminPassword").addEventListener("keypress", e => {
-  if (e.key === "Enter") tryLogin();
-});
-</script>
-
-  
-  
-  
-  <!-- 🟪 SEKCE 5/5 – INAKTIVITA + ODPOČET -->
-<script>
-function logout(reason = "neaktivity") {
-  localStorage.removeItem("wgsAdmin");
-  hideAdminEnvironment();
-  console.log(`⏱️ Přístup admina ukončen (${reason}).`);
-}
-
-function resetInactivityTimer() {
-  clearTimeout(inactivityTimer);
-  inactivityTimer = setTimeout(() => logout("neaktivity"), INACTIVITY_MINUTES * 60 * 1000);
-}
-
-function startInactivityTimer() {
-  resetInactivityTimer();
-  ["click","mousemove","keypress","scroll","touchstart","focus"].forEach(evt=>{
-    document.addEventListener(evt, resetInactivityTimer, { passive: true });
-  });
-}
-
-function startCountdown() {
-  clearInterval(countdownTimer);
-  remainingTime = EXPIRATION_MINUTES * 60;
-  countdownTimer = setInterval(() => {
-    remainingTime--;
-    if (remainingTime <= 0) {
-      logout("vypršení času");
-      clearInterval(countdownTimer);
-      return;
-    }
-    const m = String(Math.floor(remainingTime / 60)).padStart(2, "0");
-    const s = String(remainingTime % 60).padStart(2, "0");
-    adminButton.textContent = `${m}:${s}`;
-    if (remainingTime <= 60) adminButton.classList.add("blink");
-    else adminButton.classList.remove("blink");
-  }, 1000);
-}
-
-function stopCountdown() {
-  clearInterval(countdownTimer);
-  remainingTime = EXPIRATION_MINUTES * 60;
-}
-
-window.addEventListener("DOMContentLoaded", () => {
-  const adminData = localStorage.getItem("wgsAdmin");
-  if (adminData) {
-    const { time } = JSON.parse(adminData);
-    const now = Date.now();
-    if ((now - time) / 60000 < EXPIRATION_MINUTES) {
-      showAdminEnvironment();
-      startInactivityTimer();
-    } else localStorage.removeItem("wgsAdmin");
-  }
-});
-
-document.getElementById("adminLoginBtn").addEventListener("click", tryLogin);
-document.getElementById("adminPassword").addEventListener("keypress", e => {
-  if (e.key === "Enter") tryLogin();
-});
-</script>
-
-  <!-- 🧩 AUDIT PŘÍSTUP (tajný přístup k audit.html – kód: audit2025) -->
-<style>
-#auditAccessBtn {
-  position: fixed;
-  top: 10px;
-  left: 15px;
-  background: linear-gradient(135deg, #222, #555);
-  color: #fff;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-family: "Inter", sans-serif;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-  z-index: 2100;
-  opacity: 0.6;
-  transition: all 0.3s ease;
-}
-#auditAccessBtn:hover { opacity: 1; transform: scale(1.05); }
-
-#auditOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 3000;
-  backdrop-filter: blur(4px);
-}
-#auditBox {
-  background: rgba(40,40,40,0.95);
-  padding: 35px 30px;
-  border-radius: 14px;
-  color: #fff;
-  text-align: center;
-  box-shadow: 0 4px 25px rgba(0,0,0,0.5);
-  animation: fadeIn 0.3s ease-in-out;
-  width: 90%;
-  max-width: 320px;
-}
-#auditBox h2 {
-  margin-top: 0;
-  font-size: 1.3em;
-  font-weight: 800;
-}
-#auditPass {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #555;
-  border-radius: 8px;
-  background: #222;
-  color: #eee;
-  font-size: 1em;
-  margin-bottom: 14px;
-}
-#auditConfirm {
-  background: linear-gradient(135deg, #1565c0, #2196f3);
-  border: none;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform .15s ease-in-out, opacity .2s;
-}
-#auditConfirm:hover { transform: scale(1.05); opacity: 0.9; }
-#auditError {
-  color: #ff5252;
-  font-size: 0.9em;
-  margin-top: 5px;
-  display: none;
-}
-</style>
-
-<button id="auditAccessBtn">AUDIT</button>
-
-<div id="auditOverlay">
-  <div id="auditBox">
-    <h2>Audit přístup</h2>
-    <p>Zadej přístupový kód</p>
-    <input type="password" id="auditPass" placeholder="••••••">
-    <div id="auditError">❌ Nesprávný kód</div>
-    <button id="auditConfirm">Potvrdit</button>
+  <!-- 🧩 AUDIT -->
+  <div class="overlay" id="auditOverlay">
+    <div class="box">
+      <h2>Audit přístup</h2>
+      <input type="password" id="auditPass" placeholder="Kód •••••">
+      <div class="error-text" id="auditError">❌ Nesprávný kód</div>
+      <button id="auditConfirm">Potvrdit</button>
+    </div>
   </div>
-</div>
 
 <script>
-const AUDIT_CODE = "audit2025";
-const auditBtn = document.getElementById("auditAccessBtn");
-const overlay = document.getElementById("auditOverlay");
-const input = document.getElementById("auditPass");
-const error = document.getElementById("auditError");
+const ACCESS_CODE="wgs2025",AUDIT_CODE="audit2025";
+const publicButtons=document.getElementById("publicButtons"),
+adminButtons=document.getElementById("adminButtons"),
+adminButton=document.getElementById("adminButton"),
+logoutButton=document.getElementById("logoutButton"),
+loginOverlay=document.getElementById("adminLoginOverlay");
 
-auditBtn.addEventListener("click", () => {
-  overlay.style.display = "flex";
-  input.value = "";
-  error.style.display = "none";
-  input.focus();
-});
+function showAdmin(){publicButtons.style.display="none";adminButtons.style.display="flex";logoutButton.style.display="inline-block";adminButton.classList.add("active");}
+function hideAdmin(){publicButtons.style.display="flex";adminButtons.style.display="none";logoutButton.style.display="none";adminButton.classList.remove("active");}
+function logout(){localStorage.removeItem("wgsAdmin");hideAdmin();}
+function tryLogin(){
+ const val=document.getElementById("adminPassword").value.trim();
+ const ok=document.getElementById("adminSuccessIcon"),no=document.getElementById("adminErrorIcon"),err=document.getElementById("adminErrorText");
+ ok.style.display=no.style.display=err.style.display="none";
+ if(val===ACCESS_CODE){
+   ok.style.display="block";
+   localStorage.setItem("wgsAdmin","1");
+   setTimeout(()=>{loginOverlay.style.display="none";showAdmin();},700);
+ }else{
+   no.style.display="block";err.style.display="block";
+   document.getElementById("adminPassword").value="";
+ }
+}
+adminButton.onclick=()=>{loginOverlay.style.display="flex";document.getElementById("adminPassword").focus();};
+logoutButton.onclick=logout;
+document.getElementById("adminLoginBtn").onclick=tryLogin;
+document.getElementById("adminPassword").onkeypress=e=>{if(e.key==="Enter")tryLogin();};
 
-document.getElementById("auditConfirm").addEventListener("click", () => {
-  if (input.value.trim() === AUDIT_CODE) {
-    window.open("audit.html", "_blank");
-    overlay.style.display = "none";
-  } else {
-    error.style.display = "block";
-    input.value = "";
-    input.focus();
-  }
-});
+window.addEventListener("DOMContentLoaded",()=>{if(localStorage.getItem("wgsAdmin"))showAdmin();});
 
-input.addEventListener("keypress", e => {
-  if (e.key === "Enter") document.getElementById("auditConfirm").click();
-});
+/* 🔍 AUDIT */
+const auditBtn=document.getElementById("auditAccessBtn"),
+auditOverlay=document.getElementById("auditOverlay"),
+auditInput=document.getElementById("auditPass"),
+auditErr=document.getElementById("auditError");
+auditBtn.onclick=()=>{auditOverlay.style.display="flex";auditInput.value="";auditErr.style.display="none";auditInput.focus();};
+document.getElementById("auditConfirm").onclick=()=>{
+ if(auditInput.value.trim()===AUDIT_CODE){window.open("audit.html","_blank");auditOverlay.style.display="none";}
+ else{auditErr.style.display="block";auditInput.value="";auditInput.focus();}
+};
+auditInput.onkeypress=e=>{if(e.key==="Enter")document.getElementById("auditConfirm").click();};
 </script>
-
-  
 </body>
 </html>
