@@ -1,4 +1,4 @@
-<!-- 🟢 ZAČÁTEK ČÁSTI 1/2 – nová reklamace (Green-Neon styl 2025) -->
+<!-- 🟢 ZAČÁTEK ČÁSTI 1/2 – nová reklamace (Green-Neon styl 2025 – FULL RESPONSIVE) -->
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -11,13 +11,16 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
 <style>
-/* 🌌 Green-Neon pozadí */
+/* 🌍 Celoplošné přizpůsobení */
 html,body{
-  margin:0;height:100%;
+  margin:0;padding:0;
+  width:100%;height:100%;
+  min-height:100vh;
   font-family:"Inter",system-ui,sans-serif;
   background:#0e1614;
   color:#e6fff7;
   display:flex;justify-content:center;align-items:flex-start;
+  box-sizing:border-box;
   overflow-x:hidden;
 }
 body::before{
@@ -35,14 +38,16 @@ body::before{
 
 /* 🧊 Wrapper */
 .wrapper{
+  width:100%;
+  max-width:1200px;
+  min-height:calc(100vh - 60px);
   background:rgba(255,255,255,0.04);
   border:1px solid rgba(255,255,255,0.08);
   border-radius:20px;
   backdrop-filter:blur(20px);
   box-shadow:0 0 35px rgba(0,255,170,0.2);
   padding:40px 30px;
-  margin:50px 15px 100px;
-  max-width:780px;width:100%;
+  margin:40px auto 80px;
   box-sizing:border-box;
   animation:fadeIn .8s ease;
 }
@@ -66,10 +71,9 @@ h2{
   text-transform:uppercase;
 }
 
-/* 📱 Mobilní úprava – zmenšení h2 (Pozáruční servis) */
-@media (max-width:600px){
-  h2{font-size:0.95em;letter-spacing:1px;}
-}
+/* 📱 Responzivní úpravy nadpisů */
+@media (max-width:800px){h1{font-size:2.2em;} h2{font-size:1em;}}
+@media (max-width:480px){h1{font-size:1.8em;} h2{font-size:0.95em;letter-spacing:1px;}}
 
 /* 🧾 Formulář */
 label{display:block;font-weight:600;margin-top:15px;margin-bottom:5px;color:#e6fff7;}
@@ -84,6 +88,7 @@ input,textarea,select{
   outline:none;
   box-shadow:inset 0 0 6px rgba(0,0,0,0.4);
   transition:border .2s,box-shadow .2s,background .3s;
+  box-sizing:border-box;
 }
 input:focus,textarea:focus,select:focus{
   background:rgba(255,255,255,0.12);
@@ -122,8 +127,19 @@ small{font-size:0.8em;color:#aaa;}
 .suggestions div{padding:8px;cursor:pointer;color:#eee;}
 .suggestions div:hover{background:rgba(0,255,170,0.1);}
 #mapPreview{
-  width:100%;height:250px;margin-top:10px;border-radius:14px;
-  overflow:hidden;box-shadow:0 0 20px rgba(0,0,0,0.3);
+  width:100%;
+  height:250px;
+  margin-top:10px;
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 0 20px rgba(0,0,0,0.3);
+}
+
+/* 📱 Responzivní úpravy formuláře */
+@media (max-width:600px){
+  .wrapper{padding:20px 15px;max-width:95%;}
+  input,textarea,select{font-size:0.95em;padding:10px;}
+  #mapPreview{height:200px;}
 }
 </style>
 </head>
@@ -133,9 +149,9 @@ small{font-size:0.8em;color:#aaa;}
     <h1>WGS</h1>
     <h2>Nová reklamace</h2>
 
-    <form id="aftersalesForm" novalidate>
+    <form id="novareklamaceForm" novalidate>
       <label>Číslo reklamace / objednávky:</label>
-      <input type="text" name="cislo" value="Pozáruční servis / vyžádaná oprava" readonly />
+      <input type="text" name="cislo" value="Nová reklamace" readonly />
 
       <label>Zákazník:</label>
       <input type="text" name="zakaznik" required placeholder="např. Jiří Novák" />
@@ -154,13 +170,13 @@ small{font-size:0.8em;color:#aaa;}
       <input type="text" id="psc" name="psc" required pattern="\\d{3}\\s?\\d{2}" placeholder="např. 110 00" />
 
       <label>Telefon:</label>
-      <div style="display:flex;gap:10px;align-items:center;">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
         <select id="predvolba" style="max-width:130px;background:rgba(255,255,255,0.08);border:none;border-radius:10px;color:#fff;padding:10px;">
           <option value="+420">🇨🇿 +420</option>
           <option value="+421">🇸🇰 +421</option>
           <option value="+43">🇦🇹 +43</option>
         </select>
-        <input type="tel" id="telefon" name="telefon" required placeholder="např. 777123456" />
+        <input type="tel" id="telefon" name="telefon" required placeholder="např. 777 123 456" style="flex:1;min-width:150px;" />
       </div>
 
       <label>E-mail:</label>
@@ -172,238 +188,3 @@ small{font-size:0.8em;color:#aaa;}
       <label>Popis závady / požadavku:</label>
       <textarea name="popis" required placeholder="Popište problém, opravu nebo požadavek..."></textarea>
 <!-- 🟢 KONEC ČÁSTI 1/2 – pokračování v části 2/2 -->
-<!-- 🟢 ZAČÁTEK ČÁSTI 2/2 – FOTKY, ODESLÁNÍ A FOOTER (Green-Neon styl) -->
-
-<!-- 🖼️ Fotodokumentace -->
-<div class="photo-frame">
-  <div class="photo-frame__header">
-    <div class="photo-frame__title">Fotodokumentace</div>
-    <button type="button" id="openPhotoModal" class="btn-photo">📸 Nahrát fotografie</button>
-  </div>
-  <div class="photo-frame__info">Max. 5 fotografií (JPG, PNG, HEIC)</div>
-  <div id="photoPreviewMain" class="photo-preview-main"></div>
-</div>
-
-<!-- Modal nahrávání -->
-<div id="photoModal" class="photo-modal">
-  <div class="photo-modal-content">
-    <h3>Nahrát fotografie</h3>
-    <p class="photo-small">
-      Můžeš nahrát až 5 fotografií (JPG, PNG, HEIC).  
-      Každá se automaticky zmenší na max. 800×533 px (≤ 500 KB).
-    </p>
-
-    <div id="photoPreview" class="photo-preview"></div>
-
-    <div class="photo-modal-actions">
-      <button type="button" id="selectFiles" class="btn-gray">Vyber soubory</button>
-      <input type="file" id="photoInput" accept="image/jpeg,image/png,image/heic" multiple hidden>
-      <button type="button" id="closePhotoModal" class="btn-white">Zavřít</button>
-    </div>
-  </div>
-</div>
-
-<style>
-/* 🖼️ Fotky */
-.photo-frame{
-  border:1px solid rgba(255,255,255,0.1);
-  border-radius:14px;
-  padding:18px;
-  margin-top:20px;
-  background:rgba(255,255,255,0.05);
-  backdrop-filter:blur(10px);
-}
-.photo-frame__header{display:flex;justify-content:space-between;align-items:center;}
-.photo-frame__title{font-weight:700;font-size:1.05em;color:#e6fff7;}
-.btn-photo{
-  padding:8px 18px;border:none;border-radius:10px;
-  background:linear-gradient(135deg,#00b56a,#00e0a6);
-  color:#fff;font-weight:600;cursor:pointer;
-  box-shadow:0 0 15px rgba(0,255,170,0.3);
-  transition:transform .15s ease,opacity .2s;
-}
-.btn-photo:hover{transform:scale(1.05);opacity:0.9;}
-.photo-frame__info{font-size:0.8em;color:#bbb;margin-top:4px;}
-.photo-preview-main{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
-.photo-item-main{display:flex;align-items:center;gap:10px;}
-.photo-thumb{width:80px;height:80px;border-radius:10px;object-fit:cover;}
-.photo-name{font-size:0.8em;color:#ccc;}
-.photo-remove{
-  background:rgba(255,255,255,0.1);
-  border:none;border-radius:50%;width:24px;height:24px;
-  color:#ff4d4d;cursor:pointer;
-}
-
-/* 📸 Modal */
-.photo-modal{
-  display:none;position:fixed;inset:0;
-  background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);
-  justify-content:center;align-items:center;z-index:9999;
-}
-.photo-modal.active{display:flex;}
-.photo-modal-content{
-  background:rgba(20,30,25,0.95);
-  border-radius:16px;padding:24px;
-  max-width:700px;width:90%;color:#fff;text-align:center;
-}
-.photo-small{font-size:0.8em;color:#aaa;margin-bottom:12px;}
-.photo-preview{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;}
-.photo-item{width:100px;height:100px;border-radius:10px;overflow:hidden;position:relative;background:rgba(255,255,255,0.08);}
-.photo-item img{width:100%;height:100%;object-fit:cover;}
-.progress-bar{position:absolute;bottom:0;left:0;height:5px;background:linear-gradient(90deg,#00b56a,#00e0a6);width:0%;}
-</style>
-
-<script>
-const selectFiles=document.getElementById("selectFiles");
-const photoInput=document.getElementById("photoInput");
-const photoModal=document.getElementById("photoModal");
-const photoPreview=document.getElementById("photoPreview");
-const photoPreviewMain=document.getElementById("photoPreviewMain");
-
-window.uploadedPhotos=[];
-selectFiles.onclick=()=>photoInput.click();
-document.getElementById("openPhotoModal").onclick=()=>photoModal.classList.add("active");
-document.getElementById("closePhotoModal").onclick=()=>photoModal.classList.remove("active");
-
-photoInput.addEventListener("change",async()=>{
-  const files=Array.from(photoInput.files);
-  if(!files.length)return;
-  photoPreview.innerHTML="";
-  for(const file of files.slice(0,5)){
-    const wrap=document.createElement("div");
-    wrap.className="photo-item";
-    const img=document.createElement("img");
-    const bar=document.createElement("div");
-    bar.className="progress-bar";
-    wrap.append(img,bar);photoPreview.append(wrap);
-    const reader=new FileReader();
-    reader.onload=e=>img.src=e.target.result;reader.readAsDataURL(file);
-    const blob=await compressImage(file);
-    await uploadAndPreview(blob,file,wrap,img);
-  }
-  photoModal.classList.remove("active");
-  renderMainPreview();
-});
-
-async function compressImage(file,maxSizeKB=500,maxDim=800){
-  const img=await createImageBitmap(file);
-  const c=document.createElement("canvas");
-  let[w,h]=[img.width,img.height];
-  if(w>h&&w>maxDim){h=Math.round(h*(maxDim/w));w=maxDim;}
-  else if(h>w&&h>maxDim){w=Math.round(w*(maxDim/h));h=maxDim;}
-  c.width=w;c.height=h;const ctx=c.getContext("2d");
-  ctx.drawImage(img,0,0,w,h);
-  let q=0.9,blob=await new Promise(r=>c.toBlob(r,"image/jpeg",q));
-  while(blob.size/1024>maxSizeKB&&q>0.4){q-=0.1;blob=await new Promise(r=>c.toBlob(r,"image/jpeg",q));}
-  return blob;
-}
-async function uploadAndPreview(blob,file,wrap,img){
-  const form=new FormData();form.append("file",blob,file.name);
-  try{
-    const r=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/upload",{method:"POST",body:form});
-    const res=await r.json();
-    wrap.querySelector(".progress-bar").style.width="100%";
-    window.uploadedPhotos.push({filename:res.filename,name:file.name,preview:img.src});
-  }catch(e){console.error("❌ Upload selhal:",e);}
-}
-function renderMainPreview(){
-  photoPreviewMain.innerHTML="";
-  window.uploadedPhotos.forEach((p,i)=>{
-    const row=document.createElement("div");
-    row.className="photo-item-main";
-    const img=document.createElement("img");img.className="photo-thumb";img.src=p.preview;
-    const name=document.createElement("div");name.className="photo-name";name.textContent=p.name;
-    const remove=document.createElement("button");remove.className="photo-remove";remove.textContent="×";
-    remove.onclick=()=>{window.uploadedPhotos.splice(i,1);renderMainPreview();};
-    row.append(img,name,remove);photoPreviewMain.append(row);
-  });
-}
-</script>
-
-<!-- 💾 Odeslání -->
-<div class="actions">
-  <a href="index.html" class="btn btn-back">⟵ Zpět</a>
-  <button type="submit" class="btn btn-send">Odeslat</button>
-</div>
-
-<style>
-.actions{display:flex;justify-content:center;gap:16px;margin:35px 0;}
-</style>
-
-<!-- ✅ Overlay animace -->
-<div class="wait-overlay" id="waitOverlay">
-  <div class="spinner"></div>
-  <p>Odesílám data…</p>
-</div>
-<div class="success-check" id="successCheck">
-  <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-    <circle cx="26" cy="26" r="25" fill="none"/>
-    <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
-  <div class="check-text">Odesláno úspěšně!</div>
-</div>
-
-<style>
-.wait-overlay,.success-check{display:none;position:fixed;inset:0;justify-content:center;align-items:center;flex-direction:column;backdrop-filter:blur(10px);z-index:5000;}
-.wait-overlay{background:rgba(10,20,15,0.8);color:#fff;font-weight:600;}
-.success-check{background:rgba(10,20,15,0.8);color:#aefcd8;font-weight:700;}
-.wait-overlay.active,.success-check.active{display:flex;}
-.spinner{
-  border:5px solid rgba(255,255,255,0.1);
-  border-top:5px solid #00e0a6;
-  border-radius:50%;width:55px;height:55px;
-  animation:spin 1s linear infinite;margin-bottom:14px;
-}
-@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
-.checkmark{width:90px;height:90px;stroke:#00e0a6;stroke-width:3;fill:none;stroke-dasharray:48;stroke-dashoffset:48;animation:draw 1s ease forwards;margin-bottom:12px;}
-@keyframes draw{to{stroke-dashoffset:0;}}
-</style>
-
-<script>
-document.getElementById("aftersalesForm").addEventListener("submit",async e=>{
-  e.preventDefault();
-  const wait=document.getElementById("waitOverlay");
-  const done=document.getElementById("successCheck");
-  wait.classList.add("active");
-  const f=e.target;
-  const pred=f.querySelector("#predvolba");
-  const data={
-    type:"aftersales",
-    cislo:"POZARUCNI-"+Date.now(),
-    zakaznik:f.zakaznik.value,
-    adresa:`${f.ulice.value}, ${f.mesto.value}, ${f.psc.value}`,
-    telefon:`${pred.value} ${f.telefon.value}`,
-    email:f.email.value,
-    produkt:f.produkt.value,
-    popis:f.popis.value,
-    fotky:(window.uploadedPhotos||[]).map(p=>p.filename||"")
-  };
-  try{
-    await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles",{
-      method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({record:data})
-    });
-    wait.classList.remove("active");
-    done.classList.add("active");
-    setTimeout(()=>window.location.href="index.html",2500);
-  }catch(err){
-    wait.classList.remove("active");
-    alert("Chyba při odesílání: "+err.message);
-  }
-});
-</script>
-
-<footer class="footer">
-  <div>© 2025 White Glove Service s.r.o.</div>
-  <div>specializovaný autorizovaný servis Natuzzi</div>
-</footer>
-
-<style>
-.footer{text-align:center;color:#aaa;font-size:0.85em;padding:30px 0 20px;opacity:0.7;}
-.footer:hover{opacity:1;color:#cfc;}
-</style>
-</form>
-</div>
-</body>
-</html>
-<!-- 🟢 KONEC ČÁSTI 2/2 – FOTKY, ODESLÁNÍ A FOOTER -->
