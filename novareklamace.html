@@ -257,8 +257,8 @@ document.head.appendChild(css);
     </div>
     <div id="calendarGrid" class="calendar-grid"></div>
     <div class="calendar-actions">
-      <button id="cancelCalendar" class="btn-cancel">Zrušit</button>
-      <button id="confirmCalendar" class="btn-ok">Potvrdit</button>
+      <button type="button" id="cancelCalendar" class="btn-cancel">Zrušit</button>
+      <button type="button" id="confirmCalendar" class="btn-ok">Potvrdit</button>
     </div>
   </div>
 </div>
@@ -332,6 +332,7 @@ document.getElementById("confirmCalendar").onclick=()=>{
 };
 </script>
 <!-- 🟩 KONEC ČÁSTI 3/5 -->
+
 
 <!-- 🟩 ZAČÁTEK ČÁSTI 4/5 – FOTKY + VALIDACE + LOCALSTORAGE + ZADAVATEL + EMAIL -->
 
@@ -641,6 +642,15 @@ document.querySelectorAll('input[type="date"]').forEach(el=>{
     if(e.key==="Enter") e.preventDefault();
   });
 });
+  // 🧩 Oprava – potvrzení datumu neukončuje zapisování
+document.addEventListener("click", e => {
+  if (e.target.closest(".vanilla-calendar-confirm")) {
+    e.stopPropagation();
+    e.preventDefault();
+    console.log("✅ Datum potvrzeno – formulář se neukončí.");
+  }
+});
+
 
 </script>
 <!-- 🟩 KONEC ČÁSTI 5/5 -->
