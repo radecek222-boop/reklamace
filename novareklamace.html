@@ -94,7 +94,47 @@ textarea{height:100px;resize:vertical;}
 <h1>WHITE GLOVE SERVICE</h1>
 <h2>Nová reklamace</h2>
 <form id="reklamaceForm" novalidate>
+
+<!-- 🟩 AUTO-DETEKCE TYPU Z URL (prodejce vs zákazník) -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+  const typ = params.get("typ");
+
+  // uložíme do localStorage pro pozdější použití
+  localStorage.setItem("wgs_form_typ", typ || "prodejce");
+
+  if (typ === "zakaznik") {
+    console.log("📋 Režim: zákazník (pozáruční servis)");
+
+    // Skryjeme nebo znepřístupníme vybrané části
+    const hideFields = [
+      "cislo", "zpracoval", "datum_prodeje", "datum_reklamace"
+    ];
+
+    hideFields.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        const wrapper = el.closest("label") || el.parentElement;
+        if (wrapper) wrapper.style.display = "none";
+        el.disabled = true;
+      }
+    });
+
+    // Skryjeme celý blok s výběrem zadavatele (a případně "jiná sekce")
+    const jina = document.getElementById("jinaSekce");
+    if (jina) jina.style.display = "none";
+
+    // Přepíšeme nadpis
+    const h2 = document.querySelector("h2");
+    if (h2) h2.textContent = "Pozáruční servis";
+  } else {
+    console.log("📋 Režim: prodejce (nová reklamace)");
+  }
+});
+</script>
 <!-- 🟨 KONEC ČÁSTI 1/5 -->
+
 
 
   <!-- 🟩 ZAČÁTEK ČÁSTI 2/5 – FORMULÁŘ + ADRESY + ZADAVATEL + VALIDACE -->
