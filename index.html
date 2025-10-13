@@ -153,7 +153,10 @@ h3{color:#aaa;margin-bottom:60px;font-weight:400;}
     <div class="admin-box">
       <h2>Přístup administrátora</h2>
       <input type="password" id="adminPass" placeholder="Zadejte kód •••••">
-      <button id="adminConfirm">Potvrdit</button>
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button id="adminConfirm" class="modal-btn btn-confirm">✔ Potvrdit</button>
+        <button id="adminBack" class="modal-btn btn-cancel">Zpět</button>
+      </div>
       <div class="admin-error" id="adminError">❌ Nesprávný kód</div>
     </div>
   </div>
@@ -213,20 +216,17 @@ h3{color:#aaa;margin-bottom:60px;font-weight:400;}
   color:#fff;
   text-align:center;
   font-size:1em;
-  margin-bottom:18px;
+  margin-bottom:12px;
 }
 .admin-box button{
-  width:100%;
+  flex:1;
   padding:10px;
   border:none;
   border-radius:10px;
-  background:linear-gradient(135deg,#007bff,#00e0ff);
   color:#fff;
   font-weight:600;
   cursor:pointer;
-  transition:transform .2s,opacity .2s;
 }
-.admin-box button:hover{transform:scale(1.03);opacity:.9;}
 .admin-error{color:#ff4d4d;display:none;margin-top:8px;}
 </style>
 
@@ -251,6 +251,7 @@ const adminBtn=document.getElementById("adminButton");
 const overlay=document.getElementById("adminOverlay");
 const pass=document.getElementById("adminPass");
 const err=document.getElementById("adminError");
+const back=document.getElementById("adminBack");
 
 function setAdmin(active){
   if(active){
@@ -273,6 +274,8 @@ adminBtn.onclick=()=>{
     pass.focus();
   }
 };
+
+back.onclick=()=>overlay.style.display="none";
 
 document.getElementById("adminConfirm").onclick=()=>{
   if(pass.value.trim()===ADMIN_CODE){
