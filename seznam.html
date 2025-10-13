@@ -426,9 +426,10 @@ window.addEventListener("DOMContentLoaded",loadOrders);
 body::before{
   content:"";
   position:fixed;inset:0;
-  background:radial-gradient(circle at 20% 30%,rgba(0,255,180,0.08),transparent 60%),
-             radial-gradient(circle at 80% 70%,rgba(120,0,255,0.08),transparent 60%),
-             radial-gradient(circle at 50% 50%,rgba(0,128,255,0.05),transparent 70%);
+  background:
+    radial-gradient(circle at 20% 30%,rgba(0,255,180,0.08),transparent 60%),
+    radial-gradient(circle at 80% 70%,rgba(120,0,255,0.08),transparent 60%),
+    radial-gradient(circle at 50% 50%,rgba(0,128,255,0.05),transparent 70%);
   z-index:-1;
   animation:neonFlow 15s ease-in-out infinite alternate;
 }
@@ -504,7 +505,7 @@ body::before{
 </div>
 
 <script>
-/* 🟩 Funkce notifikace */
+/* 🟩 FUNKCE – NOTIFIKACE */
 function showNotif(type="ok",text="Hotovo"){
   const n=document.getElementById("notif");
   n.textContent=text;
@@ -513,7 +514,7 @@ function showNotif(type="ok",text="Hotovo"){
   window._notifTimer=setTimeout(()=>n.classList.remove("show"),2500);
 }
 
-/* 🟩 Tooltip helper */
+/* 🟩 FUNKCE – TOOLTIP */
 let tooltip;
 document.addEventListener("mouseover",e=>{
   const t=e.target.closest("[data-tip]");
@@ -527,9 +528,28 @@ document.addEventListener("mouseover",e=>{
   tooltip.style.top=r.top-30+"px";
   requestAnimationFrame(()=>tooltip.classList.add("show"));
 });
-document.addEventListener("mouseout",()=>{if(tooltip){tooltip.remove();tooltip=null;}});
-</script>
+document.addEventListener("mouseout",()=>{
+  if(tooltip){tooltip.remove();tooltip=null;}
+});
 
-    
+/* 🟩 PŘESMĚROVÁNÍ NA PLÁN DNE */
+const planBtn=document.getElementById("planBtn");
+if(planBtn){
+  planBtn.addEventListener("click",()=>{
+    // Uložení indikátoru, že uživatel šel do Plánu dne
+    sessionStorage.setItem("fromPlanDne","1");
+    window.location.href="plandne.html";
+  });
+}
+
+/* 🟩 OBNOVENÍ SEZNAMU PO NÁVRATU Z PLÁNU DNE */
+window.addEventListener("DOMContentLoaded",()=>{
+  if(sessionStorage.getItem("fromPlanDne")==="1"){
+    sessionStorage.removeItem("fromPlanDne");
+    if(typeof loadOrders==="function") loadOrders();
+    showNotif("ok","Seznam obnoven po návratu z Plánu dne");
+  }
+});
+</script>
 
 <!-- 🟪🟪🟪 KONEC STRÁNKY SEZNAM.HTML (NEON VERZE) -->
