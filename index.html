@@ -11,38 +11,32 @@ html,body {
   height:100%;
   margin:0;
   font-family:"Inter",system-ui,sans-serif;
-  overflow:hidden;
-  display:flex;
-  justify-content:center;
-  align-items:center;
   color:#fff;
-  background: radial-gradient(circle at 30% 30%, #1e1f25, #111);
+  background:radial-gradient(circle at 30% 30%,#1e1f25,#111);
+  overflow-x:hidden;
 }
-body::before {
+body::before{
   content:"";
-  position:absolute;
-  inset:0;
+  position:fixed;inset:0;
   background:linear-gradient(135deg,#007bff55,#00e0ff33,#111);
   filter:blur(100px);
   animation:moveBg 12s ease-in-out infinite alternate;
-  z-index:-2;
+  z-index:-1;
 }
-@keyframes moveBg {
-  0%{transform:translate(-10%,-10%) scale(1);}
-  100%{transform:translate(10%,10%) scale(1.2);}
-}
+@keyframes moveBg{0%{transform:translate(-10%,-10%) scale(1);}100%{transform:translate(10%,10%) scale(1.2);}}
 
-/* 🧊 HERO OBSAH */
-.wrapper {
+/* 🧊 OBSAH */
+.wrapper{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
   text-align:center;
-  z-index:2;
-  padding:40px;
-  border-radius:30px;
+  min-height:100vh;
+  padding:40px 20px;
   backdrop-filter:blur(20px);
-  background:rgba(255,255,255,0.05);
-  box-shadow:0 0 40px rgba(255,255,255,0.05);
 }
-h1 {
+h1{
   font-size:8em;
   font-weight:900;
   letter-spacing:-3px;
@@ -51,27 +45,11 @@ h1 {
   -webkit-text-fill-color:transparent;
   margin:0;
 }
-h2 {
-  text-transform:uppercase;
-  font-size:1.4em;
-  letter-spacing:4px;
-  margin:10px 0 8px;
-  color:#cdd7ff;
-}
-h3 {
-  color:#aaa;
-  margin-bottom:60px;
-  font-weight:400;
-}
+h2{text-transform:uppercase;font-size:1.4em;letter-spacing:4px;margin:10px 0 8px;color:#cdd7ff;}
+h3{color:#aaa;margin-bottom:60px;font-weight:400;}
 
 /* 🧩 TLAČÍTKA */
-.btn-container {
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-  gap:20px;
-}
-.btn {
+.btn{
   padding:14px 36px;
   border:none;
   border-radius:12px;
@@ -79,20 +57,17 @@ h3 {
   font-size:1em;
   color:#fff;
   cursor:pointer;
-  text-decoration:none;
   background:linear-gradient(135deg,#007bff,#00e0ff);
   box-shadow:0 0 20px rgba(0,255,255,0.3);
   transition:transform 0.2s,box-shadow 0.3s,opacity 0.3s;
-  min-width:230px;
 }
-.btn:hover {
+.btn:hover{
   transform:translateY(-3px);
   box-shadow:0 0 35px rgba(0,255,255,0.6);
-  opacity:0.95;
 }
 
-/* 🌫️ MODAL – výběr typu požadavku */
-.overlay {
+/* 🌫️ MODAL */
+.overlay{
   position:fixed;inset:0;
   background:rgba(0,0,0,0.7);
   backdrop-filter:blur(10px);
@@ -101,18 +76,46 @@ h3 {
   align-items:center;
   z-index:1000;
 }
-.box {
-  background:rgba(30,30,40,0.9);
+.box{
+  background:rgba(30,30,40,0.95);
   padding:40px 30px;
   border-radius:20px;
   text-align:center;
-  box-shadow:0 0 25px rgba(0,0,0,0.5);
+  width:90%;
+  max-width:420px;
+  box-shadow:0 0 25px rgba(0,0,0,0.6);
   animation:fadeIn .3s ease;
 }
-@keyframes fadeIn {from{opacity:0;transform:scale(0.9);}to{opacity:1;transform:scale(1);}}
-.box h2 {margin:0;color:#fff;}
-.box label {color:#ddd;font-weight:500;}
-.error-text {color:#ff4d4d;font-weight:600;margin-top:10px;display:none;}
+@keyframes fadeIn{from{opacity:0;transform:scale(.95);}to{opacity:1;transform:scale(1);}}
+.box h2{margin:0;color:#fff;}
+.box label{color:#ddd;font-weight:500;}
+.error-text{color:#ff4d4d;font-weight:600;margin-top:10px;display:none;}
+.modal-btn{
+  flex:1;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  font-weight:600;
+  color:#fff;
+  cursor:pointer;
+  transition:transform .2s,opacity .2s;
+}
+.modal-btn:hover{transform:scale(1.03);opacity:.9;}
+.btn-confirm{
+  background:linear-gradient(135deg,#00bfa6,#00e0ff);
+  box-shadow:0 0 20px rgba(0,255,170,0.3);
+}
+.btn-cancel{
+  background:linear-gradient(135deg,#444,#777);
+}
+
+/* 📱 MOBIL */
+@media (max-width:600px){
+  h1{font-size:3.5em;}
+  h2{font-size:1em;letter-spacing:2px;}
+  h3{font-size:0.9em;}
+  .btn{padding:12px 28px;font-size:0.9em;}
+}
 </style>
 </head>
 
@@ -121,10 +124,7 @@ h3 {
     <h1>WGS</h1>
     <h2>WHITE GLOVE SERVICE</h2>
     <h3>specializovaný autorizovaný servis Natuzzi</h3>
-
-    <div class="btn-container">
-      <button class="btn" id="openRequestDialog">Odeslat požadavek</button>
-    </div>
+    <button class="btn" id="openRequestDialog">Odeslat požadavek</button>
   </div>
 
   <!-- 🪟 MODAL – výběr typu -->
@@ -132,184 +132,38 @@ h3 {
     <div class="box">
       <h2>Vyberte typ požadavku</h2>
       <p style="color:#ccc;margin:10px 0;">Zvolte, kdo odesílá formulář:</p>
-      <div style="margin:20px 0;display:flex;flex-direction:column;gap:12px;">
+      <div style="margin:20px 0;display:flex;flex-direction:column;gap:12px;text-align:left;">
         <label><input type="radio" name="reqType" value="prodejce"> Prodejce (Nová reklamace)</label>
         <label><input type="radio" name="reqType" value="zakaznik"> Zákazník (Pozáruční servis)</label>
       </div>
       <div id="reqError" class="error-text">⚠️ Vyberte jednu z možností</div>
       <div style="display:flex;gap:12px;margin-top:25px;">
-        <button id="confirmReq" style="flex:1;">Potvrdit</button>
-        <button id="cancelReq" style="flex:1;background:linear-gradient(135deg,#555,#777);">Zrušit</button>
+        <button id="confirmReq" class="modal-btn btn-confirm">✔ Potvrdit</button>
+        <button id="cancelReq" class="modal-btn btn-cancel">Zrušit</button>
       </div>
     </div>
   </div>
 
-<script>
-const reqDialog=document.getElementById("requestDialog");
-document.getElementById("openRequestDialog").onclick=()=>reqDialog.style.display="flex";
-document.getElementById("cancelReq").onclick=()=>reqDialog.style.display="none";
-document.getElementById("confirmReq").onclick=()=>{
-  const choice=document.querySelector('input[name="reqType"]:checked');
-  const err=document.getElementById("reqError");
-  if(!choice){err.style.display="block";return;}
-  err.style.display="none";
-  reqDialog.style.display="none";
-  if(choice.value==="prodejce"){
-    window.location.href="novareklamace.html?typ=prodejce";
-  } else {
-    window.location.href="novareklamace.html?typ=zakaznik";
-  }
-};
-</script>
-</body>
-  
-</html>
-<!-- 💾 Odeslání -->
-<div class="actions">
-  <a href="index.html" class="btn btn-back">⟵ Zpět</a>
-  <button type="submit" class="btn btn-send">Odeslat</button>
-</div>
+  <!-- 🔝 ADMIN -->
+  <div id="adminTopBar">
+    <button id="adminButton">ADMIN</button>
+  </div>
 
-<style>
-.actions {
-  display:flex;
-  justify-content:center;
-  gap:16px;
-  margin:35px 0;
-}
-</style>
+  <div class="admin-overlay" id="adminOverlay">
+    <div class="admin-box">
+      <h2>Přístup administrátora</h2>
+      <input type="password" id="adminPass" placeholder="Zadejte kód •••••">
+      <button id="adminConfirm">Potvrdit</button>
+      <div class="admin-error" id="adminError">❌ Nesprávný kód</div>
+    </div>
+  </div>
 
-</form> <!-- ✅ konec formuláře -->
-</div> <!-- ✅ konec wrapperu -->
-
-<!-- ✅ Overlay animace -->
-<div class="wait-overlay" id="waitOverlay">
-  <div class="spinner"></div>
-  <p>Odesílám data…</p>
-</div>
-
-<div class="success-check" id="successCheck">
-  <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-    <circle cx="26" cy="26" r="25" fill="none"/>
-    <path fill="none" d="M14 27l7 7 16-16" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
-  <div class="check-text">Odesláno úspěšně!</div>
-</div>
-
-<style>
-.wait-overlay,.success-check {
-  display:none;
-  position:fixed;
-  inset:0;
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
-  backdrop-filter:blur(10px);
-  z-index:5000;
-}
-.wait-overlay {background:rgba(10,20,15,0.8);color:#fff;font-weight:600;}
-.success-check {background:rgba(10,20,15,0.8);color:#aefcd8;font-weight:700;}
-.wait-overlay.active,.success-check.active {display:flex;}
-.spinner {
-  border:5px solid rgba(255,255,255,0.1);
-  border-top:5px solid #00e0a6;
-  border-radius:50%;
-  width:55px;height:55px;
-  animation:spin 1s linear infinite;
-  margin-bottom:14px;
-}
-@keyframes spin {0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
-.checkmark {
-  width:90px;height:90px;stroke:#00e0a6;stroke-width:3;
-  fill:none;stroke-dasharray:48;stroke-dashoffset:48;
-  animation:draw 1s ease forwards;margin-bottom:12px;
-}
-@keyframes draw {to{stroke-dashoffset:0;}}
-</style>
-
-<script>
-/* 🧭 Rozpoznání typu z URL (?typ=zakaznik nebo ?typ=prodejce) */
-const params = new URLSearchParams(window.location.search);
-const typ = params.get("typ");
-
-/* 📋 Najdeme prvky */
-const cisloInput = document.querySelector('input[name="cislo"]');
-const datumProdeje = document.querySelector('input[name="datum_prodeje"]')?.closest("label,div") || document.getElementById("datumProdejeRow");
-const datumReklamace = document.querySelector('input[name="datum_reklamace"]')?.closest("label,div") || document.getElementById("datumReklamaceRow");
-const zadavatelSekce = document.getElementById("zadavatelBox") || document.querySelector(".zadavatel-section");
-
-/* 💡 Pokud zákazník → pozáruční servis */
-if (typ === "zakaznik") {
-  if (cisloInput) cisloInput.value = "Pozáruční servis";
-  if (datumProdeje) datumProdeje.style.display = "none";
-  if (datumReklamace) datumReklamace.style.display = "none";
-  if (zadavatelSekce) zadavatelSekce.style.display = "none";
-}
-
-/* 🔄 Prodejce = klasický formulář */
-if (typ === "prodejce" && cisloInput?.value === "Pozáruční servis") {
-  cisloInput.value = "";
-}
-
-/* 💾 Odeslání */
-document.getElementById("reklamaceForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  const wait = document.getElementById("waitOverlay");
-  const done = document.getElementById("successCheck");
-  wait.classList.add("active");
-
-  const f = e.target;
-  const pred = f.querySelector("#predvolba");
-  const data = {
-    type: "reklamace",
-    cislo: f.cislo.value,
-    zakaznik: f.zakaznik.value,
-    adresa: `${f.ulice.value}, ${f.mesto.value}, ${f.psc.value}`,
-    telefon: `${pred.value} ${f.telefon.value}`,
-    email: f.email.value,
-    produkt: f.produkt.value,
-    popis: f.popis.value,
-    fotky: (window.uploadedPhotos || []).map(p => p.filename || ""),
-    typ: typ || "prodejce"
-  };
-
-  try {
-    await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles", {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({record:data})
-    });
-    wait.classList.remove("active");
-    done.classList.add("active");
-    setTimeout(() => window.location.href="index.html", 2500);
-  } catch (err) {
-    wait.classList.remove("active");
-    alert("Chyba při odesílání: " + err.message);
-  }
-});
-</script>
-
-<footer class="footer">
-  <div>© 2025 White Glove Service s.r.o.</div>
-  <div>specializovaný autorizovaný servis Natuzzi</div>
-</footer>
-
-<style>
-.footer {
-  text-align:center;
-  color:#aaa;
-  font-size:0.85em;
-  padding:30px 0 20px;
-  opacity:0.7;
-}
-.footer:hover {opacity:1;color:#cfc;}
-</style>
-<!-- 🔝 ADMIN PŘÍSTUP -->
 <style>
 #adminTopBar{
   position:fixed;
-  top:20px;right:20px;
-  z-index:3000;
+  top:20px;
+  right:25px;
+  z-index:2000;
 }
 #adminButton{
   padding:10px 24px;
@@ -317,9 +171,9 @@ document.getElementById("reklamaceForm").addEventListener("submit", async e => {
   border-radius:12px;
   font-weight:600;
   color:#fff;
+  cursor:pointer;
   background:linear-gradient(135deg,#007bff,#00e0ff);
   box-shadow:0 0 15px rgba(0,255,255,0.3);
-  cursor:pointer;
   transition:all 0.3s;
 }
 #adminButton:hover{
@@ -330,8 +184,6 @@ document.getElementById("reklamaceForm").addEventListener("submit", async e => {
   background:linear-gradient(135deg,#00bfa6,#00e0ff);
   box-shadow:0 0 30px rgba(0,255,255,0.6);
 }
-
-/* 🌫️ ADMIN MODAL */
 .admin-overlay{
   position:fixed;inset:0;
   background:rgba(0,0,0,0.7);
@@ -339,7 +191,7 @@ document.getElementById("reklamaceForm").addEventListener("submit", async e => {
   display:none;
   justify-content:center;
   align-items:center;
-  z-index:4000;
+  z-index:3000;
 }
 .admin-box{
   background:rgba(30,30,40,0.95);
@@ -353,34 +205,47 @@ document.getElementById("reklamaceForm").addEventListener("submit", async e => {
 }
 .admin-box h2{color:#fff;margin:0 0 15px;}
 .admin-box input{
-  width:100%;padding:12px;border:none;
-  border-radius:10px;background:rgba(255,255,255,0.1);
-  color:#fff;text-align:center;font-size:1em;margin-bottom:18px;
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:rgba(255,255,255,0.1);
+  color:#fff;
+  text-align:center;
+  font-size:1em;
+  margin-bottom:18px;
 }
 .admin-box button{
-  width:100%;padding:10px;border:none;border-radius:10px;
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:10px;
   background:linear-gradient(135deg,#007bff,#00e0ff);
-  color:#fff;font-weight:600;cursor:pointer;
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
   transition:transform .2s,opacity .2s;
 }
-.admin-box button:hover{transform:scale(1.03);opacity:0.9;}
+.admin-box button:hover{transform:scale(1.03);opacity:.9;}
 .admin-error{color:#ff4d4d;display:none;margin-top:8px;}
 </style>
 
-<div id="adminTopBar">
-  <button id="adminButton">ADMIN</button>
-</div>
-
-<div class="admin-overlay" id="adminOverlay">
-  <div class="admin-box">
-    <h2>Přístup administrátora</h2>
-    <input type="password" id="adminPass" placeholder="Zadejte kód •••••">
-    <button id="adminConfirm">Potvrdit</button>
-    <div class="admin-error" id="adminError">❌ Nesprávný kód</div>
-  </div>
-</div>
-
 <script>
+/* 🔘 MODAL POŽADAVEK */
+const reqDialog=document.getElementById("requestDialog");
+document.getElementById("openRequestDialog").onclick=()=>reqDialog.style.display="flex";
+document.getElementById("cancelReq").onclick=()=>reqDialog.style.display="none";
+document.getElementById("confirmReq").onclick=()=>{
+  const choice=document.querySelector('input[name="reqType"]:checked');
+  const err=document.getElementById("reqError");
+  if(!choice){err.style.display="block";return;}
+  err.style.display="none";
+  reqDialog.style.display="none";
+  const typ=choice.value;
+  window.location.href=`novareklamace.html?typ=${typ}`;
+};
+
+/* 🔐 ADMIN */
 const ADMIN_CODE="332018";
 const adminBtn=document.getElementById("adminButton");
 const overlay=document.getElementById("adminOverlay");
@@ -400,9 +265,8 @@ function setAdmin(active){
 }
 
 adminBtn.onclick=()=>{
-  if(localStorage.getItem("wgsAdmin")){
-    setAdmin(false);
-  }else{
+  if(localStorage.getItem("wgsAdmin")) setAdmin(false);
+  else {
     overlay.style.display="flex";
     pass.value="";
     err.style.display="none";
@@ -420,11 +284,8 @@ document.getElementById("adminConfirm").onclick=()=>{
     pass.focus();
   }
 };
-
 pass.onkeypress=e=>{if(e.key==="Enter")document.getElementById("adminConfirm").click();};
 window.addEventListener("DOMContentLoaded",()=>{if(localStorage.getItem("wgsAdmin"))setAdmin(true);});
 </script>
-
-
 </body>
 </html>
