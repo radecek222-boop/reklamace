@@ -1,120 +1,261 @@
-<!-- 
-====================================================================
-💎 WHITE GLOVE SERVICE – HOTOVÉ REKLAMACE (BETA)
-====================================================================
-Verze systému:       v1.1
-Datum sestavení:     2025-10-08
-Autor:               Hugo (White Glove Service) & GPT-5
-Projekt:             WGS reklamace / servisní plánování
-Soubory:             hotove.html (přehled dokončených reklamací)
-Zdroje:              dataAll + stavyReklamaci (localStorage / GitHub)
-Repozitář:           https://github.com/radecek222-boop/reklamace
-Popis:
-  Přehled všech hotových reklamací s možností otevřít protokol PDF.
-  Zobrazuje také datum vytvoření protokolu.
-
-Struktura souboru:
-  A – HTML, HEAD, STYL
-  B – Hlavička a tlačítka
-  C – Kontejner tabulky
-  D – Načítání dat a filtrování
-  E – Generování tabulky
-  F – Zobrazení PDF protokolu
-  G – Inicializace
-====================================================================
--->
-
-<!-- 🟨 A – ZÁKLAD DOKUMENTU -->
+<!-- 🟩 A – ZÁKLAD DOKUMENTU (moderní zelené téma) -->
 <!DOCTYPE html>
 <html lang="cs">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Hotové reklamace – White Glove Service</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+
 <style>
-body{
-  font-family:"Inter",system-ui,sans-serif;
-  background:#f6f7fb;margin:0;padding:0;
-  display:flex;justify-content:center;align-items:flex-start;
-  min-height:100vh;
+/* 🌿 Celkové pozadí – tmavě šedozelený gradient s jemným neonovým zářením */
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  background: radial-gradient(circle at top left, #0f2e20 0%, #0a1913 80%);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  color: #e8f7ef;
+  overflow-x: hidden;
 }
-.wrapper{
-  background:#fff;padding:25px;margin:40px 15px;
-  border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);
-  width:100%;max-width:900px;position:relative;box-sizing:border-box;
+
+/* 💡 Jemné zelené světelné kruhy v pozadí */
+body::before, body::after {
+  content: "";
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.4;
+  z-index: 0;
 }
-h1{text-align:center;font-size:2.2em;font-weight:900;color:#111;margin:0 0 8px;}
-h2{text-align:center;font-size:1.1em;font-weight:500;color:#666;margin:0 0 25px;}
-.actions{
-  text-align:center;margin-bottom:20px;
-  display:flex;justify-content:center;flex-wrap:wrap;gap:15px;
+body::before {
+  width: 400px; height: 400px;
+  top: -100px; left: -100px;
+  background: radial-gradient(circle, #00ff9c, transparent 70%);
 }
-.btn{
-  display:inline-block;text-decoration:none;
-  padding:10px 24px;border-radius:8px;font-weight:600;
-  font-size:1em;border:none;cursor:pointer;
-  transition:transform .15s ease-in-out,opacity .2s;
-  color:white;box-shadow:0 3px 8px rgba(0,0,0,.15);
-  min-width:140px;
+body::after {
+  width: 350px; height: 350px;
+  bottom: -120px; right: -100px;
+  background: radial-gradient(circle, #00d47f, transparent 70%);
 }
-.btn:hover{transform:scale(1.04);opacity:.9;}
-.btn-back{background:linear-gradient(135deg,#6c757d,#a0a4a7);}
-.btn-refresh{background:linear-gradient(135deg,#28a745,#5bd85b);}
-table{width:100%;border-collapse:collapse;margin-top:10px;}
-th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;font-size:.95em;}
-th{background:#f8f8f8;font-weight:700;}
-tr:hover{background:#f1f6ff;}
-.loading{text-align:center;padding:30px;color:#666;}
-.btn-pdf{
-  background:linear-gradient(135deg,#0046ff,#357aff);
-  padding:6px 14px;font-size:.85em;border-radius:6px;
-  color:#fff;text-decoration:none;
+
+/* 📦 Wrapper – skleněný efekt s jemným zářením */
+.wrapper {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 0 25px rgba(0, 255, 140, 0.15);
+  padding: 30px;
+  margin: 50px 15px;
+  max-width: 950px;
+  width: 100%;
+  box-sizing: border-box;
 }
-.btn-pdf:hover{opacity:.85;}
-.protokol-info{
-  display:flex;flex-direction:column;gap:4px;
+
+/* 🟢 HLAVIČKA A NADPISY */
+h1 {
+  text-align: center;
+  font-size: 2.8em;
+  font-weight: 900;
+  color: #c8ffe3;
+  margin: 0 0 8px;
+  text-shadow:
+    0 0 10px rgba(0,255,140,0.6),
+    0 0 20px rgba(0,255,140,0.4),
+    0 0 40px rgba(0,255,140,0.2);
+  letter-spacing: -1px;
+  transition: all 0.3s ease;
 }
-.protokol-date{
-  font-size:.8em;color:#555;
+h1:hover {
+  text-shadow:
+    0 0 14px rgba(0,255,160,0.8),
+    0 0 28px rgba(0,255,160,0.5),
+    0 0 48px rgba(0,255,160,0.3);
+  transform: scale(1.02);
 }
-@media(max-width:700px){
-  th,td{font-size:.85em;}
-  .btn{min-width:120px;padding:8px 18px;font-size:.9em;}
-  .protokol-info{align-items:flex-start;}
+
+h2 {
+  text-align: center;
+  font-size: 1.1em;
+  font-weight: 500;
+  color: #8ef5b8;
+  margin: 0 0 28px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-shadow: 0 0 6px rgba(0,255,160,0.25);
+}
+
+/* 💫 Jemná animace svícení */
+@keyframes neonPulse {
+  0%,100% { opacity: 1; text-shadow: 0 0 15px rgba(0,255,160,0.4); }
+  50% { opacity: 0.9; text-shadow: 0 0 25px rgba(0,255,160,0.8); }
+}
+h1, h2 {
+  animation: neonPulse 3.5s ease-in-out infinite;
+}
+
+/* 🟢 TLAČÍTKA – moderní neon styl */
+.actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 25px;
+  z-index: 2;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 26px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1em;
+  cursor: pointer;
+  text-decoration: none;
+  min-width: 150px;
+  letter-spacing: 0.5px;
+  transition: all 0.25s ease-in-out;
+  color: #fff;
+  text-shadow: 0 0 6px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 16px rgba(0,255,150,0.25);
+}
+
+/* 🟩 Zelené – Načíst znovu */
+.btn-refresh {
+  background: linear-gradient(135deg, #00d87d, #00ff9c);
+  box-shadow: 0 0 14px rgba(0,255,180,0.45);
+}
+.btn-refresh:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 22px rgba(0,255,180,0.7);
+}
+
+/* ⬜️ Šedé – Zpět */
+.btn-back {
+  background: linear-gradient(135deg, #666, #999);
+  box-shadow: 0 0 10px rgba(180,180,180,0.2);
+}
+.btn-back:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 18px rgba(200,200,200,0.4);
+}
+
+/* ✨ Pulzování při hoveru */
+@keyframes btnPulse {
+  0%,100% { box-shadow: 0 0 12px rgba(0,255,180,0.3); }
+  50% { box-shadow: 0 0 25px rgba(0,255,180,0.6); }
+}
+.btn-refresh:hover {
+  animation: btnPulse 1.5s infinite ease-in-out;
+}
+
+/* 🧾 TABULKA – zelený minimalistický styl */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 18px rgba(0,255,150,0.05);
+}
+
+th, td {
+  padding: 12px 10px;
+  text-align: left;
+  font-size: 0.95em;
+  color: #e8f7ef;
+  border-bottom: 1px solid rgba(0,255,150,0.15);
+}
+
+th {
+  background: rgba(0,255,150,0.08);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #aefdd0;
+}
+
+tr:hover {
+  background: rgba(0,255,150,0.07);
+  transition: background 0.3s ease;
+}
+
+/* 🟩 PDF tlačítko */
+.btn-pdf {
+  background: linear-gradient(135deg, #009a5c, #00e57f);
+  color: #fff;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 0.85em;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 10px rgba(0,255,150,0.25);
+}
+.btn-pdf:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(0,255,150,0.45);
+}
+
+/* 📅 Datum v protokolu */
+.protokol-date {
+  font-size: 0.8em;
+  color: #9cf4b8;
+  margin-top: 4px;
+  display: block;
+}
+
+/* 📦 Kontejner pro PDF informace */
+.protokol-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
 }
 </style>
 </head>
 
-<!-- 🟩 KONEC A -->
-
 <body>
-<div class="wrapper">
-  <!-- 🟨 B – HLAVIČKA A TLAČÍTKA -->
-  <h1>WHITE GLOVE SERVICE</h1>
-  <h2>Hotové reklamace</h2>
-  <div class="actions">
-    <a href="seznam.html" class="btn btn-back">Zpět</a>
-    <button id="reloadBtn" class="btn btn-refresh">Načíst znovu</button>
+  <div class="wrapper">
+    <!-- 🟩 HLAVIČKA -->
+    <h1>WHITE GLOVE SERVICE</h1>
+    <h2>Hotové reklamace</h2>
+
+    <!-- 🟩 OVLÁDACÍ TLAČÍTKA -->
+    <div class="actions">
+      <a href="seznam.html" class="btn btn-back">Zpět</a>
+      <button id="reloadBtn" class="btn btn-refresh">Načíst znovu</button>
+    </div>
+
+    <!-- 🟩 TABULKA / DATA -->
+    <div id="tableContainer" class="loading">Načítám data...</div>
   </div>
-
-  <!-- 🟨 C – KONTEJNER TABULKY -->
-  <div id="tableContainer" class="loading">Načítám data...</div>
-
-<!-- 🟨 D – NAČÍTÁNÍ DAT A FILTROVÁNÍ (s automatickým obnovením po 5 s) -->
+</body>
+<!-- 🟩 F – NAČÍTÁNÍ DAT A FILTROVÁNÍ -->
 <script>
 async function loadDone(autoRetry = true) {
+  const tableContainer = document.getElementById("tableContainer");
   const stavy = JSON.parse(localStorage.getItem("stavyReklamaci") || "{}");
   let dataAll = [];
 
-  // 🟩 Nové načítání z temporaryfiles.json (Worker)
   try {
+    // 🟢 Načtení z Cloudflare Worker
     const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles", {
       cache: "no-store"
     });
     const json = await res.json();
     if (Array.isArray(json.data)) {
       dataAll = json.data
-        .filter(x => x.type === "order" || x.type === "reklamace" || x.type === "hotovo")
+        .filter(x => ["order","reklamace","hotovo"].includes(x.type))
         .map(x => x.data);
     }
   } catch (e) {
@@ -122,52 +263,59 @@ async function loadDone(autoRetry = true) {
     dataAll = JSON.parse(localStorage.getItem("dataAll") || "[]");
   }
 
-  // ⏳ Pokud nejsou data, zkus znovu za 5 s (čekáme, až GitHub uloží změny)
+  // ⏳ Pokud nejsou data – čekej 5 s a zkus znovu
   if (!dataAll.length) {
     tableContainer.innerHTML = "<div class='loading'>Žádné uložené záznamy – čekám na synchronizaci...</div>";
     if (autoRetry) setTimeout(() => loadDone(false), 5000);
     return;
   }
 
-  // 🔍 Filtrování hotových reklamací
+  // 🔍 Vyber jen hotové reklamace
   const hotove = dataAll.filter(r => {
     const id = r.cislo || r.zakaznik;
     return stavy[id] === "hotovo" || r.stav?.toLowerCase() === "hotovo";
   });
 
-  // ⏳ Pokud zatím žádné hotové, zkus znovu po 5 s
+  // ⏳ Pokud nejsou hotové – zkus znovu
   if (!hotove.length) {
     tableContainer.innerHTML = "<div class='loading'>Žádné hotové reklamace – kontroluji aktualizaci...</div>";
     if (autoRetry) setTimeout(() => loadDone(false), 5000);
     return;
   }
 
-  // ✅ Hotové reklamace vykreslit
+  // ✅ Vykresli tabulku
   renderTable(hotove);
 }
 </script>
-<!-- 🟨 KONEC SEKCE D -->
-
-
-<!-- 🟨 ZAČÁTEK SEKCE E – GENEROVÁNÍ TABULKY (s datem protokolu) -->
+<!-- 🟩 G – GENEROVÁNÍ TABULKY A ZOBRAZENÍ PDF -->
 <script>
 function renderTable(hotove) {
   let html = `
   <table>
     <thead>
       <tr>
-        <th>#</th><th>Číslo</th><th>Zákazník</th><th>Adresa</th>
-        <th>Telefon</th><th>Zadavatel</th><th>Typ</th><th>Protokol</th>
+        <th>#</th>
+        <th>Číslo</th>
+        <th>Zákazník</th>
+        <th>Adresa</th>
+        <th>Telefon</th>
+        <th>Zadavatel</th>
+        <th>Typ</th>
+        <th>Protokol</th>
       </tr>
-    </thead><tbody>`;
+    </thead>
+    <tbody>`;
+
   hotove.forEach((r, i) => {
     const hasProto = r.protokol?.file;
     const protoBtn = hasProto
       ? `<a href="#" class="btn-pdf" onclick="openProtocol('${r.cislo}')">📎 Zobrazit PDF</a>`
-      : `<span style='color:#999;'>—</span>`;
+      : `<span style='color:#666;'>—</span>`;
+
     const protoDate = r.protokol?.date
       ? `<span class='protokol-date'>${r.protokol.date}</span>`
       : "";
+
     const protoHtml = `<div class='protokol-info'>${protoBtn}${protoDate}</div>`;
 
     html += `
@@ -176,59 +324,65 @@ function renderTable(hotove) {
         <td>${r.cislo || ""}</td>
         <td>${r.zakaznik || ""}</td>
         <td>${r.adresa || ""}</td>
-        <td><a href="tel:${r.telefon || ""}">${r.telefon || ""}</a></td>
-        <td>${r.contract || (r.jinaZadavatel?.jmeno || "")}</td>
+        <td><a href="tel:${r.telefon || ""}" style="color:#00ff9c;text-decoration:none;">${r.telefon || ""}</a></td>
+        <td>${r.contract || r.jinaZadavatel?.jmeno || ""}</td>
         <td>${r.typ || ""}</td>
         <td>${protoHtml}</td>
       </tr>`;
   });
-  html += `</tbody></table>`;
-  tableContainer.innerHTML = html;
-}
-</script>
-<!-- 🟨 KONEC SEKCE E -->
 
-<!-- 🟨 ZAČÁTEK SEKCE F – ZOBRAZENÍ PDF PROTOKOLU -->
-<script>
-function openProtocol(cislo){
-  try{
+  html += `</tbody></table>`;
+  document.getElementById("tableContainer").innerHTML = html;
+}
+
+/* 🧾 Otevření PDF protokolu z Base64 */
+function openProtocol(cislo) {
+  try {
     const dataAll = JSON.parse(localStorage.getItem("dataAll") || "[]");
     const item = dataAll.find(r => r.cislo === cislo);
-    if(!item || !item.protokol?.file){
+    if (!item || !item.protokol?.file) {
       alert("Protokol není uložen.");
       return;
     }
+
     const pdfUrl = URL.createObjectURL(b64toBlob(item.protokol.file, "application/pdf"));
     window.open(pdfUrl, "_blank");
-  }catch(e){
+  } catch (e) {
     console.error("❌ Chyba při otevírání protokolu:", e);
   }
 }
 
-// pomocná konverze Base64 → Blob
-function b64toBlob(b64Data, contentType){
+/* 🔄 Pomocná konverze Base64 → Blob */
+function b64toBlob(b64Data, contentType) {
   contentType = contentType || "";
   const sliceSize = 512;
   const byteCharacters = atob(b64Data);
   const byteArrays = [];
-  for(let offset = 0; offset < byteCharacters.length; offset += sliceSize){
+
+  for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
     const slice = byteCharacters.slice(offset, offset + sliceSize);
     const byteNumbers = new Array(slice.length);
-    for(let i = 0; i < slice.length; i++){
+    for (let i = 0; i < slice.length; i++) {
       byteNumbers[i] = slice.charCodeAt(i);
     }
     const byteArray = new Uint8Array(byteNumbers);
     byteArrays.push(byteArray);
   }
+
   return new Blob(byteArrays, { type: contentType });
 }
-
-// 🟨 G – INIT
-document.getElementById("reloadBtn").addEventListener("click", loadDone);
-window.addEventListener("DOMContentLoaded", loadDone);
 </script>
-<!-- 🟨 KONEC SEKCE F + G -->
+<!-- 🟩 H – INICIALIZACE A RELOAD -->
+<script>
+document.getElementById("reloadBtn").addEventListener("click", () => {
+  document.getElementById("tableContainer").innerHTML =
+    "<div class='loading'>🔄 Obnovuji data...</div>";
+  loadDone(false);
+});
 
-</div>
-</body>
+window.addEventListener("DOMContentLoaded", () => {
+  console.log("✅ WGS – HOTOVÉ REKLAMACE spuštěno");
+  loadDone();
+});
+</script>
 </html>
