@@ -26,6 +26,8 @@ header {
   color:#00ffb3;
   box-shadow:0 2px 6px rgba(0,255,160,0.15);
 }
+
+/* 💻 Desktop */
 .main {
   flex:1;
   display:grid;
@@ -34,6 +36,22 @@ header {
   padding:12px;
   box-sizing:border-box;
 }
+
+/* 📱 Mobilní verze – vertikální layout */
+@media (max-width:800px){
+  .main {
+    display:flex;
+    flex-direction:column;
+  }
+  #calendar {order:1;}
+  #dayList {order:2;}
+  #map {
+    order:3;
+    height:300px;
+    margin-top:10px;
+  }
+}
+
 #calendar {
   background:#101b1b;
   border-radius:10px;
@@ -126,6 +144,7 @@ table.calendar-table td:hover{background:rgba(0,255,180,0.08);}
 .btn-back:hover{transform:scale(1.02);opacity:.9;}
 </style>
 <!-- 🟩 KONEC SEKCE 1/10 – ZÁKLADNÍ STYL A STRUKTURA -->
+
 </head>
 
 <body>
