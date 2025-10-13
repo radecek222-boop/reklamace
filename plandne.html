@@ -10,12 +10,11 @@
 
 <style>
 body {
-  font-family: "Inter", system-ui, sans-serif;
-  margin:0;
-  padding:0;
-  background:#f6f7fb;
-  display:flex;
-  flex-direction:column;
+  font-family:"Inter",system-ui,sans-serif;
+  margin:0;padding:0;
+  background:radial-gradient(circle at top left,#081a1b 0%,#0a0d0f 80%);
+  color:#e6f5f2;
+  display:flex;flex-direction:column;
   height:100vh;
 }
 header {
@@ -23,8 +22,9 @@ header {
   padding:16px;
   font-weight:900;
   font-size:22px;
-  background:white;
-  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+  background:#0f1818;
+  color:#00ffb3;
+  box-shadow:0 2px 6px rgba(0,255,160,0.15);
 }
 .main {
   flex:1;
@@ -35,86 +35,95 @@ header {
   box-sizing:border-box;
 }
 #calendar {
-  background:white;
+  background:#101b1b;
   border-radius:10px;
   padding:16px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+  box-shadow:0 0 15px rgba(0,255,150,0.08);
   overflow:auto;
 }
 #map {
   width:100%;
   height:100%;
   border-radius:10px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+  box-shadow:0 0 20px rgba(0,255,150,0.1);
 }
 .btns {
   display:flex;
   justify-content:center;
   gap:10px;
   padding:12px;
-  background:white;
-  box-shadow:0 -2px 6px rgba(0,0,0,0.1);
+  background:#0f1818;
+  box-shadow:0 -2px 6px rgba(0,0,0,0.2);
 }
 button {
-  background:linear-gradient(135deg,#0090d4,#33b6ff);
-  color:#fff;
-  border:none;
-  border-radius:8px;
+  background:linear-gradient(135deg,#00b894,#00ffb3);
+  color:#fff;border:none;border-radius:8px;
   padding:10px 20px;
   font-weight:600;
   cursor:pointer;
   transition:transform .1s ease,opacity .2s;
 }
-button:hover { transform:scale(1.03); opacity:.9; }
+button:hover{transform:scale(1.03);opacity:.9;}
 
 /* 🗓️ Kalendář */
 table.calendar-table {
-  border-collapse:collapse;
-  width:100%;
-  text-align:center;
-  font-size:14px;
+  border-collapse:collapse;width:100%;
+  text-align:center;font-size:14px;color:#dff8f2;
 }
 table.calendar-table th {
-  background:#f2f2f2;
+  background:#0c2422;
   padding:6px;
   font-weight:700;
+  color:#00ffb3;
 }
 table.calendar-table td {
   padding:8px;
-  border:1px solid #eee;
+  border:1px solid rgba(0,255,150,0.15);
   cursor:pointer;
   position:relative;
   height:42px;
   vertical-align:middle;
+  transition:background .2s;
 }
-table.calendar-table td:hover {
-  background:#e7f1ff;
-}
+table.calendar-table td:hover{background:rgba(0,255,180,0.08);}
 .today {
-  border:2px solid #aaa !important;
+  border:2px solid #00ffb3!important;
   border-radius:4px;
   font-weight:700;
 }
 .square {
-  width:8px;
-  height:8px;
-  background:#d62828;
+  width:8px;height:8px;
+  background:#ff5252;
   border-radius:2px;
   position:absolute;
-  bottom:5px;
-  left:50%;
+  bottom:5px;left:50%;
   transform:translateX(-50%);
 }
-.empty-day { color:#aaa; }
+.empty-day{color:#666;}
 
 /* 🧾 Zpráva pod kalendářem */
 #noDataMsg {
   text-align:center;
   font-size:14px;
-  color:#666;
+  color:#aaa;
   margin-top:10px;
   font-weight:500;
 }
+
+/* 🔹 Tlačítko zpět */
+.btn-back {
+  width:100%;
+  background:linear-gradient(135deg,#444,#888);
+  color:#fff;
+  border:none;border-radius:8px;
+  padding:10px 0;
+  font-weight:600;
+  cursor:pointer;
+  transition:transform .1s ease,opacity .2s;
+  font-size:15px;
+  margin-bottom:8px;
+}
+.btn-back:hover{transform:scale(1.02);opacity:.9;}
 </style>
 <!-- 🟩 KONEC SEKCE 1/10 – ZÁKLADNÍ STYL A STRUKTURA -->
 </head>
@@ -125,20 +134,16 @@ table.calendar-table td:hover {
 <header>Plán dne – White Glove Service</header>
 <!-- 🟩 KONEC SEKCE 2/10 – HLAVIČKA -->
 
-
 <!-- 🟩 ZAČÁTEK SEKCE 3/10 – HLAVNÍ OBSAH -->
 <div class="main">
   <!-- 🟨 Kalendář -->
   <div id="calendar">
-
-    <!-- 🔹 Tlačítko zpět -->
     <button class="btn-back" onclick="window.location.href='seznam.html'">Zpět na seznam</button>
 
-    <!-- 🔹 Navigace měsíců -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0 8px;">
-      <button onclick="changeMonth(-1)" style="background:none;border:none;font-size:18px;cursor:pointer;">◀</button>
-      <h3 id="monthLabel" style="margin:0;">Říjen 2025</h3>
-      <button onclick="changeMonth(1)" style="background:none;border:none;font-size:18px;cursor:pointer;">▶</button>
+      <button onclick="changeMonth(-1)" style="background:none;border:none;font-size:18px;color:#00ffb3;cursor:pointer;">◀</button>
+      <h3 id="monthLabel" style="margin:0;color:#00ffb3;">Říjen 2025</h3>
+      <button onclick="changeMonth(1)" style="background:none;border:none;font-size:18px;color:#00ffb3;cursor:pointer;">▶</button>
     </div>
 
     <table class="calendar-table">
@@ -153,286 +158,192 @@ table.calendar-table td:hover {
   <!-- 🟨 Mapa -->
   <div id="map"></div>
 </div>
-
-<!-- 🔹 Styl tlačítka (zachováme šedý gradient a responzivitu) -->
-<style>
-.btn-back {
-  width: 100%;
-  background: linear-gradient(135deg, #888, #b5b5b5);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 0;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform .1s ease, opacity .2s;
-  font-size: 15px;
-}
-.btn-back:hover {
-  transform: scale(1.02);
-  opacity: .9;
-}
-</style>
 <!-- 🟩 KONEC SEKCE 3/10 – HLAVNÍ OBSAH -->
 
-
-
-
-<!-- 🟩 ZAČÁTEK SEKCE 4/10 – TLAČÍTKA -->
-<!-- 🟩 KONEC SEKCE 4/10 – TLAČÍTKA -->
-
-
-
-<!-- 🟩 ZAČÁTEK SEKCE 5/10 – LEAFLET MAPA -->
+<!-- 🟩 ZAČÁTEK SEKCE 4/10 – LEAFLET MAPA -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const WGS_CENTER = [50.08031890414999, 14.59812450867171];
-let map, markers = [];
-let dataAll = [];
+const WGS_CENTER=[50.08031890414999,14.59812450867171];
+let map,markers=[];
+let dataAll=[];
 
-function initMap() {
-  map = L.map("map").setView(WGS_CENTER, 10);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution:'© OpenStreetMap'
-  }).addTo(map);
-  L.marker(WGS_CENTER)
-    .addTo(map)
+function initMap(){
+  map=L.map("map").setView(WGS_CENTER,10);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);
+  L.marker(WGS_CENTER).addTo(map)
     .bindPopup("<b>White Glove Service s.r.o.</b><br>Do Dubče 364, Běchovice")
     .openPopup();
 }
 </script>
-<!-- 🟩 KONEC SEKCE 5/10 – LEAFLET MAPA -->
-<!-- 🟩 ZAČÁTEK SEKCE 6/10 – KALENDÁŘ S NAVIGACÍ -->
+<!-- 🟩 KONEC SEKCE 4/10 – LEAFLET MAPA -->
+
+<!-- 🟩 ZAČÁTEK SEKCE 5/10 – KALENDÁŘ -->
 <script>
-let currentYear, currentMonth;
+let currentYear,currentMonth;
 
-function buildCalendar(plannedDates = []) {
-  const today = new Date();
-  if (currentYear === undefined) currentYear = today.getFullYear();
-  if (currentMonth === undefined) currentMonth = today.getMonth();
+function buildCalendar(plannedDates=[]){
+  const today=new Date();
+  if(currentYear===undefined)currentYear=today.getFullYear();
+  if(currentMonth===undefined)currentMonth=today.getMonth();
 
-  const first = new Date(currentYear, currentMonth, 1);
-  const last = new Date(currentYear, currentMonth + 1, 0);
-  const startDay = (first.getDay() + 6) % 7; // Po=0
-  const totalDays = last.getDate();
-  const body = document.getElementById("calendarBody");
-  body.innerHTML = "";
+  const first=new Date(currentYear,currentMonth,1);
+  const last=new Date(currentYear,currentMonth+1,0);
+  const startDay=(first.getDay()+6)%7;
+  const totalDays=last.getDate();
+  const body=document.getElementById("calendarBody");
+  body.innerHTML="";
 
-  // 🗓️ Aktualizuj nadpis měsíce
-  const header = document.getElementById("monthLabel");
-  const monthNames = [
-    "Leden","Únor","Březen","Duben","Květen","Červen",
-    "Červenec","Srpen","Září","Říjen","Listopad","Prosinec"
-  ];
-  header.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+  const header=document.getElementById("monthLabel");
+  const monthNames=["Leden","Únor","Březen","Duben","Květen","Červen","Červenec","Srpen","Září","Říjen","Listopad","Prosinec"];
+  header.textContent=`${monthNames[currentMonth]} ${currentYear}`;
 
-  let row = document.createElement("tr");
-  for (let i = 0; i < startDay; i++) row.appendChild(document.createElement("td"));
+  let row=document.createElement("tr");
+  for(let i=0;i<startDay;i++)row.appendChild(document.createElement("td"));
 
-  for (let d = 1; d <= totalDays; d++) {
-    if (row.children.length === 7) {
-      body.appendChild(row);
-      row = document.createElement("tr");
+  for(let d=1;d<=totalDays;d++){
+    if(row.children.length===7){body.appendChild(row);row=document.createElement("tr");}
+    const td=document.createElement("td");
+    td.textContent=d;
+    const dateStr=`${currentYear}-${String(currentMonth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    if(plannedDates.includes(dateStr)){
+      const square=document.createElement("div");square.className="square";td.appendChild(square);
     }
-    const td = document.createElement("td");
-    td.textContent = d;
-
-    const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    if (plannedDates.includes(dateStr)) {
-      const square = document.createElement("div");
-      square.className = "square";
-      td.appendChild(square);
-    }
-
-    if (
-      d === today.getDate() &&
-      currentMonth === today.getMonth() &&
-      currentYear === today.getFullYear()
-    ) td.classList.add("today");
-
-    td.addEventListener("click", () => showDayOnMap(dateStr));
+    if(d===today.getDate()&&currentMonth===today.getMonth()&&currentYear===today.getFullYear())
+      td.classList.add("today");
+    td.addEventListener("click",()=>showDayOnMap(dateStr));
     row.appendChild(td);
   }
-
-  while (row.children.length < 7) row.appendChild(document.createElement("td"));
+  while(row.children.length<7)row.appendChild(document.createElement("td"));
   body.appendChild(row);
 }
 
-// 🔄 Navigace mezi měsíci
-function changeMonth(offset) {
-  currentMonth += offset;
-  if (currentMonth < 0) {
-    currentMonth = 11;
-    currentYear--;
-  } else if (currentMonth > 11) {
-    currentMonth = 0;
-    currentYear++;
-  }
-  buildCalendar([...new Set(dataAll.map(d => d.datum))]);
+function changeMonth(offset){
+  currentMonth+=offset;
+  if(currentMonth<0){currentMonth=11;currentYear--;}
+  else if(currentMonth>11){currentMonth=0;currentYear++;}
+  buildCalendar([...new Set(dataAll.map(d=>d.datum))]);
 }
 </script>
-<!-- 🟩 KONEC SEKCE 6/10 – KALENDÁŘ S NAVIGACÍ -->
+<!-- 🟩 KONEC SEKCE 5/10 – KALENDÁŘ -->
 
-
-<!-- 🟩 ZAČÁTEK SEKCE 7/10 – MAPA A ZOBRAZENÍ DNĚ (v2 s výpočtem vzdáleností) -->
+<!-- 🟩 ZAČÁTEK SEKCE 6/10 – MAPA ZOBRAZENÍ DNĚ -->
 <script>
-async function showDayOnMap(dateStr) {
-  const infoBox = document.getElementById("noDataMsg");
-  const listContainer = document.getElementById("dayList");
+async function showDayOnMap(dateStr){
+  const infoBox=document.getElementById("noDataMsg");
+  const listContainer=document.getElementById("dayList");
 
-  if (!dataAll.length) {
-    infoBox.textContent = "Žádné záznamy pro tento den.";
+  if(!dataAll.length){infoBox.textContent="Žádné záznamy.";return;}
+  markers.forEach(m=>map.removeLayer(m));markers=[];
+  listContainer.innerHTML="";
+
+  const dayOrders=dataAll.filter(o=>o.datum===dateStr);
+  if(!dayOrders.length){
+    infoBox.textContent="Žádné záznamy pro tento den.";
+    map.setView(WGS_CENTER,10);
     return;
   }
+  infoBox.textContent="";
+  const coords=[{lat:WGS_CENTER[0],lon:WGS_CENTER[1],name:"WGS"}];
 
-  // 🔹 Vyčisti mapu a seznam
-  markers.forEach(m => map.removeLayer(m));
-  markers = [];
-  listContainer.innerHTML = "";
-
-  const dayOrders = dataAll.filter(o => o.datum === dateStr);
-  if (!dayOrders.length) {
-    infoBox.textContent = "Žádné záznamy pro tento den.";
-    map.setView(WGS_CENTER, 10);
-    return;
+  for(const o of dayOrders){
+    if(!o.adresa)continue;
+    try{
+      const r=await fetch(`https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(o.adresa)}&apiKey=cd5c4b6f36f84e66b3b2f5adf3d19fd8`);
+      const j=await r.json();
+      const loc=j.features?.[0]?.geometry?.coordinates;
+      if(loc)coords.push({lat:loc[1],lon:loc[0],adresa:o.adresa,zakaznik:o.zakaznik,cas:o.cas});
+    }catch(e){console.warn("⚠️ Nelze geokódovat:",o.adresa);}
   }
 
-  infoBox.textContent = ""; // skryj hlášku
-
-  // 🔹 Načtení souřadnic všech adres (včetně WGS jako start)
-  const coords = [{ lat: WGS_CENTER[0], lon: WGS_CENTER[1], name: "WGS" }];
-  for (const o of dayOrders) {
-    if (!o.adresa) continue;
-    try {
-      const r = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(o.adresa)}&apiKey=cd5c4b6f36f84e66b3b2f5adf3d19fd8`);
-      const j = await r.json();
-      const loc = j.features?.[0]?.geometry?.coordinates;
-      if (loc) coords.push({ lat: loc[1], lon: loc[0], adresa: o.adresa, zakaznik: o.zakaznik, cas: o.cas });
-    } catch (e) {
-      console.warn("⚠️ Nelze geokódovat:", o.adresa);
-    }
-  }
-
-  // 🔹 Zobraz markery a spočítej vzdálenosti
-  let counter = 0;
-  for (let i = 1; i < coords.length; i++) {
-    const cur = coords[i];
-    const prev = coords[i - 1];
-    const distKm = getDistanceFromLatLon(prev.lat, prev.lon, cur.lat, cur.lon).toFixed(1);
-
-    const marker = L.marker([cur.lat, cur.lon]).addTo(map);
-    marker.bindPopup(`<b>${cur.zakaznik || "Zákazník"}</b><br>${cur.adresa}<br><small>${cur.cas || ""}</small>`);
+  let counter=0;
+  for(let i=1;i<coords.length;i++){
+    const cur=coords[i],prev=coords[i-1];
+    const distKm=getDistanceFromLatLon(prev.lat,prev.lon,cur.lat,cur.lon).toFixed(1);
+    const marker=L.marker([cur.lat,cur.lon]).addTo(map);
+    marker.bindPopup(`<b>${cur.zakaznik||"Zákazník"}</b><br>${cur.adresa}<br><small>${cur.cas||""}</small>`);
     markers.push(marker);
-
     counter++;
-    const row = document.createElement("div");
-    row.className = "dayRow";
-    row.innerHTML = `
+    const row=document.createElement("div");
+    row.className="dayRow";
+    row.innerHTML=`
       <div class="num">${counter}.</div>
       <div class="info">
         <div class="addr"><b>${cur.adresa}</b></div>
-        <div class="time"><b>${cur.cas || "-"}</b> &nbsp;•&nbsp; ${distKm} km</div>
+        <div class="time"><b>${cur.cas||"-"}</b> • ${distKm} km</div>
       </div>`;
     listContainer.appendChild(row);
   }
 
-  // 🔹 Zobraz trasu na mapě
-  if (coords.length > 1) {
-    const line = L.polyline(coords.map(c => [c.lat, c.lon]), { color: "#007bff", weight: 3 }).addTo(map);
+  if(coords.length>1){
+    const line=L.polyline(coords.map(c=>[c.lat,c.lon]),{color:"#00ffb3",weight:3}).addTo(map);
     map.fitBounds(line.getBounds().pad(0.2));
-  } else {
-    map.setView(WGS_CENTER, 10);
-  }
+  }else map.setView(WGS_CENTER,10);
 }
 
-// 🔸 Funkce pro výpočet vzdálenosti mezi GPS body (Haversine)
-function getDistanceFromLatLon(lat1, lon1, lat2, lon2) {
-  const R = 6371; // km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
+function getDistanceFromLatLon(lat1,lon1,lat2,lon2){
+  const R=6371;
+  const dLat=(lat2-lat1)*Math.PI/180;
+  const dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+
+           Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
+           Math.sin(dLon/2)**2;
+  return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));
 }
 </script>
-<!-- 🟩 KONEC SEKCE 7/10 – MAPA A ZOBRAZENÍ DNĚ (v2 s výpočtem vzdáleností) -->
+<!-- 🟩 KONEC SEKCE 6/10 – MAPA ZOBRAZENÍ DNĚ -->
 
-
-
-<!-- 🟩 ZAČÁTEK SEKCE 8/10 – DODATEČNÝ STYL PRO PODMAPOVÝ SEZNAM -->
+<!-- 🟩 ZAČÁTEK SEKCE 7/10 – STYL SEZNAMU POD MAPOU -->
 <style>
 #dayList {
   margin-top:8px;
-  background:white;
+  background:#101b1b;
   border-radius:8px;
   padding:10px;
-  box-shadow:0 2px 4px rgba(0,0,0,0.1);
-  font-size:13px;
-  line-height:1.4;
-  color:#333;
+  box-shadow:0 0 8px rgba(0,255,150,0.1);
+  font-size:13px;line-height:1.4;
 }
 .dayRow {
-  display:flex;
-  align-items:center;
-  gap:10px;
-  border-bottom:1px solid #eee;
+  display:flex;align-items:center;gap:10px;
+  border-bottom:1px solid rgba(0,255,150,0.1);
   padding:4px 0;
 }
-.dayRow:last-child { border-bottom:none; }
-.dayRow .num {
-  font-weight:700;
-  color:#0090d4;
-}
-.dayRow .info {
-  flex:1;
-}
-.dayRow .addr {
-  font-weight:600;
-}
-.dayRow .time {
-  font-size:12px;
-  color:#555;
-}
+.dayRow:last-child{border-bottom:none;}
+.dayRow .num{font-weight:700;color:#00ffb3;}
+.dayRow .info{flex:1;}
+.dayRow .addr{font-weight:600;}
+.dayRow .time{font-size:12px;color:#aaf7df;}
 </style>
-<!-- 🟩 KONEC SEKCE 8/10 – DODATEČNÝ STYL PRO PODMAPOVÝ SEZNAM -->
+<!-- 🟩 KONEC SEKCE 7/10 – STYL SEZNAMU POD MAPOU -->
 
-
-<!-- 🟩 ZAČÁTEK SEKCE 9/10 – NAČÍTÁNÍ DAT Z WORKERU -->
+<!-- 🟩 ZAČÁTEK SEKCE 8/10 – NAČÍTÁNÍ DAT -->
 <script>
-async function loadTemporaryFiles() {
-  try {
-    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles?" + Date.now(), { cache:"no-store" });
-    const json = await res.json();
-    const data = Array.isArray(json) ? json.map(r => r.data || r) : (json.data || []);
-    dataAll = data.filter(d => d.datum);
-    const dates = [...new Set(dataAll.map(d => d.datum))];
+async function loadTemporaryFiles(){
+  try{
+    const res=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles?"+Date.now(),{cache:"no-store"});
+    const json=await res.json();
+    const data=Array.isArray(json)?json.map(r=>r.data||r):(json.data||[]);
+    dataAll=data.filter(d=>d.datum);
+    const dates=[...new Set(dataAll.map(d=>d.datum))];
     buildCalendar(dates);
-  } catch (e) {
-    console.error("❌ Nelze načíst temporaryfiles:", e);
+  }catch(e){
+    console.error("❌ Nelze načíst temporaryfiles:",e);
     buildCalendar();
   }
 }
 </script>
-<!-- 🟩 KONEC SEKCE 9/10 – NAČÍTÁNÍ DAT Z WORKERU -->
+<!-- 🟩 KONEC SEKCE 8/10 – NAČÍTÁNÍ DAT -->
 
-
-<!-- 🟩 ZAČÁTEK SEKCE 10/10 – INICIALIZACE -->
+<!-- 🟩 ZAČÁTEK SEKCE 9/10 – INICIALIZACE -->
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded",()=>{
   initMap();
   loadTemporaryFiles();
-
-  // Přidání prostoru pro seznam pod mapou
-  const mapParent = document.getElementById("map").parentElement;
-  const listDiv = document.createElement("div");
-  listDiv.id = "dayList";
+  const mapParent=document.getElementById("map").parentElement;
+  const listDiv=document.createElement("div");
+  listDiv.id="dayList";
   mapParent.appendChild(listDiv);
 });
 </script>
-<!-- 🟩 KONEC SEKCE 10/10 – INICIALIZACE -->
-
+<!-- 🟩 KONEC SEKCE 9/10 – INICIALIZACE -->
 </body>
 </html>
