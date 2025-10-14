@@ -104,52 +104,53 @@
     <footer>Aktualizuje se automaticky každých 30 s</footer>
   </div>
 
-  <!-- Zvuk upozornění -->
-  <audio id="alertSound">
-    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
-  </audio>
+ <!-- Zvuk upozornění -->
+<audio id="alertSound">
+  <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+</audio>
 
-  <script>
-    const STATUS_URL = "https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles";
-    const statusDiv = document.getElementById("status");
-    const indicator = document.getElementById("indicator");
-    const alertSound = document.getElementById("alertSound");
+<script>
+  const STATUS_FILE = "temporaryfiles.json";
+  const BASE_URL = "https://www.wgs-service.cz";
+  const statusDiv = document.getElementById("status");
+  const indicator = document.getElementById("indicator");
+  const alertSound = document.getElementById("alertSound");
 
-    let lastState = true;
+  let lastState = true;
 
-    async function loadStatus() {
-      try {
-        const res = await fetch(STATUS_URL + "?" + Date.now(), { cache: "no-store" });
-        if (!res.ok) throw new Error("Chybná odpověď (" + res.status + ")");
-        const data = await res.json();
+  async function loadStatus() {
+    try {
+      const res = await fetch(`${BASE_URL}/load.php?file=${encodeURIComponent(STATUS_FILE)}&t=${Date.now()}`, { cache: "no-store" });
+      if (!res.ok) throw new Error("Chybná odpověď (" + res.status + ")");
+      const data = await res.json();
 
-        const count = Array.isArray(data.data) ? data.data.length : 0;
+      const count = Array.isArray(data) ? data.length : (Array.isArray(data.data) ? data.data.length : 0);
 
-        const html = `
-          <div><b>Soubor:</b> temporaryfiles.json</div>
-          <div><b>Počet záznamů:</b> ${count}</div>
-          <div><b>Stav spojení:</b> <span class="ok">OK</span></div>
-          <div><b>Poslední kontrola:</b> ${new Date().toLocaleString("cs-CZ")}</div>
-        `;
-        statusDiv.innerHTML = html;
+      const html = `
+        <div><b>Soubor:</b> ${STATUS_FILE}</div>
+        <div><b>Počet záznamů:</b> ${count}</div>
+        <div><b>Stav spojení:</b> <span class="ok">OK</span></div>
+        <div><b>Poslední kontrola:</b> ${new Date().toLocaleString("cs-CZ")}</div>
+      `;
+      statusDiv.innerHTML = html;
 
-        indicator.classList.remove("error");
-        indicator.classList.add("ok");
-        lastState = true;
-      } catch (err) {
-        statusDiv.innerHTML = `<span class="error">❌ Chyba načítání: ${err.message}</span>`;
-        indicator.classList.remove("ok");
-        indicator.classList.add("error");
+      indicator.classList.remove("error");
+      indicator.classList.add("ok");
+      lastState = true;
+    } catch (err) {
+      statusDiv.innerHTML = `<span class="error">❌ Chyba načítání: ${err.message}</span>`;
+      indicator.classList.remove("ok");
+      indicator.classList.add("error");
 
-        if (lastState) {
-          try { alertSound.play(); } catch (e) {}
-          lastState = false;
-        }
+      if (lastState) {
+        try { alertSound.play(); } catch (e) {}
+        lastState = false;
       }
     }
+  }
 
-    loadStatus();
-    setInterval(loadStatus, 30000);
-  </script>
+  loadStatus();
+  setInterval(loadStatus, 30000);
+</script>
 </body>
 </html>
