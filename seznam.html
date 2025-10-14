@@ -466,20 +466,23 @@ const tableBody=document.querySelector("#ordersTable tbody");
 const reloadBtn=document.getElementById("reloadBtn");
 let allOrders=[];
 
-/* 🟩 NAČTENÍ DAT Z WORKERU */
-async function loadOrders(){
-  try{
-    tableBody.innerHTML=`<tr><td colspan="4" style="text-align:center;color:#888;">🔄 Načítám data...</td></tr>`;
-    const base="https://wgs-token.72nvwf4pb2.workers.dev";
-    const urls=[`${base}/orders`, `${base}/hotove`, `${base}/temporaryfiles`];
-    const results=await Promise.all(
-      urls.map(u=>fetch(u+"?"+Date.now())
-      .then(r=>r.json())
-      .catch(()=>[]))
-    );
+/* 🟩 NAČTENÍ DAT Z PHP */
+async function loadOrders() {
+  try {
+    tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#888;">🔄 Načítám data...</td></tr>`;
+
+    // 📁 seznam souborů (místo Worker endpointů)
+    const files = ["orders.json", "hotove.json", "temporaryfiles.json"];
+
+    // 📦 načti všechny soubory přes náš PHP modul
+    const results = await Promise.all(files.map(f => loadData(f)));
+
+    // 🧩 spoj do jednoho pole
     allOrders = results.flat().filter(Boolean);
+
+    console.log("✅ Načteno z PHP:", allOrders);
     renderOrders();
-  }catch(e){
+  } catch (e) {
     console.error("❌ Chyba načítání:", e);
     tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#f66;">Chyba načítání dat</td></tr>`;
   }
