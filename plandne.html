@@ -334,23 +334,33 @@ function getDistanceFromLatLon(lat1,lon1,lat2,lon2){
 </style>
 <!-- 🟩 KONEC SEKCE 7/10 – STYL SEZNAMU POD MAPOU -->
 
-<!-- 🟩 ZAČÁTEK SEKCE 8/10 – NAČÍTÁNÍ DAT -->
+<!-- 🟩 ZAČÁTEK SEKCE 8/10 – NAČÍTÁNÍ DAT (PHP verze bez Workeru) -->
 <script>
-async function loadTemporaryFiles(){
-  try{
-    const res=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles?"+Date.now(),{cache:"no-store"});
-    const json=await res.json();
-    const data=Array.isArray(json)?json.map(r=>r.data||r):(json.data||[]);
-    dataAll=data.filter(d=>d.datum);
-    const dates=[...new Set(dataAll.map(d=>d.datum))];
+async function loadTemporaryFiles() {
+  try {
+    const res = await fetch("https://www.wgs-service.cz/load.php?file=temporaryfiles.json&t=" + Date.now(), {
+      cache: "no-store"
+    });
+
+    if (!res.ok) throw new Error("Chybná odpověď: " + res.status);
+    const json = await res.json();
+
+    const data = Array.isArray(json)
+      ? json.map(r => r.data || r)
+      : (json.data || []);
+
+    dataAll = data.filter(d => d.datum);
+    const dates = [...new Set(dataAll.map(d => d.datum))];
+
     buildCalendar(dates);
-  }catch(e){
-    console.error("❌ Nelze načíst temporaryfiles:",e);
+  } catch (e) {
+    console.error("❌ Nelze načíst temporaryfiles:", e);
     buildCalendar();
   }
 }
 </script>
 <!-- 🟩 KONEC SEKCE 8/10 – NAČÍTÁNÍ DAT -->
+
 
 <!-- 🟩 ZAČÁTEK SEKCE 9/10 – INICIALIZACE -->
 <script>
