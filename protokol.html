@@ -347,26 +347,40 @@ async function exportPDF(){
   }catch(e){console.error(e);showNotif("error","Chyba exportu PDF");}
 }
 
-// 🟢 Po exportu nebo odeslání – přesun do hotových
+// 🟢 Po exportu nebo odeslání – přesun do hotových (PHP verze)
 async function moveToHotove() {
   try {
-    const base = "https://wgs-token.72nvwf4pb2.workers.dev";
     const current = JSON.parse(localStorage.getItem("currentCustomer") || "{}");
-    if (!current || !current.cislo) return console.warn("⚠️ Žádný aktuální zákazník v localStorage");
+    if (!current || !current.cislo) {
+      console.warn("⚠️ Žádný aktuální zákazník v localStorage");
+      return;
+    }
 
-    // 1️⃣ Uložení do hotových
-    await fetch(`${base}/hotove`, {
+    // 1️⃣ Uložení do hotove.json
+    const formSave = new FormData();
+    formSave.append("file", "hotove.json");
+    formSave.append("data", JSON.stringify([current]));
+
+    const saveRes = await fetch("https://www.wgs-service.cz/save.php", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(current)
+      body: formSave
     });
 
-    // 2️⃣ Smazání z temporaryfiles
-    await fetch(`${base}/temporaryfiles`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cislo: current.cislo })
+    if (!saveRes.ok) throw new Error("Chyba zápisu do hotove.json: " + saveRes.status);
+    await saveRes.json();
+
+    // 2️⃣ Smazání z temporaryfiles.json
+    const formDel = new FormData();
+    formDel.append("file", "temporaryfiles.json");
+    formDel.append("cislo", current.cislo);
+
+    const delRes = await fetch("https://www.wgs-service.cz/delete.php", {
+      method: "POST",
+      body: formDel
     });
+
+    if (!delRes.ok) throw new Error("Chyba mazání z temporaryfiles.json: " + delRes.status);
+    await delRes.json();
 
     showNotif("success", "Reklamace přesunuta do hotových");
   } catch (e) {
@@ -376,9 +390,10 @@ async function moveToHotove() {
 }
 
 // ✉️ Po odeslání zákazníkovi
-function mailCustomer(){
-  showNotif("warning","Otevírám mail…");
+function mailCustomer() {
+  showNotif("warning", "Otevírám mail…");
   moveToHotove();
 }
 </script>
 <!-- 🟦 KONEC ČÁSTI 2/2 – FOTODOKUMENTACE + SPOJENÍ PDF -->
+
