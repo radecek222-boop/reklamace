@@ -635,26 +635,31 @@ document.addEventListener("DOMContentLoaded",()=>{
       fotky:photos
     };
 
-    try{
-      const res=await fetch("https://wgs-token.72nvwf4pb2.workers.dev/temporaryfiles",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({record:dataObj})
-      });
-      if(!res.ok)throw new Error("Chybná odpověď: "+res.status);
-      await res.json();
+   try {
+  // 🟩 Přímý zápis přes PHP na wgs-service.cz
+  const form = new FormData();
+  form.append("file", "temporaryfiles.json");
+  form.append("data", JSON.stringify([{ record: dataObj }]));
 
-      localStorage.removeItem("novaReklamaceDraft");
-      wait.classList.remove("active");
-      success.classList.add("active");
-      setTimeout(()=>window.location.href="index.html",2500);
-    }catch(err){
-      console.error(err);
-      alert("Chyba při odesílání: "+err.message);
-      wait.classList.remove("active");
-    }
+  const res = await fetch("https://www.wgs-service.cz/save.php", {
+    method: "POST",
+    body: form
   });
-});
+
+  if (!res.ok) throw new Error("Chybná odpověď: " + res.status);
+  await res.json();
+
+  localStorage.removeItem("novaReklamaceDraft");
+  wait.classList.remove("active");
+  success.classList.add("active");
+  setTimeout(() => window.location.href = "index.html", 2500);
+
+} catch (err) {
+  console.error(err);
+  alert("Chyba při odesílání: " + err.message);
+  wait.classList.remove("active");
+}
+
   // 🚫 Zamezit odeslání formuláře při výběru data
 document.querySelectorAll('input[type="date"]').forEach(el=>{
   el.addEventListener("keydown",e=>{
