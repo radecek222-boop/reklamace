@@ -177,16 +177,28 @@ tr:hover { background: rgba(0,255,150,0.07); }
   </div>
 
 <script>
+/* 🧩 UNIVERZÁLNÍ PHP DATOVÝ MODUL */
+const WGS_BASE = "https://www.wgs-service.cz";
+
+async function loadData(file) {
+  try {
+    const res = await fetch(`${WGS_BASE}/load.php?file=${encodeURIComponent(file)}&t=${Date.now()}`, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Chyba načtení: ${res.status}`);
+    return await res.json();
+  } catch (e) {
+    console.error("❌ loadData:", e);
+    return [];
+  }
+}
+
+/* 🟩 NAČTENÍ DAT Z PHP */
 async function loadDone(autoRetry = true) {
   const tableContainer = document.getElementById("tableContainer");
   let dataAll = [];
 
   try {
-    // 🟢 načti z hotove.json přes Worker
-    const res = await fetch("https://wgs-token.72nvwf4pb2.workers.dev/hotove", {
-      cache: "no-store"
-    });
-    const json = await res.json();
+    // 🟢 načti z hotove.json přes PHP
+    const json = await loadData("hotove.json");
     if (Array.isArray(json)) {
       dataAll = json.map(x => x.data || x);
     } else if (Array.isArray(json.data)) {
